@@ -17,7 +17,6 @@ import { useToast } from "@/components/ui/use-toast"
 import { createTradePost } from "@/lib/actions/trade-actions"
 import { createBrowserClient } from "@/lib/supabase/client"
 import LoginPromptModal from "@/components/ui/login-prompt-modal"
-import AuthDebug from "@/components/auth-debug"
 import { checkTimeSync, formatTimeSkew, type TimeSync } from "@/lib/utils/time-sync"
 
 type SelectionContextType = "wanted" | "offered" | null
@@ -406,7 +405,6 @@ export default function CreateTradePage() {
           {/* デバッグ情報（開発時のみ表示） */}
           {process.env.NODE_ENV === "development" && (
             <div className="mb-6">
-              <AuthDebug />
               {timeSync && (
                 <div className="mt-4 p-3 bg-gray-50 rounded border text-xs">
                   <h4 className="font-semibold mb-2">時刻同期情報:</h4>
