@@ -19,84 +19,64 @@ export async function GET(request: NextRequest) {
   // エラーがある場合はエラーページにリダイレクト
   if (error) {
     console.error("❌ OAuth error:", error, errorDescription)
-    return NextResponse.redirect(`${origin}/auth/login?error=${error}&description=${errorDescription}`)
+    return NextResponse.redirect(
+      `${origin}/auth/login?error=${encodeURIComponent(error)}&description=${encodeURIComponent(errorDescription || "")}`,
+    )
   }
 
-  if (code) {
-    try {
-      const supabase = await createClient()
-      
-      console.log("🔄 Exchanging code for session...")
-      const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
+  if (!code) {
+    console.error("❌ No code parameter found")
+    return NextResponse.redirect(`${origin}/auth/login?error=no_code`)
+  }
 
-      if (exchangeError) {
-        console.error("❌ Session exchange failed:", exchangeError)
-        return NextResponse.redirect(`${origin}/auth/login?error=callback_error&message=${exchangeError.message}`)
-      }
+  try {
+    const supabase = await createClient()
 
-      if (data?.session) {
-        console.log("✅ Session exchange successful for user:", data.session.user.email)
+    console.log("🔄 Exchanging code for session...")
+    const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
 
-        // セッションが確実に確立されたことを確認
-        const { data: { session: verifiedSession } } = await supabase.auth.getSession()
-        
-        if (!verifiedSession) {
-          console.error("❌ Session verification failed")
-          return NextResponse.redirect(`${origin}/auth/login?error=session_verification_failed`)
-        }
-
-        // リダイレクトURLの構築（codeパラメータなし）
-        let redirectUrl: string
-
-        // デプロイ環境でのリダイレクト処理を改善
-        const forwardedHost = request.headers.get("x-forwarded-host")
-        const isLocalEnv = process.env.NODE_ENV === "development"
-
-        if (isLocalEnv) {
-          redirectUrl = `${origin}${next}`
-        } else if (forwardedHost) {
-          redirectUrl = `https://${forwardedHost}${next}`
-        } else {
-          // Vercelなどのデプロイ環境での処理
-          const deployUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : origin
-          redirectUrl = `${deployUrl}${next}`
-        }
-
-        console.log("🔄 Redirecting to:", redirectUrl)
-        
-        // レスポンスを作成し、セッションクッキーを確実に設定
-        const response = NextResponse.redirect(redirectUrl)
-        
-        // セッションクッキーを手動で設定（必要に応じて）
-        if (data.session.access_token) {
-          response.cookies.set('sb-access-token', data.session.access_token, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'lax',
-            maxAge: 60 * 60 * 24 * 7 // 7 days
-          })
-        }
-        
-        if (data.session.refresh_token) {
-          response.cookies.set('sb-refresh-token', data.session.refresh_token, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'lax',
-            maxAge: 60 * 60 * 24 * 30 // 30 days
-          })
-        }
-        
-        return response
-      } else {
-        console.error("❌ No session after exchange")
-        return NextResponse.redirect(`${origin}/auth/login?error=no_session`)
-      }
-    } catch (error) {
-      console.error("❌ Callback error:", error)
-      return NextResponse.redirect(`${origin}/auth/login?error=callback_error&message=Unexpected error`)
+    if (exchangeError) {
+      console.error("❌ Session exchange failed:", exchangeError)
+      return NextResponse.redirect(
+        `${origin}/auth/login?error=callback_error&message=${encodeURIComponent(exchangeError.message)}`,
+      )
     }
-  }
 
-  console.log("❌ No code parameter found")
-  return NextResponse.redirect(`${origin}/auth/login?error=no_code`)
+    if (!data?.session) {
+      console.error("❌ No session after exchange")
+      return NextResponse.redirect(`${origin}/auth/login?error=no_session`)
+    }
+
+    console.log("✅ Session exchange successful for user:", data.session.user.email)
+
+    // リダイレクトURLの構築（codeパラメータなし）
+    let redirectUrl: string
+
+    // デプロイ環境でのリダイレクト処理
+    const forwardedHost = request.headers.get("x-forwarded-host")
+    const forwardedProto = request.headers.get("x-forwarded-proto")
+    const isLocalEnv = process.env.NODE_ENV === "development"
+
+    if (isLocalEnv) {
+      redirectUrl = `${origin}${next}`
+    } else if (forwardedHost) {
+      const protocol = forwardedProto || "https"
+      redirectUrl = `${protocol}://${forwardedHost}${next}`
+    } else {
+      // Vercelなどのデプロイ環境での処理
+      const deployUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : origin
+      redirectUrl = `${deployUrl}${next}`
+    }
+
+    console.log("🔄 Redirecting to:", redirectUrl)
+
+    // @supabase/ssrが自動的にCookieを処理するため、追加の処理は不要
+    return NextResponse.redirect(redirectUrl)
+  } catch (error) {
+    console.error("❌ Unexpected callback error:", error)
+    const errorMessage = error instanceof Error ? error.message : "Unexpected error occurred"
+    return NextResponse.redirect(
+      `${origin}/auth/login?error=callback_error&message=${encodeURIComponent(errorMessage)}`,
+    )
+  }
 }

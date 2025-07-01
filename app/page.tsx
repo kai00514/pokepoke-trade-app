@@ -14,7 +14,6 @@ import type { Card as SelectedCardType } from "@/components/detailed-search-moda
 import { getTradePostsWithCards } from "@/lib/actions/trade-actions"
 import { useToast } from "@/components/ui/use-toast"
 import { useRouter } from "next/navigation"
-import { AuthDebug } from "@/components/auth-debug"
 
 export default function TradeBoardPage() {
   const [isDetailedSearchOpen, setIsDetailedSearchOpen] = useState(false)
@@ -169,7 +168,6 @@ export default function TradeBoardPage() {
         onSelectionComplete={handleDetailedSearchSelectionComplete}
         modalTitle="カード詳細検索"
       />
-      <AuthDebug />
     </div>
   )
 }

@@ -2,9 +2,8 @@
 
 import type React from "react"
 import { createContext, useContext, useEffect, useState, useCallback } from "react"
-import { useSearchParams } from "next/navigation"
 import type { User, SupabaseClient, Session } from "@supabase/supabase-js"
-import { createClient } from "@/lib/supabase/client" // createClient をインポート
+import { createClient } from "@/lib/supabase/client"
 import { getUserProfile } from "@/lib/services/user-service"
 
 interface UserProfile {
@@ -23,7 +22,7 @@ interface AuthContextType {
   loading: boolean
   displayName: string
   signOut: () => Promise<void>
-  supabase: SupabaseClient // supabaseクライアントを追加
+  supabase: SupabaseClient
   refreshSession: () => Promise<void>
 }
 
@@ -35,11 +34,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null)
   const [loading, setLoading] = useState(true)
   const [displayName, setDisplayName] = useState<string>("")
-  const [isInitialized, setIsInitialized] = useState(false)
-  const [isLoading, setIsLoading] = useState(false) // setIsLoading をここで宣言
 
-  const supabase = createClient() // Supabaseクライアントをここで作成
-  const searchParams = useSearchParams()
+  const supabase = createClient()
 
   const fetchUserProfile = useCallback(
     async (userId: string) => {
@@ -67,18 +63,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   )
 
   const refreshSession = useCallback(async () => {
-    setIsLoading(true)
-    const {
-      data: { session: newSession },
-      error,
-    } = await supabase.auth.getSession()
-    if (error) {
-      console.error("Error refreshing session:", error)
-      setSession(null)
-      setUser(null)
-      setUserProfile(null)
-      setDisplayName("")
-    } else {
+    try {
+      const {
+        data: { session: newSession },
+        error,
+      } = await supabase.auth.getSession()
+
+      if (error) {
+        console.error("❌ Error refreshing session:", error)
+        setSession(null)
+        setUser(null)
+        setUserProfile(null)
+        setDisplayName("")
+        return
+      }
+
       setSession(newSession)
       if (newSession?.user) {
         setUser(newSession.user)
@@ -88,77 +87,106 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUserProfile(null)
         setDisplayName("")
       }
+    } catch (error) {
+      console.error("❌ Error in refreshSession:", error)
+      setSession(null)
+      setUser(null)
+      setUserProfile(null)
+      setDisplayName("")
     }
-    setIsLoading(false)
   }, [supabase, fetchUserProfile])
 
   useEffect(() => {
-    // 初期化を実行
-    refreshSession()
+    let mounted = true
 
-    // 認証状態変更の監視
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, newSession) => {
-      setSession(newSession)
-      if (newSession?.user) {
-        setUser(newSession.user)
-        fetchUserProfile(newSession.user.id)
-      } else {
-        setUser(null)
-        setUserProfile(null)
-        setDisplayName("")
-      }
-      setIsLoading(false)
-    })
+    // 初期セッション取得
+    const getInitialSession = async () => {
+      try {
+        const {
+          data: { session },
+          error,
+        } = await supabase.auth.getSession()
 
-    return () => {
-      subscription.unsubscribe()
-    }
-  }, [refreshSession, fetchUserProfile, supabase.auth])
+        if (!mounted) return
 
-  // URLパラメータのcodeを処理（初期化後）
-  useEffect(() => {
-    if (!isInitialized) return
+        if (error) {
+          console.error("❌ Error getting initial session:", error)
+          setLoading(false)
+          return
+        }
 
-    const handleCodeParameter = async () => {
-      const code = searchParams.get("code")
-      if (code) {
-        console.log("🔐 Processing code parameter:", code)
-        try {
-          const { data, error } = await supabase.auth.exchangeCodeForSession(code)
-          if (error) {
-            console.error("❌ Code exchange error:", error)
-          } else if (data.session) {
-            console.log("✅ Code exchanged successfully for user:", data.session.user.email)
-            setSession(data.session)
-            setUser(data.session.user)
-            await fetchUserProfile(data.session.user.id)
-            setLoading(false)
+        console.log("🔄 Initial session:", session ? "found" : "not found")
+        setSession(session)
+        setUser(session?.user ?? null)
 
-            // URLからcodeパラメータを削除
-            const url = new URL(window.location.href)
-            url.searchParams.delete("code")
-            window.history.replaceState({}, "", url.toString())
-          }
-        } catch (error) {
-          console.error("❌ Error processing code:", error)
+        if (session?.user) {
+          await fetchUserProfile(session.user.id)
+        }
+
+        setLoading(false)
+      } catch (error) {
+        console.error("❌ Error in getInitialSession:", error)
+        if (mounted) {
+          setLoading(false)
         }
       }
     }
 
-    handleCodeParameter()
-  }, [searchParams, isInitialized, supabase.auth, fetchUserProfile])
+    getInitialSession()
+
+    // 認証状態変更の監視（一本化）
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (event, newSession) => {
+      if (!mounted) return
+
+      console.log("🔄 Auth state changed:", event, newSession ? "session exists" : "no session")
+
+      try {
+        setSession(newSession)
+        setUser(newSession?.user ?? null)
+
+        if (newSession?.user) {
+          await fetchUserProfile(newSession.user.id)
+        } else {
+          setUserProfile(null)
+          setDisplayName("")
+        }
+
+        // 初回ロード完了後はloadingをfalseに
+        if (loading) {
+          setLoading(false)
+        }
+      } catch (error) {
+        console.error("❌ Error in onAuthStateChange:", error)
+        if (mounted) {
+          setSession(null)
+          setUser(null)
+          setUserProfile(null)
+          setDisplayName("")
+          setLoading(false)
+        }
+      }
+    })
+
+    return () => {
+      mounted = false
+      subscription.unsubscribe()
+    }
+  }, [fetchUserProfile, supabase.auth, loading])
 
   const signOut = async () => {
     try {
       setLoading(true)
+      console.log("🔄 Signing out...")
+
       const { error } = await supabase.auth.signOut()
       if (error) {
         console.error("❌ Sign out error:", error)
         throw error
       }
 
+      // 状態をクリア
       setSession(null)
       setUser(null)
       setUserProfile(null)
@@ -179,7 +207,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     loading,
     displayName,
     signOut,
-    supabase, // supabaseクライアントをコンテキストの値に含める
+    supabase,
     refreshSession,
   }
 

@@ -1,6 +1,7 @@
 "use server"
 
 import { createClient } from "@supabase/supabase-js"
+
 import { fetchCardDetailsByIds, type CardData } from "@/lib/card-api" // CardData型もインポート
 
 // Supabaseクライアントを作成

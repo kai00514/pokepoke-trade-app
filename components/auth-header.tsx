@@ -17,7 +17,10 @@ import { LogOut, UserIcon, Settings, Bell } from "lucide-react"
 import { NotificationDropdown } from "./notification-dropdown" // NotificationDropdownをインポート
 
 export function AuthHeader() {
-  const { session, isLoading, supabase } = useAuth()
+  const { session, loading, supabase } = useAuth()
+  console.log("session: ", session)
+  console.log("loading: ", loading)
+  console.log("supabase: ", supabase)
 
   const handleSignOut = async () => {
     await supabase.auth.signOut()

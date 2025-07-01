@@ -1,4 +1,4 @@
-import { createBrowserClient as createSupabaseBrowserClient } from "@supabase/ssr"
+import { createBrowserClient } from "@supabase/ssr"
 import type { SupabaseClient } from "@supabase/supabase-js"
 
 // Singleton pattern for the client-side Supabase client
@@ -10,19 +10,16 @@ export function createClient() {
   }
 
   if (!supabaseInstance) {
-    supabaseInstance = createSupabaseBrowserClient(
+    supabaseInstance = createBrowserClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
       {
         auth: {
-          autoRefreshToken: true,
-          persistSession: true,
-          detectSessionInUrl: true,
           flowType: "pkce",
         },
         global: {
           headers: {
-            "X-Client-Info": "pokepoke-trade",
+            "X-Client-Info": "pokepoke-trade-app",
           },
         },
       },
@@ -31,9 +28,9 @@ export function createClient() {
   return supabaseInstance
 }
 
-// 互換性のための名前付きエクスポート (もし他の場所で createBrowserClient としてインポートされている場合)
+// 互換性のための名前付きエクスポート (他のファイルが createBrowserClient としてインポートしている場合)
 export { createClient as createBrowserClient }
-// supabase インスタンスを名前付きエクスポートとして提供
+// supabase インスタンスを名前付きエクスポートとして提供 (他のファイルが supabase としてインポートしている場合)
 export const supabase = createClient()
-// デフォルトエクスポート (もし他の場所でデフォルトインポートされている場合)
+// デフォルトエクスポート (他のファイルがデフォルトインポートしている場合)
 export default createClient
