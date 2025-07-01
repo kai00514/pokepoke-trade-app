@@ -26,7 +26,7 @@ export function AuthHeader() {
     await supabase.auth.signOut()
   }
 
-  if (isLoading) {
+  if (loading) {
     return (
       <header className="flex items-center justify-between h-16 px-4 border-b shrink-0 md:px-6">
         <Link className="flex items-center gap-2 text-lg font-semibold md:text-base" href="#">
