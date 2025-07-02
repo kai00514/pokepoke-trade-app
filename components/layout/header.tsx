@@ -18,6 +18,7 @@ function Header() {
   const [unreadCount, setUnreadCount] = useState(0)
   const [isPokepokeIdModalOpen, setIsPokepokeIdModalOpen] = useState(false)
   const [isUsernameModalOpen, setIsUsernameModalOpen] = useState(false)
+  const [isSigningOut, setIsSigningOut] = useState(false)
   const router = useRouter()
 
   // アカウント名の表示優先順位: name > display_name > pokepoke_id > email
@@ -63,13 +64,24 @@ function Header() {
   }, [user, loading])
 
   const handleSignOut = async () => {
+    if (isSigningOut) return // 重複実行を防ぐ
+
     try {
+      setIsSigningOut(true)
       console.log("🚪 Header: Starting sign out...")
+
       await signOut()
+
       console.log("✅ Header: Sign out completed, redirecting to home")
-      router.push("/")
+
+      // ページをリロードしてホームに移動
+      window.location.href = "/"
     } catch (error) {
       console.error("❌ Header: Sign out error:", error)
+      // エラーが発生してもホームページにリダイレクト
+      window.location.href = "/"
+    } finally {
+      setIsSigningOut(false)
     }
   }
 
@@ -173,8 +185,8 @@ function Header() {
                   <DropdownMenuItem onClick={handleUsernameRegistration} className="cursor-pointer">
                     ユーザー名登録
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer">
-                    ログアウト
+                  <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer" disabled={isSigningOut}>
+                    {isSigningOut ? "ログアウト中..." : "ログアウト"}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
