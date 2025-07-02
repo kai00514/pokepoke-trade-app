@@ -60,6 +60,8 @@ function Header() {
     try {
       await signOut()
       console.log("✅ Signed out successfully from Layout Header")
+      // ログアウト後にホームページにリダイレクト
+      window.location.href = "/"
     } catch (error) {
       console.error("❌ Sign out error:", error)
     }
