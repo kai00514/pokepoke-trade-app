@@ -12,9 +12,10 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { useRouter } from "next/navigation"
 import { PokepokeIdRegistrationModal } from "@/components/pokepoke-id-registration-modal"
 import { UsernameRegistrationModal } from "@/components/username-registration-modal"
+import { updateUserProfile } from "@/lib/services/user-service"
 
 function Header() {
-  const { user, userProfile, signOut } = useAuth()
+  const { user, userProfile, signOut, refreshSession } = useAuth()
   const [unreadCount, setUnreadCount] = useState(0)
   const [isPokepokeIdModalOpen, setIsPokepokeIdModalOpen] = useState(false)
   const [isUsernameModalOpen, setIsUsernameModalOpen] = useState(false)
@@ -87,14 +88,54 @@ function Header() {
     setIsUsernameModalOpen(true)
   }
 
-  const handlePokepokeIdSave = (pokepokeId: string) => {
-    console.log("ポケポケID保存:", pokepokeId)
-    // TODO: ポケポケID保存処理を実装
+  const handlePokepokeIdSave = async (pokepokeId: string) => {
+    if (!user) {
+      console.error("❌ User not found")
+      return
+    }
+
+    try {
+      console.log("💾 Saving PokepokeID:", pokepokeId)
+
+      const updatedProfile = await updateUserProfile(user.id, {
+        pokepoke_id: pokepokeId,
+      })
+
+      if (updatedProfile) {
+        console.log("✅ PokepokeID saved successfully:", updatedProfile)
+        // セッションを更新してUIに反映
+        await refreshSession()
+      } else {
+        console.error("❌ Failed to save PokepokeID")
+      }
+    } catch (error) {
+      console.error("❌ Error saving PokepokeID:", error)
+    }
   }
 
-  const handleUsernameSave = (username: string) => {
-    console.log("ユーザー名保存:", username)
-    // TODO: ユーザー名保存処理を実装
+  const handleUsernameSave = async (username: string) => {
+    if (!user) {
+      console.error("❌ User not found")
+      return
+    }
+
+    try {
+      console.log("💾 Saving username:", username)
+
+      const updatedProfile = await updateUserProfile(user.id, {
+        name: username,
+      })
+
+      if (updatedProfile) {
+        console.log("✅ Username saved successfully:", updatedProfile)
+        // セッションを更新してUIに反映
+        await refreshSession()
+      } else {
+        console.error("❌ Failed to save username")
+      }
+    } catch (error) {
+      console.error("❌ Error saving username:", error)
+    }
   }
 
   return (
