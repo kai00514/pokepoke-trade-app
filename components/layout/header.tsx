@@ -134,7 +134,7 @@ function Header() {
                       </div>
                     )}
                   </div>
-                  <span className="text-white text-sm font-medium hidden sm:inline">{displayName}</span>
+                  <span className="text-white text-sm font-medium hidden sm:inline">{userProfile?.name}</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48">
