@@ -100,6 +100,7 @@ function Header() {
       const updatedProfile = await updateUserProfile(user.id, {
         pokepoke_id: pokepokeId,
       })
+      console.log("updatedProfile: ", updatedProfile)
 
       if (updatedProfile) {
         console.log("✅ PokepokeID saved successfully:", updatedProfile)
