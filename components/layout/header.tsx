@@ -14,7 +14,7 @@ import { PokepokeIdRegistrationModal } from "@/components/pokepoke-id-registrati
 import { UsernameRegistrationModal } from "@/components/username-registration-modal"
 
 function Header() {
-  const { user, userProfile, loading, signOut } = useAuth()
+  const { user, userProfile, signOut } = useAuth()
   const [unreadCount, setUnreadCount] = useState(0)
   const [isPokepokeIdModalOpen, setIsPokepokeIdModalOpen] = useState(false)
   const [isUsernameModalOpen, setIsUsernameModalOpen] = useState(false)
@@ -31,7 +31,6 @@ function Header() {
   console.log("🔍 Layout Header component - Auth state:", {
     user: user ? { id: user.id, email: user.email } : null,
     userProfile,
-    loading,
     accountName,
   })
 
@@ -57,10 +56,10 @@ function Header() {
       }
     }
 
-    if (user && !loading) {
+    if (user) {
       fetchUnreadCount()
     }
-  }, [user, loading])
+  }, [user])
 
   const handleSignOut = async () => {
     try {

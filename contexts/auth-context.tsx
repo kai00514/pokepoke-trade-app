@@ -20,7 +20,6 @@ interface AuthContextType {
   session: Session | null
   user: User | null
   userProfile: UserProfile | null
-  loading: boolean
   displayName: string
   signOut: () => Promise<void>
   supabase: SupabaseClient
@@ -33,7 +32,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null)
   const [user, setUser] = useState<User | null>(null)
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null)
-  const [loading, setLoading] = useState(true)
   const [displayName, setDisplayName] = useState<string>("")
 
   const supabase = createClient()
@@ -113,7 +111,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         if (error) {
           console.error("❌ Error getting initial session:", error)
-          setLoading(false)
           return
         }
 
@@ -124,19 +121,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (session?.user) {
           await fetchUserProfile(session.user.id)
         }
-
-        setLoading(false)
       } catch (error) {
         console.error("❌ Error in getInitialSession:", error)
-        if (mounted) {
-          setLoading(false)
-        }
       }
     }
 
     getInitialSession()
 
-    // 認証状態変更の監視（一本化）
+    // 認証状態変更の監視
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, newSession) => {
@@ -154,11 +146,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setUserProfile(null)
           setDisplayName("")
         }
-
-        // 初回ロード完了後はloadingをfalseに
-        if (loading) {
-          setLoading(false)
-        }
       } catch (error) {
         console.error("❌ Error in onAuthStateChange:", error)
         if (mounted) {
@@ -166,7 +153,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setUser(null)
           setUserProfile(null)
           setDisplayName("")
-          setLoading(false)
         }
       }
     })
@@ -175,32 +161,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       mounted = false
       subscription.unsubscribe()
     }
-  }, [fetchUserProfile, supabase.auth, loading])
+  }, [fetchUserProfile, supabase.auth])
 
   const signOut = async () => {
     try {
-      setLoading(true)
       console.log("🔄 Starting sign out process...")
 
-      // Supabaseからサインアウト
-      const { error } = await supabase.auth.signOut()
-      if (error) {
-        console.error("❌ Sign out error:", error)
-        throw error
-      }
-
-      // 状態をクリア
+      // 即座にローカル状態をクリア
       setSession(null)
       setUser(null)
       setUserProfile(null)
       setDisplayName("")
 
+      // Supabaseからサインアウト
+      const { error } = await supabase.auth.signOut()
+      if (error) {
+        console.error("❌ Sign out error:", error)
+        // エラーが発生してもローカル状態はクリア済み
+      }
+
       console.log("✅ Signed out successfully")
     } catch (error) {
       console.error("❌ Error during sign out:", error)
-      throw error
-    } finally {
-      setLoading(false)
+      // エラーが発生してもローカル状態はクリア済み
     }
   }
 
@@ -208,7 +191,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     session,
     user,
     userProfile,
-    loading,
     displayName,
     signOut,
     supabase,
