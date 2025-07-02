@@ -8,6 +8,7 @@ import { getUserProfile } from "@/lib/services/user-service"
 
 interface UserProfile {
   id: string
+  name?: string
   pokepoke_id?: string
   display_name?: string
   avatar_url?: string
@@ -44,10 +45,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const profile = await getUserProfile(userId)
         setUserProfile(profile)
 
-        // 表示名の優先順位: display_name > pokepoke_id > email
+        // 表示名の優先順位: name > display_name > pokepoke_id > email
         const currentUser = await supabase.auth.getUser()
         const email = currentUser.data.user?.email
-        const name = profile?.display_name || profile?.pokepoke_id || email?.split("@")[0] || "ユーザー"
+        const name =
+          profile?.name || profile?.display_name || profile?.pokepoke_id || email?.split("@")[0] || "ユーザー"
         setDisplayName(name)
 
         console.log("👤 User profile loaded:", { profile, displayName: name })
@@ -216,6 +218,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
 export function useAuth() {
   const context = useContext(AuthContext)
+  console.log("context: ", context)
   if (context === undefined) {
     throw new Error("useAuth must be used within an AuthProvider")
   }
