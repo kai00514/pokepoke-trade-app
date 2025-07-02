@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { createContext, useContext, useEffect, useState } from "react"
 import type { User, Session } from "@supabase/supabase-js"
 import { createClient } from "@/lib/supabase/client"
@@ -36,41 +35,47 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const fetchUserProfile = async (userId: string) => {
     try {
-      console.log("🔍 Fetching user profile for:", userId)
+      console.log("🔍 [fetchUserProfile] START - Fetching user profile for:", userId)
       const profile = await getUserProfile(userId)
-      console.log("🔍 Fetched user profile:", profile)
+      console.log("🔍 [fetchUserProfile] getUserProfile returned:", profile)
       setUserProfile(profile)
+      console.log("🔍 [fetchUserProfile] setUserProfile completed")
     } catch (error) {
-      console.error("❌ Error fetching user profile:", error)
+      console.error("❌ [fetchUserProfile] Error fetching user profile:", error)
       setUserProfile(null)
     }
   }
 
   const refreshSession = async () => {
     try {
-      console.log("🔄 Refreshing session...")
+      console.log("🔄 [refreshSession] START - Refreshing session...")
       const {
         data: { session },
         error,
       } = await supabase.auth.getSession()
 
+      console.log("🔄 [refreshSession] getSession result:", { session: !!session, error })
+
       if (error) {
-        console.error("❌ Error refreshing session:", error)
+        console.error("❌ [refreshSession] Error refreshing session:", error)
         return
       }
 
       if (session?.user) {
-        console.log("🔄 Session refreshed, fetching user profile...")
+        console.log("🔄 [refreshSession] Session found, fetching user profile for:", session.user.id)
         await fetchUserProfile(session.user.id)
+        console.log("🔄 [refreshSession] fetchUserProfile completed")
+      } else {
+        console.log("🔄 [refreshSession] No session found")
       }
     } catch (error) {
-      console.error("❌ Error in refreshSession:", error)
+      console.error("❌ [refreshSession] Error in refreshSession:", error)
     }
   }
 
   const signOut = async () => {
     try {
-      console.log("🚪 Starting sign out...")
+      console.log("🚪 [signOut] Starting sign out...")
 
       // ローカル状態を即座にクリア
       setSession(null)
@@ -80,12 +85,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Supabaseからサインアウト
       const { error } = await supabase.auth.signOut()
       if (error) {
-        console.error("❌ Supabase sign out error:", error)
+        console.error("❌ [signOut] Supabase sign out error:", error)
       } else {
-        console.log("✅ Successfully signed out from Supabase")
+        console.log("✅ [signOut] Successfully signed out from Supabase")
       }
     } catch (error) {
-      console.error("❌ Error during sign out:", error)
+      console.error("❌ [signOut] Error during sign out:", error)
     }
   }
 

@@ -81,75 +81,133 @@ function Header() {
   }
 
   const handlePokepokeIdRegistration = () => {
+    console.log("🎯 [handlePokepokeIdRegistration] Opening PokepokeID modal")
     setIsPokepokeIdModalOpen(true)
   }
 
   const handleUsernameRegistration = () => {
+    console.log("🎯 [handleUsernameRegistration] Opening Username modal")
     setIsUsernameModalOpen(true)
   }
 
   const handlePokepokeIdSave = async (pokepokeId: string) => {
-    console.log("🚀 handlePokepokeIdSave called with:", pokepokeId)
+    console.log("🚀 [handlePokepokeIdSave] ===== START =====")
+    console.log("🚀 [handlePokepokeIdSave] Input pokepokeId:", pokepokeId)
+    console.log("🚀 [handlePokepokeIdSave] Input type:", typeof pokepokeId)
+    console.log("🚀 [handlePokepokeIdSave] Input length:", pokepokeId?.length)
 
     if (!user) {
-      console.error("❌ User not found")
+      console.error("❌ [handlePokepokeIdSave] User not found")
+      console.error("❌ [handlePokepokeIdSave] User object:", user)
       return
     }
 
-    try {
-      console.log("💾 Saving PokepokeID:", pokepokeId)
-      console.log("💾 Saving userID:", user.id)
+    console.log("🚀 [handlePokepokeIdSave] User found:", {
+      id: user.id,
+      email: user.email,
+      userType: typeof user,
+    })
 
+    try {
+      console.log("💾 [handlePokepokeIdSave] Starting save process...")
+      console.log("💾 [handlePokepokeIdSave] Saving PokepokeID:", pokepokeId)
+      console.log("💾 [handlePokepokeIdSave] Saving userID:", user.id)
+
+      console.log("🔄 [handlePokepokeIdSave] Calling updateUserProfile...")
       const updatedProfile = await updateUserProfile(user.id, {
         pokepoke_id: pokepokeId,
       })
 
-      console.log("updatedProfile: ", updatedProfile)
+      console.log("🔄 [handlePokepokeIdSave] updateUserProfile returned:", updatedProfile)
+      console.log("🔄 [handlePokepokeIdSave] updatedProfile type:", typeof updatedProfile)
 
       if (updatedProfile) {
-        console.log("✅ PokepokeID saved successfully:", updatedProfile)
-        // セッションを更新してUIに反映
+        console.log("✅ [handlePokepokeIdSave] PokepokeID saved successfully:", updatedProfile)
+        console.log("🔄 [handlePokepokeIdSave] Calling refreshSession...")
+
         await refreshSession()
-        // モーダルを閉じる
+        console.log("🔄 [handlePokepokeIdSave] refreshSession completed")
+
+        console.log("🔄 [handlePokepokeIdSave] Closing modal...")
         setIsPokepokeIdModalOpen(false)
+        console.log("✅ [handlePokepokeIdSave] Process completed successfully")
       } else {
-        console.error("❌ Failed to save PokepokeID")
+        console.error("❌ [handlePokepokeIdSave] Failed to save PokepokeID - updatedProfile is null/undefined")
       }
     } catch (error) {
-      console.error("❌ Error saving PokepokeID:", error)
+      console.error("❌ [handlePokepokeIdSave] CATCH ERROR - Exception occurred:", error)
+      console.error("❌ [handlePokepokeIdSave] CATCH ERROR - Error type:", typeof error)
+      console.error(
+        "❌ [handlePokepokeIdSave] CATCH ERROR - Error message:",
+        error instanceof Error ? error.message : "Unknown error",
+      )
+      console.error(
+        "❌ [handlePokepokeIdSave] CATCH ERROR - Error stack:",
+        error instanceof Error ? error.stack : "No stack",
+      )
     }
+
+    console.log("🚀 [handlePokepokeIdSave] ===== END =====")
   }
 
   const handleUsernameSave = async (username: string) => {
-    console.log("🚀 handleUsernameSave called with:", username)
+    console.log("🚀 [handleUsernameSave] ===== START =====")
+    console.log("🚀 [handleUsernameSave] Input username:", username)
+    console.log("🚀 [handleUsernameSave] Input type:", typeof username)
+    console.log("🚀 [handleUsernameSave] Input length:", username?.length)
 
     if (!user) {
-      console.error("❌ User not found")
+      console.error("❌ [handleUsernameSave] User not found")
+      console.error("❌ [handleUsernameSave] User object:", user)
       return
     }
 
-    try {
-      console.log("💾 Saving username:", username)
-      console.log("💾 Saving userID:", user.id)
+    console.log("🚀 [handleUsernameSave] User found:", {
+      id: user.id,
+      email: user.email,
+      userType: typeof user,
+    })
 
+    try {
+      console.log("💾 [handleUsernameSave] Starting save process...")
+      console.log("💾 [handleUsernameSave] Saving username:", username)
+      console.log("💾 [handleUsernameSave] Saving userID:", user.id)
+
+      console.log("🔄 [handleUsernameSave] Calling updateUserProfile...")
       const updatedProfile = await updateUserProfile(user.id, {
         display_name: username,
       })
 
-      console.log("updatedProfile: ", updatedProfile)
+      console.log("🔄 [handleUsernameSave] updateUserProfile returned:", updatedProfile)
+      console.log("🔄 [handleUsernameSave] updatedProfile type:", typeof updatedProfile)
 
       if (updatedProfile) {
-        console.log("✅ Username saved successfully:", updatedProfile)
-        // セッションを更新してUIに反映
+        console.log("✅ [handleUsernameSave] Username saved successfully:", updatedProfile)
+        console.log("🔄 [handleUsernameSave] Calling refreshSession...")
+
         await refreshSession()
-        // モーダルを閉じる
+        console.log("🔄 [handleUsernameSave] refreshSession completed")
+
+        console.log("🔄 [handleUsernameSave] Closing modal...")
         setIsUsernameModalOpen(false)
+        console.log("✅ [handleUsernameSave] Process completed successfully")
       } else {
-        console.error("❌ Failed to save username")
+        console.error("❌ [handleUsernameSave] Failed to save username - updatedProfile is null/undefined")
       }
     } catch (error) {
-      console.error("❌ Error saving username:", error)
+      console.error("❌ [handleUsernameSave] CATCH ERROR - Exception occurred:", error)
+      console.error("❌ [handleUsernameSave] CATCH ERROR - Error type:", typeof error)
+      console.error(
+        "❌ [handleUsernameSave] CATCH ERROR - Error message:",
+        error instanceof Error ? error.message : "Unknown error",
+      )
+      console.error(
+        "❌ [handleUsernameSave] CATCH ERROR - Error stack:",
+        error instanceof Error ? error.stack : "No stack",
+      )
     }
+
+    console.log("🚀 [handleUsernameSave] ===== END =====")
   }
 
   return (
