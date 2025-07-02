@@ -96,6 +96,7 @@ function Header() {
 
     try {
       console.log("💾 Saving PokepokeID:", pokepokeId)
+      console.log("💾 Saving ID:", user.id)
 
       const updatedProfile = await updateUserProfile(user.id, {
         pokepoke_id: pokepokeId,
