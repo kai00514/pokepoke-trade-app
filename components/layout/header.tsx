@@ -89,6 +89,8 @@ function Header() {
   }
 
   const handlePokepokeIdSave = async (pokepokeId: string) => {
+    console.log("🚀 handlePokepokeIdSave called with:", pokepokeId)
+
     if (!user) {
       console.error("❌ User not found")
       return
@@ -96,17 +98,20 @@ function Header() {
 
     try {
       console.log("💾 Saving PokepokeID:", pokepokeId)
-      console.log("💾 Saving ID:", user.id)
+      console.log("💾 Saving userID:", user.id)
 
       const updatedProfile = await updateUserProfile(user.id, {
         pokepoke_id: pokepokeId,
       })
+
       console.log("updatedProfile: ", updatedProfile)
 
       if (updatedProfile) {
         console.log("✅ PokepokeID saved successfully:", updatedProfile)
         // セッションを更新してUIに反映
         await refreshSession()
+        // モーダルを閉じる
+        setIsPokepokeIdModalOpen(false)
       } else {
         console.error("❌ Failed to save PokepokeID")
       }
@@ -116,6 +121,8 @@ function Header() {
   }
 
   const handleUsernameSave = async (username: string) => {
+    console.log("🚀 handleUsernameSave called with:", username)
+
     if (!user) {
       console.error("❌ User not found")
       return
@@ -123,15 +130,20 @@ function Header() {
 
     try {
       console.log("💾 Saving username:", username)
+      console.log("💾 Saving userID:", user.id)
 
       const updatedProfile = await updateUserProfile(user.id, {
-        name: username,
+        display_name: username,
       })
+
+      console.log("updatedProfile: ", updatedProfile)
 
       if (updatedProfile) {
         console.log("✅ Username saved successfully:", updatedProfile)
         // セッションを更新してUIに反映
         await refreshSession()
+        // モーダルを閉じる
+        setIsUsernameModalOpen(false)
       } else {
         console.error("❌ Failed to save username")
       }
@@ -257,7 +269,7 @@ function Header() {
       <UsernameRegistrationModal
         isOpen={isUsernameModalOpen}
         onOpenChange={setIsUsernameModalOpen}
-        currentUsername={userProfile?.name}
+        currentUsername={userProfile?.display_name}
         onSave={handleUsernameSave}
       />
     </>

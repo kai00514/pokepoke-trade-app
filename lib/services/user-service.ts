@@ -4,6 +4,7 @@ interface UserProfile {
   id: string
   pokepoke_id?: string
   display_name?: string
+  name?: string
   avatar_url?: string
   created_at: string
   updated_at: string
@@ -62,6 +63,8 @@ export async function updateUserProfile(
   profileData: Partial<UserProfile>,
 ): Promise<UserProfile | null> {
   try {
+    console.log("🔧 updateUserProfile called with:", { userId, profileData })
+
     const supabase = createClient()
 
     const { data, error } = await supabase
@@ -73,6 +76,8 @@ export async function updateUserProfile(
       .eq("id", userId)
       .select()
       .single()
+
+    console.log("🔧 updateUserProfile result:", { data, error })
 
     if (error) {
       console.error("Error updating user profile:", error)
