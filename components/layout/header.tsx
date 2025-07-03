@@ -422,8 +422,8 @@ function Header() {
   )
 }
 
+// Default export を追加
+export default Header
+
 // Named export
 export { Header }
-
-// Default export for compatibility
-export default Header
