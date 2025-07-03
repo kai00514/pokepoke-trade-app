@@ -1,8 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useAuth } from "@/contexts/auth-context"
-import { updateUserProfile } from "@/lib/services/user-service_ver2"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -18,11 +17,18 @@ import { toast } from "sonner"
 
 interface PokepokeIdRegistrationModalProps {
   isOpen: boolean
-  onClose: () => void
+  onOpenChange: (open: boolean) => void
+  currentPokepokeId?: string
+  onSave: (pokepokeId: string) => Promise<void>
 }
 
-export function PokepokeIdRegistrationModal({ isOpen, onClose }: PokepokeIdRegistrationModalProps) {
-  const { user, refreshUserProfile } = useAuth()
+export function PokepokeIdRegistrationModal({
+  isOpen,
+  onOpenChange,
+  currentPokepokeId,
+  onSave,
+}: PokepokeIdRegistrationModalProps) {
+  const { user } = useAuth()
   const [pokepokeId, setPokepokeId] = useState("")
   const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -41,13 +47,12 @@ export function PokepokeIdRegistrationModal({ isOpen, onClose }: PokepokeIdRegis
     setError(null)
 
     try {
-      console.log("🚀 [handlePokepokeIdSave] Calling updateUserProfile...")
-      const updatedProfile = await updateUserProfile(user.id, { pokepoke_id: pokepokeId })
-      console.log("✅ [handlePokepokeIdSave] Profile updated:", updatedProfile)
+      console.log("🚀 [handlePokepokeIdSave] Calling onSave...")
+      await onSave(pokepokeId)
+      console.log("✅ [handlePokepokeIdSave] onSave completed")
 
       toast.success("ポケポケIDを登録しました！")
-      await refreshUserProfile() // Refresh user profile in context
-      onClose()
+      handleClose()
     } catch (err) {
       console.error("❌ [handlePokepokeIdSave] Failed to update Pokepoke ID:", err)
       const errorMessage = err instanceof Error ? err.message : "不明なエラーが発生しました。"
@@ -61,8 +66,14 @@ export function PokepokeIdRegistrationModal({ isOpen, onClose }: PokepokeIdRegis
   const handleClose = () => {
     setPokepokeId("")
     setError(null)
-    onClose()
+    onOpenChange(false)
   }
+
+  useEffect(() => {
+    if (currentPokepokeId) {
+      setPokepokeId(currentPokepokeId)
+    }
+  }, [currentPokepokeId])
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
