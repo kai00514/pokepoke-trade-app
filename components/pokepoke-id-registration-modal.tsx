@@ -1,83 +1,99 @@
 "use client"
 
 import { useState } from "react"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { useAuth } from "@/contexts/auth-context"
+import { updateUserProfile } from "@/lib/services/user-service_ver2"
 import { Button } from "@/components/ui/button"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { toast } from "sonner"
 
 interface PokepokeIdRegistrationModalProps {
   isOpen: boolean
-  onOpenChange: (open: boolean) => void
-  currentPokepokeId?: string | null
-  onSave: (pokepokeId: string) => Promise<void>
+  onClose: () => void
 }
 
-export function PokepokeIdRegistrationModal({
-  isOpen,
-  onOpenChange,
-  currentPokepokeId,
-  onSave,
-}: PokepokeIdRegistrationModalProps) {
-  const [pokepokeId, setPokepokeId] = useState(currentPokepokeId || "")
-  const [isSubmitting, setIsSubmitting] = useState(false)
+export function PokepokeIdRegistrationModal({ isOpen, onClose }: PokepokeIdRegistrationModalProps) {
+  const { user, refreshUserProfile } = useAuth()
+  const [pokepokeId, setPokepokeId] = useState("")
+  const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const handleSave = async () => {
+    if (!user) {
+      toast.error("ログインしていません。")
+      return
+    }
     if (!pokepokeId.trim()) {
-      setError("ポケポケIDを入力してください")
+      setError("ポケポケIDを入力してください。")
       return
     }
 
-    setIsSubmitting(true)
+    setIsSaving(true)
     setError(null)
 
     try {
-      console.log("🔧 [PokepokeIdModal] Saving PokepokeID:", pokepokeId)
-      await onSave(pokepokeId.trim())
-      console.log("✅ [PokepokeIdModal] PokepokeID saved successfully")
-      onOpenChange(false)
-    } catch (error) {
-      console.error("❌ [PokepokeIdModal] Error saving PokepokeID:", error)
-      setError(error instanceof Error ? error.message : "保存に失敗しました")
+      console.log("🚀 [handlePokepokeIdSave] Calling updateUserProfile...")
+      const updatedProfile = await updateUserProfile(user.id, { pokepoke_id: pokepokeId })
+      console.log("✅ [handlePokepokeIdSave] Profile updated:", updatedProfile)
+
+      toast.success("ポケポケIDを登録しました！")
+      await refreshUserProfile() // Refresh user profile in context
+      onClose()
+    } catch (err) {
+      console.error("❌ [handlePokepokeIdSave] Failed to update Pokepoke ID:", err)
+      const errorMessage = err instanceof Error ? err.message : "不明なエラーが発生しました。"
+      setError(errorMessage)
+      toast.error(`登録に失敗しました: ${errorMessage}`)
     } finally {
-      setIsSubmitting(false)
+      setIsSaving(false)
     }
   }
 
-  const handleCancel = () => {
+  const handleClose = () => {
+    setPokepokeId("")
     setError(null)
-    setPokepokeId(currentPokepokeId || "")
-    onOpenChange(false)
+    onClose()
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+    <Dialog open={isOpen} onOpenChange={handleClose}>
+      <DialogContent>
         <DialogHeader>
           <DialogTitle>ポケポケID登録</DialogTitle>
+          <DialogDescription>ゲーム内のトレーナーIDを登録してください。</DialogDescription>
         </DialogHeader>
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="pokepoke-id">ポケポケID</Label>
+        <div className="grid gap-4 py-4">
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="pokepoke-id" className="text-right">
+              ポケポケID
+            </Label>
             <Input
               id="pokepoke-id"
               value={pokepokeId}
               onChange={(e) => setPokepokeId(e.target.value)}
-              placeholder="ポケポケIDを入力してください"
-              disabled={isSubmitting}
+              className="col-span-3"
+              placeholder="例: 1234-5678-9012"
             />
           </div>
-          {error && <p className="text-sm text-red-500">{error}</p>}
-          <div className="flex justify-end space-x-2">
-            <Button variant="outline" onClick={handleCancel} disabled={isSubmitting}>
-              キャンセル
-            </Button>
-            <Button onClick={handleSave} disabled={!pokepokeId.trim() || isSubmitting}>
-              {isSubmitting ? "保存中..." : "保存"}
-            </Button>
-          </div>
+          {error && <p className="text-red-500 text-sm col-span-4 text-center">{error}</p>}
         </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={handleClose} disabled={isSaving}>
+            キャンセル
+          </Button>
+          <Button onClick={handleSave} disabled={isSaving}>
+            {isSaving ? "登録中..." : "登録"}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   )

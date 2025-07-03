@@ -1,65 +1,34 @@
--- Drop existing functions if they exist
-DROP FUNCTION IF EXISTS admin_get_user_by_id(uuid);
+-- Drop existing function if it exists
 DROP FUNCTION IF EXISTS admin_update_user_profile(uuid, jsonb);
 
--- Create admin_get_user_by_id function
-CREATE OR REPLACE FUNCTION admin_get_user_by_id(user_id uuid)
-RETURNS SETOF users
-LANGUAGE sql
-SECURITY DEFINER
-SET search_path = public
-AS $$
-  SELECT * FROM users WHERE id = user_id;
-$$;
-
--- Create admin_update_user_profile function with upsert capability
-CREATE OR REPLACE FUNCTION admin_update_user_profile(user_id uuid, update_data jsonb)
+-- Create a simplified update function that raises an error if the user profile doesn't exist.
+CREATE OR REPLACE FUNCTION admin_update_user_profile(p_user_id uuid, p_update_data jsonb)
 RETURNS SETOF users
 LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = public
 AS $$
 BEGIN
-  -- Try to update existing record
-  UPDATE users
+  -- Attempt to update the user record.
+  UPDATE public.users
   SET 
-    pokepoke_id = COALESCE(update_data->>'pokepoke_id', pokepoke_id),
-    display_name = COALESCE(update_data->>'display_name', display_name),
-    name = COALESCE(update_data->>'name', name),
-    avatar_url = COALESCE(update_data->>'avatar_url', avatar_url),
-    updated_at = COALESCE((update_data->>'updated_at')::timestamp with time zone, updated_at)
-  WHERE id = user_id;
+    pokepoke_id = COALESCE(p_update_data->>'pokepoke_id', pokepoke_id),
+    display_name = COALESCE(p_update_data->>'display_name', display_name),
+    name = COALESCE(p_update_data->>'name', name),
+    avatar_url = COALESCE(p_update_data->>'avatar_url', avatar_url)
+  WHERE id = p_user_id;
   
-  -- If no rows were updated, insert a new record
+  -- Check if the update affected any row. If not, it means the profile was not found.
   IF NOT FOUND THEN
-    INSERT INTO users (
-      id,
-      pokepoke_id,
-      display_name,
-      name,
-      avatar_url,
-      created_at,
-      updated_at
-    ) VALUES (
-      user_id,
-      update_data->>'pokepoke_id',
-      update_data->>'display_name',
-      update_data->>'name',
-      update_data->>'avatar_url',
-      COALESCE((update_data->>'created_at')::timestamp with time zone, NOW()),
-      COALESCE((update_data->>'updated_at')::timestamp with time zone, NOW())
-    );
+    -- Raise an exception. This will be caught as an error by the Supabase client.
+    RAISE EXCEPTION 'User profile not found for id %. A profile should be created automatically by a trigger.', p_user_id;
   END IF;
   
-  -- Return the updated/inserted record
-  RETURN QUERY SELECT * FROM users WHERE id = user_id;
+  -- If the update was successful, return the updated user data.
+  RETURN QUERY SELECT * FROM public.users WHERE id = p_user_id;
 END;
 $$;
 
--- Grant execute permissions to authenticated users
-GRANT EXECUTE ON FUNCTION admin_get_user_by_id(uuid) TO authenticated;
-GRANT EXECUTE ON FUNCTION admin_update_user_profile(uuid, jsonb) TO authenticated;
-
--- Grant execute permissions to anon users (for service role)
-GRANT EXECUTE ON FUNCTION admin_get_user_by_id(uuid) TO anon;
-GRANT EXECUTE ON FUNCTION admin_update_user_profile(uuid, jsonb) TO anon;
+-- Grant necessary execute permissions
+GRANT EXECUTE ON FUNCTION public.admin_update_user_profile(uuid, jsonb) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.admin_update_user_profile(uuid, jsonb) TO anon; -- for service_role usage
