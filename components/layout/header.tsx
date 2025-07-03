@@ -21,33 +21,13 @@ function Header() {
   const [isUsernameModalOpen, setIsUsernameModalOpen] = useState(false)
   const router = useRouter()
 
-  // アカウント名の表示優先順位: name > display_name > pokepoke_id > email
+  // アカウント名の表示優先順位
   const accountName =
     userProfile?.name ||
     userProfile?.display_name ||
     userProfile?.pokepoke_id ||
     user?.email?.split("@")[0] ||
     "ユーザー"
-
-  // ヘッダーレンダリング時の認証状態ログ
-  console.log("🔍 [Header] Component render - Auth state:", {
-    timestamp: new Date().toISOString(),
-    hasUser: !!user,
-    userId: user?.id,
-    userEmail: user?.email,
-    userRole: user?.role || "NO_ROLE",
-    hasSession: !!session,
-    sessionUserId: session?.user?.id,
-    sessionExpiry: session?.expires_at ? new Date(session.expires_at * 1000).toISOString() : "NO_EXPIRY",
-    sessionExpired: session?.expires_at ? session.expires_at < Math.floor(Date.now() / 1000) : "UNKNOWN",
-    hasUserProfile: !!userProfile,
-    userProfileId: userProfile?.id,
-    userProfilePokepokeId: userProfile?.pokepoke_id,
-    userProfileDisplayName: userProfile?.display_name,
-    accountName,
-    userSessionMatch: user?.id === session?.user?.id,
-    userProfileMatch: user?.id === userProfile?.id,
-  })
 
   // 未読通知数を取得
   useEffect(() => {
@@ -58,12 +38,10 @@ function Header() {
       }
 
       try {
-        console.log("📡 [Header] Fetching notifications for unread count:", user.id)
         const result = await getNotifications(user.id)
         if (result.success && result.notifications) {
           const unread = result.notifications.filter((n) => !n.is_read).length
           setUnreadCount(unread)
-          console.log(`📊 [Header] Unread notifications count: ${unread}`)
         }
       } catch (error) {
         console.error("❌ [Header] Error fetching unread count:", error)
@@ -78,224 +56,70 @@ function Header() {
 
   const handleSignOut = async () => {
     try {
-      console.log("🚪 [Header] Starting sign out...")
-      console.log("🚪 [Header] Pre-signout auth state:", {
-        hasUser: !!user,
-        hasSession: !!session,
-        hasUserProfile: !!userProfile,
-      })
       await signOut()
-      console.log("✅ [Header] Sign out completed, redirecting to home")
       router.push("/")
     } catch (error) {
       console.error("❌ [Header] Sign out error:", error)
-      // エラーが発生してもホームページにリダイレクト
       router.push("/")
     }
   }
 
   const handleNotificationClick = () => {
-    console.log("🔔 [Header] Notification icon clicked - redirecting to /notifications")
     window.location.href = "/notifications"
   }
 
   const handlePokepokeIdRegistration = () => {
-    console.log("🎯 [Header] Opening PokepokeID modal")
-    console.log("🎯 [Header] Current auth state before modal:", {
-      hasUser: !!user,
-      userId: user?.id,
-      hasUserProfile: !!userProfile,
-      currentPokepokeId: userProfile?.pokepoke_id,
-    })
     setIsPokepokeIdModalOpen(true)
   }
 
   const handleUsernameRegistration = () => {
-    console.log("🎯 [Header] Opening Username modal")
-    console.log("🎯 [Header] Current auth state before modal:", {
-      hasUser: !!user,
-      userId: user?.id,
-      hasUserProfile: !!userProfile,
-      currentDisplayName: userProfile?.display_name,
-    })
     setIsUsernameModalOpen(true)
   }
 
   const handlePokepokeIdSave = async (pokepokeId: string) => {
-    console.log("🚀 [Header] ===== handlePokepokeIdSave START =====")
-    console.log("🚀 [Header] Input pokepokeId:", pokepokeId)
-    console.log("🚀 [Header] Timestamp:", new Date().toISOString())
+    console.log("🚀 [Header] Saving PokepokeID:", pokepokeId)
 
     if (!user) {
-      console.error("❌ [Header] User not found")
       throw new Error("ユーザーが認証されていません")
     }
 
-    // ヘッダーレベルでの詳細認証状態デバッグ
-    console.log("🔍 [Header] Pre-save auth context state:", {
-      hasUser: !!user,
-      userId: user.id,
-      userEmail: user.email,
-      userRole: user.role || "NO_ROLE",
-      userAud: user.aud || "NO_AUD",
-      userCreatedAt: user.created_at,
-      userUpdatedAt: user.updated_at,
-      hasSession: !!session,
-      sessionUserId: session?.user?.id,
-      sessionExpiry: session?.expires_at,
-      sessionExpired: session?.expires_at ? session.expires_at < Math.floor(Date.now() / 1000) : "UNKNOWN",
-      hasUserProfile: !!userProfile,
-      userProfileId: userProfile?.id,
-      userProfileCreatedAt: userProfile?.created_at,
-      userProfileUpdatedAt: userProfile?.updated_at,
-      currentPokepokeId: userProfile?.pokepoke_id,
-      currentDisplayName: userProfile?.display_name,
-      userSessionMatch: user.id === session?.user?.id,
-      userProfileMatch: user.id === userProfile?.id,
-    })
-
     try {
-      console.log("🔄 [Header] Calling updateUserProfile...")
-      const updateStartTime = Date.now()
       const updatedProfile = await updateUserProfile(user.id, {
         pokepoke_id: pokepokeId,
       })
-      const updateEndTime = Date.now()
 
-      console.log("🔄 [Header] updateUserProfile completed:", {
-        duration: `${updateEndTime - updateStartTime}ms`,
-        result: updatedProfile,
-      })
+      console.log("✅ [Header] PokepokeID saved:", updatedProfile)
 
-      if (updatedProfile) {
-        console.log("✅ [Header] PokepokeID saved successfully:", updatedProfile)
-
-        // セッション更新前の状態
-        console.log("🔍 [Header] Pre-refresh auth context:", {
-          contextUserId: user.id,
-          contextUserProfileId: userProfile?.id,
-          contextPokepokeId: userProfile?.pokepoke_id,
-          updatedProfileId: updatedProfile.id,
-          updatedPokepokeId: updatedProfile.pokepoke_id,
-          profilesMatch: userProfile?.id === updatedProfile.id,
-        })
-
-        console.log("🔄 [Header] Calling refreshSession...")
-        const refreshStartTime = Date.now()
-        await refreshSession()
-        const refreshEndTime = Date.now()
-
-        console.log("🔄 [Header] refreshSession completed:", {
-          duration: `${refreshEndTime - refreshStartTime}ms`,
-        })
-
-        // セッション更新後の状態確認は次のレンダリングで行われる
-        console.log("✅ [Header] Process completed successfully")
-      } else {
-        console.error("❌ [Header] Failed to save PokepokeID - updatedProfile is null/undefined")
-        throw new Error("ポケポケIDの保存に失敗しました")
-      }
+      // AuthContextのセッションを更新
+      await refreshSession()
+      console.log("✅ [Header] Session refreshed")
     } catch (error) {
-      console.error("❌ [Header] CATCH ERROR - Exception occurred:", error)
-      console.error("❌ [Header] Error details:", {
-        errorMessage: error instanceof Error ? error.message : "Unknown error",
-        errorStack: error instanceof Error ? error.stack : "No stack trace",
-        currentAuthState: {
-          hasUser: !!user,
-          hasSession: !!session,
-          hasUserProfile: !!userProfile,
-        },
-      })
-      throw error // モーダルでエラーハンドリングするために再スロー
+      console.error("❌ [Header] Failed to save PokepokeID:", error)
+      throw error
     }
-
-    console.log("🚀 [Header] ===== handlePokepokeIdSave END =====")
   }
 
   const handleUsernameSave = async (username: string) => {
-    console.log("🚀 [Header] ===== handleUsernameSave START =====")
-    console.log("🚀 [Header] Input username:", username)
-    console.log("🚀 [Header] Timestamp:", new Date().toISOString())
+    console.log("🚀 [Header] Saving username:", username)
 
     if (!user) {
-      console.error("❌ [Header] User not found")
       throw new Error("ユーザーが認証されていません")
     }
 
-    // ヘッダーレベルでの詳細認証状態デバッグ
-    console.log("🔍 [Header] Pre-save auth context state:", {
-      hasUser: !!user,
-      userId: user.id,
-      userEmail: user.email,
-      userRole: user.role || "NO_ROLE",
-      userAud: user.aud || "NO_AUD",
-      hasSession: !!session,
-      sessionUserId: session?.user?.id,
-      sessionExpiry: session?.expires_at,
-      sessionExpired: session?.expires_at ? session.expires_at < Math.floor(Date.now() / 1000) : "UNKNOWN",
-      hasUserProfile: !!userProfile,
-      userProfileId: userProfile?.id,
-      currentDisplayName: userProfile?.display_name,
-      currentPokepokeId: userProfile?.pokepoke_id,
-      userSessionMatch: user.id === session?.user?.id,
-      userProfileMatch: user.id === userProfile?.id,
-    })
-
     try {
-      console.log("🔄 [Header] Calling updateUserProfile...")
-      const updateStartTime = Date.now()
       const updatedProfile = await updateUserProfile(user.id, {
         display_name: username,
       })
-      const updateEndTime = Date.now()
 
-      console.log("🔄 [Header] updateUserProfile completed:", {
-        duration: `${updateEndTime - updateStartTime}ms`,
-        result: updatedProfile,
-      })
+      console.log("✅ [Header] Username saved:", updatedProfile)
 
-      if (updatedProfile) {
-        console.log("✅ [Header] Username saved successfully:", updatedProfile)
-
-        // セッション更新前の状態
-        console.log("🔍 [Header] Pre-refresh auth context:", {
-          contextUserId: user.id,
-          contextUserProfileId: userProfile?.id,
-          contextDisplayName: userProfile?.display_name,
-          updatedProfileId: updatedProfile.id,
-          updatedDisplayName: updatedProfile.display_name,
-          profilesMatch: userProfile?.id === updatedProfile.id,
-        })
-
-        console.log("🔄 [Header] Calling refreshSession...")
-        const refreshStartTime = Date.now()
-        await refreshSession()
-        const refreshEndTime = Date.now()
-
-        console.log("🔄 [Header] refreshSession completed:", {
-          duration: `${refreshEndTime - refreshStartTime}ms`,
-        })
-
-        console.log("✅ [Header] Process completed successfully")
-      } else {
-        console.error("❌ [Header] Failed to save username - updatedProfile is null/undefined")
-        throw new Error("ユーザー名の保存に失敗しました")
-      }
+      // AuthContextのセッションを更新
+      await refreshSession()
+      console.log("✅ [Header] Session refreshed")
     } catch (error) {
-      console.error("❌ [Header] CATCH ERROR - Exception occurred:", error)
-      console.error("❌ [Header] Error details:", {
-        errorMessage: error instanceof Error ? error.message : "Unknown error",
-        errorStack: error instanceof Error ? error.stack : "No stack trace",
-        currentAuthState: {
-          hasUser: !!user,
-          hasSession: !!session,
-          hasUserProfile: !!userProfile,
-        },
-      })
-      throw error // モーダルでエラーハンドリングするために再スロー
+      console.error("❌ [Header] Failed to save username:", error)
+      throw error
     }
-
-    console.log("🚀 [Header] ===== handleUsernameSave END =====")
   }
 
   return (
@@ -422,8 +246,5 @@ function Header() {
   )
 }
 
-// Default export を追加
 export default Header
-
-// Named export
 export { Header }
