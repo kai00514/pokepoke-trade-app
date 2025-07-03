@@ -1,18 +1,11 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { useAuth } from "@/contexts/auth-context"
+import { useState } from "react"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { useAuth } from "@/contexts/auth-context"
 import { toast } from "sonner"
 
 interface PokepokeIdRegistrationModalProps {
@@ -29,82 +22,101 @@ export function PokepokeIdRegistrationModal({
   onSave,
 }: PokepokeIdRegistrationModalProps) {
   const { user } = useAuth()
-  const [pokepokeId, setPokepokeId] = useState("")
-  const [isSaving, setIsSaving] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [pokepokeId, setPokepokeId] = useState(currentPokepokeId || "")
+  const [isLoading, setIsLoading] = useState(false)
+
+  console.log("🔍 [PokepokeIdModal] Component render:", {
+    isOpen,
+    hasUser: !!user,
+    userId: user?.id,
+    currentPokepokeId,
+    inputPokepokeId: pokepokeId,
+    isLoading,
+  })
 
   const handleSave = async () => {
-    if (!user) {
-      toast.error("ログインしていません。")
-      return
-    }
+    console.log("🚀 [PokepokeIdModal] ===== handleSave START =====")
+    console.log("🚀 [PokepokeIdModal] Input pokepokeId:", pokepokeId)
+    console.log("🚀 [PokepokeIdModal] Current user:", user?.id)
+
     if (!pokepokeId.trim()) {
-      setError("ポケポケIDを入力してください。")
+      console.warn("⚠️ [PokepokeIdModal] Empty PokepokeID")
+      toast.error("ポケポケIDを入力してください")
       return
     }
 
-    setIsSaving(true)
-    setError(null)
+    if (!user) {
+      console.error("❌ [PokepokeIdModal] No user found")
+      toast.error("ユーザーが認証されていません")
+      return
+    }
+
+    setIsLoading(true)
+    console.log("🔄 [PokepokeIdModal] Setting loading state to true")
 
     try {
-      console.log("🚀 [handlePokepokeIdSave] Calling onSave...")
-      await onSave(pokepokeId)
-      console.log("✅ [handlePokepokeIdSave] onSave completed")
+      console.log("🔄 [PokepokeIdModal] Calling onSave prop function...")
+      await onSave(pokepokeId.trim())
+      console.log("✅ [PokepokeIdModal] onSave completed successfully")
 
-      toast.success("ポケポケIDを登録しました！")
-      handleClose()
-    } catch (err) {
-      console.error("❌ [handlePokepokeIdSave] Failed to update Pokepoke ID:", err)
-      const errorMessage = err instanceof Error ? err.message : "不明なエラーが発生しました。"
-      setError(errorMessage)
-      toast.error(`登録に失敗しました: ${errorMessage}`)
+      toast.success("ポケポケIDが登録されました")
+      console.log("✅ [PokepokeIdModal] Success toast shown")
+
+      onOpenChange(false)
+      console.log("✅ [PokepokeIdModal] Modal closed")
+    } catch (error) {
+      console.error("❌ [PokepokeIdModal] Error in handleSave:", error)
+      console.error("❌ [PokepokeIdModal] Error details:", {
+        errorMessage: error instanceof Error ? error.message : "Unknown error",
+        errorStack: error instanceof Error ? error.stack : "No stack trace",
+      })
+      toast.error(error instanceof Error ? error.message : "ポケポケIDの登録に失敗しました")
     } finally {
-      setIsSaving(false)
+      setIsLoading(false)
+      console.log("🔄 [PokepokeIdModal] Setting loading state to false")
     }
+
+    console.log("🚀 [PokepokeIdModal] ===== handleSave END =====")
   }
 
-  const handleClose = () => {
-    setPokepokeId("")
-    setError(null)
+  const handleCancel = () => {
+    console.log("🚪 [PokepokeIdModal] Cancel button clicked")
+    setPokepokeId(currentPokepokeId || "")
     onOpenChange(false)
   }
 
-  useEffect(() => {
-    if (currentPokepokeId) {
-      setPokepokeId(currentPokepokeId)
-    }
-  }, [currentPokepokeId])
-
   return (
-    <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent>
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>ポケポケID登録</DialogTitle>
-          <DialogDescription>ゲーム内のトレーナーIDを登録してください。</DialogDescription>
+          <DialogDescription>
+            あなたのポケポケIDを登録してください。他のユーザーがあなたを見つけやすくなります。
+          </DialogDescription>
         </DialogHeader>
-        <div className="grid gap-4 py-4">
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="pokepoke-id" className="text-right">
-              ポケポケID
-            </Label>
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="pokepoke-id">ポケポケID</Label>
             <Input
               id="pokepoke-id"
               value={pokepokeId}
-              onChange={(e) => setPokepokeId(e.target.value)}
-              className="col-span-3"
-              placeholder="例: 1234-5678-9012"
+              onChange={(e) => {
+                console.log("🔄 [PokepokeIdModal] Input changed:", e.target.value)
+                setPokepokeId(e.target.value)
+              }}
+              placeholder="例: trainer123"
+              disabled={isLoading}
             />
           </div>
-          {error && <p className="text-red-500 text-sm col-span-4 text-center">{error}</p>}
+          <div className="flex justify-end space-x-2">
+            <Button variant="outline" onClick={handleCancel} disabled={isLoading}>
+              キャンセル
+            </Button>
+            <Button onClick={handleSave} disabled={isLoading}>
+              {isLoading ? "登録中..." : "登録"}
+            </Button>
+          </div>
         </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={handleClose} disabled={isSaving}>
-            キャンセル
-          </Button>
-          <Button onClick={handleSave} disabled={isSaving}>
-            {isSaving ? "登録中..." : "登録"}
-          </Button>
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   )
