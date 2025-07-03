@@ -1,25 +1,28 @@
 "use client"
 
 import Link from "next/link"
-import Image from "next/image"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Plus, Bell, User } from "lucide-react"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu"
+import { Bell, User, LogOut, Settings, UserPlus } from "lucide-react"
 import { useAuth } from "@/contexts/auth-context"
-import { useState, useEffect } from "react"
-import { getNotifications } from "@/lib/services/notification-service"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
-import { PokepokeIdRegistrationModal } from "@/components/pokepoke-id-registration-modal"
+import { useState } from "react"
 import { UsernameRegistrationModal } from "@/components/username-registration-modal"
-import { updateUserProfile } from "@/lib/services/user-service_ver2"
+import { PokepokeIdRegistrationModal } from "@/components/pokepoke-id-registration-modal"
 
-function Header() {
-  const { user, userProfile, signOut, refreshSession } = useAuth()
-  const [unreadCount, setUnreadCount] = useState(0)
-  const [isPokepokeIdModalOpen, setIsPokepokeIdModalOpen] = useState(false)
-  const [isUsernameModalOpen, setIsUsernameModalOpen] = useState(false)
+export default function Header() {
+  const { user, userProfile, loading } = useAuth()
   const router = useRouter()
+  const [isUsernameModalOpen, setIsUsernameModalOpen] = useState(false)
+  const [isPokepokeIdModalOpen, setIsPokepokeIdModalOpen] = useState(false)
 
   // アカウント名の表示優先順位: name > display_name > pokepoke_id > email
   const accountName =
@@ -35,54 +38,10 @@ function Header() {
     accountName,
   })
 
-  // 未読通知数を取得
-  useEffect(() => {
-    const fetchUnreadCount = async () => {
-      if (!user) {
-        setUnreadCount(0)
-        return
-      }
-
-      try {
-        console.log("📡 Fetching notifications for unread count:", user.id)
-        const result = await getNotifications(user.id)
-        if (result.success && result.notifications) {
-          const unread = result.notifications.filter((n) => !n.is_read).length
-          setUnreadCount(unread)
-          console.log(`📊 Unread notifications count: ${unread}`)
-        }
-      } catch (error) {
-        console.error("❌ Error fetching unread count:", error)
-        setUnreadCount(0)
-      }
-    }
-
-    if (user) {
-      fetchUnreadCount()
-    }
-  }, [user])
-
   const handleSignOut = async () => {
-    try {
-      console.log("🚪 Header: Starting sign out...")
-      await signOut()
-      console.log("✅ Header: Sign out completed, redirecting to home")
-      router.push("/")
-    } catch (error) {
-      console.error("❌ Header: Sign out error:", error)
-      // エラーが発生してもホームページにリダイレクト
-      router.push("/")
-    }
-  }
-
-  const handleNotificationClick = () => {
-    console.log("🔔 Notification icon clicked - redirecting to /notifications")
-    window.location.href = "/notifications"
-  }
-
-  const handlePokepokeIdRegistration = () => {
-    console.log("🎯 [handlePokepokeIdRegistration] Opening PokepokeID modal")
-    setIsPokepokeIdModalOpen(true)
+    const supabase = createClient()
+    await supabase.auth.signOut()
+    router.push("/auth/login")
   }
 
   const handleUsernameRegistration = () => {
@@ -90,202 +49,116 @@ function Header() {
     setIsUsernameModalOpen(true)
   }
 
-  const handlePokepokeIdSave = async (pokepokeId: string) => {
-    console.log("🚀 [handlePokepokeIdSave] ===== START =====")
-    console.log("🚀 [handlePokepokeIdSave] Input pokepokeId:", pokepokeId)
-
-    if (!user) {
-      console.error("❌ [handlePokepokeIdSave] User not found")
-      return
-    }
-
-    try {
-      console.log("🔄 [handlePokepokeIdSave] Calling updateUserProfile...")
-      const updatedProfile = await updateUserProfile(user.id, {
-        pokepoke_id: pokepokeId,
-      })
-
-      console.log("🔄 [handlePokepokeIdSave] updateUserProfile returned:", updatedProfile)
-
-      if (updatedProfile) {
-        console.log("✅ [handlePokepokeIdSave] PokepokeID saved successfully:", updatedProfile)
-        console.log("🔄 [handlePokepokeIdSave] Calling refreshSession...")
-
-        await refreshSession()
-        console.log("🔄 [handlePokepokeIdSave] refreshSession completed")
-        console.log("✅ [handlePokepokeIdSave] Process completed successfully")
-      } else {
-        console.error("❌ [handlePokepokeIdSave] Failed to save PokepokeID - updatedProfile is null/undefined")
-      }
-    } catch (error) {
-      console.error("❌ [handlePokepokeIdSave] CATCH ERROR - Exception occurred:", error)
-      throw error // モーダルでエラーハンドリングするために再スロー
-    }
-
-    console.log("🚀 [handlePokepokeIdSave] ===== END =====")
+  const handlePokepokeIdRegistration = () => {
+    console.log("🎯 [handlePokepokeIdRegistration] Opening PokepokeID modal")
+    setIsPokepokeIdModalOpen(true)
   }
 
-  const handleUsernameSave = async (username: string) => {
-    console.log("🚀 [handleUsernameSave] ===== START =====")
-    console.log("🚀 [handleUsernameSave] Input username:", username)
+  const handleModalSuccess = () => {
+    // モーダル成功時の処理（必要に応じて認証コンテキストを更新）
+    console.log("🎉 Modal operation successful")
+    // 必要に応じてユーザープロファイルを再取得
+    window.location.reload() // 簡単な方法として画面をリロード
+  }
 
-    if (!user) {
-      console.error("❌ [handleUsernameSave] User not found")
-      return
-    }
-
-    try {
-      console.log("🔄 [handleUsernameSave] Calling updateUserProfile...")
-      const updatedProfile = await updateUserProfile(user.id, {
-        display_name: username,
-      })
-
-      console.log("🔄 [handleUsernameSave] updateUserProfile returned:", updatedProfile)
-
-      if (updatedProfile) {
-        console.log("✅ [handleUsernameSave] Username saved successfully:", updatedProfile)
-        console.log("🔄 [handleUsernameSave] Calling refreshSession...")
-
-        await refreshSession()
-        console.log("🔄 [handleUsernameSave] refreshSession completed")
-        console.log("✅ [handleUsernameSave] Process completed successfully")
-      } else {
-        console.error("❌ [handleUsernameSave] Failed to save username - updatedProfile is null/undefined")
-      }
-    } catch (error) {
-      console.error("❌ [handleUsernameSave] CATCH ERROR - Exception occurred:", error)
-      throw error // モーダルでエラーハンドリングするために再スロー
-    }
-
-    console.log("🚀 [handleUsernameSave] ===== END =====")
+  if (loading) {
+    return (
+      <header className="border-b bg-white">
+        <div className="container mx-auto px-4 py-3">
+          <div className="flex items-center justify-between">
+            <Link href="/" className="text-xl font-bold text-blue-600">
+              PokeLink
+            </Link>
+            <div className="w-8 h-8 bg-gray-200 rounded-full animate-pulse" />
+          </div>
+        </div>
+      </header>
+    )
   }
 
   return (
     <>
-      <header className="bg-violet-500 text-white shadow-md">
-        <div className="container mx-auto px-4 py-3 flex items-center justify-between">
-          <Link href="/" className="flex items-center">
-            <Image
-              src="/pokelink-logo.png"
-              alt="PokeLink ロゴ"
-              width={160}
-              height={40}
-              className="object-contain h-10"
-            />
-          </Link>
-          <div className="flex items-center gap-2 sm:gap-3">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="bg-white text-violet-600 hover:bg-violet-100 rounded-full h-9 w-9 sm:h-10 sm:w-10"
-              aria-label="新規投稿作成"
-            >
-              <Plus className="h-5 w-5 sm:h-6 sm:w-6" />
-              <span className="sr-only">新規投稿作成</span>
-            </Button>
+      <header className="border-b bg-white">
+        <div className="container mx-auto px-4 py-3">
+          <div className="flex items-center justify-between">
+            <Link href="/" className="text-xl font-bold text-blue-600">
+              PokeLink
+            </Link>
 
-            {user && (
-              <Button
-                variant="ghost"
-                size="icon"
-                className="relative text-white hover:bg-white/20 rounded-full h-9 w-9 sm:h-10 sm:w-10 transition-all duration-200"
-                onClick={handleNotificationClick}
-                aria-label={`通知 ${unreadCount > 0 ? `(${unreadCount}件の未読)` : ""}`}
-              >
-                <Bell className="h-5 w-5 sm:h-6 sm:w-6" />
-                {unreadCount > 0 && (
-                  <Badge
-                    variant="destructive"
-                    className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs font-bold border-2 border-violet-500"
-                  >
-                    {unreadCount > 99 ? "99+" : unreadCount}
-                  </Badge>
-                )}
-              </Button>
-            )}
+            <div className="flex items-center space-x-4">
+              {user ? (
+                <>
+                  <Button variant="ghost" size="icon">
+                    <Bell className="h-5 w-5" />
+                  </Button>
 
-            {user ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    className="flex items-center gap-2 bg-white/10 rounded-full px-3 py-1.5 hover:bg-white/20 transition-colors duration-200 cursor-pointer"
-                    aria-label="ユーザーメニューを開く"
-                  >
-                    <div className="relative w-6 h-6 sm:w-8 sm:h-8">
-                      {userProfile?.avatar_url ? (
-                        <Image
-                          src={userProfile.avatar_url || "/placeholder.svg"}
-                          alt="ユーザーアバター"
-                          width={32}
-                          height={32}
-                          className="rounded-full object-cover w-full h-full"
-                        />
-                      ) : (
-                        <div className="w-full h-full bg-white/20 rounded-full flex items-center justify-center">
-                          <User className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                        <Avatar className="h-8 w-8">
+                          <AvatarImage src={userProfile?.avatar_url || ""} alt={accountName} />
+                          <AvatarFallback>{accountName ? accountName.charAt(0).toUpperCase() : "U"}</AvatarFallback>
+                        </Avatar>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-56" align="end" forceMount>
+                      <div className="flex items-center justify-start gap-2 p-2">
+                        <div className="flex flex-col space-y-1 leading-none">
+                          <p className="font-medium">{accountName}</p>
+                          <p className="w-[200px] truncate text-sm text-muted-foreground">{user.email}</p>
                         </div>
-                      )}
-                    </div>
-                    <span className="text-white text-sm font-medium hidden sm:inline">{accountName}</span>
+                      </div>
+                      <DropdownMenuSeparator />
+
+                      <DropdownMenuItem onClick={handleUsernameRegistration}>
+                        <User className="mr-2 h-4 w-4" />
+                        <span>ユーザー名を設定</span>
+                      </DropdownMenuItem>
+
+                      <DropdownMenuItem onClick={handlePokepokeIdRegistration}>
+                        <UserPlus className="mr-2 h-4 w-4" />
+                        <span>PokepokeIDを設定</span>
+                      </DropdownMenuItem>
+
+                      <DropdownMenuItem>
+                        <Settings className="mr-2 h-4 w-4" />
+                        <span>設定</span>
+                      </DropdownMenuItem>
+
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={handleSignOut}>
+                        <LogOut className="mr-2 h-4 w-4" />
+                        <span>ログアウト</span>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </>
+              ) : (
+                <div className="flex items-center space-x-2">
+                  <Button variant="ghost" asChild>
+                    <Link href="/auth/login">ログイン</Link>
                   </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48">
-                  <DropdownMenuItem onClick={handlePokepokeIdRegistration} className="cursor-pointer">
-                    ポケポケID登録
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleUsernameRegistration} className="cursor-pointer">
-                    ユーザー名登録
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer">
-                    ログアウト
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            ) : (
-              <>
-                <Link href="/auth/signup">
-                  <Button
-                    variant="default"
-                    className="bg-white text-violet-600 hover:bg-violet-100 text-xs sm:text-sm px-3 py-1.5 sm:px-4 sm:py-2"
-                  >
-                    新規登録
+                  <Button asChild>
+                    <Link href="/auth/signup">新規登録</Link>
                   </Button>
-                </Link>
-                <Link href="/auth/login">
-                  <Button
-                    variant="outline"
-                    className="bg-white text-violet-600 border-violet-600 hover:bg-violet-100 hover:text-violet-700 text-xs sm:text-sm px-3 py-1.5 sm:px-4 sm:py-2"
-                  >
-                    ログイン
-                  </Button>
-                </Link>
-              </>
-            )}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </header>
 
-      {/* モーダル */}
-      <PokepokeIdRegistrationModal
-        isOpen={isPokepokeIdModalOpen}
-        onOpenChange={setIsPokepokeIdModalOpen}
-        currentPokepokeId={userProfile?.pokepoke_id}
-        onSave={handlePokepokeIdSave}
-      />
-
       <UsernameRegistrationModal
         isOpen={isUsernameModalOpen}
-        onOpenChange={setIsUsernameModalOpen}
-        currentUsername={userProfile?.display_name}
-        onSave={handleUsernameSave}
+        onClose={() => setIsUsernameModalOpen(false)}
+        onSuccess={handleModalSuccess}
+      />
+
+      <PokepokeIdRegistrationModal
+        isOpen={isPokepokeIdModalOpen}
+        onClose={() => setIsPokepokeIdModalOpen(false)}
+        onSuccess={handleModalSuccess}
       />
     </>
   )
 }
-
-// Named export
-export { Header }
-
-// Default export for compatibility
-export default Header
