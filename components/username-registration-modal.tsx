@@ -5,13 +5,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Loader2 } from "lucide-react"
 
 interface UsernameRegistrationModalProps {
   isOpen: boolean
   onOpenChange: (open: boolean) => void
-  currentUsername?: string
+  currentUsername?: string | null
   onSave: (username: string) => Promise<void>
 }
 
@@ -22,7 +20,7 @@ export function UsernameRegistrationModal({
   onSave,
 }: UsernameRegistrationModalProps) {
   const [username, setUsername] = useState(currentUsername || "")
-  const [isLoading, setIsLoading] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const handleSave = async () => {
@@ -31,66 +29,54 @@ export function UsernameRegistrationModal({
       return
     }
 
-    setIsLoading(true)
+    setIsSubmitting(true)
     setError(null)
 
     try {
       console.log("🔧 [UsernameModal] Saving username:", username)
       await onSave(username.trim())
-      console.log("✅ [UsernameModal] Save completed successfully")
+      console.log("✅ [UsernameModal] Username saved successfully")
       onOpenChange(false)
-      setUsername("")
     } catch (error) {
-      console.error("❌ [UsernameModal] Save failed:", error)
+      console.error("❌ [UsernameModal] Error saving username:", error)
       setError(error instanceof Error ? error.message : "保存に失敗しました")
     } finally {
-      setIsLoading(false)
+      setIsSubmitting(false)
     }
   }
 
   const handleCancel = () => {
-    setUsername(currentUsername || "")
     setError(null)
+    setUsername(currentUsername || "")
     onOpenChange(false)
   }
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>ユーザー名登録</DialogTitle>
         </DialogHeader>
-        <div className="grid gap-4 py-4">
-          <div className="grid gap-2">
+        <div className="space-y-4">
+          <div className="space-y-2">
             <Label htmlFor="username">ユーザー名</Label>
             <Input
               id="username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               placeholder="ユーザー名を入力してください"
-              disabled={isLoading}
+              disabled={isSubmitting}
             />
           </div>
-          {error && (
-            <Alert variant="destructive">
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
-        </div>
-        <div className="flex justify-end gap-2">
-          <Button variant="outline" onClick={handleCancel} disabled={isLoading}>
-            キャンセル
-          </Button>
-          <Button onClick={handleSave} disabled={isLoading}>
-            {isLoading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                保存中...
-              </>
-            ) : (
-              "保存"
-            )}
-          </Button>
+          {error && <p className="text-sm text-red-500">{error}</p>}
+          <div className="flex justify-end space-x-2">
+            <Button variant="outline" onClick={handleCancel} disabled={isSubmitting}>
+              キャンセル
+            </Button>
+            <Button onClick={handleSave} disabled={!username.trim() || isSubmitting}>
+              {isSubmitting ? "保存中..." : "保存"}
+            </Button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>

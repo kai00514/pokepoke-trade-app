@@ -1,147 +1,189 @@
 "use client"
 
 import type React from "react"
+import { createContext, useContext, useEffect, useState } from "react"
+import type { User, Session } from "@supabase/supabase-js"
+import { createClient, refreshClientSession } from "@/lib/supabase/client"
+import { getUserProfile } from "@/lib/services/user-service"
 
-import { createContext, useContext, useState, useEffect, useCallback } from "react"
-import { createBrowserClient } from "@supabase/ssr"
-import type { SupabaseClient, User } from "@supabase/supabase-js"
-import { useRouter } from "next/navigation"
-import { Loader2 } from "lucide-react"
-
-// ユーザープロファイルの型定義
 interface UserProfile {
-  display_name?: string
+  id: string
   pokepoke_id?: string
+  display_name?: string
   name?: string
   avatar_url?: string
-  [key: string]: any
+  created_at: string
+  updated_at: string
 }
 
-// AuthContextの型定義
 interface AuthContextType {
   user: User | null
+  session: Session | null
   userProfile: UserProfile | null
-  isLoading: boolean
-  updateUserProfile: (profileData: Partial<UserProfile>) => Promise<void>
+  loading: boolean
   signOut: () => Promise<void>
+  refreshSession: () => Promise<void>
 }
 
-// AuthContextの作成
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
-// Supabaseクライアントのシングルトンインスタンス
-let supabase: SupabaseClient | null = null
-
-const getSupabaseClient = () => {
-  if (!supabase) {
-    supabase = createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
-  }
-  return supabase
-}
-
-// AuthProviderコンポーネント
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
+  const [session, setSession] = useState<Session | null>(null)
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const router = useRouter()
+  const [loading, setLoading] = useState(true)
 
-  const fetchUserProfile = useCallback(async (userId: string) => {
-    console.log("🔍 [AuthProvider] Fetching user profile for:", userId)
-    const supabase = getSupabaseClient()
-    const { data, error } = await supabase.from("users").select("*").eq("id", userId).single()
+  const supabase = createClient()
 
-    if (error) {
-      console.error("❌ [AuthProvider] Error fetching profile:", error)
-      return null
+  const fetchUserProfile = async (userId: string) => {
+    try {
+      console.log("🔍 [fetchUserProfile] START - Fetching user profile for:", userId)
+      const profile = await getUserProfile(userId)
+      console.log("🔍 [fetchUserProfile] getUserProfile returned:", profile)
+      setUserProfile(profile)
+      console.log("🔍 [fetchUserProfile] setUserProfile completed")
+    } catch (error) {
+      console.error("❌ [fetchUserProfile] Error fetching user profile:", error)
+      setUserProfile(null)
     }
-    console.log("✅ [AuthProvider] Profile fetched:", data)
-    return data
-  }, [])
+  }
 
-  const handleAuthStateChange = useCallback(
-    async (event: string, session: any) => {
-      console.log(`🔄 [AuthProvider] Auth state changed: ${event}`)
-      setIsLoading(true)
-      if (session) {
-        setUser(session.user)
-        const profile = await fetchUserProfile(session.user.id)
-        setUserProfile(profile)
-      } else {
-        setUser(null)
-        setUserProfile(null)
-      }
-      setIsLoading(false)
-    },
-    [fetchUserProfile],
-  )
+  const refreshSession = async () => {
+    try {
+      console.log("🔄 [refreshSession] START - Refreshing session...")
 
-  useEffect(() => {
-    const supabase = getSupabaseClient()
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(handleAuthStateChange)
+      // Supabaseクライアントのセッションを強制更新
+      await refreshClientSession()
 
-    // 初回セッション取得
-    const getInitialSession = async () => {
       const {
         data: { session },
+        error,
       } = await supabase.auth.getSession()
-      handleAuthStateChange("INITIAL_SESSION", session)
+
+      console.log("🔄 [refreshSession] getSession result:", { session: !!session, error })
+
+      if (error) {
+        console.error("❌ [refreshSession] Error refreshing session:", error)
+        return
+      }
+
+      // セッション状態を更新
+      setSession(session)
+      setUser(session?.user || null)
+
+      if (session?.user) {
+        console.log("🔄 [refreshSession] Session found, fetching user profile for:", session.user.id)
+        await fetchUserProfile(session.user.id)
+        console.log("🔄 [refreshSession] fetchUserProfile completed")
+      } else {
+        console.log("🔄 [refreshSession] No session found")
+        setUserProfile(null)
+      }
+    } catch (error) {
+      console.error("❌ [refreshSession] Error in refreshSession:", error)
     }
+  }
+
+  const signOut = async () => {
+    try {
+      console.log("🚪 [signOut] Starting sign out...")
+
+      // ローカル状態を即座にクリア
+      setSession(null)
+      setUser(null)
+      setUserProfile(null)
+
+      // Supabaseからサインアウト
+      const { error } = await supabase.auth.signOut()
+      if (error) {
+        console.error("❌ [signOut] Supabase sign out error:", error)
+      } else {
+        console.log("✅ [signOut] Successfully signed out from Supabase")
+      }
+    } catch (error) {
+      console.error("❌ [signOut] Error during sign out:", error)
+    }
+  }
+
+  useEffect(() => {
+    // 初期セッション取得
+    const getInitialSession = async () => {
+      try {
+        setLoading(true)
+
+        const {
+          data: { session },
+          error,
+        } = await supabase.auth.getSession()
+
+        if (error) {
+          console.error("❌ Error getting initial session:", error)
+          setLoading(false)
+          return
+        }
+
+        console.log("🔍 Initial session:", session ? "Found" : "Not found")
+
+        setSession(session)
+        setUser(session?.user || null)
+
+        if (session?.user) {
+          await fetchUserProfile(session.user.id)
+        }
+      } catch (error) {
+        console.error("❌ Error in getInitialSession:", error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
     getInitialSession()
+
+    // 認証状態変更リスナー
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log("🔔 Auth state changed:", event, session ? "Session exists" : "No session")
+
+      setSession(session)
+      setUser(session?.user || null)
+
+      if (event === "SIGNED_IN" && session?.user) {
+        // サインイン時にクライアントセッションも更新
+        await refreshClientSession()
+        await fetchUserProfile(session.user.id)
+      } else if (event === "SIGNED_OUT") {
+        setUserProfile(null)
+      }
+
+      // TOKEN_REFRESHED イベントでもクライアントセッションを更新
+      if (event === "TOKEN_REFRESHED" && session?.user) {
+        await refreshClientSession()
+      }
+    })
 
     return () => {
       subscription.unsubscribe()
     }
-  }, [handleAuthStateChange])
-
-  const updateUserProfile = async (profileData: Partial<UserProfile>) => {
-    if (!user) throw new Error("ユーザーが認証されていません。")
-
-    console.log("🔧 [AuthProvider] Updating profile with:", profileData)
-    const response = await fetch("/api/users/update-profile", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userId: user.id, profileData }),
-    })
-
-    if (!response.ok) {
-      const errorData = await response.json()
-      console.error("❌ [AuthProvider] API update failed:", errorData)
-      throw new Error(errorData.error || "プロファイルの更新に失敗しました。")
-    }
-
-    const { data: updatedProfile } = await response.json()
-    console.log("✅ [AuthProvider] Profile updated, new data:", updatedProfile)
-    setUserProfile(updatedProfile)
-  }
-
-  const signOut = async () => {
-    const supabase = getSupabaseClient()
-    await supabase.auth.signOut()
-    setUser(null)
-    setUserProfile(null)
-    router.push("/")
-  }
-
-  if (isLoading) {
-    return (
-      <div className="flex h-screen w-full items-center justify-center">
-        <Loader2 className="h-10 w-10 animate-spin" />
-      </div>
-    )
-  }
+  }, [])
 
   return (
-    <AuthContext.Provider value={{ user, userProfile, isLoading, updateUserProfile, signOut }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        session,
+        userProfile,
+        loading,
+        signOut,
+        refreshSession,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   )
 }
 
-// useAuthフック
-export const useAuth = () => {
+export function useAuth() {
   const context = useContext(AuthContext)
   if (context === undefined) {
     throw new Error("useAuth must be used within an AuthProvider")
