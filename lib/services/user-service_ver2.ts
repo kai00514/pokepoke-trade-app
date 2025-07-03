@@ -1,335 +1,206 @@
-import { createBrowserClient } from "@supabase/ssr"
-import type { SupabaseClient } from "@supabase/supabase-js"
+import { createClient } from "@supabase/supabase-js"
 
-interface UserProfile {
-  id: string
-  pokepoke_id?: string
-  display_name?: string
-  name?: string
-  avatar_url?: string
-  created_at: string
-  updated_at: string
-}
+// 新しいSupabaseクライアントを毎回作成する関数
+function createFreshClient() {
+  console.log("🔧 [createFreshClient] Creating new Supabase client")
 
-// 毎回新しいクライアントを作成する関数
-function createFreshClient(): SupabaseClient {
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-    throw new Error("Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY environment variables.")
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error("Supabase environment variables are not set")
   }
 
-  console.log("🔄 [createFreshClient] Creating new Supabase client")
-
-  return createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY, {
+  return createClient(supabaseUrl, supabaseAnonKey, {
     auth: {
       flowType: "pkce",
       autoRefreshToken: true,
       persistSession: true,
-      detectSessionInUrl: true,
-    },
-    global: {
-      headers: {
-        "X-Client-Info": "pokepoke-trade-app-v2",
-      },
     },
   })
 }
 
-// セッション情報を取得する関数
-async function getAuthSession(client: SupabaseClient) {
+// 現在の認証セッションを取得する関数
+async function getAuthSession() {
+  console.log("🔧 [getAuthSession] Getting current auth session")
+
+  const supabase = createFreshClient()
+
   try {
-    console.log("🔍 [getAuthSession] Getting current session")
-    const { data, error } = await client.auth.getSession()
+    const { data: sessionData, error: sessionError } = await supabase.auth.getSession()
 
-    if (error) {
-      console.error("❌ [getAuthSession] Error getting session:", error)
-      return { session: null, error }
-    }
-
-    console.log("✅ [getAuthSession] Session retrieved:", data.session ? "Session exists" : "No session")
-    return { session: data.session, error: null }
-  } catch (e) {
-    console.error("❌ [getAuthSession] Exception getting session:", e)
-    return { session: null, error: e instanceof Error ? e : new Error(String(e)) }
-  }
-}
-
-// ユーザー情報を取得する関数
-export async function getUserProfile(userId: string): Promise<UserProfile | null> {
-  try {
-    console.log("🔍 [getUserProfile] START - Getting profile for user:", userId)
-    const supabase = createFreshClient()
-
-    // セッション確認
-    const { session, error: sessionError } = await getAuthSession(supabase)
     if (sessionError) {
-      console.error("❌ [getUserProfile] Session error:", sessionError)
-      return null
+      console.error("❌ [getAuthSession] Session error:", sessionError)
+      throw sessionError
     }
 
-    console.log("🔍 [getUserProfile] Current auth state:", {
-      hasSession: !!session,
-      sessionUserId: session?.user?.id,
-      requestedUserId: userId,
+    console.log("🔧 [getAuthSession] Session data:", {
+      hasSession: !!sessionData.session,
+      userId: sessionData.session?.user?.id,
+      email: sessionData.session?.user?.email,
     })
 
-    // データ取得
-    console.log("🔍 [getUserProfile] Fetching user data from database")
-    const { data, error } = await supabase.from("users").select("*").eq("id", userId).single()
-
-    if (error) {
-      console.error("❌ [getUserProfile] Database error:", {
-        code: error.code,
-        message: error.message,
-        details: error.details,
-      })
-      return null
-    }
-
-    console.log("✅ [getUserProfile] User data retrieved:", data)
-    return data
+    return sessionData.session
   } catch (error) {
-    console.error("❌ [getUserProfile] Exception:", error)
-    return null
+    console.error("❌ [getAuthSession] Error getting session:", error)
+    throw error
   }
 }
 
-// ユーザープロファイルを作成する関数
-export async function createUserProfile(
-  userId: string,
-  profileData: Partial<UserProfile>,
-): Promise<UserProfile | null> {
-  try {
-    console.log("🔧 [createUserProfile] START - Creating profile for user:", userId)
-    const supabase = createFreshClient()
-
-    // セッション確認
-    const { session, error: sessionError } = await getAuthSession(supabase)
-    if (sessionError) {
-      console.error("❌ [createUserProfile] Session error:", sessionError)
-      return null
-    }
-
-    console.log("🔧 [createUserProfile] Current auth state:", {
-      hasSession: !!session,
-      sessionUserId: session?.user?.id,
-      requestedUserId: userId,
-    })
-
-    // セッションユーザーIDと一致するか確認
-    if (session?.user?.id !== userId) {
-      console.error("❌ [createUserProfile] User ID mismatch:", {
-        sessionUserId: session?.user?.id,
-        requestedUserId: userId,
-      })
-      return null
-    }
-
-    // データ作成
-    console.log("🔧 [createUserProfile] Creating user data in database")
-    const { data, error } = await supabase
-      .from("users")
-      .insert({
-        id: userId,
-        ...profileData,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      })
-      .select()
-      .single()
-
-    if (error) {
-      console.error("❌ [createUserProfile] Database error:", {
-        code: error.code,
-        message: error.message,
-        details: error.details,
-      })
-      return null
-    }
-
-    console.log("✅ [createUserProfile] User profile created:", data)
-    return data
-  } catch (error) {
-    console.error("❌ [createUserProfile] Exception:", error)
-    return null
-  }
-}
-
-// ユーザープロファイルを更新する関数
+// ユーザープロファイルを更新する関数（複数の方法を試行）
 export async function updateUserProfile(
   userId: string,
-  profileData: Partial<UserProfile>,
-): Promise<UserProfile | null> {
+  profileData: {
+    display_name?: string
+    pokepoke_id?: string
+    name?: string
+    avatar_url?: string
+  },
+) {
+  console.log("🔧 [updateUserProfile] START - Function called")
+  console.log("🔧 [updateUserProfile] Input userId:", userId)
+  console.log("🔧 [updateUserProfile] Input profileData:", profileData)
+
   try {
-    console.log("🔧 [updateUserProfile_v2] START - Function called")
-    console.log("🔧 [updateUserProfile_v2] Input userId:", userId)
-    console.log("🔧 [updateUserProfile_v2] Input profileData:", profileData)
+    // 1. 認証セッションを確認
+    const session = await getAuthSession()
 
-    // 新しいクライアントを作成（Singletonを使わない）
-    const supabase = createFreshClient()
-    console.log("🔧 [updateUserProfile_v2] Fresh Supabase client created")
-
-    // セッション確認
-    const { session, error: sessionError } = await getAuthSession(supabase)
-    if (sessionError) {
-      console.error("❌ [updateUserProfile_v2] Session error:", sessionError)
-      return null
-    }
-
-    console.log("🔧 [updateUserProfile_v2] Current auth state:", {
-      hasSession: !!session,
-      sessionUserId: session?.user?.id,
-      requestedUserId: userId,
-    })
-
-    // セッションユーザーIDと一致するか確認
-    if (!session) {
-      console.error("❌ [updateUserProfile_v2] No active session")
-      return null
+    if (!session || !session.user) {
+      console.error("❌ [updateUserProfile] No authenticated session found")
+      throw new Error("認証されていません。再度ログインしてください。")
     }
 
     if (session.user.id !== userId) {
-      console.error("❌ [updateUserProfile_v2] User ID mismatch:", {
+      console.error("❌ [updateUserProfile] User ID mismatch:", {
         sessionUserId: session.user.id,
         requestedUserId: userId,
       })
-      return null
+      throw new Error("ユーザーIDが一致しません。")
     }
 
-    // 更新前のデータを確認（デバッグ用）
-    console.log("🔧 [updateUserProfile_v2] Checking current data before update...")
+    console.log("✅ [updateUserProfile] Authentication verified")
 
-    // 直接SQLクエリを実行してRLSをバイパス（管理者権限が必要）
-    const { data: adminData, error: adminError } = await supabase.rpc("admin_get_user_by_id", {
-      user_id: userId,
-    })
+    // 2. 標準的なクライアントサイド更新を試行
+    console.log("🔧 [updateUserProfile] Attempting standard client-side update")
 
-    if (adminError) {
-      console.log("🔧 [updateUserProfile_v2] Admin query not available, trying standard query")
+    const supabase = createFreshClient()
 
-      // 標準クエリを試行
-      const { data: currentData, error: selectError } = await supabase
-        .from("users")
-        .select("*")
-        .eq("id", userId)
-        .single()
+    // 現在のデータを取得
+    console.log("🔧 [updateUserProfile] Fetching current user data")
+    const { data: currentData, error: selectError } = await supabase.from("users").select("*").eq("id", userId).single()
 
-      if (selectError) {
-        console.error("❌ [updateUserProfile_v2] SELECT query failed:", {
-          code: selectError.code,
-          message: selectError.message,
-          details: selectError.details,
-        })
+    if (selectError) {
+      console.error("❌ [updateUserProfile] Error fetching current data:", selectError)
 
-        // RLSポリシーエラーの可能性をチェック
-        if (selectError.code === "PGRST116" || selectError.message?.includes("row-level security")) {
-          console.error("❌ [updateUserProfile_v2] RLS Policy Error - User may not be properly authenticated")
-        }
-      } else {
-        console.log("🔧 [updateUserProfile_v2] Current data:", currentData)
-      }
-    } else {
-      console.log("🔧 [updateUserProfile_v2] Admin query result:", adminData)
-    }
-
-    // 更新データの準備
-    const updateData = {
-      ...profileData,
-      updated_at: new Date().toISOString(),
-    }
-    console.log("🔧 [updateUserProfile_v2] Update data prepared:", updateData)
-
-    // 更新実行
-    console.log("🔧 [updateUserProfile_v2] Executing update query...")
-
-    // 直接SQLクエリを実行してRLSをバイパス（管理者権限が必要）
-    const { data: adminUpdateData, error: adminUpdateError } = await supabase.rpc("admin_update_user_profile", {
-      user_id: userId,
-      update_data: updateData,
-    })
-
-    if (adminUpdateError) {
-      console.log("🔧 [updateUserProfile_v2] Admin update not available, trying standard update")
-
-      // 標準更新を試行
-      const { data, error } = await supabase.from("users").update(updateData).eq("id", userId).select().single()
-
-      console.log("🔧 [updateUserProfile_v2] Update result - data:", data)
-      console.log("🔧 [updateUserProfile_v2] Update result - error:", error)
-
-      if (error) {
-        console.error("❌ [updateUserProfile_v2] ERROR - Update failed:", {
-          code: error.code,
-          message: error.message,
-          details: error.details,
-        })
-
-        // 最終手段：サーバーサイドAPIを使用
-        console.log("🔧 [updateUserProfile_v2] Trying server-side API as fallback...")
-        const apiResponse = await fetch("/api/users/update-profile", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            userId,
-            profileData: updateData,
-          }),
-        })
-
-        if (!apiResponse.ok) {
-          console.error("❌ [updateUserProfile_v2] API fallback failed:", await apiResponse.text())
-          return null
-        }
-
-        const apiResult = await apiResponse.json()
-        console.log("✅ [updateUserProfile_v2] API fallback succeeded:", apiResult)
-        return apiResult.data
+      // RLSエラーの場合は、RPC関数を試行
+      if (selectError.code === "42501" || selectError.message?.includes("RLS")) {
+        console.log("🔧 [updateUserProfile] RLS error detected, trying RPC function")
+        return await updateViaRPC(userId, profileData)
       }
 
-      console.log("✅ [updateUserProfile_v2] SUCCESS - Update completed")
-      return data
-    } else {
-      console.log("✅ [updateUserProfile_v2] Admin update succeeded:", adminUpdateData)
-      return adminUpdateData
+      throw selectError
     }
+
+    console.log("✅ [updateUserProfile] Current data fetched:", currentData)
+
+    // データを更新
+    console.log("🔧 [updateUserProfile] Updating user data")
+    const { data: updatedData, error: updateError } = await supabase
+      .from("users")
+      .update(profileData)
+      .eq("id", userId)
+      .select()
+      .single()
+
+    if (updateError) {
+      console.error("❌ [updateUserProfile] Error updating data:", updateError)
+
+      // RLSエラーの場合は、RPC関数を試行
+      if (updateError.code === "42501" || updateError.message?.includes("RLS")) {
+        console.log("🔧 [updateUserProfile] RLS error detected, trying RPC function")
+        return await updateViaRPC(userId, profileData)
+      }
+
+      throw updateError
+    }
+
+    console.log("✅ [updateUserProfile] Data updated successfully:", updatedData)
+    return updatedData
   } catch (error) {
-    console.error("❌ [updateUserProfile_v2] CATCH ERROR - Exception occurred:", error)
-    console.error("❌ [updateUserProfile_v2] CATCH ERROR - Error type:", typeof error)
-    console.error(
-      "❌ [updateUserProfile_v2] CATCH ERROR - Error stack:",
-      error instanceof Error ? error.stack : "No stack",
-    )
-    return null
+    console.error("❌ [updateUserProfile] Standard update failed:", error)
+
+    // 3. RPC関数による更新を試行
+    console.log("🔧 [updateUserProfile] Trying RPC function as fallback")
+    try {
+      return await updateViaRPC(userId, profileData)
+    } catch (rpcError) {
+      console.error("❌ [updateUserProfile] RPC update also failed:", rpcError)
+
+      // 4. サーバーサイドAPIによる更新を試行
+      console.log("🔧 [updateUserProfile] Trying server-side API as final fallback")
+      return await updateViaAPI(userId, profileData)
+    }
   }
 }
 
-// サーバーサイドAPIのためのRPCを作成するSQL関数
-// これはデータベースに追加する必要があります
-/*
-CREATE OR REPLACE FUNCTION admin_get_user_by_id(user_id UUID)
-RETURNS SETOF users
-LANGUAGE sql
-SECURITY DEFINER
-AS $$
-  SELECT * FROM users WHERE id = user_id;
-$$;
+// RPC関数による更新
+async function updateViaRPC(
+  userId: string,
+  profileData: {
+    display_name?: string
+    pokepoke_id?: string
+    name?: string
+    avatar_url?: string
+  },
+) {
+  console.log("🔧 [updateViaRPC] Starting RPC update")
 
-CREATE OR REPLACE FUNCTION admin_update_user_profile(user_id UUID, update_data JSONB)
-RETURNS SETOF users
-LANGUAGE plpgsql
-SECURITY DEFINER
-AS $$
-BEGIN
-  UPDATE users
-  SET 
-    pokepoke_id = COALESCE(update_data->>'pokepoke_id', pokepoke_id),
-    display_name = COALESCE(update_data->>'display_name', display_name),
-    name = COALESCE(update_data->>'name', name),
-    avatar_url = COALESCE(update_data->>'avatar_url', avatar_url),
-    updated_at = COALESCE(update_data->>'updated_at', updated_at)
-  WHERE id = user_id;
-  
-  RETURN QUERY SELECT * FROM users WHERE id = user_id;
-END;
-$$;
-*/
+  const supabase = createFreshClient()
+
+  const { data, error } = await supabase.rpc("admin_update_user_profile", {
+    target_user_id: userId,
+    profile_updates: profileData,
+  })
+
+  if (error) {
+    console.error("❌ [updateViaRPC] RPC error:", error)
+    throw error
+  }
+
+  console.log("✅ [updateViaRPC] RPC update successful:", data)
+  return data
+}
+
+// サーバーサイドAPIによる更新
+async function updateViaAPI(
+  userId: string,
+  profileData: {
+    display_name?: string
+    pokepoke_id?: string
+    name?: string
+    avatar_url?: string
+  },
+) {
+  console.log("🔧 [updateViaAPI] Starting API update")
+
+  const response = await fetch("/api/users/update-profile", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      userId,
+      profileData,
+    }),
+  })
+
+  if (!response.ok) {
+    const errorText = await response.text()
+    console.error("❌ [updateViaAPI] API error:", errorText)
+    throw new Error(`API update failed: ${errorText}`)
+  }
+
+  const result = await response.json()
+  console.log("✅ [updateViaAPI] API update successful:", result)
+  return result.data
+}
