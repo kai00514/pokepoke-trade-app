@@ -3,8 +3,8 @@
 import type React from "react"
 import { createContext, useContext, useEffect, useState } from "react"
 import type { User, Session } from "@supabase/supabase-js"
-import { createClient, refreshClientSession } from "@/lib/supabase/client"
-import { getUserProfile } from "@/lib/services/user-service"
+import { createClient } from "@/lib/supabase/client"
+import { getUserProfile } from "@/lib/services/user-service_ver2"
 
 interface UserProfile {
   id: string
@@ -51,9 +51,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const refreshSession = async () => {
     try {
       console.log("🔄 [refreshSession] START - Refreshing session...")
-
-      // Supabaseクライアントのセッションを強制更新
-      await refreshClientSession()
 
       const {
         data: { session },
@@ -149,16 +146,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(session?.user || null)
 
       if (event === "SIGNED_IN" && session?.user) {
-        // サインイン時にクライアントセッションも更新
-        await refreshClientSession()
         await fetchUserProfile(session.user.id)
       } else if (event === "SIGNED_OUT") {
         setUserProfile(null)
       }
 
-      // TOKEN_REFRESHED イベントでもクライアントセッションを更新
+      // TOKEN_REFRESHED イベントでもプロファイルを再取得
       if (event === "TOKEN_REFRESHED" && session?.user) {
-        await refreshClientSession()
+        console.log("🔄 Token refreshed, updating user profile")
+        await fetchUserProfile(session.user.id)
       }
     })
 

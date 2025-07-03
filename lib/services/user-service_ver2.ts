@@ -61,6 +61,28 @@ async function getAuthSession() {
   }
 }
 
+// ユーザープロファイルを取得する関数
+export async function getUserProfile(userId: string) {
+  console.log("🔍 [getUserProfile] Getting user profile for:", userId)
+
+  try {
+    const supabase = getSupabaseClient()
+
+    const { data, error } = await supabase.from("users").select("*").eq("id", userId).single()
+
+    if (error) {
+      console.error("❌ [getUserProfile] Error:", error)
+      return null
+    }
+
+    console.log("✅ [getUserProfile] Profile retrieved:", data)
+    return data
+  } catch (error) {
+    console.error("❌ [getUserProfile] Exception:", error)
+    return null
+  }
+}
+
 // ユーザープロファイルを更新する関数
 export async function updateUserProfile(
   userId: string,
