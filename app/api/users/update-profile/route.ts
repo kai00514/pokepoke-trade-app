@@ -42,10 +42,9 @@ export async function POST(request: NextRequest) {
       console.log("🔧 [API] No valid session, trying admin update")
     }
 
-    // 更新データを準備
+    // 更新データを準備（updated_atを削除）
     const updateData = {
       ...profileData,
-      updated_at: new Date().toISOString(),
     }
 
     console.log("🔧 [API] Update data prepared:", updateData)
@@ -72,7 +71,6 @@ export async function POST(request: NextRequest) {
         .insert({
           id: userId,
           ...updateData,
-          created_at: new Date().toISOString(),
         })
         .select()
         .single()

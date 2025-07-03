@@ -153,3 +153,41 @@ async function updateViaAPI(
     throw error
   }
 }
+
+// 直接データベース更新を試行する関数（フォールバック用）
+export async function updateUserProfileDirect(
+  userId: string,
+  profileData: {
+    display_name?: string
+    pokepoke_id?: string
+    name?: string
+    avatar_url?: string
+  },
+) {
+  console.log("🔧 [updateUserProfileDirect] Starting direct database update")
+
+  const supabase = getSupabaseClient()
+
+  try {
+    // 現在のセッションを確認
+    const { data: sessionData } = await supabase.auth.getSession()
+    console.log("🔧 [updateUserProfileDirect] Current session:", {
+      hasSession: !!sessionData.session,
+      userId: sessionData.session?.user?.id,
+    })
+
+    // 更新実行
+    const { data, error } = await supabase.from("users").update(profileData).eq("id", userId).select().single()
+
+    if (error) {
+      console.error("❌ [updateUserProfileDirect] Database error:", error)
+      throw error
+    }
+
+    console.log("✅ [updateUserProfileDirect] Direct update successful:", data)
+    return data
+  } catch (error) {
+    console.error("❌ [updateUserProfileDirect] Direct update error:", error)
+    throw error
+  }
+}
