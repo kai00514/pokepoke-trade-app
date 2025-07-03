@@ -5,98 +5,76 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { updateUserProfile } from "@/lib/services/user-service_ver2"
-import { useAuth } from "@/contexts/auth-context"
 
 interface PokepokeIdRegistrationModalProps {
   isOpen: boolean
-  onClose: () => void
-  onSuccess?: () => void
+  onOpenChange: (open: boolean) => void
+  currentPokepokeId?: string | null
+  onSave: (pokepokeId: string) => Promise<void>
 }
 
-export function PokepokeIdRegistrationModal({ isOpen, onClose, onSuccess }: PokepokeIdRegistrationModalProps) {
-  const [pokepokeId, setPokepokeId] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
+export function PokepokeIdRegistrationModal({
+  isOpen,
+  onOpenChange,
+  currentPokepokeId,
+  onSave,
+}: PokepokeIdRegistrationModalProps) {
+  const [pokepokeId, setPokepokeId] = useState(currentPokepokeId || "")
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const { user } = useAuth()
 
   const handleSave = async () => {
-    console.log("🚀 [handlePokepokeIdSave] ===== START =====")
-    console.log("🚀 [handlePokepokeIdSave] Input pokepokeId:", pokepokeId)
-
     if (!pokepokeId.trim()) {
-      setError("PokepokeIDを入力してください")
+      setError("ポケポケIDを入力してください")
       return
     }
 
-    if (!user?.id) {
-      setError("ユーザー情報が取得できません")
-      return
-    }
-
-    setIsLoading(true)
+    setIsSubmitting(true)
     setError(null)
 
     try {
-      console.log("🔄 [handlePokepokeIdSave] Calling updateUserProfile...")
-
-      const result = await updateUserProfile(user.id, {
-        pokepoke_id: pokepokeId.trim(),
-      })
-
-      console.log("✅ [handlePokepokeIdSave] Update successful:", result)
-
-      if (onSuccess) {
-        onSuccess()
-      }
-
-      onClose()
-      setPokepokeId("")
+      console.log("🔧 [PokepokeIdModal] Saving PokepokeID:", pokepokeId)
+      await onSave(pokepokeId.trim())
+      console.log("✅ [PokepokeIdModal] PokepokeID saved successfully")
+      onOpenChange(false)
     } catch (error) {
-      console.error("❌ [handlePokepokeIdSave] Update failed:", error)
-      setError("PokepokeIDの保存に失敗しました。もう一度お試しください。")
+      console.error("❌ [PokepokeIdModal] Error saving PokepokeID:", error)
+      setError(error instanceof Error ? error.message : "保存に失敗しました")
     } finally {
-      setIsLoading(false)
-      console.log("🏁 [handlePokepokeIdSave] ===== END =====")
+      setIsSubmitting(false)
     }
   }
 
-  const handleClose = () => {
-    if (!isLoading) {
-      setPokepokeId("")
-      setError(null)
-      onClose()
-    }
+  const handleCancel = () => {
+    setError(null)
+    setPokepokeId(currentPokepokeId || "")
+    onOpenChange(false)
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleClose}>
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>PokepokeIDを設定</DialogTitle>
+          <DialogTitle>ポケポケID登録</DialogTitle>
         </DialogHeader>
-
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="pokepoke-id">PokepokeID</Label>
+            <Label htmlFor="pokepoke-id">ポケポケID</Label>
             <Input
               id="pokepoke-id"
               value={pokepokeId}
               onChange={(e) => setPokepokeId(e.target.value)}
-              placeholder="PokepokeIDを入力"
-              disabled={isLoading}
-              maxLength={20}
+              placeholder="ポケポケIDを入力してください"
+              disabled={isSubmitting}
             />
           </div>
-
-          {error && <div className="text-sm text-red-600 bg-red-50 p-2 rounded">{error}</div>}
-
+          {error && <p className="text-sm text-red-500">{error}</p>}
           <div className="flex justify-end space-x-2">
-            <Button variant="outline" onClick={handleClose} disabled={isLoading}>
+            <Button variant="outline" onClick={handleCancel} disabled={isSubmitting}>
               キャンセル
             </Button>
-            <Button onClick={handleSave} disabled={isLoading || !pokepokeId.trim()}>
-              {isLoading ? "保存中..." : "保存"}
+            <Button onClick={handleSave} disabled={!pokepokeId.trim() || isSubmitting}>
+              {isSubmitting ? "保存中..." : "保存"}
             </Button>
           </div>
         </div>

@@ -1,98 +1,122 @@
 import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs"
 import { cookies } from "next/headers"
-import { type NextRequest, NextResponse } from "next/server"
+import { NextResponse } from "next/server"
 
-export async function POST(request: NextRequest) {
-  console.log("🔧 [API] update-profile called")
-
+export async function POST(request: Request) {
   try {
-    const { userId, profileData } = await request.json()
-    console.log("🔧 [API] Input userId:", userId)
-    console.log("🔧 [API] Input profileData:", profileData)
+    console.log("🔧 [API] POST /api/users/update-profile called")
 
+    const body = await request.json()
+    const { userId, profileData } = body
+
+    console.log("🔧 [API] Request data:", { userId, profileData })
+
+    if (!userId || !profileData) {
+      console.error("❌ [API] Missing required fields")
+      return NextResponse.json({ error: "userId and profileData are required" }, { status: 400 })
+    }
+
+    // サーバーサイドのSupabaseクライアントを作成
     const cookieStore = cookies()
     const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
 
-    // 現在のユーザーを確認
+    console.log("🔧 [API] Supabase client created")
+
+    // セッション確認
     const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser()
+      data: { session },
+      error: sessionError,
+    } = await supabase.auth.getSession()
 
-    if (userError || !user) {
-      console.error("🔧 [API] Authentication error:", userError)
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
-
-    console.log("🔧 [API] Authenticated user:", user.id)
-
-    // ユーザーIDが一致するかチェック
-    if (user.id !== userId) {
-      console.error("🔧 [API] User ID mismatch")
-      return NextResponse.json({ error: "Forbidden: Cannot update other user profiles" }, { status: 403 })
-    }
-
-    // まず、ユーザーが存在するかチェック
-    const { data: existingUser, error: selectError } = await supabase
-      .from("users")
-      .select("*")
-      .eq("id", userId)
-      .single()
-
-    console.log("🔧 [API] Existing user check:", { existingUser, selectError })
-
-    let result
-    if (selectError && selectError.code === "PGRST116") {
-      // ユーザーが存在しない場合は作成
-      console.log("🔧 [API] Creating new user record")
-      const { data: insertData, error: insertError } = await supabase
-        .from("users")
-        .insert({
-          id: userId,
-          email: user.email,
-          ...profileData,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        })
-        .select()
-
-      if (insertError) {
-        console.error("🔧 [API] Insert error:", insertError)
-        return NextResponse.json({ error: "Failed to create user profile", details: insertError }, { status: 500 })
-      }
-
-      result = insertData
-      console.log("🔧 [API] User created successfully:", result)
-    } else if (selectError) {
-      console.error("🔧 [API] Select error:", selectError)
-      return NextResponse.json({ error: "Failed to check user existence", details: selectError }, { status: 500 })
-    } else {
-      // ユーザーが存在する場合は更新
-      console.log("🔧 [API] Updating existing user record")
-      const { data: updateData, error: updateError } = await supabase
-        .from("users")
-        .update({
-          ...profileData,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", userId)
-        .select()
-
-      if (updateError) {
-        console.error("🔧 [API] Update error:", updateError)
-        return NextResponse.json({ error: "Failed to update user profile", details: updateError }, { status: 500 })
-      }
-
-      result = updateData
-      console.log("🔧 [API] User updated successfully:", result)
-    }
-
-    return NextResponse.json({
-      success: true,
-      data: result,
+    console.log("🔧 [API] Session check:", {
+      hasSession: !!session,
+      sessionUserId: session?.user?.id,
+      requestedUserId: userId,
+      sessionError: sessionError?.message,
     })
+
+    if (sessionError) {
+      console.error("❌ [API] Session error:", sessionError)
+      return NextResponse.json({ error: "Session error", details: sessionError.message }, { status: 401 })
+    }
+
+    if (!session) {
+      console.error("❌ [API] No active session")
+      return NextResponse.json({ error: "Not authenticated" }, { status: 401 })
+    }
+
+    if (session.user.id !== userId) {
+      console.error("❌ [API] User ID mismatch")
+      return NextResponse.json({ error: "User ID mismatch" }, { status: 403 })
+    }
+
+    // 更新データの準備
+    const updateData = {
+      ...profileData,
+      updated_at: new Date().toISOString(),
+    }
+
+    console.log("🔧 [API] Update data prepared:", updateData)
+
+    // 現在のデータを確認（デバッグ用）
+    const { data: currentData, error: selectError } = await supabase.from("users").select("*").eq("id", userId).single()
+
+    if (selectError) {
+      console.log("🔧 [API] Current data select error (may be normal if user doesn't exist):", selectError)
+    } else {
+      console.log("🔧 [API] Current user data:", currentData)
+    }
+
+    // 更新実行
+    console.log("🔧 [API] Executing update query...")
+    const { data, error } = await supabase.from("users").update(updateData).eq("id", userId).select().single()
+
+    if (error) {
+      console.error("❌ [API] Update error:", {
+        code: error.code,
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+      })
+
+      // エラーの詳細分析
+      if (error.code === "PGRST116") {
+        console.error("❌ [API] No rows found - user may not exist in users table")
+
+        // ユーザーレコードを作成してから更新を試行
+        console.log("🔧 [API] Attempting to create user record first...")
+        const { data: insertData, error: insertError } = await supabase
+          .from("users")
+          .insert({
+            id: userId,
+            ...updateData,
+            created_at: new Date().toISOString(),
+          })
+          .select()
+          .single()
+
+        if (insertError) {
+          console.error("❌ [API] Insert error:", insertError)
+          return NextResponse.json(
+            { error: "Failed to create user record", details: insertError.message },
+            { status: 500 },
+          )
+        }
+
+        console.log("✅ [API] User record created successfully:", insertData)
+        return NextResponse.json({ success: true, data: insertData })
+      }
+
+      return NextResponse.json({ error: "Database update failed", details: error.message }, { status: 500 })
+    }
+
+    console.log("✅ [API] Update successful:", data)
+    return NextResponse.json({ success: true, data })
   } catch (error) {
-    console.error("🔧 [API] Unexpected error:", error)
-    return NextResponse.json({ error: "Internal server error", details: error }, { status: 500 })
+    console.error("❌ [API] Server error:", error)
+    return NextResponse.json(
+      { error: "Internal server error", details: error instanceof Error ? error.message : "Unknown error" },
+      { status: 500 },
+    )
   }
 }
