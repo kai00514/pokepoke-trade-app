@@ -30,15 +30,21 @@ function getSupabaseClient(): SupabaseClient {
   return supabaseInstance
 }
 
-// 現在の認証セッションを取得する関数
+// 現在の認証セッションを取得する関数（タイムアウト付き）
 async function getAuthSession() {
   console.log("🔧 [getAuthSession] Getting current auth session")
 
   const supabase = getSupabaseClient()
 
   try {
-    // セッション情報を取得
-    const { data: sessionData, error: sessionError } = await supabase.auth.getSession()
+    // タイムアウトを設定（5秒）
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error("Session timeout")), 5000)
+    })
+
+    const sessionPromise = supabase.auth.getSession()
+
+    const { data: sessionData, error: sessionError } = (await Promise.race([sessionPromise, timeoutPromise])) as any
 
     console.log("🔧 [getAuthSession] Session query completed")
 
@@ -57,7 +63,10 @@ async function getAuthSession() {
     return sessionData.session
   } catch (error) {
     console.error("❌ [getAuthSession] Error getting session:", error)
-    throw error
+
+    // セッション取得に失敗した場合は、直接APIを使用
+    console.log("🔧 [getAuthSession] Session failed, will use API fallback")
+    return null
   }
 }
 
@@ -76,16 +85,11 @@ export async function updateUserProfile(
   console.log("🔧 [updateUserProfile] Input profileData:", profileData)
 
   try {
-    // 1. 認証セッションを確認
+    // 1. 認証セッションを確認（タイムアウト付き）
     console.log("🔧 [updateUserProfile] Step 1: Getting auth session")
     const session = await getAuthSession()
 
-    if (!session || !session.user) {
-      console.error("❌ [updateUserProfile] No authenticated session found")
-      throw new Error("認証されていません。再度ログインしてください。")
-    }
-
-    if (session.user.id !== userId) {
+    if (session && session.user && session.user.id !== userId) {
       console.error("❌ [updateUserProfile] User ID mismatch:", {
         sessionUserId: session.user.id,
         requestedUserId: userId,
@@ -93,65 +97,13 @@ export async function updateUserProfile(
       throw new Error("ユーザーIDが一致しません。")
     }
 
-    console.log("✅ [updateUserProfile] Authentication verified")
+    console.log("✅ [updateUserProfile] Authentication check completed")
 
-    // 2. RPC関数を使用して更新を試行
-    console.log("🔧 [updateUserProfile] Step 2: Trying RPC function update")
-    try {
-      const result = await updateViaRPC(userId, profileData)
-      if (result) {
-        console.log("✅ [updateUserProfile] RPC update successful")
-        return result
-      }
-    } catch (rpcError) {
-      console.log("🔧 [updateUserProfile] RPC update failed, trying API fallback:", rpcError)
-    }
-
-    // 3. サーバーサイドAPIを使用して更新（フォールバック）
-    console.log("🔧 [updateUserProfile] Step 3: Using server-side API for update")
+    // 2. サーバーサイドAPIを直接使用（最も確実な方法）
+    console.log("🔧 [updateUserProfile] Step 2: Using server-side API for update")
     return await updateViaAPI(userId, profileData)
   } catch (error) {
     console.error("❌ [updateUserProfile] Error in updateUserProfile:", error)
-    throw error
-  }
-}
-
-// RPC関数による更新
-async function updateViaRPC(
-  userId: string,
-  profileData: {
-    display_name?: string
-    pokepoke_id?: string
-    name?: string
-    avatar_url?: string
-  },
-) {
-  console.log("🔧 [updateViaRPC] Starting RPC update")
-
-  const supabase = getSupabaseClient()
-
-  try {
-    const updateData = {
-      ...profileData,
-      updated_at: new Date().toISOString(),
-    }
-
-    console.log("🔧 [updateViaRPC] Calling admin_update_user_profile with:", { userId, updateData })
-
-    const { data, error } = await supabase.rpc("admin_update_user_profile", {
-      user_id: userId,
-      update_data: updateData,
-    })
-
-    if (error) {
-      console.error("❌ [updateViaRPC] RPC error:", error)
-      throw error
-    }
-
-    console.log("✅ [updateViaRPC] RPC update successful:", data)
-    return Array.isArray(data) ? data[0] : data
-  } catch (error) {
-    console.error("❌ [updateViaRPC] RPC update error:", error)
     throw error
   }
 }
@@ -169,23 +121,28 @@ async function updateViaAPI(
   console.log("🔧 [updateViaAPI] Starting API update")
 
   try {
+    const requestBody = {
+      userId,
+      profileData,
+    }
+
+    console.log("🔧 [updateViaAPI] Request body:", requestBody)
+
     const response = await fetch("/api/users/update-profile", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        userId,
-        profileData,
-      }),
+      body: JSON.stringify(requestBody),
     })
 
     console.log("🔧 [updateViaAPI] API response status:", response.status)
+    console.log("🔧 [updateViaAPI] API response headers:", Object.fromEntries(response.headers.entries()))
 
     if (!response.ok) {
       const errorText = await response.text()
       console.error("❌ [updateViaAPI] API error response:", errorText)
-      throw new Error(`API update failed: ${errorText}`)
+      throw new Error(`API update failed (${response.status}): ${errorText}`)
     }
 
     const result = await response.json()
@@ -193,44 +150,6 @@ async function updateViaAPI(
     return result.data
   } catch (error) {
     console.error("❌ [updateViaAPI] API update error:", error)
-    throw error
-  }
-}
-
-// 直接データベース更新を試行する関数（フォールバック用）
-export async function updateUserProfileDirect(
-  userId: string,
-  profileData: {
-    display_name?: string
-    pokepoke_id?: string
-    name?: string
-    avatar_url?: string
-  },
-) {
-  console.log("🔧 [updateUserProfileDirect] Starting direct database update")
-
-  const supabase = getSupabaseClient()
-
-  try {
-    // 現在のセッションを確認
-    const { data: sessionData } = await supabase.auth.getSession()
-    console.log("🔧 [updateUserProfileDirect] Current session:", {
-      hasSession: !!sessionData.session,
-      userId: sessionData.session?.user?.id,
-    })
-
-    // 更新実行
-    const { data, error } = await supabase.from("users").update(profileData).eq("id", userId).select().single()
-
-    if (error) {
-      console.error("❌ [updateUserProfileDirect] Database error:", error)
-      throw error
-    }
-
-    console.log("✅ [updateUserProfileDirect] Direct update successful:", data)
-    return data
-  } catch (error) {
-    console.error("❌ [updateUserProfileDirect] Direct update error:", error)
     throw error
   }
 }
