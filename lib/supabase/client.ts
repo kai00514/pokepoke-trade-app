@@ -1,7 +1,7 @@
 import { createBrowserClient } from "@supabase/ssr"
 import type { SupabaseClient } from "@supabase/supabase-js"
 
-// Singleton pattern for the client-side Supabase client
+// グローバルクライアントインスタンス（Singletonパターンを維持しつつ、セッション管理を改善）
 let supabaseInstance: SupabaseClient | null = null
 
 export function createClient() {
@@ -16,6 +16,10 @@ export function createClient() {
       {
         auth: {
           flowType: "pkce",
+          // セッション情報の自動更新を有効化
+          autoRefreshToken: true,
+          persistSession: true,
+          detectSessionInUrl: true,
         },
         global: {
           headers: {
@@ -28,9 +32,34 @@ export function createClient() {
   return supabaseInstance
 }
 
-// 互換性のための名前付きエクスポート (他のファイルが createBrowserClient としてインポートしている場合)
+// セッション状態を強制的に更新する関数
+export async function refreshClientSession() {
+  if (supabaseInstance) {
+    const {
+      data: { session },
+      error,
+    } = await supabaseInstance.auth.getSession()
+    if (error) {
+      console.error("❌ Error refreshing client session:", error)
+    } else {
+      console.log("✅ Client session refreshed:", session ? "Session found" : "No session")
+    }
+    return { session, error }
+  }
+  return { session: null, error: new Error("Supabase client not initialized") }
+}
+
+// 認証状態を確認する関数
+export async function getCurrentUser() {
+  const client = createClient()
+  const {
+    data: { user },
+    error,
+  } = await client.auth.getUser()
+  return { user, error }
+}
+
+// 互換性のための名前付きエクスポート
 export { createClient as createBrowserClient }
-// supabase インスタンスを名前付きエクスポートとして提供 (他のファイルが supabase としてインポートしている場合)
 export const supabase = createClient()
-// デフォルトエクスポート (他のファイルがデフォルトインポートしている場合)
 export default createClient

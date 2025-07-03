@@ -3,7 +3,7 @@
 import type React from "react"
 import { createContext, useContext, useEffect, useState } from "react"
 import type { User, Session } from "@supabase/supabase-js"
-import { createClient } from "@/lib/supabase/client"
+import { createClient, refreshClientSession } from "@/lib/supabase/client"
 import { getUserProfile } from "@/lib/services/user-service"
 
 interface UserProfile {
@@ -20,6 +20,7 @@ interface AuthContextType {
   user: User | null
   session: Session | null
   userProfile: UserProfile | null
+  loading: boolean
   signOut: () => Promise<void>
   refreshSession: () => Promise<void>
 }
@@ -30,6 +31,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [session, setSession] = useState<Session | null>(null)
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null)
+  const [loading, setLoading] = useState(true)
 
   const supabase = createClient()
 
@@ -49,6 +51,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const refreshSession = async () => {
     try {
       console.log("🔄 [refreshSession] START - Refreshing session...")
+
+      // Supabaseクライアントのセッションを強制更新
+      await refreshClientSession()
+
       const {
         data: { session },
         error,
@@ -61,12 +67,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return
       }
 
+      // セッション状態を更新
+      setSession(session)
+      setUser(session?.user || null)
+
       if (session?.user) {
         console.log("🔄 [refreshSession] Session found, fetching user profile for:", session.user.id)
         await fetchUserProfile(session.user.id)
         console.log("🔄 [refreshSession] fetchUserProfile completed")
       } else {
         console.log("🔄 [refreshSession] No session found")
+        setUserProfile(null)
       }
     } catch (error) {
       console.error("❌ [refreshSession] Error in refreshSession:", error)
@@ -98,6 +109,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // 初期セッション取得
     const getInitialSession = async () => {
       try {
+        setLoading(true)
+
         const {
           data: { session },
           error,
@@ -105,18 +118,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         if (error) {
           console.error("❌ Error getting initial session:", error)
+          setLoading(false)
           return
         }
 
         console.log("🔍 Initial session:", session ? "Found" : "Not found")
 
-        if (session) {
-          setSession(session)
-          setUser(session.user)
+        setSession(session)
+        setUser(session?.user || null)
+
+        if (session?.user) {
           await fetchUserProfile(session.user.id)
         }
       } catch (error) {
         console.error("❌ Error in getInitialSession:", error)
+      } finally {
+        setLoading(false)
       }
     }
 
@@ -128,14 +145,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log("🔔 Auth state changed:", event, session ? "Session exists" : "No session")
 
-      if (event === "SIGNED_IN" && session) {
-        setSession(session)
-        setUser(session.user)
+      setSession(session)
+      setUser(session?.user || null)
+
+      if (event === "SIGNED_IN" && session?.user) {
+        // サインイン時にクライアントセッションも更新
+        await refreshClientSession()
         await fetchUserProfile(session.user.id)
       } else if (event === "SIGNED_OUT") {
-        setSession(null)
-        setUser(null)
         setUserProfile(null)
+      }
+
+      // TOKEN_REFRESHED イベントでもクライアントセッションを更新
+      if (event === "TOKEN_REFRESHED" && session?.user) {
+        await refreshClientSession()
       }
     })
 
@@ -150,6 +173,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         user,
         session,
         userProfile,
+        loading,
         signOut,
         refreshSession,
       }}

@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/client"
+import { createClient, refreshClientSession, getCurrentUser } from "@/lib/supabase/client"
 
 interface UserProfile {
   id: string
@@ -70,12 +70,77 @@ export async function updateUserProfile(
     const supabase = createClient()
     console.log("🔧 [updateUserProfile] Supabase client created")
 
-    // 更新前のデータを確認
+    // セッション状態を強制的に更新
+    console.log("🔧 [updateUserProfile] Refreshing client session...")
+    const { session: refreshedSession, error: refreshError } = await refreshClientSession()
+
+    if (refreshError) {
+      console.error("🔧 [updateUserProfile] Session refresh error:", refreshError)
+    } else {
+      console.log("🔧 [updateUserProfile] Session refresh result:", refreshedSession ? "Session found" : "No session")
+    }
+
+    // 現在のユーザー情報を確認
+    console.log("🔧 [updateUserProfile] Getting current user...")
+    const { user: currentUser, error: userError } = await getCurrentUser()
+
+    if (userError) {
+      console.error("🔧 [updateUserProfile] Current user error:", userError)
+      return null
+    }
+
+    if (!currentUser) {
+      console.error("🔧 [updateUserProfile] No current user found")
+      return null
+    }
+
+    console.log("🔧 [updateUserProfile] Current user:", {
+      id: currentUser.id,
+      email: currentUser.email,
+      matchesUserId: currentUser.id === userId,
+    })
+
+    // ユーザーIDの一致を確認
+    if (currentUser.id !== userId) {
+      console.error("🔧 [updateUserProfile] User ID mismatch:", {
+        currentUserId: currentUser.id,
+        requestedUserId: userId,
+      })
+      return null
+    }
+
+    // 更新前のデータを確認（デバッグ用）
     console.log("🔧 [updateUserProfile] Checking current data before update...")
     const { data: currentData, error: selectError } = await supabase.from("users").select("*").eq("id", userId).single()
 
     console.log("🔧 [updateUserProfile] Current data:", currentData)
     console.log("🔧 [updateUserProfile] Select error:", selectError)
+
+    // SELECTクエリが失敗した場合の詳細ログ
+    if (selectError) {
+      console.error("🔧 [updateUserProfile] SELECT query failed:", {
+        code: selectError.code,
+        message: selectError.message,
+        details: selectError.details,
+        hint: selectError.hint,
+      })
+
+      // RLSポリシーエラーの可能性をチェック
+      if (selectError.code === "PGRST116" || selectError.message?.includes("row-level security")) {
+        console.error("🔧 [updateUserProfile] RLS Policy Error - User may not be properly authenticated")
+
+        // セッション情報の詳細確認
+        const {
+          data: { session },
+          error: sessionError,
+        } = await supabase.auth.getSession()
+        console.error("🔧 [updateUserProfile] Session check:", {
+          hasSession: !!session,
+          sessionUserId: session?.user?.id,
+          sessionError: sessionError,
+        })
+      }
+    }
 
     // 更新データの準備
     const updateData = {
@@ -92,10 +157,12 @@ export async function updateUserProfile(
     console.log("🔧 [updateUserProfile] Update result - error:", error)
 
     if (error) {
-      console.error("🔧 [updateUserProfile] ERROR - Update failed:", error)
-      console.error("🔧 [updateUserProfile] ERROR - Error code:", error.code)
-      console.error("🔧 [updateUserProfile] ERROR - Error message:", error.message)
-      console.error("🔧 [updateUserProfile] ERROR - Error details:", error.details)
+      console.error("🔧 [updateUserProfile] ERROR - Update failed:", {
+        code: error.code,
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+      })
       return null
     }
 
