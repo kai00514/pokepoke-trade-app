@@ -1,86 +1,70 @@
 "use client"
 
-import type React from "react"
-
 import { useState } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Loader2, AlertCircle, CheckCircle } from "lucide-react"
 import { updateUserProfile } from "@/lib/services/user-service_ver2"
 import { useAuth } from "@/contexts/auth-context"
 
 interface UsernameRegistrationModalProps {
   isOpen: boolean
   onClose: () => void
-  onSuccess: () => void
+  onSuccess?: () => void
 }
 
 export function UsernameRegistrationModal({ isOpen, onClose, onSuccess }: UsernameRegistrationModalProps) {
-  const { user, userProfile } = useAuth()
-  const [username, setUsername] = useState(userProfile?.display_name || "")
+  const [username, setUsername] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState(false)
+  const { user } = useAuth()
 
-  console.log("🎯 [UsernameRegistrationModal] Render:", {
-    isOpen,
-    user: user ? { id: user.id, email: user.email } : null,
-    userProfile,
-    currentUsername: username,
-  })
+  const handleSave = async () => {
+    console.log("🚀 [handleUsernameSave] ===== START =====")
+    console.log("🚀 [handleUsernameSave] Input username:", username)
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-
-    console.log("🚀 [UsernameRegistrationModal] Submit started")
-    console.log("🚀 [UsernameRegistrationModal] Username:", username)
-
-    if (!user) {
-      console.error("❌ [UsernameRegistrationModal] No user found")
-      setError("ユーザーが認証されていません")
+    if (!username.trim()) {
+      setError("ユーザー名を入力してください")
       return
     }
 
-    if (!username.trim()) {
-      console.error("❌ [UsernameRegistrationModal] Empty username")
-      setError("ユーザー名を入力してください")
+    if (!user?.id) {
+      setError("ユーザー情報が取得できません")
       return
     }
 
     setIsLoading(true)
     setError(null)
-    setSuccess(false)
 
     try {
-      console.log("🔄 [UsernameRegistrationModal] Calling updateUserProfile...")
+      console.log("🔄 [handleUsernameSave] Calling updateUserProfile...")
+
       const result = await updateUserProfile(user.id, {
         display_name: username.trim(),
       })
 
-      console.log("✅ [UsernameRegistrationModal] Update successful:", result)
-      setSuccess(true)
+      console.log("✅ [handleUsernameSave] Update successful:", result)
 
-      // 成功後、少し待ってからモーダルを閉じる
-      setTimeout(() => {
+      if (onSuccess) {
         onSuccess()
-        onClose()
-        setSuccess(false)
-      }, 1500)
+      }
+
+      onClose()
+      setUsername("")
     } catch (error) {
-      console.error("❌ [UsernameRegistrationModal] Update failed:", error)
-      setError(error instanceof Error ? error.message : "ユーザー名の保存に失敗しました")
+      console.error("❌ [handleUsernameSave] Update failed:", error)
+      setError("ユーザー名の保存に失敗しました。もう一度お試しください。")
     } finally {
       setIsLoading(false)
+      console.log("🏁 [handleUsernameSave] ===== END =====")
     }
   }
 
   const handleClose = () => {
     if (!isLoading) {
+      setUsername("")
       setError(null)
-      setSuccess(false)
       onClose()
     }
   }
@@ -92,50 +76,30 @@ export function UsernameRegistrationModal({ isOpen, onClose, onSuccess }: Userna
           <DialogTitle>ユーザー名を設定</DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="username">ユーザー名</Label>
             <Input
               id="username"
-              type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              placeholder="ユーザー名を入力してください"
+              placeholder="ユーザー名を入力"
               disabled={isLoading}
               maxLength={50}
             />
           </div>
 
-          {error && (
-            <Alert variant="destructive">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
-
-          {success && (
-            <Alert className="border-green-200 bg-green-50">
-              <CheckCircle className="h-4 w-4 text-green-600" />
-              <AlertDescription className="text-green-800">ユーザー名が正常に保存されました！</AlertDescription>
-            </Alert>
-          )}
+          {error && <div className="text-sm text-red-600 bg-red-50 p-2 rounded">{error}</div>}
 
           <div className="flex justify-end space-x-2">
-            <Button type="button" variant="outline" onClick={handleClose} disabled={isLoading}>
+            <Button variant="outline" onClick={handleClose} disabled={isLoading}>
               キャンセル
             </Button>
-            <Button type="submit" disabled={isLoading || !username.trim()}>
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  保存中...
-                </>
-              ) : (
-                "保存"
-              )}
+            <Button onClick={handleSave} disabled={isLoading || !username.trim()}>
+              {isLoading ? "保存中..." : "保存"}
             </Button>
           </div>
-        </form>
+        </div>
       </DialogContent>
     </Dialog>
   )

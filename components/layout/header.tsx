@@ -18,25 +18,13 @@ import { useState } from "react"
 import { UsernameRegistrationModal } from "@/components/username-registration-modal"
 import { PokepokeIdRegistrationModal } from "@/components/pokepoke-id-registration-modal"
 
-export default function Header() {
-  const { user, userProfile, loading } = useAuth()
+export function Header() {
+  const { user, userProfile, accountName, loading } = useAuth()
   const router = useRouter()
   const [isUsernameModalOpen, setIsUsernameModalOpen] = useState(false)
   const [isPokepokeIdModalOpen, setIsPokepokeIdModalOpen] = useState(false)
 
-  // アカウント名の表示優先順位: name > display_name > pokepoke_id > email
-  const accountName =
-    userProfile?.name ||
-    userProfile?.display_name ||
-    userProfile?.pokepoke_id ||
-    user?.email?.split("@")[0] ||
-    "ユーザー"
-
-  console.log("🔍 Layout Header component - Auth state:", {
-    user: user ? { id: user.id, email: user.email } : null,
-    userProfile,
-    accountName,
-  })
+  console.log("🔍 Layout Header component - Auth state:", { user, userProfile, accountName })
 
   const handleSignOut = async () => {
     const supabase = createClient()
@@ -162,3 +150,8 @@ export default function Header() {
     </>
   )
 }
+
+// 既存のnamed export
+
+// default exportを追加
+export default Header
