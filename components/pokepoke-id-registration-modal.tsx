@@ -3,10 +3,18 @@
 import type React from "react"
 
 import { useState } from "react"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 
 interface PokepokeIdRegistrationModalProps {
   isOpen: boolean
@@ -23,7 +31,7 @@ export function PokepokeIdRegistrationModal({
 }: PokepokeIdRegistrationModalProps) {
   const [pokepokeId, setPokepokeId] = useState(currentPokepokeId || "")
   const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState("")
+  const [error, setError] = useState<string | null>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -33,48 +41,70 @@ export function PokepokeIdRegistrationModal({
       return
     }
 
+    if (pokepokeId.length < 3 || pokepokeId.length > 20) {
+      setError("ポケポケIDは3文字以上20文字以下で入力してください")
+      return
+    }
+
     setIsLoading(true)
-    setError("")
+    setError(null)
 
     try {
       await onSave(pokepokeId.trim())
       onOpenChange(false)
       setPokepokeId("")
     } catch (error) {
-      setError(error instanceof Error ? error.message : "保存に失敗しました")
+      console.error("ポケポケID保存エラー:", error)
+      setError("ポケポケIDの保存に失敗しました。もう一度お試しください。")
     } finally {
       setIsLoading(false)
     }
   }
 
+  const handleClose = () => {
+    setPokepokeId(currentPokepokeId || "")
+    setError(null)
+    onOpenChange(false)
+  }
+
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+    <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>ポケポケID登録</DialogTitle>
-          <DialogDescription>ポケポケIDを登録してください。</DialogDescription>
+          <DialogDescription>
+            あなたのポケポケIDを設定してください。他のユーザーがあなたを見つけやすくなります。
+          </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="pokepoke-id">ポケポケID</Label>
-            <Input
-              id="pokepoke-id"
-              type="text"
-              value={pokepokeId}
-              onChange={(e) => setPokepokeId(e.target.value)}
-              placeholder="ポケポケIDを入力"
-              disabled={isLoading}
-            />
+        <form onSubmit={handleSubmit}>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="pokepoke-id" className="text-right">
+                ポケポケID
+              </Label>
+              <Input
+                id="pokepoke-id"
+                value={pokepokeId}
+                onChange={(e) => setPokepokeId(e.target.value)}
+                className="col-span-3"
+                placeholder="例: trainer123"
+                disabled={isLoading}
+              />
+            </div>
+            {error && (
+              <Alert variant="destructive">
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
           </div>
-          {error && <div className="text-sm text-red-600">{error}</div>}
-          <div className="flex justify-end space-x-2">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={handleClose} disabled={isLoading}>
               キャンセル
             </Button>
             <Button type="submit" disabled={isLoading}>
               {isLoading ? "保存中..." : "保存"}
             </Button>
-          </div>
+          </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>

@@ -13,7 +13,7 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { ArrowLeft, ChevronDown, ChevronUp, Trash2, Save, Loader2, Check, ImageIcon } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { Card as CardType } from "@/types/card"
-import { createBrowserClient } from "@/lib/supabase/client"
+import { supabase } from "@/lib/supabase/client"
 import { useToast } from "@/components/ui/use-toast"
 import { createDeck, type CreateDeckInput } from "@/lib/actions/deck-posts"
 import LoginPromptModal from "@/components/ui/login-prompt-modal"
@@ -35,15 +35,14 @@ const energyTypes = [
 
 const cardCategoriesForFilter = ["全て", "ポケモン", "トレーナーズ", "グッズ", "どうぐ"]
 
-// レアリティオプションの定義
 interface RarityOption {
-  dbValue: string // データベースに保存されているレアリティコード
-  uiLabel: string // UIに表示するラベル (数字や名称)
-  iconPath: string // アイコン画像のパス
+  dbValue: string
+  uiLabel: string
+  iconPath: string
 }
 
 const rarityOptions: RarityOption[] = [
-  { dbValue: "all", uiLabel: "全てのレアリティ", iconPath: "" }, // 全ての場合アイコンなし
+  { dbValue: "all", uiLabel: "全てのレアリティ", iconPath: "" },
   { dbValue: "ダイヤ1", uiLabel: "1", iconPath: "/images/rarities/diamond_single.png" },
   { dbValue: "ダイヤ2", uiLabel: "2", iconPath: "/images/rarities/diamond_single.png" },
   { dbValue: "ダイヤ3", uiLabel: "3", iconPath: "/images/rarities/diamond_single.png" },
@@ -56,7 +55,6 @@ const rarityOptions: RarityOption[] = [
   { dbValue: "色2", uiLabel: "色2", iconPath: "/images/rarities/color2.png" },
 ]
 
-// データベースから取得する際にフィルターするレアリティコードのリスト
 const allowedRarityDbValues = rarityOptions.filter((opt) => opt.dbValue !== "all").map((opt) => opt.dbValue)
 
 export default function CreateDeckPage() {
@@ -68,38 +66,24 @@ export default function CreateDeckPage() {
   const [isSaving, setIsSaving] = useState(false)
   const [thumbnailCard, setThumbnailCard] = useState<DeckCard | null>(null)
   const [showLoginPrompt, setShowLoginPrompt] = useState(false)
-
-  // Mobile layout state
   const [isDeckInfoExpanded, setIsDeckInfoExpanded] = useState(true)
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const [selectedCategory, setSelectedCategory] = useState("全て")
-
-  // Card Search State
   const [searchKeyword, setSearchKeyword] = useState("")
   const [searchCategory, setSearchCategory] = useState("全て")
   const [searchedCards, setSearchedCards] = useState<CardType[]>([])
   const [isLoadingSearch, setIsLoadingSearch] = useState(false)
-
-  // フィルターの状態
-  const [selectedRarity, setSelectedRarity] = useState("all") // dbValue を保持
+  const [selectedRarity, setSelectedRarity] = useState("all")
   const [selectedPackId, setSelectedPackId] = useState<string | null>(null)
   const [packOptions, setPackOptions] = useState<{ id: string | null; name: string }[]>([
     { id: null, name: "全てのパック" },
   ])
-
-  const supabase = createBrowserClient()
   const { toast } = useToast()
-
   const [user, setUser] = useState<any>(null)
   const [isLoadingAuth, setIsLoadingAuth] = useState(true)
 
-  const totalCardsInDeck = useMemo(() => {
-    return deckCards.reduce((sum, card) => sum + card.quantity, 0)
-  }, [deckCards])
+  const totalCardsInDeck = useMemo(() => deckCards.reduce((sum, card) => sum + card.quantity, 0), [deckCards])
   const maxDeckSize = 20
   const displaySlotsCount = 20
 
-  // Fetch packs
   useEffect(() => {
     async function fetchPacks() {
       const { data, error } = await supabase.from("packs").select("id, name").order("name", { ascending: true })
@@ -115,9 +99,8 @@ export default function CreateDeckPage() {
       }
     }
     fetchPacks()
-  }, [supabase, toast])
+  }, [toast])
 
-  // Fetch cards for search
   useEffect(() => {
     async function fetchCards() {
       setIsLoadingSearch(true)
@@ -126,39 +109,20 @@ export default function CreateDeckPage() {
         .select("id, name, image_url, type_code, rarity_code, category, thumb_url, pack_id")
         .eq("is_visible", true)
         .limit(100)
-
-      if (searchKeyword.trim()) {
-        query = query.ilike("name", `%${searchKeyword.trim()}%`)
-      }
-
+      if (searchKeyword.trim()) query = query.ilike("name", `%${searchKeyword.trim()}%`)
       if (searchCategory !== "全て") {
         let dbCategory: string | undefined
         if (searchCategory === "ポケモン") dbCategory = "pokemon"
         else if (searchCategory === "トレーナーズ") dbCategory = "trainers"
         else if (searchCategory === "グッズ") dbCategory = "goods"
         else if (searchCategory === "どうぐ") dbCategory = "tools"
-        if (dbCategory) {
-          query = query.eq("category", dbCategory)
-        }
+        if (dbCategory) query = query.eq("category", dbCategory)
       }
-
-      // レアリティフィルター (selectedRarity が "all" でない場合のみ適用)
-      if (selectedRarity !== "all") {
-        query = query.eq("rarity_code", selectedRarity)
-      } else {
-        // "全てのレアリティ" が選択された場合、許可されたレアリティのみを表示
-        query = query.in("rarity_code", allowedRarityDbValues)
-      }
-
-      // パックフィルター
-      if (selectedPackId !== null) {
-        query = query.eq("pack_id", selectedPackId)
-      }
-
+      if (selectedRarity !== "all") query = query.eq("rarity_code", selectedRarity)
+      else query = query.in("rarity_code", allowedRarityDbValues)
+      if (selectedPackId !== null) query = query.eq("pack_id", selectedPackId)
       query = query.order("id", { ascending: true })
-
       const { data, error } = await query
-
       if (error) {
         console.error("Error fetching cards for search:", error)
         toast({
@@ -181,12 +145,11 @@ export default function CreateDeckPage() {
       }
       setIsLoadingSearch(false)
     }
-
     const debounceFetch = setTimeout(() => {
       fetchCards()
     }, 300)
     return () => clearTimeout(debounceFetch)
-  }, [searchKeyword, searchCategory, selectedRarity, selectedPackId, supabase, toast])
+  }, [searchKeyword, searchCategory, selectedRarity, selectedPackId, toast])
 
   useEffect(() => {
     async function getUser() {
@@ -197,11 +160,10 @@ export default function CreateDeckPage() {
       setIsLoadingAuth(false)
     }
     getUser()
-  }, [supabase])
+  }, [])
 
-  const toggleEnergyType = (typeId: string) => {
+  const toggleEnergyType = (typeId: string) =>
     setSelectedEnergyTypes((prev) => (prev.includes(typeId) ? prev.filter((id) => id !== typeId) : [...prev, typeId]))
-  }
 
   const addCardToDeck = useCallback(
     (cardToAdd: CardType) => {
@@ -213,19 +175,12 @@ export default function CreateDeckPage() {
         })
         return
       }
-
       setDeckCards((prevDeckCards) => {
         const existingCard = prevDeckCards.find((c) => c.id === cardToAdd.id)
         if (existingCard) {
-          // 3回目のクリックで削除（0枚に戻る）
-          if (existingCard.quantity >= 2) {
-            return prevDeckCards.filter((c) => c.id !== cardToAdd.id)
-          } else {
-            // 1枚 → 2枚
-            return prevDeckCards.map((c) => (c.id === cardToAdd.id ? { ...c, quantity: c.quantity + 1 } : c))
-          }
+          if (existingCard.quantity >= 2) return prevDeckCards.filter((c) => c.id !== cardToAdd.id)
+          else return prevDeckCards.map((c) => (c.id === cardToAdd.id ? { ...c, quantity: c.quantity + 1 } : c))
         } else {
-          // 新しいカードを1枚追加
           return [...prevDeckCards, { ...cardToAdd, quantity: 1 }]
         }
       })
@@ -233,40 +188,25 @@ export default function CreateDeckPage() {
     [totalCardsInDeck, toast],
   )
 
-  const handleQuantityChange = useCallback((cardId: string, newQuantity: number) => {
-    if (newQuantity <= 0) {
-      setDeckCards((prev) => prev.filter((card) => card.id !== cardId))
-      // サムネイルカードが削除された場合はサムネイルもクリア
-      setThumbnailCard((prev) => (prev?.id === cardId ? null : prev))
-    } else {
-      setDeckCards((prev) => prev.map((card) => (card.id === cardId ? { ...card, quantity: newQuantity } : card)))
-    }
-  }, [])
-
   const handleRemoveCard = useCallback((cardId: string) => {
     setDeckCards((prev) => prev.filter((card) => card.id !== cardId))
-    // サムネイルカードが削除された場合はサムネイルもクリア
     setThumbnailCard((prev) => (prev?.id === cardId ? null : prev))
   }, [])
 
   const handleClearAllCards = () => {
     setDeckCards([])
-    setThumbnailCard(null) // サムネイルもクリア
+    setThumbnailCard(null)
   }
 
-  // デッキスロットのカードクリックでサムネイル選択
   const handleDeckSlotClick = (card: DeckCard) => {
     setThumbnailCard(card)
-    toast({
-      title: "サムネイル設定",
-      description: `${card.name}をサムネイル画像に設定しました。`,
-    })
+    toast({ title: "サムネイル設定", description: `${card.name}をサムネイル画像に設定しました。` })
   }
 
-  // 投稿ボタンの活性化条件を修正（ゲスト名の条件を削除）
-  const canSave = useMemo(() => {
-    return !isLoadingAuth && !isSaving && deckName.trim() && deckCards.length > 0 && totalCardsInDeck === 20
-  }, [isLoadingAuth, isSaving, deckName, deckCards.length, totalCardsInDeck])
+  const canSave = useMemo(
+    () => !isLoadingAuth && !isSaving && deckName.trim() && deckCards.length > 0 && totalCardsInDeck === 20,
+    [isLoadingAuth, isSaving, deckName, deckCards.length, totalCardsInDeck],
+  )
 
   const handleSaveClick = () => {
     if (totalCardsInDeck !== 20) {
@@ -277,22 +217,16 @@ export default function CreateDeckPage() {
       })
       return
     }
-
     if (!deckName.trim()) {
       toast({ title: "入力エラー", description: "デッキ名を入力してください。", variant: "destructive" })
       return
     }
-
     if (deckCards.length === 0) {
       toast({ title: "入力エラー", description: "デッキにカードを追加してください。", variant: "destructive" })
       return
     }
-
-    if (!user) {
-      setShowLoginPrompt(true)
-    } else {
-      handleSave()
-    }
+    if (!user) setShowLoginPrompt(true)
+    else handleSave()
   }
 
   const handleContinueAsGuest = () => {
@@ -303,11 +237,10 @@ export default function CreateDeckPage() {
   const handleSave = async () => {
     try {
       setIsSaving(true)
-
       const deckInput: CreateDeckInput = {
         title: deckName.trim(),
         user_id: user?.id || null,
-        guestName: !user ? "ゲスト" : undefined, // ゲスト名を固定
+        guestName: !user ? "ゲスト" : undefined,
         description: deckDescription.trim() || undefined,
         is_public: isPublic,
         tags: selectedEnergyTypes.length > 0 ? selectedEnergyTypes : undefined,
@@ -320,24 +253,15 @@ export default function CreateDeckPage() {
         thumbnail_card_id: thumbnailCard ? Number.parseInt(thumbnailCard.id) : undefined,
         is_authenticated: !!user,
       }
-
-      console.log("[handleSave] Saving deck with thumbnail_card_id:", deckInput.thumbnail_card_id)
-
       const result = await createDeck(deckInput)
-
       if (result.success) {
-        toast({
-          title: "デッキ保存成功",
-          description: `${deckName}を保存しました。`,
-        })
-
+        toast({ title: "デッキ保存成功", description: `${deckName}を保存しました。` })
         setDeckName("")
         setDeckDescription("")
         setSelectedEnergyTypes([])
         setDeckCards([])
         setThumbnailCard(null)
         setIsPublic(true)
-
         window.location.href = "/decks"
       } else {
         throw new Error(result.error || "デッキの保存に失敗しました")
@@ -358,15 +282,10 @@ export default function CreateDeckPage() {
     const slots: (DeckCard | null)[] = []
     deckCards.forEach((card) => {
       for (let i = 0; i < card.quantity; i++) {
-        if (slots.length < displaySlotsCount) {
-          slots.push(card)
-        }
+        if (slots.length < displaySlotsCount) slots.push(card)
       }
     })
-    while (slots.length < displaySlotsCount) {
-      slots.push(null)
-    }
-
+    while (slots.length < displaySlotsCount) slots.push(null)
     return (
       <div className="grid grid-cols-10 gap-1 sm:gap-1.5">
         {slots.map((cardOrNull, index) => (
@@ -409,8 +328,6 @@ export default function CreateDeckPage() {
         <p className="text-xs text-slate-500 mb-3">
           デッキ一覧で表示されるサムネイル画像です。下のデッキ構成からカードをクリックして選択してください。
         </p>
-
-        {/* 選択されたサムネイル表示 */}
         <div className="flex justify-center">
           <div className="w-24 h-32 border-2 border-dashed border-gray-300 rounded-md flex items-center justify-center bg-gray-50">
             {thumbnailCard ? (
@@ -439,7 +356,6 @@ export default function CreateDeckPage() {
             )}
           </div>
         </div>
-
         {thumbnailCard && <p className="text-center text-sm font-medium text-slate-700 mt-2">{thumbnailCard.name}</p>}
       </div>
     </div>
@@ -458,7 +374,6 @@ export default function CreateDeckPage() {
           className="w-full"
         />
       </div>
-
       <div>
         <label className="block text-sm font-medium text-slate-700 mb-1">デッキ説明 (任意)</label>
         <Textarea
@@ -469,14 +384,11 @@ export default function CreateDeckPage() {
           className="w-full resize-none"
         />
       </div>
-
-      {/* ゲスト名入力欄を削除 */}
       {!user && (
         <div className="p-3 bg-blue-50 border border-blue-200 rounded-md">
           <p className="text-sm text-blue-700">ゲストとして投稿されます。投稿者名は「ゲスト」と表示されます。</p>
         </div>
       )}
-
       <div>
         <label className="block text-sm font-medium text-slate-700 mb-2">主要エネルギータイプ</label>
         <div className="flex flex-wrap gap-2">
@@ -496,7 +408,6 @@ export default function CreateDeckPage() {
           ))}
         </div>
       </div>
-
       {renderThumbnailSelection()}
     </div>
   )
@@ -537,9 +448,7 @@ export default function CreateDeckPage() {
           </div>
         </div>
       </div>
-
       <p className="text-xs text-slate-500 mb-2">カードをクリックしてサムネイル画像を選択できます</p>
-
       {renderDeckSlots()}
     </div>
   )
@@ -553,7 +462,6 @@ export default function CreateDeckPage() {
         onChange={(e) => setSearchKeyword(e.target.value)}
         className="w-full"
       />
-
       <div className="flex flex-wrap gap-2">
         {cardCategoriesForFilter.map((category) => (
           <Button
@@ -570,8 +478,6 @@ export default function CreateDeckPage() {
           </Button>
         ))}
       </div>
-
-      {/* レアリティフィルター */}
       <div className="flex flex-wrap gap-2 items-center">
         {rarityOptions.map((option) => (
           <Button
@@ -588,7 +494,7 @@ export default function CreateDeckPage() {
               <Image
                 src={option.iconPath || "/placeholder.svg"}
                 alt={option.uiLabel}
-                width={option.dbValue.includes("ダイヤ") || option.dbValue.includes("星") ? 16 : 20} // ダイヤと星は小さめ、他は大きめ
+                width={option.dbValue.includes("ダイヤ") || option.dbValue.includes("星") ? 16 : 20}
                 height={option.dbValue.includes("ダイヤ") || option.dbValue.includes("星") ? 16 : 20}
                 className="object-contain"
               />
@@ -597,8 +503,6 @@ export default function CreateDeckPage() {
           </Button>
         ))}
       </div>
-
-      {/* パック名フィルター */}
       <div className="flex flex-wrap gap-2">
         {packOptions.map((pack) => (
           <Button
@@ -615,24 +519,20 @@ export default function CreateDeckPage() {
           </Button>
         ))}
       </div>
-
       {isLoadingSearch && (
         <div className="flex justify-center items-center py-10">
           <Loader2 className="h-8 w-8 animate-spin text-purple-600" />
         </div>
       )}
-
       {!isLoadingSearch && searchedCards.length === 0 && (
         <p className="text-center text-slate-500 py-10">該当するカードが見つかりません。</p>
       )}
-
       {!isLoadingSearch && searchedCards.length > 0 && (
         <ScrollArea className="h-[400px] sm:h-[500px] border rounded-md p-2 bg-slate-50">
           <div className="grid grid-cols-5 xs:grid-cols-5 sm:grid-cols-6 md:grid-cols-7 lg:grid-cols-5 xl:grid-cols-6 gap-2">
             {searchedCards.map((card) => {
               const cardInDeck = deckCards.find((c) => c.id === card.id)
               const quantity = cardInDeck?.quantity || 0
-
               return (
                 <button
                   key={card.id}
@@ -674,8 +574,6 @@ export default function CreateDeckPage() {
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-br from-purple-50 to-purple-100">
       <Header />
-
-      {/* Desktop Layout */}
       <div className="hidden lg:block">
         <div className="container mx-auto px-4 py-6">
           <div className="flex items-center justify-between mb-6">
@@ -702,7 +600,6 @@ export default function CreateDeckPage() {
               )}
             </Button>
           </div>
-
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
             <Card className="sticky top-[calc(var(--header-height,64px)+1.5rem)]">
               <CardHeader>
@@ -717,7 +614,6 @@ export default function CreateDeckPage() {
                 </CardHeader>
                 <CardContent>{renderDeckInfo()}</CardContent>
               </Card>
-
               <Card>
                 <CardContent className="pt-6">{renderDeckComposition()}</CardContent>
               </Card>
@@ -725,15 +621,12 @@ export default function CreateDeckPage() {
           </div>
         </div>
       </div>
-
-      {/* Mobile/Tablet Layout */}
       <div className="lg:hidden">
         <main className="container mx-auto px-4 py-6 space-y-6">
           <Link href="/decks" className="inline-flex items-center text-sm text-purple-600 hover:text-purple-700">
             <ArrowLeft className="h-4 w-4 mr-1" />
             デッキ一覧へ
           </Link>
-
           <Card>
             <CardHeader className="cursor-pointer" onClick={() => setIsDeckInfoExpanded(!isDeckInfoExpanded)}>
               <div className="flex items-center justify-between">
@@ -747,20 +640,16 @@ export default function CreateDeckPage() {
             </CardHeader>
             {isDeckInfoExpanded && <CardContent>{renderDeckInfo()}</CardContent>}
           </Card>
-
           <Card>
             <CardContent className="pt-6">{renderDeckComposition()}</CardContent>
           </Card>
-
           <Card>
             <CardHeader>
               <CardTitle>カード検索</CardTitle>
             </CardHeader>
             <CardContent>{renderCardSearchSection()}</CardContent>
           </Card>
-
           {isLoadingAuth && <p className="text-center text-slate-500">認証状態を確認中...</p>}
-
           <Button
             onClick={handleSaveClick}
             className="w-full bg-emerald-500 hover:bg-emerald-600 text-white py-3 sticky bottom-4 z-10 shadow-lg"
@@ -780,10 +669,7 @@ export default function CreateDeckPage() {
           </Button>
         </main>
       </div>
-
       <Footer />
-
-      {/* Login Prompt Modal */}
       {showLoginPrompt && (
         <LoginPromptModal onClose={() => setShowLoginPrompt(false)} onContinueAsGuest={handleContinueAsGuest} />
       )}

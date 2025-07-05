@@ -1,17 +1,16 @@
 "use client"
 
 import type React from "react"
-
 import { useState, useEffect, useMemo, useRef } from "react"
 import Image from "next/image"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
-import { Check, X, Loader2 } from "lucide-react" // Diamond, StarIcon を削除
+import { Check, X, Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useToast } from "@/components/ui/use-toast"
-import { createBrowserClient } from "@/lib/supabase/client"
+import { supabase } from "@/lib/supabase/client"
 import ImagePreviewOverlay from "./image-preview-overlay"
 
 export interface Card {
@@ -21,7 +20,7 @@ export interface Card {
   type?: string
   rarity?: string
   category?: string
-  pack_id?: string // pack_id を追加
+  pack_id?: string
 }
 
 const cardCategoriesForUI = ["全て", "ポケモン", "トレーナーズ", "グッズ", "どうぐ"]
@@ -40,10 +39,10 @@ const typesForUI = [
 ]
 
 interface RarityOption {
-  uiLabel: string // "1", "2", "3", "4", "全レアリティ"
-  dbValue: string // "ダイヤ1", "ダイヤ2", "ダイヤ3", "ダイヤ4", "星1", "all"
-  iconPath?: string // Path to the image
-  fullUiLabel: string // "ダイヤ1", "星1", "全レアリティ"
+  uiLabel: string
+  dbValue: string
+  iconPath?: string
+  fullUiLabel: string
 }
 
 const rarityOptions: RarityOption[] = [
@@ -78,49 +77,38 @@ export default function DetailedSearchModal({
   const [selectedCategoryUI, setSelectedCategoryUI] = useState("全て")
   const [selectedRarityDBValue, setSelectedRarityDBValue] = useState("all")
   const [selectedTypeUI, setSelectedTypeUI] = useState("all")
-  const [selectedPackId, setSelectedPackId] = useState<string | null>(null) // パックIDのステートを追加
-  const [packOptions, setPackOptions] = useState<{ id: string; name: string }[]>([]) // パックオプションのステートを追加
+  const [selectedPackId, setSelectedPackId] = useState<string | null>(null)
+  const [packOptions, setPackOptions] = useState<{ id: string; name: string }[]>([])
   const [currentSelectedCards, setCurrentSelectedCards] = useState<Card[]>([])
   const [fetchedCards, setFetchedCards] = useState<Card[]>([])
   const [isLoading, setIsLoading] = useState(false)
-
   const [isPreviewOverlayOpen, setIsPreviewOverlayOpen] = useState(false)
   const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null)
   const [previewCardName, setPreviewCardName] = useState<string | undefined>(undefined)
-
   const longPressTimerRef = useRef<NodeJS.Timeout | null>(null)
   const isLongPressTriggeredRef = useRef(false)
   const isInitializedRef = useRef(false)
   const touchStartTimeRef = useRef<number>(0)
   const touchStartPositionRef = useRef<{ x: number; y: number } | null>(null)
-
   const { toast } = useToast()
-  const supabase = createBrowserClient()
 
-  // モーダルが開いたときに初期選択カードを設定
   useEffect(() => {
     if (isOpen && !isInitializedRef.current) {
-      console.log("Modal opened, setting initial cards:", initialSelectedCards)
       setCurrentSelectedCards([...initialSelectedCards])
       isInitializedRef.current = true
     } else if (!isOpen) {
-      // モーダルが閉じたときにリセット
       isInitializedRef.current = false
       setIsPreviewOverlayOpen(false)
       setPreviewImageUrl(null)
-      if (longPressTimerRef.current) {
-        clearTimeout(longPressTimerRef.current)
-      }
+      if (longPressTimerRef.current) clearTimeout(longPressTimerRef.current)
     }
   }, [isOpen, initialSelectedCards])
 
-  // パックオプションの取得
   useEffect(() => {
     async function fetchPackOptions() {
       if (!isOpen) return
       const { data, error } = await supabase.from("packs").select("id, name").order("name", { ascending: true })
       if (error) {
-        console.error("Error fetching packs:", error)
         toast({
           title: "パック情報取得エラー",
           description: "パック情報の読み込みに失敗しました。",
@@ -131,7 +119,7 @@ export default function DetailedSearchModal({
       }
     }
     fetchPackOptions()
-  }, [isOpen, supabase, toast])
+  }, [isOpen, toast])
 
   useEffect(() => {
     async function fetchCardsFromSupabase() {
@@ -139,39 +127,24 @@ export default function DetailedSearchModal({
       setIsLoading(true)
       let query = supabase
         .from("cards")
-        .select("id, name, image_url, type_code, rarity_code, category, thumb_url, pack_id") // pack_id を選択に追加
+        .select("id, name, image_url, type_code, rarity_code, category, thumb_url, pack_id")
         .eq("is_visible", true)
-
-      if (keyword.trim()) {
-        query = query.ilike("name", `%${keyword.trim()}%`)
-      }
+      if (keyword.trim()) query = query.ilike("name", `%${keyword.trim()}%`)
       if (selectedCategoryUI !== "全て") {
         let dbCategory: string | undefined
         if (selectedCategoryUI === "ポケモン") dbCategory = "pokemon"
         else if (selectedCategoryUI === "トレーナーズ") dbCategory = "trainers"
         else if (selectedCategoryUI === "グッズ") dbCategory = "goods"
         else if (selectedCategoryUI === "どうぐ") dbCategory = "tools"
-        if (dbCategory) {
-          query = query.eq("category", dbCategory)
-        }
+        if (dbCategory) query = query.eq("category", dbCategory)
       }
-      if (selectedTypeUI !== "all") {
-        query = query.eq("type_code", selectedTypeUI)
-      }
-      if (selectedRarityDBValue === "all") {
-        query = query.in("rarity_code", allowedDisplayRaritiesDB)
-      } else {
-        query = query.eq("rarity_code", selectedRarityDBValue)
-      }
-      if (selectedPackId && selectedPackId !== "all") {
-        // パックIDによるフィルタリングを追加
-        query = query.eq("pack_id", selectedPackId)
-      }
+      if (selectedTypeUI !== "all") query = query.eq("type_code", selectedTypeUI)
+      if (selectedRarityDBValue === "all") query = query.in("rarity_code", allowedDisplayRaritiesDB)
+      else query = query.eq("rarity_code", selectedRarityDBValue)
+      if (selectedPackId && selectedPackId !== "all") query = query.eq("pack_id", selectedPackId)
       query = query.order("id", { ascending: true })
-
       const { data, error } = await query
       if (error) {
-        console.error("Error fetching cards:", error)
         toast({
           title: "データ取得エラー",
           description: "カード情報の読み込みに失敗しました。",
@@ -186,14 +159,14 @@ export default function DetailedSearchModal({
           type: dbCard.type_code,
           rarity: dbCard.rarity_code,
           category: String(dbCard.category),
-          pack_id: dbCard.pack_id, // pack_id をマッピング
+          pack_id: dbCard.pack_id,
         }))
         setFetchedCards(mappedData)
       }
       setIsLoading(false)
     }
     fetchCardsFromSupabase()
-  }, [isOpen, keyword, selectedCategoryUI, selectedRarityDBValue, selectedTypeUI, selectedPackId, supabase, toast]) // selectedPackId を依存配列に追加
+  }, [isOpen, keyword, selectedCategoryUI, selectedRarityDBValue, selectedTypeUI, selectedPackId, toast])
 
   const toggleCardSelection = (card: Card) => {
     setCurrentSelectedCards((prevSelected) => {
@@ -208,47 +181,29 @@ export default function DetailedSearchModal({
     })
   }
 
-  // 改善されたタッチイベント処理
   const handleTouchStart = (card: Card, e: React.TouchEvent) => {
-    // デフォルトの動作を防ぐ（スクロールなど）
     e.preventDefault()
-
     const touch = e.touches[0]
     touchStartTimeRef.current = Date.now()
     touchStartPositionRef.current = { x: touch.clientX, y: touch.clientY }
     isLongPressTriggeredRef.current = false
-
-    // 既存のタイマーをクリア
-    if (longPressTimerRef.current) {
-      clearTimeout(longPressTimerRef.current)
-    }
-
-    // 長押し検出タイマー
+    if (longPressTimerRef.current) clearTimeout(longPressTimerRef.current)
     longPressTimerRef.current = setTimeout(() => {
       isLongPressTriggeredRef.current = true
       setPreviewImageUrl(card.imageUrl)
       setPreviewCardName(card.name)
       setIsPreviewOverlayOpen(true)
-
-      // バイブレーション（対応デバイスのみ）
-      if (navigator.vibrate) {
-        navigator.vibrate(50)
-      }
-    }, 500) // 500ms で長押し判定
+      if (navigator.vibrate) navigator.vibrate(50)
+    }, 500)
   }
 
   const handleTouchMove = (e: React.TouchEvent) => {
-    // タッチ位置が大きく移動した場合は長押しをキャンセル
     if (touchStartPositionRef.current) {
       const touch = e.touches[0]
       const deltaX = Math.abs(touch.clientX - touchStartPositionRef.current.x)
       const deltaY = Math.abs(touch.clientY - touchStartPositionRef.current.y)
-
-      // 10px以上移動したら長押しキャンセル
       if (deltaX > 10 || deltaY > 10) {
-        if (longPressTimerRef.current) {
-          clearTimeout(longPressTimerRef.current)
-        }
+        if (longPressTimerRef.current) clearTimeout(longPressTimerRef.current)
         isLongPressTriggeredRef.current = false
       }
     }
@@ -256,37 +211,22 @@ export default function DetailedSearchModal({
 
   const handleTouchEnd = (card: Card, e: React.TouchEvent) => {
     e.preventDefault()
-
-    // タイマーをクリア
-    if (longPressTimerRef.current) {
-      clearTimeout(longPressTimerRef.current)
-    }
-
+    if (longPressTimerRef.current) clearTimeout(longPressTimerRef.current)
     const touchDuration = Date.now() - touchStartTimeRef.current
-
-    // 短いタップかつ長押しが発動していない場合のみ選択処理
-    if (!isLongPressTriggeredRef.current && touchDuration < 500) {
-      toggleCardSelection(card)
-    }
-
-    // リセット
+    if (!isLongPressTriggeredRef.current && touchDuration < 500) toggleCardSelection(card)
     isLongPressTriggeredRef.current = false
     touchStartPositionRef.current = null
   }
 
   const handleTouchCancel = () => {
-    if (longPressTimerRef.current) {
-      clearTimeout(longPressTimerRef.current)
-    }
+    if (longPressTimerRef.current) clearTimeout(longPressTimerRef.current)
     isLongPressTriggeredRef.current = false
     touchStartPositionRef.current = null
   }
 
-  // PC用のマウスイベント処理
   const handleMouseDown = (card: Card) => {
     isLongPressTriggeredRef.current = false
     if (longPressTimerRef.current) clearTimeout(longPressTimerRef.current)
-
     longPressTimerRef.current = setTimeout(() => {
       isLongPressTriggeredRef.current = true
       setPreviewImageUrl(card.imageUrl)
@@ -297,16 +237,12 @@ export default function DetailedSearchModal({
 
   const handleMouseUp = (card: Card) => {
     if (longPressTimerRef.current) clearTimeout(longPressTimerRef.current)
-    if (!isLongPressTriggeredRef.current) {
-      toggleCardSelection(card)
-    }
+    if (!isLongPressTriggeredRef.current) toggleCardSelection(card)
     isLongPressTriggeredRef.current = false
   }
 
   const handleMouseLeave = () => {
-    if (longPressTimerRef.current) {
-      clearTimeout(longPressTimerRef.current)
-    }
+    if (longPressTimerRef.current) clearTimeout(longPressTimerRef.current)
     isLongPressTriggeredRef.current = false
   }
 
@@ -315,8 +251,7 @@ export default function DetailedSearchModal({
       toast({ title: "選択エラー", description: "カードを1枚選択してください。", variant: "destructive" })
       return
     }
-    console.log("Completing selection with cards:", currentSelectedCards)
-    onSelectionComplete([...currentSelectedCards]) // 配列をコピーして渡す
+    onSelectionComplete([...currentSelectedCards])
   }
 
   const selectionText = useMemo(() => {
@@ -336,7 +271,6 @@ export default function DetailedSearchModal({
               <span className="sr-only">閉じる</span>
             </DialogClose>
           </DialogHeader>
-
           <ScrollArea className="flex-grow bg-slate-50/50 min-h-0">
             <div className="p-4 space-y-4 border-b">
               <Input
@@ -435,7 +369,6 @@ export default function DetailedSearchModal({
                 </div>
               </div>
             </div>
-
             <div className="p-4 relative">
               {isLoading && (
                 <div className="absolute inset-0 bg-white/70 flex items-center justify-center z-10">
@@ -463,9 +396,9 @@ export default function DetailedSearchModal({
                         )}
                         aria-label={`Select card ${card.name}`}
                         style={{
-                          touchAction: "none", // タッチ操作の最適化
-                          WebkitTouchCallout: "none", // iOS Safari での長押しメニューを無効化
-                          WebkitUserSelect: "none", // テキスト選択を無効化
+                          touchAction: "none",
+                          WebkitTouchCallout: "none",
+                          WebkitUserSelect: "none",
                           userSelect: "none",
                         }}
                       >
@@ -477,8 +410,8 @@ export default function DetailedSearchModal({
                           alt={card.name}
                           fill
                           sizes="(max-width: 640px) 30vw, (max-width: 768px) 22vw, (max-width: 1024px) 18vw, 15vw"
-                          className="object-cover bg-slate-100 pointer-events-none" // pointer-events-noneを追加
-                          draggable={false} // ドラッグを無効化
+                          className="object-cover bg-slate-100 pointer-events-none"
+                          draggable={false}
                         />
                         {currentSelectedCards.find((sc) => sc.id === card.id) && (
                           <div className="absolute inset-0 bg-purple-700 bg-opacity-60 flex items-center justify-center">
@@ -495,7 +428,6 @@ export default function DetailedSearchModal({
             </div>
             <ScrollBar orientation="vertical" />
           </ScrollArea>
-
           <DialogFooter className="p-4 border-t bg-white flex-shrink-0">
             <div className="flex justify-between items-center w-full">
               {maxSelection === 1 && currentSelectedCards.length === 1 ? (

@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Lock, Eye, EyeOff, CheckCircle } from "lucide-react"
-import { createBrowserClient } from "@/lib/supabase/client"
+import { supabase } from "@/lib/supabase/client"
 import { useToast } from "@/components/ui/use-toast"
 
 function ResetPasswordContent() {
@@ -21,17 +21,12 @@ function ResetPasswordContent() {
   const { toast } = useToast()
   const router = useRouter()
   const searchParams = useSearchParams()
-  const supabase = createBrowserClient()
 
   useEffect(() => {
     const handlePasswordReset = async () => {
       try {
         setIsInitializing(true)
-
-        // URLパラメータからcodeを取得
         const code = searchParams.get("code")
-        console.log("Reset code:", code) // デバッグ用
-
         if (!code) {
           toast({
             title: "無効なアクセス",
@@ -42,10 +37,7 @@ function ResetPasswordContent() {
           return
         }
 
-        // コードをセッションに交換
         const { data, error } = await supabase.auth.exchangeCodeForSession(code)
-        console.log("Exchange result:", { data, error }) // デバッグ用
-
         if (error) {
           console.error("Exchange error:", error)
           toast({
@@ -85,20 +77,14 @@ function ResetPasswordContent() {
     }
 
     handlePasswordReset()
-  }, [searchParams, supabase.auth, toast, router])
+  }, [searchParams, toast, router])
 
   const handlePasswordUpdate = async (e: React.FormEvent) => {
     e.preventDefault()
-
     if (password !== confirmPassword) {
-      toast({
-        title: "パスワードエラー",
-        description: "パスワードが一致しません。",
-        variant: "destructive",
-      })
+      toast({ title: "パスワードエラー", description: "パスワードが一致しません。", variant: "destructive" })
       return
     }
-
     if (password.length < 6) {
       toast({
         title: "パスワードエラー",
@@ -110,13 +96,9 @@ function ResetPasswordContent() {
 
     try {
       setIsLoading(true)
-
-      // 現在のセッションを確認
       const {
         data: { session },
       } = await supabase.auth.getSession()
-      console.log("Current session:", session) // デバッグ用
-
       if (!session) {
         toast({
           title: "セッションエラー",
@@ -127,39 +109,19 @@ function ResetPasswordContent() {
         return
       }
 
-      // パスワードを更新
-      const { data, error } = await supabase.auth.updateUser({
-        password: password,
-      })
-      console.log("Update result:", { data, error }) // デバッグ用
-
+      const { error } = await supabase.auth.updateUser({ password: password })
       if (error) {
         console.error("Password update error:", error)
-        toast({
-          title: "パスワード更新エラー",
-          description: error.message,
-          variant: "destructive",
-        })
+        toast({ title: "パスワード更新エラー", description: error.message, variant: "destructive" })
       } else {
-        toast({
-          title: "パスワード更新完了",
-          description: "パスワードが正常に更新されました。",
-        })
-
-        // 成功のポップアップ表示
+        toast({ title: "パスワード更新完了", description: "パスワードが正常に更新されました。" })
         alert("パスワードが正常に更新されました！\n\n新しいパスワードでログインしてください。")
-
-        // ログアウトしてからログインページにリダイレクト
         await supabase.auth.signOut()
         router.push("/auth/login?reset=success")
       }
     } catch (error) {
       console.error("Password update error:", error)
-      toast({
-        title: "エラー",
-        description: "予期しないエラーが発生しました。",
-        variant: "destructive",
-      })
+      toast({ title: "エラー", description: "予期しないエラーが発生しました。", variant: "destructive" })
     } finally {
       setIsLoading(false)
     }
@@ -196,7 +158,6 @@ function ResetPasswordContent() {
       </div>
       <h1 className="text-2xl font-bold text-slate-800 mb-2">新しいパスワードを設定</h1>
       <p className="text-sm text-slate-500 mb-8">新しいパスワードを入力してください</p>
-
       <form onSubmit={handlePasswordUpdate} className="space-y-4 text-left">
         <div>
           <label className="text-sm font-medium text-slate-700">新しいパスワード</label>
@@ -244,8 +205,6 @@ function ResetPasswordContent() {
             </button>
           </div>
         </div>
-
-        {/* パスワード強度インジケーター */}
         {password && (
           <div className="text-xs text-slate-500">
             <div className="flex items-center space-x-2">
@@ -262,7 +221,6 @@ function ResetPasswordContent() {
             )}
           </div>
         )}
-
         <Button
           type="submit"
           className="w-full bg-purple-500 hover:bg-purple-600 text-white h-12 text-base"
@@ -278,7 +236,6 @@ function ResetPasswordContent() {
           )}
         </Button>
       </form>
-
       <div className="mt-8">
         <Button
           variant="ghost"

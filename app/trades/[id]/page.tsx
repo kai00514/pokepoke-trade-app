@@ -12,11 +12,10 @@ import { ArrowLeft, Copy, Send, UserCircle } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
 import type { Card as CardInfo } from "@/components/detailed-search-modal"
 import { getTradePostDetailsById, addCommentToTradePost, updateTradePostStatus } from "@/lib/actions/trade-actions"
-import { createBrowserClient } from "@/lib/supabase/client"
+import { supabase } from "@/lib/supabase/client"
 import LoginPromptModal from "@/components/ui/login-prompt-modal"
 import { useAuth } from "@/contexts/auth-context"
 
-// Define types for post details and comments
 interface Comment {
   id: string
   author: string
@@ -46,36 +45,23 @@ interface TradePostDetails {
   createdAt: string
 }
 
-// 投稿者向け操作ボタンコンポーネント
 const OwnerActionButtons = ({ post, currentUserId }: { post: TradePostDetails; currentUserId: string | null }) => {
   const [isUpdating, setIsUpdating] = useState(false)
   const { toast } = useToast()
 
-  // 投稿者でない場合は何も表示しない
-  if (!currentUserId || !post.author?.isOwner || post.author.userId !== currentUserId) {
-    return null
-  }
-
-  // 既にキャンセルまたは完了している場合は何も表示しない
-  if (post.status === "キャンセル" || post.status === "取引完了") {
-    return null
-  }
+  if (!currentUserId || !post.author?.isOwner || post.author.userId !== currentUserId) return null
+  if (post.status === "キャンセル" || post.status === "取引完了") return null
 
   const handleStatusUpdate = async (status: "CANCELED" | "COMPLETED") => {
     if (isUpdating) return
-
     const action = status === "CANCELED" ? "キャンセル" : "取引完了"
     if (!confirm(`この募集を${action}しますか？`)) return
-
     setIsUpdating(true)
     try {
       const result = await updateTradePostStatus(post.id, status)
       if (result.success) {
-        toast({
-          title: `${action}しました`,
-          description: `募集のステータスを${action}に変更しました。`,
-        })
-        window.location.reload() // ページをリロードして最新状態を表示
+        toast({ title: `${action}しました`, description: `募集のステータスを${action}に変更しました。` })
+        window.location.reload()
       } else {
         toast({
           title: `${action}に失敗しました`,
@@ -85,11 +71,7 @@ const OwnerActionButtons = ({ post, currentUserId }: { post: TradePostDetails; c
       }
     } catch (error) {
       console.error(`Error updating status to ${status}:`, error)
-      toast({
-        title: "エラー",
-        description: `${action}中にエラーが発生しました。`,
-        variant: "destructive",
-      })
+      toast({ title: "エラー", description: `${action}中にエラーが発生しました。`, variant: "destructive" })
     } finally {
       setIsUpdating(false)
     }
@@ -129,87 +111,19 @@ export default function TradeDetailPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null)
   const [showLoginPrompt, setShowLoginPrompt] = useState(false)
-
-  const supabase = createBrowserClient()
   const postId = params.id as string
 
   const handleCopyToClipboard = useCallback(() => {
     if (post?.originalPostId) {
       navigator.clipboard.writeText(post.originalPostId)
-      toast({
-        title: "コピーしました",
-        description: `ID: ${post.originalPostId} をクリップボードにコピーしました。`,
-      })
+      toast({ title: "コピーしました", description: `ID: ${post.originalPostId} をクリップボードにコピーしました。` })
     }
   }, [post?.originalPostId, toast])
 
-  // Check authentication status
-  useEffect(() => {
-    const checkAuth = async () => {
-      const { data } = await supabase.auth.getSession()
-      setIsAuthenticated(!!data.session)
-    }
-
-    checkAuth()
-
-    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
-      setIsAuthenticated(!!session)
-    })
-
-    return () => {
-      authListener.subscription.unsubscribe()
-    }
-  }, [supabase.auth])
-
-  // Redirect if trying to access create page through dynamic route
-  useEffect(() => {
-    if (postId === "create") {
-      router.replace("/trades/create")
-      return
-    }
-  }, [postId, router])
-
-  const fetchPostDetails = useCallback(async () => {
-    if (!postId || postId === "create") return
-    setIsLoading(true)
-    try {
-      const result = await getTradePostDetailsById(postId)
-      if (result.success && result.post) {
-        setPost(result.post as TradePostDetails)
-      } else {
-        setPost(null)
-        toast({
-          title: "エラー",
-          description: result.error || "投稿の読み込みに失敗しました。",
-          variant: "destructive",
-        })
-      }
-    } catch (error) {
-      console.error(error)
-      toast({
-        title: "エラー",
-        description: "予期しないエラーが発生しました。",
-        variant: "destructive",
-      })
-    } finally {
-      setIsLoading(false)
-    }
-  }, [postId, toast])
-
-  // Don't render anything if this is the create route
-  if (postId === "create") {
-    return null
-  }
-
-  useEffect(() => {
-    fetchPostDetails()
-  }, [fetchPostDetails])
-
   const generateOptimisticComment = useCallback(
-    (user: any, isAuthenticated: boolean) => {
+    (user: any, isAuthenticated: boolean | null) => {
       const displayName = user?.user_metadata?.display_name || user?.email || "ユーザー"
       const avatarUrl = user?.user_metadata?.avatar_url
-
       return (commentText: string) => ({
         id: `temp-${Date.now()}`,
         author: isAuthenticated ? displayName : "ゲスト",
@@ -223,68 +137,31 @@ export default function TradeDetailPage() {
 
   const handleCommentSubmit = useCallback(async () => {
     if (!newComment.trim()) {
-      toast({
-        title: "入力エラー",
-        description: "コメントを入力してください。",
-        variant: "destructive",
-      })
+      toast({ title: "入力エラー", description: "コメントを入力してください。", variant: "destructive" })
       return
     }
-
     const commentText = newComment.trim()
-
-    // 楽観的UI更新 - 即座にコメントを表示
-    const optimisticCommentGenerator = generateOptimisticComment(user, isAuthenticated)
-    const optimisticComment: Comment = optimisticCommentGenerator(commentText)
-
-    // 即座にコメントを画面に追加
-    setPost((prev) =>
-      prev
-        ? {
-            ...prev,
-            comments: [...prev.comments, optimisticComment],
-          }
-        : null,
-    )
-
-    // 入力フィールドをクリア
+    const optimisticComment = generateOptimisticComment(user, isAuthenticated)(commentText)
+    setPost((prev) => (prev ? { ...prev, comments: [...prev.comments, optimisticComment] } : null))
     setNewComment("")
-
     try {
-      // バックグラウンドでサーバーに送信
-      // 5つの引数を持つaddCommentToTradePost関数を使用
       const result = await addCommentToTradePost(
         postId,
         commentText,
         isAuthenticated ? user?.id : null,
         !isAuthenticated ? "ゲスト" : undefined,
-        isAuthenticated,
+        !!isAuthenticated,
       )
-
       if (result.success) {
-        // 成功時は何もしない（楽観的UI更新のまま）
-        toast({
-          title: "投稿完了",
-          description: "コメントを投稿しました",
-          duration: 2000,
-        })
+        toast({ title: "投稿完了", description: "コメントを投稿しました", duration: 2000 })
       } else {
         throw new Error(result.error || "コメントの投稿に失敗しました")
       }
     } catch (error) {
-      // エラー時は楽観的に追加したコメントを削除
       setPost((prev) =>
-        prev
-          ? {
-              ...prev,
-              comments: prev.comments.filter((comment) => comment.id !== optimisticComment.id),
-            }
-          : null,
+        prev ? { ...prev, comments: prev.comments.filter((comment) => comment.id !== optimisticComment.id) } : null,
       )
-
-      // 入力内容を復元
       setNewComment(commentText)
-
       console.error("Error adding comment:", error)
       toast({
         title: "コメント投稿エラー",
@@ -296,25 +173,66 @@ export default function TradeDetailPage() {
 
   const handleCommentSubmitClick = useCallback(() => {
     if (!newComment.trim()) {
-      toast({
-        title: "入力エラー",
-        description: "コメントを入力してください。",
-        variant: "destructive",
-      })
+      toast({ title: "入力エラー", description: "コメントを入力してください。", variant: "destructive" })
       return
     }
-
-    if (!isAuthenticated) {
-      setShowLoginPrompt(true)
-    } else {
-      handleCommentSubmit()
-    }
+    if (!isAuthenticated) setShowLoginPrompt(true)
+    else handleCommentSubmit()
   }, [newComment, isAuthenticated, handleCommentSubmit, toast])
 
   const handleContinueAsGuest = useCallback(() => {
     setShowLoginPrompt(false)
     handleCommentSubmit()
   }, [handleCommentSubmit])
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data } = await supabase.auth.getSession()
+      setIsAuthenticated(!!data.session)
+    }
+    checkAuth()
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+      setIsAuthenticated(!!session)
+    })
+    return () => {
+      authListener.subscription.unsubscribe()
+    }
+  }, [])
+
+  useEffect(() => {
+    if (postId === "create") {
+      router.replace("/trades/create")
+      return
+    }
+  }, [postId, router])
+
+  const fetchPostDetails = useCallback(async () => {
+    if (!postId || postId === "create") return
+    setIsLoading(true)
+    try {
+      const result = await getTradePostDetailsById(postId)
+      if (result.success && result.post) setPost(result.post as TradePostDetails)
+      else {
+        setPost(null)
+        toast({
+          title: "エラー",
+          description: result.error || "投稿の読み込みに失敗しました。",
+          variant: "destructive",
+        })
+      }
+    } catch (error) {
+      console.error(error)
+      toast({ title: "エラー", description: "予期しないエラーが発生しました。", variant: "destructive" })
+    } finally {
+      setIsLoading(false)
+    }
+  }, [postId, toast])
+
+  useEffect(() => {
+    fetchPostDetails()
+  }, [fetchPostDetails])
+
+  if (postId === "create") return null
 
   if (isLoading) {
     return (
@@ -373,7 +291,6 @@ export default function TradeDetailPage() {
           <ArrowLeft className="h-4 w-4 mr-1 transition-transform group-hover:-translate-x-1" />
           タイムラインに戻る
         </Link>
-
         <div className="bg-white p-6 sm:p-8 rounded-lg shadow-xl mb-8">
           <div className="flex justify-between items-start mb-4">
             <div>
@@ -397,49 +314,34 @@ export default function TradeDetailPage() {
             </div>
             <Badge
               variant="outline"
-              className={`whitespace-nowrap ${
-                post.status === "募集中"
-                  ? "bg-green-100 text-green-700 border-green-300"
-                  : post.status === "進行中"
-                    ? "bg-amber-100 text-amber-700 border-amber-300"
-                    : post.status === "完了"
-                      ? "bg-blue-100 text-blue-700 border-blue-300"
-                      : "bg-gray-100 text-gray-700 border-gray-300"
-              }`}
+              className={`whitespace-nowrap ${post.status === "募集中" ? "bg-green-100 text-green-700 border-green-300" : post.status === "進行中" ? "bg-amber-100 text-amber-700 border-amber-300" : post.status === "完了" ? "bg-blue-100 text-blue-700 border-blue-300" : "bg-gray-100 text-gray-700 border-gray-300"}`}
             >
               {post.status}
             </Badge>
           </div>
-
           <div className="space-y-6 mb-6">
             {renderCardList(post.wantedCards, "求めるカード")}
             {renderCardList(post.offeredCards, "譲りたいカード")}
           </div>
-
           {post.authorNotes && (
             <div className="bg-slate-100 p-4 rounded-md mb-6">
               <h3 className="font-semibold text-slate-800 mb-2">投稿者からのコメント</h3>
               <p className="text-sm text-slate-700 whitespace-pre-wrap">{post.authorNotes}</p>
             </div>
           )}
-
           <div className="flex justify-between items-center bg-slate-100 p-3 rounded-md">
             <p className="text-sm text-slate-600">ID : {post.originalPostId}</p>
-            <Button variant="outline" size="sm" onClick={handleCopyToClipboard} className="text-xs">
+            <Button variant="outline" size="sm" onClick={handleCopyToClipboard} className="text-xs bg-transparent">
               <Copy className="mr-1.5 h-3 w-3" />
               コピー
             </Button>
           </div>
-
-          {/* 投稿者向け操作ボタン */}
           <OwnerActionButtons post={post} currentUserId={user?.id || null} />
         </div>
-
         <div className="bg-white rounded-lg shadow-xl">
           <div className="bg-purple-600 text-white p-4 rounded-t-lg">
             <h2 className="text-xl font-semibold">コメント</h2>
           </div>
-
           <div className="p-4 sm:p-6 space-y-4">
             {post.comments.length > 0 ? (
               post.comments.map((comment) => (
@@ -471,7 +373,6 @@ export default function TradeDetailPage() {
               <p className="text-sm text-slate-500 text-center py-4">まだコメントはありません。</p>
             )}
           </div>
-
           <div className="p-4 sm:p-6 border-t border-slate-200 bg-slate-50 rounded-b-lg">
             <div className="flex items-center space-x-2">
               <Input
@@ -501,8 +402,6 @@ export default function TradeDetailPage() {
         </div>
       </main>
       <Footer />
-
-      {/* Login Prompt Modal */}
       {showLoginPrompt && (
         <LoginPromptModal onClose={() => setShowLoginPrompt(false)} onContinueAsGuest={handleContinueAsGuest} />
       )}
