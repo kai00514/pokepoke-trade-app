@@ -13,12 +13,6 @@ export function createClient(): SupabaseClient {
   if (!supabaseInstance) {
     console.log("🔧 [createClient] Creating new Supabase client instance.")
     // createClient関数内でより詳細なログを出力
-    console.log("🔧 [createClient] Environment variables check:", {
-      hasUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
-      hasKey: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-      urlLength: process.env.NEXT_PUBLIC_SUPABASE_URL?.length,
-      keyLength: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.length
-    })
     try {
       supabaseInstance = createBrowserClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
