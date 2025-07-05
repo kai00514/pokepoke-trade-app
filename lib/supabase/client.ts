@@ -50,15 +50,22 @@ export function createClient(): SupabaseClient {
   return supabaseInstance
 }
 
-// セッション状態を強制的に更新する関数
+// セッション状態を強制的に更新する関数にタイムアウト処理を追加
 export async function refreshClientSession() {
   console.log("🔄 [refreshClientSession] Attempting to refresh client session...")
   if (supabaseInstance) {
     try {
+      // タイムアウト処理を追加（5秒でタイムアウト）
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error("refreshClientSession timeout")), 5000)
+      })
+
+      const sessionPromise = supabaseInstance.auth.getSession()
+
       const {
         data: { session },
         error,
-      } = await supabaseInstance.auth.getSession()
+      } = await Promise.race([sessionPromise, timeoutPromise])
 
       console.log("🔄 [refreshClientSession] getSession result:", {
         hasSession: !!session,

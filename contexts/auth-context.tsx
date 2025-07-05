@@ -184,20 +184,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setSession(session)
       setUser(session?.user || null)
 
+      // SIGNED_INイベントハンドラーでrefreshClientSessionをスキップするオプションを追加
       if (event === "SIGNED_IN" && session?.user) {
         try {
           console.log("🔄 [AuthContext] SIGNED_IN event - calling fetchUserProfile")
-          console.log("🔄 [AuthContext] About to call refreshClientSession")
 
-          // refreshClientSessionでエラーが発生してもfetchUserProfileは実行する
-          try {
-            await refreshClientSession()
-            console.log("✅ [AuthContext] refreshClientSession completed successfully")
-          } catch (refreshError) {
-            console.error("❌ [AuthContext] refreshClientSession failed, but continuing:", refreshError)
-          }
+          // refreshClientSessionは問題を起こしているため、スキップして直接fetchUserProfileを実行
+          console.log("⚠️ [AuthContext] Skipping refreshClientSession due to timeout issues")
+          console.log("🔄 [AuthContext] About to call fetchUserProfile directly")
 
-          console.log("🔄 [AuthContext] About to call fetchUserProfile")
           await fetchUserProfile(session.user.id, session.user.email)
           console.log("✅ [AuthContext] fetchUserProfile completed")
         } catch (error) {
@@ -208,7 +203,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUserProfile(null)
       } else if (event === "TOKEN_REFRESHED" && session?.user) {
         console.log("🔄 [AuthContext] TOKEN_REFRESHED event")
-        await refreshClientSession()
+        // TOKEN_REFRESHEDでもrefreshClientSessionをスキップ
+        console.log("⚠️ [AuthContext] Skipping refreshClientSession for TOKEN_REFRESHED")
       } else {
         console.log("⚠️ [AuthContext] Unhandled auth event or no user:", event)
       }
