@@ -11,15 +11,25 @@ export interface UserProfile {
 
 export async function getUserProfile(userId: string): Promise<UserProfile | null> {
   console.log("🔍 [getUserProfile] START - Fetching user profile for:", userId)
+  console.log("🔍 [getUserProfile] Timestamp:", new Date().toISOString())
 
   try {
     const supabase = createClient()
+    console.log("🔍 [getUserProfile] Supabase client created")
 
     // セッション確認
     const {
       data: { session },
       error: sessionError,
     } = await supabase.auth.getSession()
+
+    console.log("🔍 [getUserProfile] Session check result:", {
+      hasSession: !!session,
+      hasUser: !!session?.user,
+      sessionUserId: session?.user?.id,
+      inputUserId: userId,
+      sessionError: sessionError?.message,
+    })
 
     if (sessionError) {
       console.error("❌ [getUserProfile] Session error:", sessionError)
@@ -40,15 +50,17 @@ export async function getUserProfile(userId: string): Promise<UserProfile | null
       .eq("id", userId)
       .single()
 
-    console.log("🔍 [getUserProfile] Query result:", {
+    console.log("🔍 [getUserProfile] Database query result:", {
       hasData: !!data,
-      error,
-      data,
+      error: error?.message,
+      errorCode: error?.code,
+      errorDetails: error?.details,
+      data: data,
     })
 
     if (error) {
       if (error.code === "PGRST116") {
-        console.log("🔍 [getUserProfile] User profile not found, returning null")
+        console.log("🔍 [getUserProfile] User profile not found (PGRST116), returning null")
         return null
       }
       console.error("❌ [getUserProfile] Query error:", error)
@@ -59,6 +71,11 @@ export async function getUserProfile(userId: string): Promise<UserProfile | null
     return data
   } catch (error) {
     console.error("❌ [getUserProfile] Error:", error)
+    console.error("❌ [getUserProfile] Error details:", {
+      message: error?.message,
+      stack: error?.stack,
+      userId,
+    })
     throw error
   }
 }

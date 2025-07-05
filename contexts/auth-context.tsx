@@ -36,20 +36,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const fetchUserProfile = async (userId: string, userEmail?: string) => {
     try {
-      console.log("🔍 [AuthContext] fetchUserProfile START for:", userId)
+      console.log("🔍 [AuthContext] fetchUserProfile START for:", userId, "email:", userEmail)
+      console.log("🔍 [AuthContext] Current auth state:", { hasUser: !!user, hasSession: !!session })
 
       let profile = await getUserProfile(userId)
+      console.log("🔍 [AuthContext] getUserProfile returned:", profile)
 
       // プロファイルが存在しない場合は作成
       if (!profile && userEmail) {
         console.log("🔧 [AuthContext] Profile not found, creating new profile")
         profile = await createUserProfile(userId, userEmail)
+        console.log("🔧 [AuthContext] createUserProfile returned:", profile)
       }
 
-      console.log("🔍 [AuthContext] Profile result:", profile)
+      console.log("🔍 [AuthContext] Final profile result:", profile)
       setUserProfile(profile)
+      console.log("✅ [AuthContext] setUserProfile completed")
     } catch (error) {
       console.error("❌ [AuthContext] Error in fetchUserProfile:", error)
+      console.error("❌ [AuthContext] Error details:", {
+        message: error?.message,
+        stack: error?.stack,
+        userId,
+        userEmail,
+      })
       setUserProfile(null)
     }
   }
@@ -119,6 +129,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // 初期セッション取得
     const getInitialSession = async () => {
       try {
+        console.log("🚀 [AuthContext] getInitialSession START")
         setLoading(true)
 
         const {
@@ -126,28 +137,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           error,
         } = await supabase.auth.getSession()
 
+        console.log("🔍 [AuthContext] getSession result:", {
+          hasSession: !!session,
+          hasUser: !!session?.user,
+          userId: session?.user?.id,
+          userEmail: session?.user?.email,
+          error,
+        })
+
         if (error) {
           console.error("❌ [AuthContext] Error getting initial session:", error)
           setLoading(false)
           return
         }
 
-        console.log("🔍 [AuthContext] Initial session:", {
-          hasSession: !!session,
-          hasUser: !!session?.user,
-          userId: session?.user?.id,
-          userEmail: session?.user?.email,
-        })
-
         setSession(session)
         setUser(session?.user || null)
 
         if (session?.user) {
+          console.log("🔄 [AuthContext] Calling fetchUserProfile from getInitialSession")
           await fetchUserProfile(session.user.id, session.user.email)
+        } else {
+          console.log("⚠️ [AuthContext] No session or user found in getInitialSession")
         }
       } catch (error) {
         console.error("❌ [AuthContext] Error in getInitialSession:", error)
       } finally {
+        console.log("🏁 [AuthContext] getInitialSession completed")
         setLoading(false)
       }
     }
@@ -162,22 +178,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         hasSession: !!session,
         hasUser: !!session?.user,
         userId: session?.user?.id,
+        userEmail: session?.user?.email,
       })
 
       setSession(session)
       setUser(session?.user || null)
 
       if (event === "SIGNED_IN" && session?.user) {
+        console.log("🔄 [AuthContext] SIGNED_IN event - calling fetchUserProfile")
         // サインイン時にクライアントセッションも更新
         await refreshClientSession()
         await fetchUserProfile(session.user.id, session.user.email)
       } else if (event === "SIGNED_OUT") {
+        console.log("🚪 [AuthContext] SIGNED_OUT event - clearing profile")
         setUserProfile(null)
-      }
-
-      // TOKEN_REFRESHED イベントでもクライアントセッションを更新
-      if (event === "TOKEN_REFRESHED" && session?.user) {
+      } else if (event === "TOKEN_REFRESHED" && session?.user) {
+        console.log("🔄 [AuthContext] TOKEN_REFRESHED event")
         await refreshClientSession()
+      } else {
+        console.log("⚠️ [AuthContext] Unhandled auth event or no user:", event)
       }
     })
 
