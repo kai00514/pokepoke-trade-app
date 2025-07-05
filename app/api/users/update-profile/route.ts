@@ -1,5 +1,4 @@
-import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs"
-import { cookies } from "next/headers"
+import { createClient } from "@/lib/supabase/server"
 import { type NextRequest, NextResponse } from "next/server"
 
 export async function POST(request: NextRequest) {
@@ -17,7 +16,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Supabaseクライアントを作成
-    const supabase = createRouteHandlerClient({ cookies })
+    const supabase = await createClient()
     console.log("🔧 [API] Supabase client created")
 
     // 現在のセッションを確認
@@ -37,12 +36,13 @@ export async function POST(request: NextRequest) {
       requestedUserId: userId,
     })
 
-    // セッションがない場合でも、管理者権限で更新を試行
+    // セッションのユーザーIDと更新対象のユーザーIDが一致するかチェック
     if (!session || session.user.id !== userId) {
-      console.log("🔧 [API] No valid session, trying admin update")
+      console.error("❌ [API] Unauthorized: User ID mismatch")
+      return NextResponse.json({ error: "Unauthorized" }, { status: 403 })
     }
 
-    // 更新データを準備（updated_atを削除）
+    // 更新データを準備
     const updateData = {
       ...profileData,
     }
