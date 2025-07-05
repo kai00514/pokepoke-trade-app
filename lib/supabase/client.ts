@@ -12,7 +12,6 @@ export function createClient(): SupabaseClient {
 
   if (!supabaseInstance) {
     console.log("🔧 [createClient] Creating new Supabase client instance.")
-    // createClient関数内でより詳細なログを出力
     try {
       supabaseInstance = createBrowserClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -20,7 +19,6 @@ export function createClient(): SupabaseClient {
         {
           auth: {
             flowType: "pkce",
-            // セッション情報の自動更新を有効化
             autoRefreshToken: true,
             persistSession: true,
             detectSessionInUrl: true,
@@ -35,17 +33,8 @@ export function createClient(): SupabaseClient {
       console.log("✅ [createClient] Supabase client instance created successfully.")
     } catch (e) {
       console.error("❌ [createClient] Error creating Supabase client instance:", e)
-      console.error("❌ [createClient] Detailed error info:", {
-        error: e,
-        errorType: typeof e,
-        errorMessage: e instanceof Error ? e.message : String(e),
-        errorStack: e instanceof Error ? e.stack : undefined,
-        environment: typeof window !== 'undefined' ? 'browser' : 'server'
-      })
       throw e
     }
-  } else {
-    console.log("🔧 [createClient] Using existing Supabase client instance.")
   }
   return supabaseInstance
 }

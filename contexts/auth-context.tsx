@@ -40,9 +40,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       let profile = await getUserProfile(userId)
 
-      // プロファイルが存在しない場合は作成
+      // プロファイルが存在しない場合は作成を試行（エラーでも継続）
       if (!profile && userEmail) {
-        console.log("🔧 [AuthContext] Profile not found, creating new profile")
+        console.log("🔧 [AuthContext] Profile not found, attempting to create new profile")
         profile = await createUserProfile(userId, userEmail)
       }
 
@@ -50,6 +50,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUserProfile(profile)
     } catch (error) {
       console.error("❌ [AuthContext] Error in fetchUserProfile:", error)
+      // エラーが発生してもログインは継続
       setUserProfile(null)
     }
   }
@@ -119,6 +120,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // 初期セッション取得
     const getInitialSession = async () => {
       try {
+        console.log("🔍 [AuthContext] Getting initial session...")
         setLoading(true)
 
         const {
@@ -128,22 +130,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         if (error) {
           console.error("❌ [AuthContext] Error getting initial session:", error)
-          setLoading(false)
-          return
-        }
+        } else {
+          console.log("🔍 [AuthContext] Initial session:", {
+            hasSession: !!session,
+            hasUser: !!session?.user,
+            userId: session?.user?.id,
+            userEmail: session?.user?.email,
+          })
 
-        console.log("🔍 [AuthContext] Initial session:", {
-          hasSession: !!session,
-          hasUser: !!session?.user,
-          userId: session?.user?.id,
-          userEmail: session?.user?.email,
-        })
+          setSession(session)
+          setUser(session?.user || null)
 
-        setSession(session)
-        setUser(session?.user || null)
-
-        if (session?.user) {
-          await fetchUserProfile(session.user.id, session.user.email)
+          if (session?.user) {
+            await fetchUserProfile(session.user.id, session.user.email)
+          }
         }
       } catch (error) {
         console.error("❌ [AuthContext] Error in getInitialSession:", error)
