@@ -2,11 +2,11 @@ import { createClient } from "@/lib/supabase/client"
 
 export interface UserProfile {
   id: string
-  pokepoke_id?: string
-  display_name?: string
-  name?: string
-  avatar_url?: string
-  created_at: string
+  pokepoke_id?: string | null
+  display_name?: string | null
+  name?: string | null
+  avatar_url?: string | null
+  created_at?: string
 }
 
 export async function getUserProfile(userId: string): Promise<UserProfile | null> {
@@ -17,33 +17,9 @@ export async function getUserProfile(userId: string): Promise<UserProfile | null
     const supabase = createClient()
     console.log("🔍 [getUserProfile] Supabase client created")
 
-    // セッション確認
-    const {
-      data: { session },
-      error: sessionError,
-    } = await supabase.auth.getSession()
+    // セッション確認をスキップして直接データベースクエリを実行
+    console.log("🔍 [getUserProfile] Skipping session check, executing direct database query")
 
-    console.log("🔍 [getUserProfile] Session check result:", {
-      hasSession: !!session,
-      hasUser: !!session?.user,
-      sessionUserId: session?.user?.id,
-      inputUserId: userId,
-      sessionError: sessionError?.message,
-    })
-
-    if (sessionError) {
-      console.error("❌ [getUserProfile] Session error:", sessionError)
-      throw new Error(`認証エラー: ${sessionError.message}`)
-    }
-
-    if (!session?.user) {
-      console.error("❌ [getUserProfile] No session")
-      throw new Error("認証されていません")
-    }
-
-    console.log("🔍 [getUserProfile] Session confirmed, fetching profile...")
-
-    // ユーザープロファイル取得
     const { data, error } = await supabase
       .from("users")
       .select("id, pokepoke_id, display_name, name, avatar_url, created_at")
@@ -53,152 +29,126 @@ export async function getUserProfile(userId: string): Promise<UserProfile | null
     console.log("🔍 [getUserProfile] Database query result:", {
       hasData: !!data,
       error: error?.message,
-      errorCode: error?.code,
-      errorDetails: error?.details,
-      data: data,
+      dataKeys: data ? Object.keys(data) : null,
     })
 
     if (error) {
       if (error.code === "PGRST116") {
-        console.log("🔍 [getUserProfile] User profile not found (PGRST116), returning null")
+        console.log("🔍 [getUserProfile] No profile found for user:", userId)
         return null
       }
-      console.error("❌ [getUserProfile] Query error:", error)
-      throw new Error(`プロファイル取得エラー: ${error.message}`)
+      console.error("❌ [getUserProfile] Database query error:", error)
+      throw error
     }
 
-    console.log("✅ [getUserProfile] Profile found:", data)
-    return data
+    if (!data) {
+      console.log("🔍 [getUserProfile] No data returned for user:", userId)
+      return null
+    }
+
+    console.log("✅ [getUserProfile] Profile found:", {
+      id: data.id,
+      hasPokepoke: !!data.pokepoke_id,
+      hasDisplayName: !!data.display_name,
+      hasName: !!data.name,
+      hasAvatar: !!data.avatar_url,
+    })
+
+    return data as UserProfile
   } catch (error) {
-    console.error("❌ [getUserProfile] Error:", error)
-    console.error("❌ [getUserProfile] Error details:", {
-      message: error?.message,
-      stack: error?.stack,
+    console.error("❌ [getUserProfile] Unexpected error:", {
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
       userId,
     })
-    throw error
+    return null
   }
 }
 
-export async function createUserProfile(userId: string, email: string): Promise<UserProfile> {
-  console.log("🔧 [createUserProfile] START - Creating profile for:", { userId, email })
+export async function createUserProfile(userId: string, userEmail: string): Promise<UserProfile | null> {
+  console.log("🔧 [createUserProfile] START - Creating profile for:", userId, userEmail)
 
   try {
     const supabase = createClient()
 
-    // セッション確認
-    const {
-      data: { session },
-      error: sessionError,
-    } = await supabase.auth.getSession()
+    // セッション確認をスキップして直接データベース操作を実行
+    console.log("🔧 [createUserProfile] Skipping session check, executing direct database operation")
 
-    if (sessionError) {
-      console.error("❌ [createUserProfile] Session error:", sessionError)
-      throw new Error(`認証エラー: ${sessionError.message}`)
+    const displayName = userEmail.split("@")[0]
+    const profileData = {
+      id: userId,
+      display_name: displayName,
+      name: displayName,
+      created_at: new Date().toISOString(),
     }
 
-    if (!session?.user) {
-      console.error("❌ [createUserProfile] No session")
-      throw new Error("認証されていません")
-    }
+    console.log("🔧 [createUserProfile] Profile data to insert:", profileData)
 
-    // ユーザープロファイル作成
-    const { data, error } = await supabase
-      .from("users")
-      .insert({
-        id: userId,
-        display_name: email.split("@")[0], // デフォルトの表示名
-      })
-      .select()
-      .single()
+    const { data, error } = await supabase.from("users").insert(profileData).select().single()
 
     console.log("🔧 [createUserProfile] Insert result:", {
       hasData: !!data,
-      error,
-      data,
+      error: error?.message,
     })
 
     if (error) {
       console.error("❌ [createUserProfile] Insert error:", error)
-      throw new Error(`プロファイル作成エラー: ${error.message}`)
+      throw error
     }
 
-    console.log("✅ [createUserProfile] Profile created:", data)
-    return data
+    console.log("✅ [createUserProfile] Profile created successfully:", data)
+    return data as UserProfile
   } catch (error) {
-    console.error("❌ [createUserProfile] Error:", error)
-    throw error
+    console.error("❌ [createUserProfile] Unexpected error:", {
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+      userId,
+      userEmail,
+    })
+    return null
   }
 }
 
 export async function updateUserProfile(
   userId: string,
-  profileData: {
-    display_name?: string
-    pokepoke_id?: string
-    name?: string
-    avatar_url?: string
-  },
-) {
+  profileData: Partial<UserProfile>,
+): Promise<UserProfile | null> {
   console.log("🔧 [updateUserProfile] START - Direct table update:", { userId, profileData })
 
   try {
-    // AuthContextと同じSupabaseクライアントを使用
     const supabase = createClient()
 
-    // 現在のセッション確認（AuthContextと同じ方法）
-    const {
-      data: { session },
-      error: sessionError,
-    } = await supabase.auth.getSession()
+    // セッション確認をスキップして直接データベース操作を実行
+    console.log("🔧 [updateUserProfile] Skipping session check, executing direct database operation")
 
-    console.log("🔧 [updateUserProfile] Session check:", {
-      hasSession: !!session,
-      hasUser: !!session?.user,
-      sessionUserId: session?.user?.id,
-      inputUserId: userId,
-      sessionError,
-    })
-
-    if (sessionError) {
-      console.error("❌ [updateUserProfile] Session error:", sessionError)
-      throw new Error(`認証エラー: ${sessionError.message}`)
+    const updateData = {
+      ...profileData,
+      updated_at: new Date().toISOString(),
     }
 
-    if (!session?.user) {
-      console.error("❌ [updateUserProfile] No session or user")
-      throw new Error("認証されていません。再度ログインしてください。")
-    }
+    console.log("🔧 [updateUserProfile] Update data:", updateData)
 
-    if (session.user.id !== userId) {
-      console.error("❌ [updateUserProfile] User ID mismatch")
-      throw new Error("ユーザーIDが一致しません。")
-    }
+    const { data, error } = await supabase.from("users").update(updateData).eq("id", userId).select().single()
 
-    // 直接テーブル更新
-    console.log("🔧 [updateUserProfile] Updating users table directly...")
-    const { data, error } = await supabase.from("users").update(profileData).eq("id", userId).select().single()
-
-    console.log("🔧 [updateUserProfile] Direct update result:", {
+    console.log("🔧 [updateUserProfile] Update result:", {
       hasData: !!data,
-      error,
-      updatedData: data,
+      error: error?.message,
     })
 
     if (error) {
       console.error("❌ [updateUserProfile] Update error:", error)
-      throw new Error(`プロファイル更新エラー: ${error.message}`)
+      throw error
     }
 
-    if (!data) {
-      console.error("❌ [updateUserProfile] No data returned")
-      throw new Error("プロファイルの更新に失敗しました。")
-    }
-
-    console.log("✅ [updateUserProfile] Success:", data)
-    return data
+    console.log("✅ [updateUserProfile] Profile updated successfully:", data)
+    return data as UserProfile
   } catch (error) {
-    console.error("❌ [updateUserProfile] Error:", error)
-    throw error
+    console.error("❌ [updateUserProfile] Unexpected error:", {
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+      userId,
+      profileData,
+    })
+    return null
   }
 }

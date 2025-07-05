@@ -1,123 +1,76 @@
 import { createBrowserClient } from "@supabase/ssr"
 import type { SupabaseClient } from "@supabase/supabase-js"
 
-// グローバルクライアントインスタンス（Singletonパターンを維持しつつ、セッション管理を改善）
-let supabaseInstance: SupabaseClient | null = null
-
+// シンプルなクライアント作成関数
 export function createClient(): SupabaseClient {
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-    console.error("❌ Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY environment variables.")
-    throw new Error("Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY environment variables.")
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+  if (!supabaseUrl || !supabaseAnonKey) {
+    console.error("❌ [createClient] Missing Supabase environment variables")
+    throw new Error("Missing Supabase environment variables")
   }
 
-  if (!supabaseInstance) {
-    console.log("🔧 [createClient] Creating new Supabase client instance.")
-    // createClient関数内でより詳細なログを出力
-    try {
-      supabaseInstance = createBrowserClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-        {
-          auth: {
-            flowType: "pkce",
-            // セッション情報の自動更新を有効化
-            autoRefreshToken: true,
-            persistSession: true,
-            detectSessionInUrl: true,
-          },
-          global: {
-            headers: {
-              "X-Client-Info": "pokepoke-trade-app",
-            },
-          },
-        },
-      )
-      console.log("✅ [createClient] Supabase client instance created successfully.")
-    } catch (e) {
-      console.error("❌ [createClient] Error creating Supabase client instance:", e)
-      console.error("❌ [createClient] Detailed error info:", {
-        error: e,
-        errorType: typeof e,
-        errorMessage: e instanceof Error ? e.message : String(e),
-        errorStack: e instanceof Error ? e.stack : undefined,
-        environment: typeof window !== "undefined" ? "browser" : "server",
-      })
-      throw e
-    }
-  } else {
-    console.log("🔧 [createClient] Using existing Supabase client instance.")
-  }
-  return supabaseInstance
+  console.log("🔧 [createClient] Creating Supabase client")
+
+  return createBrowserClient(supabaseUrl, supabaseAnonKey, {
+    auth: {
+      flowType: "pkce",
+      autoRefreshToken: true,
+      persistSession: true,
+      detectSessionInUrl: true,
+    },
+    global: {
+      headers: {
+        "X-Client-Info": "pokepoke-trade-app",
+      },
+    },
+  })
 }
 
-// セッション状態を強制的に更新する関数にタイムアウト処理を追加
-export async function refreshClientSession() {
-  console.log("🔄 [refreshClientSession] Attempting to refresh client session...")
-  if (supabaseInstance) {
-    try {
-      // タイムアウト処理を追加（5秒でタイムアウト）
-      const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error("refreshClientSession timeout")), 5000)
-      })
+// セッション取得のヘルパー関数（タイムアウト付き）
+export async function getSessionWithTimeout(client: SupabaseClient, timeoutMs = 3000) {
+  console.log("🔍 [getSessionWithTimeout] Getting session with timeout:", timeoutMs)
 
-      const sessionPromise = supabaseInstance.auth.getSession()
+  const timeoutPromise = new Promise((_, reject) => {
+    setTimeout(() => reject(new Error("Session timeout")), timeoutMs)
+  })
 
-      const {
-        data: { session },
-        error,
-      } = await Promise.race([sessionPromise, timeoutPromise])
+  const sessionPromise = client.auth.getSession()
 
-      console.log("🔄 [refreshClientSession] getSession result:", {
-        hasSession: !!session,
-        hasUser: !!session?.user,
-        userId: session?.user?.id,
-        error: error?.message,
-      })
-
-      if (error) {
-        console.error("❌ [refreshClientSession] Error refreshing client session:", error)
-        throw error
-      } else {
-        console.log("✅ [refreshClientSession] Client session refreshed:", session ? "Session found" : "No session")
-      }
-      return { session, error }
-    } catch (e) {
-      console.error("❌ [refreshClientSession] Unexpected error during session refresh:", e)
-      console.error("❌ [refreshClientSession] Error details:", {
-        message: e instanceof Error ? e.message : String(e),
-        stack: e instanceof Error ? e.stack : undefined,
-        type: typeof e,
-      })
-      throw e
-    }
-  }
-  console.warn("⚠️ [refreshClientSession] Supabase client not initialized when refreshClientSession was called.")
-  const error = new Error("Supabase client not initialized")
-  throw error
-}
-
-// 認証状態を確認する関数
-export async function getCurrentUser() {
-  console.log("🔍 [getCurrentUser] Attempting to get current user...")
-  const client = createClient()
   try {
-    const {
-      data: { user },
-      error,
-    } = await client.auth.getUser()
-    if (error) {
-      console.error("❌ [getCurrentUser] Error getting user:", error)
-    } else {
-      console.log("✅ [getCurrentUser] User retrieved:", user ? user.id : "No user")
-    }
-    return { user, error }
-  } catch (e) {
-    console.error("❌ [getCurrentUser] Unexpected error during getCurrentUser:", e)
-    return { user: null, error: e instanceof Error ? e : new Error(String(e)) }
+    const result = await Promise.race([sessionPromise, timeoutPromise])
+    console.log("✅ [getSessionWithTimeout] Session retrieved successfully")
+    return result
+  } catch (error) {
+    console.error("❌ [getSessionWithTimeout] Session timeout or error:", error)
+    throw error
   }
 }
 
-// 互換性のための名前付きエクスポート
-export { createClient as createBrowserClient }
+// ユーザー取得のヘルパー関数（タイムアウト付き）
+export async function getUserWithTimeout(client: SupabaseClient, timeoutMs = 3000) {
+  console.log("🔍 [getUserWithTimeout] Getting user with timeout:", timeoutMs)
+
+  const timeoutPromise = new Promise((_, reject) => {
+    setTimeout(() => reject(new Error("User fetch timeout")), timeoutMs)
+  })
+
+  const userPromise = client.auth.getUser()
+
+  try {
+    const result = await Promise.race([userPromise, userPromise])
+    console.log("✅ [getUserWithTimeout] User retrieved successfully")
+    return result
+  } catch (error) {
+    console.error("❌ [getUserWithTimeout] User fetch timeout or error:", error)
+    throw error
+  }
+}
+
+// グローバルインスタンスを作成
 export const supabase = createClient()
+
+// 互換性のためのエクスポート
+export { createClient as createBrowserClient }
 export default createClient
