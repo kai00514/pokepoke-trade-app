@@ -9,7 +9,7 @@ export async function updateUserProfile(
     avatar_url?: string
   },
 ) {
-  console.log("🔧 [updateUserProfile] START:", { userId, profileData })
+  console.log("🔧 [updateUserProfile] START - Direct table update:", { userId, profileData })
 
   try {
     // AuthContextと同じSupabaseクライアントを使用
@@ -44,23 +44,18 @@ export async function updateUserProfile(
       throw new Error("ユーザーIDが一致しません。")
     }
 
-    // RPC関数呼び出し
-    console.log("🔧 [updateUserProfile] Calling RPC...")
-    const { data, error } = await supabase.rpc("admin_update_user_profile", {
-      p_user_id: userId,
-      p_update_data: profileData,
-    })
+    // 直接テーブル更新（updated_atは削除）
+    console.log("🔧 [updateUserProfile] Updating users table directly...")
+    const { data, error } = await supabase.from("users").update(profileData).eq("id", userId).select().single()
 
-    console.log("🔧 [updateUserProfile] RPC result:", {
+    console.log("🔧 [updateUserProfile] Direct update result:", {
       hasData: !!data,
-      dataType: typeof data,
-      isArray: Array.isArray(data),
-      dataLength: Array.isArray(data) ? data.length : "N/A",
       error,
+      updatedData: data,
     })
 
     if (error) {
-      console.error("❌ [updateUserProfile] RPC error:", error)
+      console.error("❌ [updateUserProfile] Update error:", error)
       throw new Error(`プロファイル更新エラー: ${error.message}`)
     }
 
@@ -69,9 +64,8 @@ export async function updateUserProfile(
       throw new Error("プロファイルの更新に失敗しました。")
     }
 
-    const result = Array.isArray(data) ? data[0] : data
-    console.log("✅ [updateUserProfile] Success:", result)
-    return result
+    console.log("✅ [updateUserProfile] Success:", data)
+    return data
   } catch (error) {
     console.error("❌ [updateUserProfile] Error:", error)
     throw error

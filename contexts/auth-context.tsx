@@ -4,7 +4,7 @@ import type React from "react"
 import { createContext, useContext, useEffect, useState } from "react"
 import type { User, Session } from "@supabase/supabase-js"
 import { createClient, refreshClientSession } from "@/lib/supabase/client"
-import { getUserProfile } from "@/lib/services/user-service"
+import { getUserProfile, createUserProfile } from "@/lib/services/user-service"
 
 interface UserProfile {
   id: string
@@ -13,7 +13,6 @@ interface UserProfile {
   name?: string
   avatar_url?: string
   created_at: string
-  updated_at: string
 }
 
 interface AuthContextType {
@@ -35,22 +34,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const supabase = createClient()
 
-  const fetchUserProfile = async (userId: string) => {
+  const fetchUserProfile = async (userId: string, userEmail?: string) => {
     try {
-      console.log("🔍 [fetchUserProfile] START - Fetching user profile for:", userId)
-      const profile = await getUserProfile(userId)
-      console.log("🔍 [fetchUserProfile] getUserProfile returned:", profile)
+      console.log("🔍 [AuthContext] fetchUserProfile START for:", userId)
+
+      let profile = await getUserProfile(userId)
+
+      // プロファイルが存在しない場合は作成
+      if (!profile && userEmail) {
+        console.log("🔧 [AuthContext] Profile not found, creating new profile")
+        profile = await createUserProfile(userId, userEmail)
+      }
+
+      console.log("🔍 [AuthContext] Profile result:", profile)
       setUserProfile(profile)
-      console.log("🔍 [fetchUserProfile] setUserProfile completed")
     } catch (error) {
-      console.error("❌ [fetchUserProfile] Error fetching user profile:", error)
+      console.error("❌ [AuthContext] Error in fetchUserProfile:", error)
       setUserProfile(null)
     }
   }
 
   const refreshSession = async () => {
     try {
-      console.log("🔄 [refreshSession] START - Refreshing session...")
+      console.log("🔄 [AuthContext] refreshSession START")
 
       // Supabaseクライアントのセッションを強制更新
       await refreshClientSession()
@@ -60,10 +66,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         error,
       } = await supabase.auth.getSession()
 
-      console.log("🔄 [refreshSession] getSession result:", { session: !!session, error })
+      console.log("🔄 [AuthContext] getSession result:", {
+        hasSession: !!session,
+        hasUser: !!session?.user,
+        userId: session?.user?.id,
+        error,
+      })
 
       if (error) {
-        console.error("❌ [refreshSession] Error refreshing session:", error)
+        console.error("❌ [AuthContext] Error refreshing session:", error)
         return
       }
 
@@ -72,21 +83,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(session?.user || null)
 
       if (session?.user) {
-        console.log("🔄 [refreshSession] Session found, fetching user profile for:", session.user.id)
-        await fetchUserProfile(session.user.id)
-        console.log("🔄 [refreshSession] fetchUserProfile completed")
+        console.log("🔄 [AuthContext] Fetching updated user profile")
+        await fetchUserProfile(session.user.id, session.user.email)
       } else {
-        console.log("🔄 [refreshSession] No session found")
+        console.log("🔄 [AuthContext] No session, clearing profile")
         setUserProfile(null)
       }
     } catch (error) {
-      console.error("❌ [refreshSession] Error in refreshSession:", error)
+      console.error("❌ [AuthContext] Error in refreshSession:", error)
     }
   }
 
   const signOut = async () => {
     try {
-      console.log("🚪 [signOut] Starting sign out...")
+      console.log("🚪 [AuthContext] Starting sign out...")
 
       // ローカル状態を即座にクリア
       setSession(null)
@@ -96,12 +106,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Supabaseからサインアウト
       const { error } = await supabase.auth.signOut()
       if (error) {
-        console.error("❌ [signOut] Supabase sign out error:", error)
+        console.error("❌ [AuthContext] Supabase sign out error:", error)
       } else {
-        console.log("✅ [signOut] Successfully signed out from Supabase")
+        console.log("✅ [AuthContext] Successfully signed out")
       }
     } catch (error) {
-      console.error("❌ [signOut] Error during sign out:", error)
+      console.error("❌ [AuthContext] Error during sign out:", error)
     }
   }
 
@@ -117,21 +127,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         } = await supabase.auth.getSession()
 
         if (error) {
-          console.error("❌ Error getting initial session:", error)
+          console.error("❌ [AuthContext] Error getting initial session:", error)
           setLoading(false)
           return
         }
 
-        console.log("🔍 Initial session:", session ? "Found" : "Not found")
+        console.log("🔍 [AuthContext] Initial session:", {
+          hasSession: !!session,
+          hasUser: !!session?.user,
+          userId: session?.user?.id,
+          userEmail: session?.user?.email,
+        })
 
         setSession(session)
         setUser(session?.user || null)
 
         if (session?.user) {
-          await fetchUserProfile(session.user.id)
+          await fetchUserProfile(session.user.id, session.user.email)
         }
       } catch (error) {
-        console.error("❌ Error in getInitialSession:", error)
+        console.error("❌ [AuthContext] Error in getInitialSession:", error)
       } finally {
         setLoading(false)
       }
@@ -143,7 +158,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log("🔔 Auth state changed:", event, session ? "Session exists" : "No session")
+      console.log("🔔 [AuthContext] Auth state changed:", event, {
+        hasSession: !!session,
+        hasUser: !!session?.user,
+        userId: session?.user?.id,
+      })
 
       setSession(session)
       setUser(session?.user || null)
@@ -151,7 +170,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (event === "SIGNED_IN" && session?.user) {
         // サインイン時にクライアントセッションも更新
         await refreshClientSession()
-        await fetchUserProfile(session.user.id)
+        await fetchUserProfile(session.user.id, session.user.email)
       } else if (event === "SIGNED_OUT") {
         setUserProfile(null)
       }
