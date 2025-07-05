@@ -1,106 +1,100 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
+import type React from "react"
+
+import { useState } from "react"
+import { useAuth } from "@/contexts/auth-context"
+import { updateUserProfile } from "@/lib/services/user-service_ver2"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { useAuth } from "@/contexts/auth-context"
-import { toast } from "sonner"
+import { toast } from "@/hooks/use-toast"
 
 interface PokepokeIdRegistrationModalProps {
   isOpen: boolean
-  onOpenChange: (open: boolean) => void
-  currentPokepokeId?: string
-  onSave: (pokepokeId: string) => Promise<void>
+  onClose: () => void
 }
 
-export function PokepokeIdRegistrationModal({
-  isOpen,
-  onOpenChange,
-  currentPokepokeId,
-  onSave,
-}: PokepokeIdRegistrationModalProps) {
-  const { user } = useAuth()
-  const [pokepokeId, setPokepokeId] = useState(currentPokepokeId || "")
-  const [isLoading, setIsLoading] = useState(false)
+export function PokepokeIdRegistrationModal({ isOpen, onClose }: PokepokeIdRegistrationModalProps) {
+  const { user, refreshUserProfile } = useAuth()
+  const [pokepokeId, setPokepokeId] = useState("")
+  const [error, setError] = useState("")
 
-  // currentPokepokeIdが変更されたときに入力値を更新
-  useEffect(() => {
-    if (currentPokepokeId !== undefined) {
-      setPokepokeId(currentPokepokeId || "")
-    }
-  }, [currentPokepokeId])
-
-  const handleSave = async () => {
-    console.log("🚀 [PokepokeIdModal] Saving:", pokepokeId)
-
-    if (!pokepokeId.trim()) {
-      toast.error("ポケポケIDを入力してください")
-      return
-    }
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
 
     if (!user) {
-      toast.error("ユーザーが認証されていません")
+      setError("ユーザーが認証されていません")
       return
     }
 
-    setIsLoading(true)
+    if (!pokepokeId.trim()) {
+      setError("ポケポケIDを入力してください")
+      return
+    }
 
     try {
-      await onSave(pokepokeId.trim())
-      toast.success("ポケポケIDが登録されました")
-      onOpenChange(false)
+      setError("")
+
+      console.log("🔧 [PokepokeIdModal] Updating pokepoke_id:", pokepokeId)
+
+      await updateUserProfile(user.id, {
+        pokepoke_id: pokepokeId.trim(),
+      })
+
+      console.log("✅ [PokepokeIdModal] Update successful")
+
+      // プロファイルを再取得
+      await refreshUserProfile()
+
+      toast({
+        title: "成功",
+        description: "ポケポケIDが登録されました",
+      })
+
+      onClose()
+      setPokepokeId("")
     } catch (error) {
-      console.error("❌ [PokepokeIdModal] Error:", error)
+      console.error("❌ [PokepokeIdModal] Update failed:", error)
       const errorMessage = error instanceof Error ? error.message : "ポケポケIDの登録に失敗しました"
-      toast.error(errorMessage)
-    } finally {
-      setIsLoading(false)
-    }
-  }
+      setError(errorMessage)
 
-  const handleCancel = () => {
-    setPokepokeId(currentPokepokeId || "")
-    onOpenChange(false)
-  }
-
-  const handleOpenChange = (open: boolean) => {
-    if (!open && !isLoading) {
-      setPokepokeId(currentPokepokeId || "")
+      toast({
+        title: "エラー",
+        description: errorMessage,
+        variant: "destructive",
+      })
     }
-    onOpenChange(open)
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-md">
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>ポケポケID登録</DialogTitle>
-          <DialogDescription>
-            あなたのポケポケIDを登録してください。他のユーザーがあなたを見つけやすくなります。
-          </DialogDescription>
+          <DialogDescription>ポケモンカードゲームポケットのIDを登録してください。</DialogDescription>
         </DialogHeader>
-        <div className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="pokepoke-id">ポケポケID</Label>
             <Input
               id="pokepoke-id"
+              type="text"
               value={pokepokeId}
               onChange={(e) => setPokepokeId(e.target.value)}
-              placeholder="例: trainer123"
-              disabled={isLoading}
+              placeholder="例: 1234567890"
+              className="w-full"
             />
+            {error && <p className="text-sm text-red-600">{error}</p>}
           </div>
           <div className="flex justify-end space-x-2">
-            <Button variant="outline" onClick={handleCancel} disabled={isLoading}>
+            <Button type="button" variant="outline" onClick={onClose}>
               キャンセル
             </Button>
-            <Button onClick={handleSave} disabled={isLoading}>
-              {isLoading ? "登録中..." : "登録"}
-            </Button>
+            <Button type="submit">登録</Button>
           </div>
-        </div>
+        </form>
       </DialogContent>
     </Dialog>
   )
