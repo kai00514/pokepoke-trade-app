@@ -40,7 +40,7 @@ export function createClient(): SupabaseClient {
         errorType: typeof e,
         errorMessage: e instanceof Error ? e.message : String(e),
         errorStack: e instanceof Error ? e.stack : undefined,
-        environment: typeof window !== 'undefined' ? 'browser' : 'server'
+        environment: typeof window !== "undefined" ? "browser" : "server",
       })
       throw e
     }
@@ -59,19 +59,34 @@ export async function refreshClientSession() {
         data: { session },
         error,
       } = await supabaseInstance.auth.getSession()
+
+      console.log("🔄 [refreshClientSession] getSession result:", {
+        hasSession: !!session,
+        hasUser: !!session?.user,
+        userId: session?.user?.id,
+        error: error?.message,
+      })
+
       if (error) {
         console.error("❌ [refreshClientSession] Error refreshing client session:", error)
+        throw error
       } else {
         console.log("✅ [refreshClientSession] Client session refreshed:", session ? "Session found" : "No session")
       }
       return { session, error }
     } catch (e) {
       console.error("❌ [refreshClientSession] Unexpected error during session refresh:", e)
-      return { session: null, error: e instanceof Error ? e : new Error(String(e)) }
+      console.error("❌ [refreshClientSession] Error details:", {
+        message: e instanceof Error ? e.message : String(e),
+        stack: e instanceof Error ? e.stack : undefined,
+        type: typeof e,
+      })
+      throw e
     }
   }
   console.warn("⚠️ [refreshClientSession] Supabase client not initialized when refreshClientSession was called.")
-  return { session: null, error: new Error("Supabase client not initialized") }
+  const error = new Error("Supabase client not initialized")
+  throw error
 }
 
 // 認証状態を確認する関数

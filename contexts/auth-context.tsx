@@ -185,10 +185,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(session?.user || null)
 
       if (event === "SIGNED_IN" && session?.user) {
-        console.log("🔄 [AuthContext] SIGNED_IN event - calling fetchUserProfile")
-        // サインイン時にクライアントセッションも更新
-        await refreshClientSession()
-        await fetchUserProfile(session.user.id, session.user.email)
+        try {
+          console.log("🔄 [AuthContext] SIGNED_IN event - calling fetchUserProfile")
+          console.log("🔄 [AuthContext] About to call refreshClientSession")
+
+          // refreshClientSessionでエラーが発生してもfetchUserProfileは実行する
+          try {
+            await refreshClientSession()
+            console.log("✅ [AuthContext] refreshClientSession completed successfully")
+          } catch (refreshError) {
+            console.error("❌ [AuthContext] refreshClientSession failed, but continuing:", refreshError)
+          }
+
+          console.log("🔄 [AuthContext] About to call fetchUserProfile")
+          await fetchUserProfile(session.user.id, session.user.email)
+          console.log("✅ [AuthContext] fetchUserProfile completed")
+        } catch (error) {
+          console.error("❌ [AuthContext] Error in SIGNED_IN event handler:", error)
+        }
       } else if (event === "SIGNED_OUT") {
         console.log("🚪 [AuthContext] SIGNED_OUT event - clearing profile")
         setUserProfile(null)
