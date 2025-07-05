@@ -20,11 +20,6 @@ export function createClient(): SupabaseClient {
       persistSession: true,
       detectSessionInUrl: true,
     },
-    global: {
-      headers: {
-        "X-Client-Info": "pokepoke-trade-app",
-      },
-    },
   })
 }
 
@@ -59,7 +54,7 @@ export async function getUserWithTimeout(client: SupabaseClient, timeoutMs = 300
   const userPromise = client.auth.getUser()
 
   try {
-    const result = await Promise.race([userPromise, userPromise])
+    const result = await Promise.race([userPromise, timeoutPromise])
     console.log("✅ [getUserWithTimeout] User retrieved successfully")
     return result
   } catch (error) {

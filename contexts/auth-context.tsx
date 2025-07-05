@@ -1,9 +1,20 @@
 "use client"
 
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react"
+import type React from "react"
+
+import { createContext, useContext, useEffect, useState } from "react"
 import type { User, Session } from "@supabase/supabase-js"
 import { createClient } from "@/lib/supabase/client"
-import { getUserProfile, createUserProfile, type UserProfile } from "@/lib/services/user-service_ver2"
+import { getUserProfile, createUserProfile } from "@/lib/services/user-service_ver2"
+
+interface UserProfile {
+  id: string
+  pokepoke_id?: string
+  display_name?: string
+  name?: string
+  avatar_url?: string
+  created_at: string
+}
 
 interface AuthContextType {
   user: User | null
@@ -11,96 +22,84 @@ interface AuthContextType {
   userProfile: UserProfile | null
   loading: boolean
   signOut: () => Promise<void>
-  refreshProfile: () => Promise<void>
+  refreshSession: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
-export function AuthProvider({ children }: { children: ReactNode }) {
+export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [session, setSession] = useState<Session | null>(null)
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null)
   const [loading, setLoading] = useState(true)
-  const [mounted, setMounted] = useState(false)
 
   const supabase = createClient()
 
   const fetchUserProfile = async (userId: string, userEmail?: string) => {
-    if (!mounted) return
-
-    console.log("🔍 [AuthContext] fetchUserProfile START for:", userId, "email:", userEmail)
-    console.log("🔍 [AuthContext] Current auth state:", {
-      hasUser: !!user,
-      hasSession: !!session,
-    })
+    console.log("🔍 [AuthContext] fetchUserProfile START for:", userId)
 
     try {
-      console.log("🔍 [AuthContext] Calling getUserProfile...")
       let profile = await getUserProfile(userId)
 
-      console.log("🔍 [AuthContext] getUserProfile returned:", {
-        hasProfile: !!profile,
-        profileId: profile?.id,
-        profileName: profile?.display_name,
-      })
-
-      // プロファイルが存在しない場合は作成
       if (!profile && userEmail) {
-        console.log("🔧 [AuthContext] Profile not found, creating new profile")
+        console.log("🔧 [AuthContext] Creating new profile")
         profile = await createUserProfile(userId, userEmail)
-        console.log("🔧 [AuthContext] createUserProfile returned:", {
-          hasProfile: !!profile,
-          profileId: profile?.id,
-        })
       }
 
-      if (mounted) {
-        console.log("🔍 [AuthContext] Setting user profile:", profile)
-        setUserProfile(profile)
-      }
+      console.log("🔍 [AuthContext] Setting profile:", profile)
+      setUserProfile(profile)
     } catch (error) {
-      console.error("❌ [AuthContext] Error in fetchUserProfile:", {
-        message: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : undefined,
-        userId,
-        userEmail,
-      })
-      if (mounted) {
-        setUserProfile(null)
-      }
+      console.error("❌ [AuthContext] fetchUserProfile error:", error)
+      setUserProfile(null)
     }
   }
 
-  const refreshProfile = async () => {
-    if (user) {
-      await fetchUserProfile(user.id, user.email)
+  const refreshSession = async () => {
+    console.log("🔄 [AuthContext] refreshSession START")
+
+    try {
+      const {
+        data: { session },
+        error,
+      } = await supabase.auth.getSession()
+
+      if (error) {
+        console.error("❌ [AuthContext] Session refresh error:", error)
+        return
+      }
+
+      setSession(session)
+      setUser(session?.user || null)
+
+      if (session?.user) {
+        await fetchUserProfile(session.user.id, session.user.email)
+      } else {
+        setUserProfile(null)
+      }
+    } catch (error) {
+      console.error("❌ [AuthContext] refreshSession error:", error)
     }
   }
 
   const signOut = async () => {
-    console.log("🚪 [AuthContext] Signing out...")
-    try {
-      const { error } = await supabase.auth.signOut()
-      if (error) {
-        console.error("❌ [AuthContext] Sign out error:", error)
-        throw error
-      }
-      console.log("✅ [AuthContext] Signed out successfully")
-    } catch (error) {
-      console.error("❌ [AuthContext] Sign out failed:", error)
-      throw error
+    console.log("🚪 [AuthContext] Signing out")
+
+    setSession(null)
+    setUser(null)
+    setUserProfile(null)
+
+    const { error } = await supabase.auth.signOut()
+    if (error) {
+      console.error("❌ [AuthContext] Sign out error:", error)
     }
   }
 
   useEffect(() => {
-    setMounted(true)
-
     // 初期セッション取得
     const getInitialSession = async () => {
-      try {
-        setLoading(true)
-        console.log("🚀 [AuthContext] getInitialSession START")
+      console.log("🚀 [AuthContext] getInitialSession START")
 
+      try {
         const {
           data: { session },
           error,
@@ -114,23 +113,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           error: error?.message,
         })
 
-        if (mounted) {
-          setSession(session)
-          setUser(session?.user || null)
+        setSession(session)
+        setUser(session?.user || null)
 
-          if (session?.user) {
-            await fetchUserProfile(session.user.id, session.user.email)
-          }
+        if (session?.user) {
+          await fetchUserProfile(session.user.id, session.user.email)
         }
       } catch (error) {
-        console.error("❌ [AuthContext] Error in getInitialSession:", {
-          message: error instanceof Error ? error.message : String(error),
-          stack: error instanceof Error ? error.stack : undefined,
-        })
+        console.error("❌ [AuthContext] Initial session error:", error)
       } finally {
-        if (mounted) {
-          setLoading(false)
-        }
+        setLoading(false)
       }
     }
 
@@ -147,54 +139,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         userEmail: session?.user?.email,
       })
 
-      if (mounted) {
-        setSession(session)
-        setUser(session?.user || null)
+      setSession(session)
+      setUser(session?.user || null)
 
-        try {
-          if (event === "SIGNED_IN" && session?.user) {
-            console.log("🔄 [AuthContext] SIGNED_IN event - calling fetchUserProfile")
-            console.log("🔄 [AuthContext] About to call fetchUserProfile directly")
-            await fetchUserProfile(session.user.id, session.user.email)
-          } else if (event === "SIGNED_OUT") {
-            console.log("🔄 [AuthContext] SIGNED_OUT event - clearing profile")
-            setUserProfile(null)
-          }
-
-          if (event === "TOKEN_REFRESHED" && session?.user) {
-            console.log("🔄 [AuthContext] TOKEN_REFRESHED event")
-            // トークン更新時はプロファイル再取得は不要
-          }
-        } catch (error) {
-          console.error("❌ [AuthContext] Error in auth state change handler:", {
-            event,
-            error: error instanceof Error ? error.message : String(error),
-            stack: error instanceof Error ? error.stack : undefined,
-          })
-        }
-      }
-
-      if (mounted) {
-        setLoading(false)
+      if (event === "SIGNED_IN" && session?.user) {
+        await fetchUserProfile(session.user.id, session.user.email)
+      } else if (event === "SIGNED_OUT") {
+        setUserProfile(null)
       }
     })
 
     return () => {
-      setMounted(false)
       subscription.unsubscribe()
     }
   }, [])
 
-  const value = {
-    user,
-    session,
-    userProfile,
-    loading,
-    signOut,
-    refreshProfile,
-  }
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
+  return (
+    <AuthContext.Provider
+      value={{
+        user,
+        session,
+        userProfile,
+        loading,
+        signOut,
+        refreshSession,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  )
 }
 
 export function useAuth() {

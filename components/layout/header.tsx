@@ -21,7 +21,7 @@ function Header() {
   const [isUsernameModalOpen, setIsUsernameModalOpen] = useState(false)
   const router = useRouter()
 
-  // アカウント名の表示優先順位を修正
+  // アカウント名の表示優先順位
   const accountName =
     userProfile?.display_name ||
     userProfile?.name ||
@@ -29,7 +29,7 @@ function Header() {
     user?.email?.split("@")[0] ||
     "ユーザー"
 
-  // デバッグログ追加
+  // デバッグログ
   console.log("🔍 [Header] Render state:", {
     hasUser: !!user,
     hasUserProfile: !!userProfile,
