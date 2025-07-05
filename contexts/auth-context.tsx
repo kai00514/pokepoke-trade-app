@@ -4,7 +4,7 @@ import type React from "react"
 import { createContext, useContext, useEffect, useState } from "react"
 import type { User, Session } from "@supabase/supabase-js"
 import { createClient, refreshClientSession } from "@/lib/supabase/client"
-import { getUserProfile, createUserProfile } from "@/lib/services/user-service"
+import { getUserProfile, createUserProfile } from "@/lib/services/user-service_ver2"
 
 interface UserProfile {
   id: string
