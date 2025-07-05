@@ -2,25 +2,37 @@
 
 import type React from "react"
 
-import { useState } from "react"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { useState, useEffect } from "react" // useEffectを追加
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog" // DialogDescriptionを追加
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useAuth } from "@/contexts/auth-context"
-import { updateUserProfile } from "@/lib/services/user-service_ver2"
+import { updateUserProfile } from "@/lib/services/user-service_ver2" // updateUserProfileをインポート
 import { toast } from "sonner"
 
 interface PokepokeIdRegistrationModalProps {
   isOpen: boolean
   onClose: () => void
   onSuccess: () => void
+  currentPokepokeId?: string // currentPokepokeIdを追加
 }
 
-export function PokepokeIdRegistrationModal({ isOpen, onClose, onSuccess }: PokepokeIdRegistrationModalProps) {
-  const [pokepokeId, setPokepokeId] = useState("")
-  const [username, setUsername] = useState("")
+export function PokepokeIdRegistrationModal({
+  isOpen,
+  onClose,
+  onSuccess,
+  currentPokepokeId,
+}: PokepokeIdRegistrationModalProps) {
+  const [pokepokeId, setPokepokeId] = useState(currentPokepokeId || "") // currentPokepokeIdを初期値に設定
   const { user, refreshUserProfile } = useAuth()
+
+  // モーダルが開かれたときに現在のIDをセット
+  useEffect(() => {
+    if (isOpen) {
+      setPokepokeId(currentPokepokeId || "")
+    }
+  }, [isOpen, currentPokepokeId])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -30,25 +42,24 @@ export function PokepokeIdRegistrationModal({ isOpen, onClose, onSuccess }: Poke
       return
     }
 
-    if (!pokepokeId.trim() || !username.trim()) {
-      toast.error("ポケポケIDとユーザー名を入力してください")
+    if (!pokepokeId.trim()) {
+      toast.error("ポケポケIDを入力してください")
       return
     }
 
     try {
-      console.log("🚀 [PokepokeIdModal] Starting profile update...")
+      console.log("🚀 [PokepokeIdModal] Starting profile update for Pokepoke ID:", pokepokeId)
 
       await updateUserProfile(user.id, {
         pokepoke_id: pokepokeId.trim(),
-        display_name: username.trim(),
       })
 
-      console.log("✅ [PokepokeIdModal] Profile updated successfully")
+      console.log("✅ [PokepokeIdModal] Pokepoke ID updated successfully")
 
       // プロファイルを再取得
       await refreshUserProfile()
 
-      toast.success("ポケポケIDとユーザー名が登録されました")
+      toast.success("ポケポケIDが登録されました")
       onSuccess()
       onClose()
     } catch (error) {
@@ -61,7 +72,10 @@ export function PokepokeIdRegistrationModal({ isOpen, onClose, onSuccess }: Poke
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>ポケポケIDとユーザー名を登録</DialogTitle>
+          <DialogTitle>ポケポケIDを登録</DialogTitle>
+          <DialogDescription>
+            あなたのポケポケIDを入力してください。これは他のユーザーとのトレードや交流に使用されます。
+          </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
@@ -71,18 +85,7 @@ export function PokepokeIdRegistrationModal({ isOpen, onClose, onSuccess }: Poke
               type="text"
               value={pokepokeId}
               onChange={(e) => setPokepokeId(e.target.value)}
-              placeholder="ポケポケIDを入力"
-              required
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="username">ユーザー名</Label>
-            <Input
-              id="username"
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              placeholder="ユーザー名を入力"
+              placeholder="例: 1234-5678-9012"
               required
             />
           </div>
