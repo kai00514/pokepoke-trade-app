@@ -40,7 +40,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       let profile = await getUserProfile(userId)
 
-      // プロファイルが存在しない場合は作成を試行（エラーでも継続）
+      // プロファイルが存在しない場合は作成を試行
       if (!profile && userEmail) {
         console.log("🔧 [AuthContext] Profile not found, attempting to create new profile")
         profile = await createUserProfile(userId, userEmail)
@@ -117,6 +117,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   useEffect(() => {
+    let mounted = true
+
     // 初期セッション取得
     const getInitialSession = async () => {
       try {
@@ -127,6 +129,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           data: { session },
           error,
         } = await supabase.auth.getSession()
+
+        if (!mounted) return
 
         if (error) {
           console.error("❌ [AuthContext] Error getting initial session:", error)
@@ -148,7 +152,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } catch (error) {
         console.error("❌ [AuthContext] Error in getInitialSession:", error)
       } finally {
-        setLoading(false)
+        if (mounted) {
+          setLoading(false)
+        }
       }
     }
 
@@ -158,6 +164,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (!mounted) return
+
       console.log("🔔 [AuthContext] Auth state changed:", event, {
         hasSession: !!session,
         hasUser: !!session?.user,
@@ -182,6 +190,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     })
 
     return () => {
+      mounted = false
       subscription.unsubscribe()
     }
   }, [])

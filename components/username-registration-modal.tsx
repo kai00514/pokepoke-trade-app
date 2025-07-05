@@ -3,63 +3,62 @@
 import type React from "react"
 
 import { useState } from "react"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { useAuth } from "@/contexts/auth-context"
-import { updateUserProfile } from "@/lib/services/user-service_ver2"
-import { toast } from "sonner"
 
 interface UsernameRegistrationModalProps {
   isOpen: boolean
-  onClose: () => void
-  onSuccess: () => void
+  onOpenChange: (open: boolean) => void
+  currentUsername?: string
+  onSave: (username: string) => Promise<void>
 }
 
-export function UsernameRegistrationModal({ isOpen, onClose, onSuccess }: UsernameRegistrationModalProps) {
-  const [username, setUsername] = useState("")
-  const { user, refreshUserProfile } = useAuth()
+export function UsernameRegistrationModal({
+  isOpen,
+  onOpenChange,
+  currentUsername,
+  onSave,
+}: UsernameRegistrationModalProps) {
+  const [username, setUsername] = useState(currentUsername || "")
+  const [error, setError] = useState("")
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setError("")
 
-    if (!user) {
-      toast.error("ユーザーが見つかりません")
+    if (!username.trim()) {
+      setError("ユーザー名を入力してください")
       return
     }
 
-    if (!username.trim()) {
-      toast.error("ユーザー名を入力してください")
+    if (username.length < 2) {
+      setError("ユーザー名は2文字以上で入力してください")
+      return
+    }
+
+    if (username.length > 20) {
+      setError("ユーザー名は20文字以下で入力してください")
       return
     }
 
     try {
-      console.log("🚀 [UsernameModal] Starting profile update...")
-
-      await updateUserProfile(user.id, {
-        display_name: username.trim(),
-      })
-
-      console.log("✅ [UsernameModal] Profile updated successfully")
-
-      // プロファイルを再取得
-      await refreshUserProfile()
-
-      toast.success("ユーザー名が登録されました")
-      onSuccess()
-      onClose()
+      await onSave(username.trim())
+      onOpenChange(false)
+      setUsername("")
     } catch (error) {
-      console.error("❌ [UsernameModal] Update failed:", error)
-      toast.error(error instanceof Error ? error.message : "エラーが発生しました")
+      console.error("❌ [UsernameModal] Save error:", error)
+      setError(error instanceof Error ? error.message : "ユーザー名の登録に失敗しました")
     }
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px]">
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>ユーザー名を登録</DialogTitle>
+          <DialogTitle>ユーザー名登録</DialogTitle>
+          <DialogDescription>表示用のユーザー名を設定してください。いつでも変更できます。</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
@@ -70,11 +69,12 @@ export function UsernameRegistrationModal({ isOpen, onClose, onSuccess }: Userna
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               placeholder="ユーザー名を入力"
-              required
+              maxLength={20}
             />
+            {error && <p className="text-sm text-red-500">{error}</p>}
           </div>
-          <div className="flex justify-end space-x-2">
-            <Button type="button" variant="outline" onClick={onClose}>
+          <div className="flex justify-end gap-2">
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               キャンセル
             </Button>
             <Button type="submit">登録</Button>

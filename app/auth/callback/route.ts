@@ -49,9 +49,10 @@ export async function GET(request: NextRequest) {
 
     console.log("✅ Session exchange successful for user:", data.session.user.email)
 
-    // リダイレクトURLの構築
+    // リダイレクトURLの構築（codeパラメータなし）
     let redirectUrl: string
 
+    // デプロイ環境でのリダイレクト処理
     const forwardedHost = request.headers.get("x-forwarded-host")
     const forwardedProto = request.headers.get("x-forwarded-proto")
     const isLocalEnv = process.env.NODE_ENV === "development"
@@ -62,12 +63,14 @@ export async function GET(request: NextRequest) {
       const protocol = forwardedProto || "https"
       redirectUrl = `${protocol}://${forwardedHost}${next}`
     } else {
+      // Vercelなどのデプロイ環境での処理
       const deployUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : origin
       redirectUrl = `${deployUrl}${next}`
     }
 
     console.log("🔄 Redirecting to:", redirectUrl)
 
+    // @supabase/ssrが自動的にCookieを処理するため、追加の処理は不要
     return NextResponse.redirect(redirectUrl)
   } catch (error) {
     console.error("❌ Unexpected callback error:", error)

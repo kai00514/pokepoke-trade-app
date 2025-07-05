@@ -15,7 +15,7 @@ export async function getUserProfile(userId: string): Promise<UserProfile | null
   try {
     const supabase = createClient()
 
-    // ユーザープロファイル取得（セッション確認なし）
+    // ユーザープロファイル取得（セッション確認を削除してシンプルに）
     const { data, error } = await supabase
       .from("users")
       .select("id, pokepoke_id, display_name, name, avatar_url, created_at")

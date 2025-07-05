@@ -15,13 +15,13 @@ import { UsernameRegistrationModal } from "@/components/username-registration-mo
 import { updateUserProfile } from "@/lib/services/user-service_ver2"
 
 function Header() {
-  const { user, session, userProfile, signOut, refreshSession } = useAuth()
+  const { user, session, userProfile, signOut, refreshSession, loading } = useAuth()
   const [unreadCount, setUnreadCount] = useState(0)
   const [isPokepokeIdModalOpen, setIsPokepokeIdModalOpen] = useState(false)
   const [isUsernameModalOpen, setIsUsernameModalOpen] = useState(false)
   const router = useRouter()
 
-  // アカウント名の表示優先順位を修正
+  // アカウント名の表示優先順位
   const accountName =
     userProfile?.display_name ||
     userProfile?.name ||
@@ -35,6 +35,7 @@ function Header() {
     hasUserProfile: !!userProfile,
     userProfileData: userProfile,
     accountName,
+    loading,
     timestamp: new Date().toISOString(),
   })
 
@@ -129,6 +130,28 @@ function Header() {
       console.error("❌ [Header] Failed to save username:", error)
       throw error
     }
+  }
+
+  // ローディング中は何も表示しない
+  if (loading) {
+    return (
+      <header className="bg-violet-500 text-white shadow-md">
+        <div className="container mx-auto px-4 py-3 flex items-center justify-between">
+          <Link href="/" className="flex items-center">
+            <Image
+              src="/pokelink-logo.png"
+              alt="PokeLink ロゴ"
+              width={160}
+              height={40}
+              className="object-contain h-10"
+            />
+          </Link>
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="w-20 h-8 bg-white/20 rounded animate-pulse"></div>
+          </div>
+        </div>
+      </header>
+    )
   }
 
   return (
