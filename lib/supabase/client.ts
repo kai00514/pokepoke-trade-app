@@ -12,6 +12,13 @@ export function createClient(): SupabaseClient {
 
   if (!supabaseInstance) {
     console.log("🔧 [createClient] Creating new Supabase client instance.")
+    // createClient関数内でより詳細なログを出力
+    console.log("🔧 [createClient] Environment variables check:", {
+      hasUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
+      hasKey: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+      urlLength: process.env.NEXT_PUBLIC_SUPABASE_URL?.length,
+      keyLength: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.length
+    })
     try {
       supabaseInstance = createBrowserClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -34,6 +41,13 @@ export function createClient(): SupabaseClient {
       console.log("✅ [createClient] Supabase client instance created successfully.")
     } catch (e) {
       console.error("❌ [createClient] Error creating Supabase client instance:", e)
+      console.error("❌ [createClient] Detailed error info:", {
+        error: e,
+        errorType: typeof e,
+        errorMessage: e instanceof Error ? e.message : String(e),
+        errorStack: e instanceof Error ? e.stack : undefined,
+        environment: typeof window !== 'undefined' ? 'browser' : 'server'
+      })
       throw e
     }
   } else {
