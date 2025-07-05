@@ -1,20 +1,9 @@
 "use client"
 
-import type React from "react"
-
-import { createContext, useContext, useEffect, useState } from "react"
+import { createContext, useContext, useEffect, useState, type ReactNode } from "react"
 import type { User, Session } from "@supabase/supabase-js"
 import { createClient } from "@/lib/supabase/client"
-import { getUserProfile, createUserProfile } from "@/lib/services/user-service_ver2"
-
-interface UserProfile {
-  id: string
-  pokepoke_id?: string
-  display_name?: string
-  name?: string
-  avatar_url?: string
-  created_at: string
-}
+import { getUserProfile, createUserProfile, type UserProfile } from "@/lib/services/user-service"
 
 interface AuthContextType {
   user: User | null
@@ -22,12 +11,12 @@ interface AuthContextType {
   userProfile: UserProfile | null
   loading: boolean
   signOut: () => Promise<void>
-  refreshSession: () => Promise<void>
+  refreshProfile: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
+export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [session, setSession] = useState<Session | null>(null)
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null)
@@ -35,139 +24,128 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const supabase = createClient()
 
-  const fetchUserProfile = async (userId: string, userEmail?: string) => {
-    console.log("🔍 [AuthContext] fetchUserProfile START for:", userId)
-
+  // Consolidated function to fetch and set user profile
+  const fetchAndSetProfile = async (userId: string, userEmail?: string) => {
     try {
       let profile = await getUserProfile(userId)
 
+      // Create profile if it doesn't exist
       if (!profile && userEmail) {
-        console.log("🔧 [AuthContext] Creating new profile")
         profile = await createUserProfile(userId, userEmail)
       }
 
-      console.log("🔍 [AuthContext] Setting profile:", profile)
       setUserProfile(profile)
+      return profile
     } catch (error) {
-      console.error("❌ [AuthContext] fetchUserProfile error:", error)
+      console.error("Error in fetchAndSetProfile:", error)
       setUserProfile(null)
+      return null
     }
   }
 
-  const refreshSession = async () => {
-    console.log("🔄 [AuthContext] refreshSession START")
-
-    try {
-      const {
-        data: { session },
-        error,
-      } = await supabase.auth.getSession()
-
-      if (error) {
-        console.error("❌ [AuthContext] Session refresh error:", error)
-        return
-      }
-
-      setSession(session)
-      setUser(session?.user || null)
-
-      if (session?.user) {
-        await fetchUserProfile(session.user.id, session.user.email)
-      } else {
-        setUserProfile(null)
-      }
-    } catch (error) {
-      console.error("❌ [AuthContext] refreshSession error:", error)
+  const refreshProfile = async () => {
+    if (user) {
+      await fetchAndSetProfile(user.id, user.email || undefined)
     }
   }
 
   const signOut = async () => {
-    console.log("🚪 [AuthContext] Signing out")
+    try {
+      // Clear state immediately
+      setUser(null)
+      setSession(null)
+      setUserProfile(null)
 
-    setSession(null)
-    setUser(null)
-    setUserProfile(null)
-
-    const { error } = await supabase.auth.signOut()
-    if (error) {
-      console.error("❌ [AuthContext] Sign out error:", error)
+      // Sign out from Supabase
+      const { error } = await supabase.auth.signOut()
+      if (error) {
+        console.error("Sign out error:", error)
+      }
+    } catch (error) {
+      console.error("Sign out failed:", error)
     }
   }
 
   useEffect(() => {
-    // 初期セッション取得
-    const getInitialSession = async () => {
-      console.log("🚀 [AuthContext] getInitialSession START")
+    let mounted = true
 
+    // Get initial session
+    const getInitialSession = async () => {
       try {
         const {
           data: { session },
           error,
         } = await supabase.auth.getSession()
 
-        console.log("🔍 [AuthContext] Initial session:", {
-          hasSession: !!session,
-          hasUser: !!session?.user,
-          userId: session?.user?.id,
-          userEmail: session?.user?.email,
-          error: error?.message,
-        })
+        if (!mounted) return
 
+        if (error) {
+          console.error("Initial session error:", error)
+          setLoading(false)
+          return
+        }
+
+        // Set auth state
         setSession(session)
         setUser(session?.user || null)
 
+        // Fetch profile if user exists
         if (session?.user) {
-          await fetchUserProfile(session.user.id, session.user.email)
+          await fetchAndSetProfile(session.user.id, session.user.email || undefined)
         }
       } catch (error) {
-        console.error("❌ [AuthContext] Initial session error:", error)
+        console.error("Error getting initial session:", error)
       } finally {
-        setLoading(false)
+        if (mounted) {
+          setLoading(false)
+        }
       }
     }
 
     getInitialSession()
 
-    // 認証状態変更リスナー
+    // Listen for auth changes
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log("🔔 [AuthContext] Auth state changed:", event, {
-        hasSession: !!session,
-        hasUser: !!session?.user,
-        userId: session?.user?.id,
-        userEmail: session?.user?.email,
-      })
+      if (!mounted) return
 
+      console.log("Auth state changed:", event)
+
+      // Update auth state
       setSession(session)
       setUser(session?.user || null)
 
+      // Handle different auth events
       if (event === "SIGNED_IN" && session?.user) {
-        await fetchUserProfile(session.user.id, session.user.email)
+        await fetchAndSetProfile(session.user.id, session.user.email || undefined)
       } else if (event === "SIGNED_OUT") {
         setUserProfile(null)
+      } else if (event === "TOKEN_REFRESHED" && session?.user) {
+        // Optionally refresh profile on token refresh
+        await fetchAndSetProfile(session.user.id, session.user.email || undefined)
       }
+
+      // Ensure loading is false after auth state change
+      setLoading(false)
     })
 
     return () => {
+      mounted = false
       subscription.unsubscribe()
     }
   }, [])
 
-  return (
-    <AuthContext.Provider
-      value={{
-        user,
-        session,
-        userProfile,
-        loading,
-        signOut,
-        refreshSession,
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
-  )
+  const value = {
+    user,
+    session,
+    userProfile,
+    loading,
+    signOut,
+    refreshProfile,
+  }
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
 
 export function useAuth() {

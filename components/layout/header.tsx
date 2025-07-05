@@ -12,16 +12,16 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { useRouter } from "next/navigation"
 import { PokepokeIdRegistrationModal } from "@/components/pokepoke-id-registration-modal"
 import { UsernameRegistrationModal } from "@/components/username-registration-modal"
-import { updateUserProfile } from "@/lib/services/user-service_ver2"
+import { updateUserProfile } from "@/lib/services/user-service"
 
 function Header() {
-  const { user, session, userProfile, signOut, refreshSession } = useAuth()
+  const { user, userProfile, loading, signOut, refreshProfile } = useAuth()
   const [unreadCount, setUnreadCount] = useState(0)
   const [isPokepokeIdModalOpen, setIsPokepokeIdModalOpen] = useState(false)
   const [isUsernameModalOpen, setIsUsernameModalOpen] = useState(false)
   const router = useRouter()
 
-  // アカウント名の表示優先順位
+  // Determine account name with priority order
   const accountName =
     userProfile?.display_name ||
     userProfile?.name ||
@@ -29,16 +29,11 @@ function Header() {
     user?.email?.split("@")[0] ||
     "ユーザー"
 
-  // デバッグログ
-  console.log("🔍 [Header] Render state:", {
-    hasUser: !!user,
-    hasUserProfile: !!userProfile,
-    userProfileData: userProfile,
-    accountName,
-    timestamp: new Date().toISOString(),
-  })
+  // Determine if we should show avatar
+  const avatarUrl = userProfile?.avatar_url
+  const showUserMenu = !!user && !loading
 
-  // 未読通知数を取得
+  // Fetch unread notifications
   useEffect(() => {
     const fetchUnreadCount = async () => {
       if (!user) {
@@ -53,14 +48,12 @@ function Header() {
           setUnreadCount(unread)
         }
       } catch (error) {
-        console.error("❌ [Header] Error fetching unread count:", error)
+        console.error("Error fetching notifications:", error)
         setUnreadCount(0)
       }
     }
 
-    if (user) {
-      fetchUnreadCount()
-    }
+    fetchUnreadCount()
   }, [user])
 
   const handleSignOut = async () => {
@@ -68,65 +61,39 @@ function Header() {
       await signOut()
       router.push("/")
     } catch (error) {
-      console.error("❌ [Header] Sign out error:", error)
+      console.error("Sign out error:", error)
       router.push("/")
     }
   }
 
   const handleNotificationClick = () => {
-    window.location.href = "/notifications"
-  }
-
-  const handlePokepokeIdRegistration = () => {
-    setIsPokepokeIdModalOpen(true)
-  }
-
-  const handleUsernameRegistration = () => {
-    setIsUsernameModalOpen(true)
+    router.push("/notifications")
   }
 
   const handlePokepokeIdSave = async (pokepokeId: string) => {
-    console.log("🚀 [Header] Saving PokepokeID:", pokepokeId)
-
     if (!user) {
       throw new Error("ユーザーが認証されていません")
     }
 
     try {
-      const updatedProfile = await updateUserProfile(user.id, {
-        pokepoke_id: pokepokeId,
-      })
-
-      console.log("✅ [Header] PokepokeID saved:", updatedProfile)
-
-      // AuthContextのセッションを更新
-      await refreshSession()
-      console.log("✅ [Header] Session refreshed")
+      await updateUserProfile(user.id, { pokepoke_id: pokepokeId })
+      await refreshProfile()
     } catch (error) {
-      console.error("❌ [Header] Failed to save PokepokeID:", error)
+      console.error("Failed to save PokepokeID:", error)
       throw error
     }
   }
 
   const handleUsernameSave = async (username: string) => {
-    console.log("🚀 [Header] Saving username:", username)
-
     if (!user) {
       throw new Error("ユーザーが認証されていません")
     }
 
     try {
-      const updatedProfile = await updateUserProfile(user.id, {
-        display_name: username,
-      })
-
-      console.log("✅ [Header] Username saved:", updatedProfile)
-
-      // AuthContextのセッションを更新
-      await refreshSession()
-      console.log("✅ [Header] Session refreshed")
+      await updateUserProfile(user.id, { display_name: username })
+      await refreshProfile()
     } catch (error) {
-      console.error("❌ [Header] Failed to save username:", error)
+      console.error("Failed to save username:", error)
       throw error
     }
   }
@@ -144,6 +111,7 @@ function Header() {
               className="object-contain h-10"
             />
           </Link>
+
           <div className="flex items-center gap-2 sm:gap-3">
             <Button
               variant="ghost"
@@ -155,7 +123,7 @@ function Header() {
               <span className="sr-only">新規投稿作成</span>
             </Button>
 
-            {user && (
+            {showUserMenu && (
               <Button
                 variant="ghost"
                 size="icon"
@@ -175,7 +143,7 @@ function Header() {
               </Button>
             )}
 
-            {user ? (
+            {showUserMenu ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
@@ -184,13 +152,17 @@ function Header() {
                     aria-label="ユーザーメニューを開く"
                   >
                     <div className="relative w-6 h-6 sm:w-8 sm:h-8">
-                      {userProfile?.avatar_url ? (
+                      {avatarUrl ? (
                         <Image
-                          src={userProfile.avatar_url || "/placeholder.svg"}
+                          src={avatarUrl || "/placeholder.svg"}
                           alt="ユーザーアバター"
                           width={32}
                           height={32}
                           className="rounded-full object-cover w-full h-full"
+                          onError={(e) => {
+                            // Fallback to default avatar on error
+                            e.currentTarget.style.display = "none"
+                          }}
                         />
                       ) : (
                         <div className="w-full h-full bg-white/20 rounded-full flex items-center justify-center">
@@ -202,10 +174,10 @@ function Header() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
-                  <DropdownMenuItem onClick={handlePokepokeIdRegistration} className="cursor-pointer">
+                  <DropdownMenuItem onClick={() => setIsPokepokeIdModalOpen(true)} className="cursor-pointer">
                     ポケポケID登録
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleUsernameRegistration} className="cursor-pointer">
+                  <DropdownMenuItem onClick={() => setIsUsernameModalOpen(true)} className="cursor-pointer">
                     ユーザー名登録
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer">
@@ -237,18 +209,18 @@ function Header() {
         </div>
       </header>
 
-      {/* モーダル */}
+      {/* Modals */}
       <PokepokeIdRegistrationModal
         isOpen={isPokepokeIdModalOpen}
         onOpenChange={setIsPokepokeIdModalOpen}
-        currentPokepokeId={userProfile?.pokepoke_id}
+        currentPokepokeId={userProfile?.pokepoke_id || undefined}
         onSave={handlePokepokeIdSave}
       />
 
       <UsernameRegistrationModal
         isOpen={isUsernameModalOpen}
         onOpenChange={setIsUsernameModalOpen}
-        currentUsername={userProfile?.display_name}
+        currentUsername={userProfile?.display_name || undefined}
         onSave={handleUsernameSave}
       />
     </>
