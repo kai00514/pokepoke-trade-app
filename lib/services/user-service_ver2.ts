@@ -15,7 +15,25 @@ export async function getUserProfile(userId: string): Promise<UserProfile | null
   try {
     const supabase = createClient()
 
-    // ユーザープロファイル取得（セッション確認を削除してシンプルに）
+    // セッション確認
+    const {
+      data: { session },
+      error: sessionError,
+    } = await supabase.auth.getSession()
+
+    if (sessionError) {
+      console.error("❌ [getUserProfile] Session error:", sessionError)
+      throw new Error(`認証エラー: ${sessionError.message}`)
+    }
+
+    if (!session?.user) {
+      console.error("❌ [getUserProfile] No session")
+      throw new Error("認証されていません")
+    }
+
+    console.log("🔍 [getUserProfile] Session confirmed, fetching profile...")
+
+    // ユーザープロファイル取得
     const { data, error } = await supabase
       .from("users")
       .select("id, pokepoke_id, display_name, name, avatar_url, created_at")
@@ -34,22 +52,38 @@ export async function getUserProfile(userId: string): Promise<UserProfile | null
         return null
       }
       console.error("❌ [getUserProfile] Query error:", error)
-      return null // エラーでもnullを返してログインを継続
+      throw new Error(`プロファイル取得エラー: ${error.message}`)
     }
 
     console.log("✅ [getUserProfile] Profile found:", data)
     return data
   } catch (error) {
     console.error("❌ [getUserProfile] Error:", error)
-    return null // エラーでもnullを返してログインを継続
+    throw error
   }
 }
 
-export async function createUserProfile(userId: string, email: string): Promise<UserProfile | null> {
+export async function createUserProfile(userId: string, email: string): Promise<UserProfile> {
   console.log("🔧 [createUserProfile] START - Creating profile for:", { userId, email })
 
   try {
     const supabase = createClient()
+
+    // セッション確認
+    const {
+      data: { session },
+      error: sessionError,
+    } = await supabase.auth.getSession()
+
+    if (sessionError) {
+      console.error("❌ [createUserProfile] Session error:", sessionError)
+      throw new Error(`認証エラー: ${sessionError.message}`)
+    }
+
+    if (!session?.user) {
+      console.error("❌ [createUserProfile] No session")
+      throw new Error("認証されていません")
+    }
 
     // ユーザープロファイル作成
     const { data, error } = await supabase
@@ -69,14 +103,14 @@ export async function createUserProfile(userId: string, email: string): Promise<
 
     if (error) {
       console.error("❌ [createUserProfile] Insert error:", error)
-      return null // エラーでもnullを返してログインを継続
+      throw new Error(`プロファイル作成エラー: ${error.message}`)
     }
 
     console.log("✅ [createUserProfile] Profile created:", data)
     return data
   } catch (error) {
     console.error("❌ [createUserProfile] Error:", error)
-    return null // エラーでもnullを返してログインを継続
+    throw error
   }
 }
 
@@ -92,9 +126,10 @@ export async function updateUserProfile(
   console.log("🔧 [updateUserProfile] START - Direct table update:", { userId, profileData })
 
   try {
+    // AuthContextと同じSupabaseクライアントを使用
     const supabase = createClient()
 
-    // 現在のセッション確認
+    // 現在のセッション確認（AuthContextと同じ方法）
     const {
       data: { session },
       error: sessionError,

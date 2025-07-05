@@ -40,9 +40,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       let profile = await getUserProfile(userId)
 
-      // プロファイルが存在しない場合は作成を試行
+      // プロファイルが存在しない場合は作成
       if (!profile && userEmail) {
-        console.log("🔧 [AuthContext] Profile not found, attempting to create new profile")
+        console.log("🔧 [AuthContext] Profile not found, creating new profile")
         profile = await createUserProfile(userId, userEmail)
       }
 
@@ -50,7 +50,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUserProfile(profile)
     } catch (error) {
       console.error("❌ [AuthContext] Error in fetchUserProfile:", error)
-      // エラーが発生してもログインは継続
       setUserProfile(null)
     }
   }
@@ -117,12 +116,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   useEffect(() => {
-    let mounted = true
-
     // 初期セッション取得
     const getInitialSession = async () => {
       try {
-        console.log("🔍 [AuthContext] Getting initial session...")
         setLoading(true)
 
         const {
@@ -130,31 +126,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           error,
         } = await supabase.auth.getSession()
 
-        if (!mounted) return
-
         if (error) {
           console.error("❌ [AuthContext] Error getting initial session:", error)
-        } else {
-          console.log("🔍 [AuthContext] Initial session:", {
-            hasSession: !!session,
-            hasUser: !!session?.user,
-            userId: session?.user?.id,
-            userEmail: session?.user?.email,
-          })
+          setLoading(false)
+          return
+        }
 
-          setSession(session)
-          setUser(session?.user || null)
+        console.log("🔍 [AuthContext] Initial session:", {
+          hasSession: !!session,
+          hasUser: !!session?.user,
+          userId: session?.user?.id,
+          userEmail: session?.user?.email,
+        })
 
-          if (session?.user) {
-            await fetchUserProfile(session.user.id, session.user.email)
-          }
+        setSession(session)
+        setUser(session?.user || null)
+
+        if (session?.user) {
+          await fetchUserProfile(session.user.id, session.user.email)
         }
       } catch (error) {
         console.error("❌ [AuthContext] Error in getInitialSession:", error)
       } finally {
-        if (mounted) {
-          setLoading(false)
-        }
+        setLoading(false)
       }
     }
 
@@ -164,8 +158,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (!mounted) return
-
       console.log("🔔 [AuthContext] Auth state changed:", event, {
         hasSession: !!session,
         hasUser: !!session?.user,
@@ -190,7 +182,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     })
 
     return () => {
-      mounted = false
       subscription.unsubscribe()
     }
   }, [])
