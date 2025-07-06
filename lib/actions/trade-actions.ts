@@ -5,15 +5,10 @@ import { revalidatePath } from "next/cache"
 import { v4 as uuidv4 } from "uuid"
 import type { Card } from "@/components/detailed-search-modal"
 
-// Helper function to extract username and avatar from auth user
-function getUserDisplayInfo(user: any) {
-  const username =
-    user?.user_metadata?.username ||
-    user?.user_metadata?.name ||
-    user?.user_metadata?.full_name ||
-    user?.email?.split("@")[0] ||
-    "ユーザー"
-  const avatarUrl = user?.user_metadata?.avatar_url || null
+// Helper function to extract username and avatar from user profile
+function getUserDisplayInfo(userProfile: any) {
+  const username = userProfile?.name || userProfile?.display_name || userProfile?.email?.split("@")[0] || "ユーザー"
+  const avatarUrl = userProfile?.avatar_url || null
   return { username, avatarUrl }
 }
 
@@ -43,7 +38,7 @@ export async function createTradePost(formData: TradeFormData) {
     // シンプルな認証判定：クライアントからuserIdが渡されていれば認証済み
     const isAuthenticated = !!formData.userId
     const finalUserId = formData.userId || null
-    const guestName = formData.guestName?.trim() || "ゲ���ト"
+    const guestName = formData.guestName?.trim() || "ゲスト"
 
     console.log("[createTradePost] Authentication decision:", {
       isAuthenticated,
@@ -140,7 +135,6 @@ export async function createTradePost(formData: TradeFormData) {
   }
 }
 
-// 他の関数は変更なし
 export async function getTradePostsWithCards(limit = 10, offset = 0) {
   try {
     const supabase = await createServerClient()
@@ -170,20 +164,21 @@ export async function getTradePostsWithCards(limit = 10, offset = 0) {
       return { success: true, posts: [] }
     }
 
-    // Get auth users for authenticated posts
+    // Get user profiles for authenticated posts
     const authenticatedPosts = posts.filter((post) => post.is_authenticated && post.owner_id)
     const userIds = authenticatedPosts.map((post) => post.owner_id)
 
-    const authUsersMap = new Map()
+    const userProfilesMap = new Map()
     if (userIds.length > 0) {
-      const { data: authUsers, error: usersError } = await supabase.auth.admin.listUsers()
+      const { data: userProfiles, error: usersError } = await supabase
+        .from("users")
+        .select("id, name, display_name, email, avatar_url")
+        .in("id", userIds)
 
-      if (!usersError && authUsers?.users) {
-        authUsers.users.forEach((user) => {
-          if (userIds.includes(user.id)) {
-            const { username, avatarUrl } = getUserDisplayInfo(user)
-            authUsersMap.set(user.id, { username, avatarUrl })
-          }
+      if (!usersError && userProfiles) {
+        userProfiles.forEach((profile) => {
+          const { username, avatarUrl } = getUserDisplayInfo(profile)
+          userProfilesMap.set(profile.id, { username, avatarUrl })
         })
       }
     }
@@ -262,10 +257,10 @@ export async function getTradePostsWithCards(limit = 10, offset = 0) {
       let avatarUrl: string | null = null
 
       if (post.is_authenticated && post.owner_id) {
-        const authUser = authUsersMap.get(post.owner_id)
-        if (authUser) {
-          username = authUser.username
-          avatarUrl = authUser.avatarUrl
+        const userProfile = userProfilesMap.get(post.owner_id)
+        if (userProfile) {
+          username = userProfile.username
+          avatarUrl = userProfile.avatarUrl
         } else {
           username = "ユーザー"
         }
@@ -373,11 +368,15 @@ export async function getTradePostDetailsById(postId: string) {
     let authorInfo: { username: string; avatarUrl: string | null }
 
     if ((postData as any).is_authenticated && (postData as any).owner_id) {
-      // Get auth user info
-      const { data: authUser, error: userError } = await supabase.auth.admin.getUserById((postData as any).owner_id)
+      // Get user profile from users table
+      const { data: userProfile, error: userError } = await supabase
+        .from("users")
+        .select("name, display_name, email, avatar_url")
+        .eq("id", (postData as any).owner_id)
+        .single()
 
-      if (!userError && authUser?.user) {
-        const { username, avatarUrl } = getUserDisplayInfo(authUser.user)
+      if (!userError && userProfile) {
+        const { username, avatarUrl } = getUserDisplayInfo(userProfile)
         authorInfo = { username, avatarUrl }
       } else {
         authorInfo = { username: "ユーザー", avatarUrl: null }
@@ -472,20 +471,21 @@ export async function getTradePostDetailsById(postId: string) {
       console.error(`Error fetching comments for post ${postId}:`, commentsError)
     }
 
-    // Get auth users for authenticated commenters
+    // Get user profiles for authenticated commenters
     const authenticatedComments = commentsData?.filter((comment) => !comment.is_guest && comment.user_id) || []
     const commentUserIds = [...new Set(authenticatedComments.map((comment) => comment.user_id))]
 
-    const commentAuthUsersMap = new Map()
+    const commentUserProfilesMap = new Map()
     if (commentUserIds.length > 0) {
-      const { data: authUsers, error: usersError } = await supabase.auth.admin.listUsers()
+      const { data: userProfiles, error: usersError } = await supabase
+        .from("users")
+        .select("id, name, display_name, email, avatar_url")
+        .in("id", commentUserIds)
 
-      if (!usersError && authUsers?.users) {
-        authUsers.users.forEach((user) => {
-          if (commentUserIds.includes(user.id)) {
-            const { username, avatarUrl } = getUserDisplayInfo(user)
-            commentAuthUsersMap.set(user.id, { username, avatarUrl })
-          }
+      if (!usersError && userProfiles) {
+        userProfiles.forEach((profile) => {
+          const { username, avatarUrl } = getUserDisplayInfo(profile)
+          commentUserProfilesMap.set(profile.id, { username, avatarUrl })
         })
       }
     }
@@ -504,10 +504,10 @@ export async function getTradePostDetailsById(postId: string) {
         let commentAvatar: string | null = null
 
         if (!comment.is_guest && comment.user_id) {
-          const authUser = commentAuthUsersMap.get(comment.user_id)
-          if (authUser) {
-            commentAuthor = authUser.username
-            commentAvatar = authUser.avatarUrl
+          const userProfile = commentUserProfilesMap.get(comment.user_id)
+          if (userProfile) {
+            commentAuthor = userProfile.username
+            commentAvatar = userProfile.avatarUrl
           } else {
             commentAuthor = comment.user_name || "ユーザー"
           }
@@ -631,7 +631,7 @@ export async function updateTradePostStatus(postId: string, status: "CANCELED" |
 
     if (updateError) {
       console.error("Error updating trade post status:", updateError)
-      return { success: false, error: `���テータスの更新に失敗しました: ${updateError.message}` }
+      return { success: false, error: `ステータスの更新に失敗しました: ${updateError.message}` }
     }
 
     revalidatePath("/history")
