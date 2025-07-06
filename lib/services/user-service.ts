@@ -11,37 +11,42 @@ export async function getUserProfile(userId: string): Promise<UserProfile | null
 
   const supabase = createClient()
 
-  // 方法1: 基本的なテーブル存在確認
-  console.log("🧪 テスト1開始: テーブル存在確認 (count)")
+  // 方法1 (旧テスト2): 単純なselect文（limit付き）を最初のテストとして実行
+  console.log("🧪 テスト1開始: 単純なselect (limit 1)")
   try {
-    const { count, error: countError } = await supabase.from("users").select("*", { count: "exact", head: true })
+    const { data, error } = await supabase.from("users").select("id").limit(1)
 
     console.log("📊 テスト1結果:", {
-      success: !countError,
-      count: count,
-      error: countError?.message || null,
+      success: !error,
+      dataLength: data?.length || 0,
+      error: error?.message || null,
     })
+    if (!error && data && data.length > 0) {
+      console.log("✅ テスト1成功 - データ取得:", data[0])
+      // このテストはプロファイル全体を取得しないため、ここでは返さない
+      // 目的はテーブルアクセスが成功するかどうかを確認すること
+    }
   } catch (exception) {
     console.error("💥 テスト1例外:", exception)
   }
   console.log("✅ テスト1完了")
 
-  // 方法2: 単純なselect文（limit付き）
-  console.log("🧪 テスト2開始: 単純なselect (limit 1)")
+  // 方法2 (旧テスト1): 基本的なテーブル存在確認
+  console.log("🧪 テスト2開始: テーブル存在確認 (count)")
   try {
-    const { data, error } = await supabase.from("users").select("id").limit(1)
+    const { count, error: countError } = await supabase.from("users").select("*", { count: "exact", head: true })
 
     console.log("📊 テスト2結果:", {
-      success: !error,
-      dataLength: data?.length || 0,
-      error: error?.message || null,
+      success: !countError,
+      count: count,
+      error: countError?.message || null,
     })
   } catch (exception) {
     console.error("💥 テスト2例外:", exception)
   }
   console.log("✅ テスト2完了")
 
-  // 方法3: 全件取得（最大10件）
+  // 方法3 (旧テスト3): 全件取得（最大10件）
   console.log("🧪 テスト3開始: 全件取得 (limit 10)")
   try {
     const { data, error } = await supabase.from("users").select("*").limit(10)
@@ -65,7 +70,7 @@ export async function getUserProfile(userId: string): Promise<UserProfile | null
   }
   console.log("✅ テスト3完了")
 
-  // 方法4: 特定のカラムのみ選択してフィルター
+  // 方法4 (旧テスト4): 特定のカラムのみ選択してフィルター
   console.log("🧪 テスト4開始: 特定カラム選択 + フィルター")
   try {
     const { data, error } = await supabase.from("users").select("id, display_name, name").eq("id", userId).limit(1)
@@ -99,7 +104,7 @@ export async function getUserProfile(userId: string): Promise<UserProfile | null
   }
   console.log("✅ テスト4完了")
 
-  // 方法5: single()を再試行（エラーハンドリング強化）
+  // 方法5 (旧テスト5): single()を再試行（エラーハンドリング強化）
   console.log("🧪 テスト5開始: single()再試行")
   try {
     const { data, error } = await supabase.from("users").select("*").eq("id", userId).single()
@@ -121,7 +126,7 @@ export async function getUserProfile(userId: string): Promise<UserProfile | null
   }
   console.log("✅ テスト5完了")
 
-  // 方法6: maybeSingle()を使用
+  // 方法6 (旧テスト6): maybeSingle()を使用
   console.log("🧪 テスト6開始: maybeSingle()使用")
   try {
     const { data, error } = await supabase.from("users").select("*").eq("id", userId).maybeSingle()
