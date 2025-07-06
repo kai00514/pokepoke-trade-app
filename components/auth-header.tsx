@@ -13,37 +13,14 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { LogOut, UserIcon, Settings, Bell } from "lucide-react"
-import { NotificationDropdown } from "./notification-dropdown" // NotificationDropdownをインポート
+import { LogOut, UserIcon, Settings } from "lucide-react"
+import { NotificationDropdown } from "./notification-dropdown"
 
 export function AuthHeader() {
-  const { session, loading, supabase } = useAuth()
-  console.log("session: ", session)
-  console.log("loading: ", loading)
-  console.log("supabase: ", supabase)
+  const { session, signOut } = useAuth()
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut()
-  }
-
-  if (loading) {
-    return (
-      <header className="flex items-center justify-between h-16 px-4 border-b shrink-0 md:px-6">
-        <Link className="flex items-center gap-2 text-lg font-semibold md:text-base" href="#">
-          <Package2Icon className="w-6 h-6" />
-          <span className="sr-only">Pokepoke Trade</span>
-        </Link>
-        <div className="flex items-center gap-4 md:gap-2 lg:gap-4">
-          <Button variant="ghost" size="icon" className="rounded-full">
-            <Bell className="h-5 w-5" />
-            <span className="sr-only">通知</span>
-          </Button>
-          <Button variant="ghost" size="sm" disabled>
-            読み込み中...
-          </Button>
-        </div>
-      </header>
-    )
+    await signOut()
   }
 
   return (
@@ -55,7 +32,7 @@ export function AuthHeader() {
       <div className="flex items-center gap-4 md:gap-2 lg:gap-4">
         {session ? (
           <>
-            <NotificationDropdown /> {/* NotificationDropdownを使用 */}
+            <NotificationDropdown />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="rounded-full">

@@ -49,7 +49,6 @@ function Header() {
 
   const handleSignOut = async () => {
     await signOut()
-    router.push("/")
   }
 
   const handlePokepokeIdSave = async (pokepokeId: string) => {

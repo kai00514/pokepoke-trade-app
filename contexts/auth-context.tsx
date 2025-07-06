@@ -6,6 +6,8 @@ import type { User, Session } from "@supabase/supabase-js"
 import { createClient } from "@/lib/supabase/client"
 import { getUserProfile, createUserProfile } from "@/lib/services/user-service"
 import type { UserProfile } from "@/types/user"
+import { useRouter } from "next/navigation"
+import { toast } from "@/hooks/use-toast"
 
 interface AuthContextType {
   user: User | null
@@ -21,6 +23,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [session, setSession] = useState<Session | null>(null)
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null)
+  const router = useRouter()
 
   const supabase = createClient()
 
@@ -43,12 +46,58 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [user, loadUserProfile])
 
-  const signOut = async () => {
-    await supabase.auth.signOut()
-    setUser(null)
-    setSession(null)
-    setUserProfile(null)
-  }
+  const signOut = useCallback(async () => {
+    try {
+      // Supabaseからログアウト
+      const { error } = await supabase.auth.signOut()
+
+      if (error) {
+        console.error("ログアウトエラー:", error)
+        toast({
+          title: "ログアウトに失敗しました",
+          description: "再度お試しください。",
+          variant: "destructive",
+        })
+        return
+      }
+
+      // セッション削除の確認
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
+
+      if (session) {
+        console.error("セッションが残っています")
+        toast({
+          title: "ログアウトに失敗しました",
+          description: "セッションの削除に失敗しました。",
+          variant: "destructive",
+        })
+        return
+      }
+
+      // 状態をクリア
+      setUser(null)
+      setSession(null)
+      setUserProfile(null)
+
+      // 成功メッセージを表示
+      toast({
+        title: "ログアウトしました",
+        description: "正常にログアウトが完了しました。",
+      })
+
+      // ホームページにリダイレクト
+      router.push("/")
+    } catch (error) {
+      console.error("ログアウト処理中にエラーが発生しました:", error)
+      toast({
+        title: "ログアウトに失敗しました",
+        description: "予期しないエラーが発生しました。",
+        variant: "destructive",
+      })
+    }
+  }, [supabase, router])
 
   useEffect(() => {
     const {
