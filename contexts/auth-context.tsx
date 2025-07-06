@@ -19,172 +19,29 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
-// Cookie削除のヘルパー関数（複数の方法を試行）
-function clearSupabaseCookies() {
+// シンプルなCookie削除関数
+function clearAllCookies() {
   console.log("🍪 Cookie削除開始")
+  console.log("📋 削除前のCookie:", document.cookie)
 
-  // 現在のCookieを取得して確認
-  const currentCookies = document.cookie
-    .split(";")
-    .map((cookie) => cookie.trim())
-    .filter(Boolean)
-  console.log("📋 削除前のCookie一覧:", currentCookies)
-  console.log("📋 削除前のCookie文字列:", document.cookie)
+  // 現在のすべてのCookieを取得
+  const cookies = document.cookie.split(";")
 
-  // Supabase関連のCookieを特定
-  const supabaseCookies = currentCookies.filter((cookie) => {
-    const [name] = cookie.split("=")
-    return name && (name.includes("sb-") || name.includes("supabase"))
-  })
+  cookies.forEach((cookie) => {
+    const eqPos = cookie.indexOf("=")
+    const name = eqPos > -1 ? cookie.substr(0, eqPos).trim() : cookie.trim()
 
-  console.log("🎯 Supabase関連Cookie:", supabaseCookies)
-
-  if (supabaseCookies.length === 0) {
-    console.log("ℹ️ Supabase関連のCookieが見つかりません")
-  }
-
-  // 方法1: 基本的な削除
-  console.log("🔄 方法1: 基本的な削除を試行")
-  supabaseCookies.forEach((cookie) => {
-    const [name] = cookie.split("=")
     if (name) {
-      console.log(`  🗑️ 基本削除: ${name}`)
-      document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT`
+      console.log(`🗑️ Cookie削除: ${name}`)
+      // 複数の削除パターンを試行
+      document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/`
+      document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;domain=${window.location.hostname}`
+      document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;domain=.${window.location.hostname}`
     }
   })
 
-  // 方法2: パス指定削除
-  console.log("🔄 方法2: パス指定削除を試行")
-  supabaseCookies.forEach((cookie) => {
-    const [name] = cookie.split("=")
-    if (name) {
-      console.log(`  🗑️ パス指定削除: ${name}`)
-      document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`
-    }
-  })
-
-  // 方法3: ドメイン指定削除
-  console.log("🔄 方法3: ドメイン指定削除を試行")
-  const hostname = window.location.hostname
-  console.log(`  🌐 現在のホスト名: ${hostname}`)
-
-  supabaseCookies.forEach((cookie) => {
-    const [name] = cookie.split("=")
-    if (name) {
-      console.log(`  🗑️ ドメイン指定削除: ${name}`)
-      document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; domain=${hostname}`
-      document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; domain=.${hostname}`
-    }
-  })
-
-  // 方法4: セキュア属性付き削除
-  console.log("🔄 方法4: セキュア属性付き削除を試行")
-  supabaseCookies.forEach((cookie) => {
-    const [name] = cookie.split("=")
-    if (name) {
-      console.log(`  🗑️ セキュア削除: ${name}`)
-      document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; secure`
-      document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; domain=${hostname}; secure`
-    }
-  })
-
-  // 方法5: SameSite属性付き削除
-  console.log("🔄 方法5: SameSite属性付き削除を試行")
-  supabaseCookies.forEach((cookie) => {
-    const [name] = cookie.split("=")
-    if (name) {
-      console.log(`  🗑️ SameSite削除: ${name}`)
-      document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; SameSite=Lax`
-      document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; SameSite=Strict`
-      document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; SameSite=None; secure`
-    }
-  })
-
-  // 方法6: Max-Age使用削除
-  console.log("🔄 方法6: Max-Age使用削除を試行")
-  supabaseCookies.forEach((cookie) => {
-    const [name] = cookie.split("=")
-    if (name) {
-      console.log(`  🗑️ Max-Age削除: ${name}`)
-      document.cookie = `${name}=; Max-Age=0; path=/`
-      document.cookie = `${name}=; Max-Age=-1; path=/`
-    }
-  })
-
-  // 方法7: 全属性組み合わせ削除
-  console.log("🔄 方法7: 全属性組み合わせ削除を試行")
-  supabaseCookies.forEach((cookie) => {
-    const [name] = cookie.split("=")
-    if (name) {
-      console.log(`  🗑️ 全属性削除: ${name}`)
-      const deleteVariations = [
-        `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; domain=${hostname}; secure; SameSite=Lax`,
-        `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; domain=.${hostname}; secure; SameSite=Lax`,
-        `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; domain=${hostname}; SameSite=Strict`,
-        `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; domain=.${hostname}; SameSite=Strict`,
-        `${name}=; Max-Age=0; path=/; domain=${hostname}; secure; SameSite=None`,
-        `${name}=; Max-Age=0; path=/; domain=.${hostname}; secure; SameSite=None`,
-      ]
-
-      deleteVariations.forEach((deleteString, index) => {
-        console.log(`    🔸 バリエーション${index + 1}: ${deleteString}`)
-        document.cookie = deleteString
-      })
-    }
-  })
-
-  // よく知られているSupabase Cookieキーも明示的に削除
-  const knownSupabaseCookies = [
-    "sb-access-token",
-    "sb-refresh-token",
-    "supabase-auth-token",
-    "supabase.auth.token",
-    "sb-localhost-auth-token",
-    "sb-127-0-0-1-auth-token",
-  ]
-
-  console.log("🔄 既知のSupabase Cookieキーを明示的削除")
-  knownSupabaseCookies.forEach((cookieName) => {
-    console.log(`  🗑️ 既知Cookie削除: ${cookieName}`)
-    const deleteVariations = [
-      `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 GMT`,
-      `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`,
-      `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; domain=${hostname}`,
-      `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; domain=.${hostname}`,
-      `${cookieName}=; Max-Age=0; path=/`,
-      `${cookieName}=; Max-Age=0; path=/; domain=${hostname}`,
-      `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; secure`,
-      `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; domain=${hostname}; secure; SameSite=Lax`,
-    ]
-
-    deleteVariations.forEach((deleteString, index) => {
-      console.log(`    🔸 既知Cookie バリエーション${index + 1}: ${deleteString}`)
-      document.cookie = deleteString
-    })
-  })
-
-  // 削除後のCookieを確認
-  setTimeout(() => {
-    const afterCookies = document.cookie
-      .split(";")
-      .map((cookie) => cookie.trim())
-      .filter(Boolean)
-    console.log("📋 削除後のCookie一覧:", afterCookies)
-    console.log("📋 削除後のCookie文字列:", document.cookie)
-
-    const remainingSupabaseCookies = afterCookies.filter((cookie) => {
-      const [name] = cookie.split("=")
-      return name && (name.includes("sb-") || name.includes("supabase"))
-    })
-
-    if (remainingSupabaseCookies.length > 0) {
-      console.warn("⚠️ まだ残っているSupabase Cookie:", remainingSupabaseCookies)
-    } else {
-      console.log("✅ すべてのSupabase Cookieが削除されました")
-    }
-
-    console.log("✅ Cookie削除処理完了")
-  }, 100)
+  console.log("📋 削除後のCookie:", document.cookie)
+  console.log("✅ Cookie削除完了")
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -221,64 +78,51 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signOut = useCallback(async () => {
     console.log("🚪 ログアウト処理開始")
     console.log("📊 ログアウト前の状態:", { user: !!user, session: !!session, userProfile: !!userProfile })
-    console.log("🌐 現在のURL:", window.location.href)
-    console.log("🌐 現在のホスト:", window.location.hostname)
-    console.log("🌐 現在のプロトコル:", window.location.protocol)
 
     try {
-      // 1. 状態を即座にクリア（UIの即座な更新のため）
+      // 1. 状態を即座にクリア
       console.log("🧹 状態即座クリア開始...")
       setUser(null)
       setSession(null)
       setUserProfile(null)
       console.log("✅ 状態即座クリア完了")
 
-      // 2. Supabaseからログアウト（シンプルに実行）
-      console.log("🔄 Supabaseログアウト実行中...")
-      const logoutResult = await supabase.auth.signOut()
-      console.log("📊 Supabaseログアウト結果:", logoutResult)
+      // 2. Cookie削除を先に実行
+      console.log("🔄 Cookie削除処理開始...")
+      clearAllCookies()
 
-      if (logoutResult.error) {
-        console.error("❌ Supabaseログアウトエラー:", logoutResult.error)
-        console.error("❌ エラー詳細:", {
-          message: logoutResult.error.message,
-          status: logoutResult.error.status,
-          statusText: logoutResult.error.statusText,
-        })
-        // エラーが発生してもCookie削除は実行
+      // 3. Supabaseからログアウト
+      console.log("🔄 Supabaseログアウト実行中...")
+      const { error } = await supabase.auth.signOut()
+
+      if (error) {
+        console.error("❌ Supabaseログアウトエラー:", error)
       } else {
         console.log("✅ Supabaseログアウト成功")
       }
 
-      // 3. Cookie削除（Supabaseログアウトの結果に関わらず実行）
-      console.log("🔄 Cookie削除処理開始...")
-      clearSupabaseCookies()
+      // 4. 再度Cookie削除
+      console.log("🔄 Cookie再削除処理...")
+      clearAllCookies()
 
-      // 4. 成功メッセージを表示
+      // 5. 成功メッセージを表示
       toast({
         title: "ログアウトしました",
         description: "正常にログアウトが完了しました。",
       })
 
-      // 5. ホームページにリダイレクト
+      // 6. ホームページにリダイレクト
       console.log("🏠 ホームページにリダイレクト中...")
       router.push("/")
       console.log("✅ ログアウト処理完了")
     } catch (error) {
       console.error("❌ ログアウト処理中にエラーが発生しました:", error)
-      console.error("❌ エラーの詳細:", {
-        name: error instanceof Error ? error.name : "Unknown",
-        message: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : undefined,
-      })
 
       // エラーが発生しても状態クリアとCookie削除は実行
       setUser(null)
       setSession(null)
       setUserProfile(null)
-
-      console.log("🔄 エラー時のCookie削除処理...")
-      clearSupabaseCookies()
+      clearAllCookies()
 
       toast({
         title: "ログアウトしました",
@@ -295,17 +139,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log("🔔 認証状態変更:", event, { session: !!session })
-      console.log(
-        "📊 セッション詳細:",
-        session
-          ? {
-              access_token: session.access_token ? "存在" : "なし",
-              refresh_token: session.refresh_token ? "存在" : "なし",
-              expires_at: session.expires_at,
-              user_id: session.user?.id,
-            }
-          : "セッションなし",
-      )
 
       setSession(session)
       const currentUser = session?.user ?? null

@@ -14,7 +14,7 @@ import { PokepokeIdRegistrationModal } from "@/components/pokepoke-id-registrati
 import { UsernameRegistrationModal } from "@/components/username-registration-modal"
 import { updateUserProfile } from "@/lib/services/user-service"
 
-function Header() {
+export default function Header() {
   const { user, userProfile, signOut, refreshProfile } = useAuth()
   const [unreadCount, setUnreadCount] = useState(0)
   const [isPokepokeIdModalOpen, setIsPokepokeIdModalOpen] = useState(false)
@@ -206,5 +206,3 @@ function Header() {
     </>
   )
 }
-
-export default Header
