@@ -1,4 +1,4 @@
-import { createBrowserClient as _createBrowserClient } from "@supabase/ssr"
+import { createBrowserClient } from "@supabase/ssr"
 import type { SupabaseClient } from "@supabase/supabase-js"
 
 let supabaseInstance: SupabaseClient | null = null
@@ -16,7 +16,7 @@ export function createClient(): SupabaseClient {
       throw new Error("Supabaseの環境変数が設定されていません。")
     }
 
-    supabaseInstance = _createBrowserClient(supabaseUrl, supabaseAnonKey, {
+    supabaseInstance = createBrowserClient(supabaseUrl, supabaseAnonKey, {
       auth: {
         flowType: "pkce",
         autoRefreshToken: true,
