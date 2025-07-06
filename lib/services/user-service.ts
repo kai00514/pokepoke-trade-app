@@ -13,26 +13,30 @@ export async function getUserProfile(userId: string): Promise<UserProfile | null
     const supabase = createClient()
     console.log("📡 Supabaseクエリ実行中 - テーブル: users, フィルター: id =", userId)
 
-    const { data, error } = await supabase.from("users").select("*").eq("id", userId).single()
+    // single()の代わりにlimit(1)を使用して、より安全にクエリを実行
+    const { data, error } = await supabase.from("users").select("*").eq("id", userId).limit(1)
 
     console.log("📊 Supabaseクエリ結果:", {
-      data: !!data,
+      dataLength: data?.length || 0,
+      hasData: !!data && data.length > 0,
       error: error?.message || null,
       errorCode: error?.code || null,
+      rawData: data,
     })
 
     if (error) {
-      // PGRST116は行が見つからない場合のエラーコード
-      if (error.code !== "PGRST116") {
-        console.error("❌ ユーザープロファイルの取得エラー:", error)
-      } else {
-        console.log("ℹ️ ユーザープロファイルが見つかりません (PGRST116):", userId)
-      }
+      console.error("❌ ユーザープロファイルの取得エラー:", error)
       return null
     }
 
-    console.log("✅ getUserProfile成功 - データ:", data)
-    return data
+    if (!data || data.length === 0) {
+      console.log("ℹ️ ユーザープロファイルが見つかりません:", userId)
+      return null
+    }
+
+    const profile = data[0]
+    console.log("✅ getUserProfile成功 - データ:", profile)
+    return profile
   } catch (exception) {
     console.error("💥 getUserProfile例外発生:", exception)
     return null
