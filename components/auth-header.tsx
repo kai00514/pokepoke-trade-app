@@ -19,8 +19,12 @@ import { NotificationDropdown } from "./notification-dropdown"
 export function AuthHeader() {
   const { session, signOut } = useAuth()
 
+  console.log("🎯 AuthHeader レンダリング:", { session: !!session })
+
   const handleSignOut = async () => {
+    console.log("🚪 AuthHeader ログアウトボタンクリック")
     await signOut()
+    console.log("✅ AuthHeader ログアウト処理完了")
   }
 
   return (
@@ -67,9 +71,11 @@ export function AuthHeader() {
             </DropdownMenu>
           </>
         ) : (
-          <Button asChild>
-            <Link href="/auth/login">ログイン</Link>
-          </Button>
+          <>
+            <Button asChild>
+              <Link href="/auth/login">ログイン</Link>
+            </Button>
+          </>
         )}
       </div>
     </header>

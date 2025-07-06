@@ -21,6 +21,12 @@ function Header() {
   const [isUsernameModalOpen, setIsUsernameModalOpen] = useState(false)
   const router = useRouter()
 
+  console.log("🎯 Header レンダリング:", {
+    user: !!user,
+    userProfile: !!userProfile,
+    displayName: userProfile?.display_name || userProfile?.pokepoke_id || user?.email?.split("@")[0],
+  })
+
   const displayName =
     userProfile?.display_name ||
     userProfile?.name ||
@@ -31,15 +37,18 @@ function Header() {
   const avatarUrl = userProfile?.avatar_url
 
   useEffect(() => {
+    console.log("🔔 Header 通知取得開始:", { user: !!user })
     if (user) {
       getNotifications(user.id)
         .then((result) => {
           if (result.success && result.notifications) {
             const unread = result.notifications.filter((n) => !n.is_read).length
             setUnreadCount(unread)
+            console.log("📬 通知取得完了:", { unread })
           }
         })
-        .catch(() => {
+        .catch((error) => {
+          console.error("❌ 通知取得エラー:", error)
           setUnreadCount(0)
         })
     } else {
@@ -48,28 +57,34 @@ function Header() {
   }, [user])
 
   const handleSignOut = async () => {
+    console.log("🚪 Header ログアウトボタンクリック")
     await signOut()
+    console.log("✅ Header ログアウト処理完了")
   }
 
   const handlePokepokeIdSave = async (pokepokeId: string) => {
     if (!user) return
+    console.log("💾 ポケポケID保存開始:", pokepokeId)
     try {
       await updateUserProfile(user.id, { pokepoke_id: pokepokeId })
       await refreshProfile()
       setIsPokepokeIdModalOpen(false)
+      console.log("✅ ポケポケID保存完了")
     } catch (error) {
-      console.error("ポケポケIDの保存に失敗しました:", error)
+      console.error("❌ ポケポケIDの保存に失敗しました:", error)
     }
   }
 
   const handleUsernameSave = async (username: string) => {
     if (!user) return
+    console.log("💾 ユーザー名保存開始:", username)
     try {
       await updateUserProfile(user.id, { display_name: username })
       await refreshProfile()
       setIsUsernameModalOpen(false)
+      console.log("✅ ユーザー名保存完了")
     } catch (error) {
-      console.error("ユーザー名の保存に失敗しました:", error)
+      console.error("❌ ユーザー名の保存に失敗しました:", error)
     }
   }
 
