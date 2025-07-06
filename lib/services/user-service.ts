@@ -12,8 +12,8 @@ export async function getUserProfile(userId: string): Promise<UserProfile | null
   const supabase = createClient()
 
   // 方法1: 基本的なテーブル存在確認
+  console.log("🧪 テスト1開始: テーブル存在確認 (count)")
   try {
-    console.log("🧪 テスト1: テーブル存在確認 (count)")
     const { count, error: countError } = await supabase.from("users").select("*", { count: "exact", head: true })
 
     console.log("📊 テスト1結果:", {
@@ -24,10 +24,11 @@ export async function getUserProfile(userId: string): Promise<UserProfile | null
   } catch (exception) {
     console.error("💥 テスト1例外:", exception)
   }
+  console.log("✅ テスト1完了")
 
   // 方法2: 単純なselect文（limit付き）
+  console.log("🧪 テスト2開始: 単純なselect (limit 1)")
   try {
-    console.log("🧪 テスト2: 単純なselect (limit 1)")
     const { data, error } = await supabase.from("users").select("id").limit(1)
 
     console.log("📊 テスト2結果:", {
@@ -38,10 +39,11 @@ export async function getUserProfile(userId: string): Promise<UserProfile | null
   } catch (exception) {
     console.error("💥 テスト2例外:", exception)
   }
+  console.log("✅ テスト2完了")
 
   // 方法3: 全件取得（最大10件）
+  console.log("🧪 テスト3開始: 全件取得 (limit 10)")
   try {
-    console.log("🧪 テスト3: 全件取得 (limit 10)")
     const { data, error } = await supabase.from("users").select("*").limit(10)
 
     console.log("📊 テスト3結果:", {
@@ -61,10 +63,11 @@ export async function getUserProfile(userId: string): Promise<UserProfile | null
   } catch (exception) {
     console.error("💥 テスト3例外:", exception)
   }
+  console.log("✅ テスト3完了")
 
   // 方法4: 特定のカラムのみ選択してフィルター
+  console.log("🧪 テスト4開始: 特定カラム選択 + フィルター")
   try {
-    console.log("🧪 テスト4: 特定カラム選択 + フィルター")
     const { data, error } = await supabase.from("users").select("id, display_name, name").eq("id", userId).limit(1)
 
     console.log("📊 テスト4結果:", {
@@ -77,7 +80,14 @@ export async function getUserProfile(userId: string): Promise<UserProfile | null
     if (!error && data && data.length > 0) {
       console.log("✅ テスト4成功 - 部分データ取得:", data[0])
       // 完全なデータを取得するため、再度全カラムで取得
+      console.log("🔄 テスト4-2: 完全データ取得")
       const { data: fullData, error: fullError } = await supabase.from("users").select("*").eq("id", userId).limit(1)
+
+      console.log("📊 テスト4-2結果:", {
+        success: !fullError,
+        dataLength: fullData?.length || 0,
+        error: fullError?.message || null,
+      })
 
       if (!fullError && fullData && fullData.length > 0) {
         console.log("✅ テスト4完全データ取得成功:", fullData[0])
@@ -87,10 +97,11 @@ export async function getUserProfile(userId: string): Promise<UserProfile | null
   } catch (exception) {
     console.error("💥 テスト4例外:", exception)
   }
+  console.log("✅ テスト4完了")
 
   // 方法5: single()を再試行（エラーハンドリング強化）
+  console.log("🧪 テスト5開始: single()再試行")
   try {
-    console.log("🧪 テスト5: single()再試行")
     const { data, error } = await supabase.from("users").select("*").eq("id", userId).single()
 
     console.log("📊 テスト5結果:", {
@@ -108,10 +119,11 @@ export async function getUserProfile(userId: string): Promise<UserProfile | null
   } catch (exception) {
     console.error("💥 テスト5例外:", exception)
   }
+  console.log("✅ テスト5完了")
 
   // 方法6: maybeSingle()を使用
+  console.log("🧪 テスト6開始: maybeSingle()使用")
   try {
-    console.log("🧪 テスト6: maybeSingle()使用")
     const { data, error } = await supabase.from("users").select("*").eq("id", userId).maybeSingle()
 
     console.log("📊 テスト6結果:", {
@@ -128,6 +140,7 @@ export async function getUserProfile(userId: string): Promise<UserProfile | null
   } catch (exception) {
     console.error("💥 テスト6例外:", exception)
   }
+  console.log("✅ テスト6完了")
 
   console.log("❌ 全てのテストが失敗 - プロファイルが見つかりません:", userId)
   return null
