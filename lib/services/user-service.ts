@@ -9,38 +9,128 @@ import type { UserProfile } from "@/types/user"
 export async function getUserProfile(userId: string): Promise<UserProfile | null> {
   console.log("🔍 getUserProfile開始 - userId:", userId)
 
+  const supabase = createClient()
+
+  // 方法1: 基本的なテーブル存在確認
   try {
-    const supabase = createClient()
-    console.log("📡 Supabaseクエリ実行中 - テーブル: users, フィルター: id =", userId)
+    console.log("🧪 テスト1: テーブル存在確認 (count)")
+    const { count, error: countError } = await supabase.from("users").select("*", { count: "exact", head: true })
 
-    // single()の代わりにlimit(1)を使用して、より安全にクエリを実行
-    const { data, error } = await supabase.from("users").select("*").eq("id", userId).limit(1)
+    console.log("📊 テスト1結果:", {
+      success: !countError,
+      count: count,
+      error: countError?.message || null,
+    })
+  } catch (exception) {
+    console.error("💥 テスト1例外:", exception)
+  }
 
-    console.log("📊 Supabaseクエリ結果:", {
+  // 方法2: 単純なselect文（limit付き）
+  try {
+    console.log("🧪 テスト2: 単純なselect (limit 1)")
+    const { data, error } = await supabase.from("users").select("id").limit(1)
+
+    console.log("📊 テスト2結果:", {
+      success: !error,
       dataLength: data?.length || 0,
-      hasData: !!data && data.length > 0,
       error: error?.message || null,
-      errorCode: error?.code || null,
+    })
+  } catch (exception) {
+    console.error("💥 テスト2例外:", exception)
+  }
+
+  // 方法3: 全件取得（最大10件）
+  try {
+    console.log("🧪 テスト3: 全件取得 (limit 10)")
+    const { data, error } = await supabase.from("users").select("*").limit(10)
+
+    console.log("📊 テスト3結果:", {
+      success: !error,
+      dataLength: data?.length || 0,
+      error: error?.message || null,
+      hasTargetUser: data?.some((user) => user.id === userId) || false,
+    })
+
+    if (!error && data && data.length > 0) {
+      const targetUser = data.find((user) => user.id === userId)
+      if (targetUser) {
+        console.log("✅ テスト3で対象ユーザー発見:", targetUser)
+        return targetUser
+      }
+    }
+  } catch (exception) {
+    console.error("💥 テスト3例外:", exception)
+  }
+
+  // 方法4: 特定のカラムのみ選択してフィルター
+  try {
+    console.log("🧪 テスト4: 特定カラム選択 + フィルター")
+    const { data, error } = await supabase.from("users").select("id, display_name, name").eq("id", userId).limit(1)
+
+    console.log("📊 テスト4結果:", {
+      success: !error,
+      dataLength: data?.length || 0,
+      error: error?.message || null,
       rawData: data,
     })
 
-    if (error) {
-      console.error("❌ ユーザープロファイルの取得エラー:", error)
-      return null
-    }
+    if (!error && data && data.length > 0) {
+      console.log("✅ テスト4成功 - 部分データ取得:", data[0])
+      // 完全なデータを取得するため、再度全カラムで取得
+      const { data: fullData, error: fullError } = await supabase.from("users").select("*").eq("id", userId).limit(1)
 
-    if (!data || data.length === 0) {
-      console.log("ℹ️ ユーザープロファイルが見つかりません:", userId)
-      return null
+      if (!fullError && fullData && fullData.length > 0) {
+        console.log("✅ テスト4完全データ取得成功:", fullData[0])
+        return fullData[0]
+      }
     }
-
-    const profile = data[0]
-    console.log("✅ getUserProfile成功 - データ:", profile)
-    return profile
   } catch (exception) {
-    console.error("💥 getUserProfile例外発生:", exception)
-    return null
+    console.error("💥 テスト4例外:", exception)
   }
+
+  // 方法5: single()を再試行（エラーハンドリング強化）
+  try {
+    console.log("🧪 テスト5: single()再試行")
+    const { data, error } = await supabase.from("users").select("*").eq("id", userId).single()
+
+    console.log("📊 テスト5結果:", {
+      success: !error,
+      hasData: !!data,
+      error: error?.message || null,
+      errorCode: error?.code || null,
+      errorDetails: error?.details || null,
+    })
+
+    if (!error && data) {
+      console.log("✅ テスト5成功 - single()でデータ取得:", data)
+      return data
+    }
+  } catch (exception) {
+    console.error("💥 テスト5例外:", exception)
+  }
+
+  // 方法6: maybeSingle()を使用
+  try {
+    console.log("🧪 テスト6: maybeSingle()使用")
+    const { data, error } = await supabase.from("users").select("*").eq("id", userId).maybeSingle()
+
+    console.log("📊 テスト6結果:", {
+      success: !error,
+      hasData: !!data,
+      error: error?.message || null,
+      rawData: data,
+    })
+
+    if (!error && data) {
+      console.log("✅ テスト6成功 - maybeSingle()でデータ取得:", data)
+      return data
+    }
+  } catch (exception) {
+    console.error("💥 テスト6例外:", exception)
+  }
+
+  console.log("❌ 全てのテストが失敗 - プロファイルが見つかりません:", userId)
+  return null
 }
 
 /**

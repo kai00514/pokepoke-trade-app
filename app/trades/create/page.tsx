@@ -247,7 +247,7 @@ export default function CreateTradePage() {
           タイムラインに戻る
         </Link>
         <div className="bg-white p-6 sm:p-8 rounded-lg shadow-md max-w-2xl mx-auto">
-          <h1 className="text-2xl font-bold text-slate-800 mb-6 text-center">トレードカードを登録</h1>
+          <h1 className="text-2xl font-bold text-slate-800 mb-6 text-center">トレードカードを登���</h1>
           {timeSync?.isSkewed && (
             <Alert className="mb-6 bg-yellow-50 border-yellow-200">
               <AlertTriangle className="h-5 w-5 text-yellow-600" />
