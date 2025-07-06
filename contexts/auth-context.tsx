@@ -21,8 +21,8 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 // シンプルなCookie削除関数
 function clearAllCookies() {
-  console.log("🍪 Cookie削除開始")
-  console.log("📋 削除前のCookie:", document.cookie)
+  console.log("[auth-context] 🍪 Cookie削除開始")
+  console.log("[auth-context] 📋 削除前のCookie:", document.cookie)
 
   // 現在のすべてのCookieを取得
   const cookies = document.cookie.split(";")
@@ -32,7 +32,7 @@ function clearAllCookies() {
     const name = eqPos > -1 ? cookie.substr(0, eqPos).trim() : cookie.trim()
 
     if (name) {
-      console.log(`🗑️ Cookie削除: ${name}`)
+      console.log(`[auth-context] 🗑️ Cookie削除: ${name}`)
       // 複数の削除パターンを試行
       document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/`
       document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;domain=${window.location.hostname}`
@@ -40,8 +40,8 @@ function clearAllCookies() {
     }
   })
 
-  console.log("📋 削除後のCookie:", document.cookie)
-  console.log("✅ Cookie削除完了")
+  console.log("[auth-context] 📋 削除後のCookie:", document.cookie)
+  console.log("[auth-context] ✅ Cookie削除完了")
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -54,55 +54,85 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const loadUserProfile = useCallback(async (user: User) => {
     try {
-      console.log("🔄 プロファイル読み込み開始:", user.id)
+      console.log("[auth-context] 🔄 プロファイル読み込み開始:", user.id)
+      console.log("[auth-context] 📊 ユーザー情報:", {
+        id: user.id,
+        email: user.email,
+        created_at: user.created_at,
+      })
+
       let profile = await getUserProfile(user.id)
+
       if (!profile) {
-        console.log("📝 新規プロファイル作成:", user.email)
+        console.log("[auth-context] 📝 新規プロファイル作成:", user.email)
         profile = await createUserProfile(user.id, user.email!)
       }
+
+      console.log("[auth-context] 🎯 プロファイル設定前の状態:", {
+        hasProfile: !!profile,
+        profileId: profile?.id,
+        displayName: profile?.display_name,
+      })
+
       setUserProfile(profile)
-      console.log("✅ プロファイル読み込み完了:", profile)
+      console.log("[auth-context] ✅ プロファイル読み込み完了:", profile)
     } catch (error) {
-      console.error("❌ プロファイルの読み込みに失敗しました:", error)
-      setUserProfile(null)
+      console.error("[auth-context] ❌ プロファイルの読み込みに失敗しました:", error)
+
+      // エラーが発生した場合でも基本的なプロファイルを設定
+      const fallbackProfile: UserProfile = {
+        id: user.id,
+        display_name: user.email?.split("@")[0] || "ユーザー",
+        name: user.email?.split("@")[0] || "ユーザー",
+        pokepoke_id: null,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      }
+
+      console.log("[auth-context] 🆘 フォールバックプロファイルを設定:", fallbackProfile)
+      setUserProfile(fallbackProfile)
     }
   }, [])
 
   const refreshProfile = useCallback(async () => {
-    console.log("🔄 プロファイル更新開始")
+    console.log("[auth-context] 🔄 プロファイル更新開始")
     if (user) {
       await loadUserProfile(user)
     }
   }, [user, loadUserProfile])
 
   const signOut = useCallback(async () => {
-    console.log("🚪 ログアウト処理開始")
-    console.log("📊 ログアウト前の状態:", { user: !!user, session: !!session, userProfile: !!userProfile })
+    console.log("[auth-context] 🚪 ログアウト処理開始")
+    console.log("[auth-context] 📊 ログアウト前の状態:", {
+      user: !!user,
+      session: !!session,
+      userProfile: !!userProfile,
+    })
 
     try {
       // 1. 状態を即座にクリア
-      console.log("🧹 状態即座クリア開始...")
+      console.log("[auth-context] 🧹 状態即座クリア開始...")
       setUser(null)
       setSession(null)
       setUserProfile(null)
-      console.log("✅ 状態即座クリア完了")
+      console.log("[auth-context] ✅ 状態即座クリア完了")
 
       // 2. Cookie削除を先に実行
-      console.log("🔄 Cookie削除処理開始...")
+      console.log("[auth-context] 🔄 Cookie削除処理開始...")
       clearAllCookies()
 
       // 3. Supabaseからログアウト
-      console.log("🔄 Supabaseログアウト実行中...")
+      console.log("[auth-context] 🔄 Supabaseログアウト実行中...")
       const { error } = await supabase.auth.signOut()
 
       if (error) {
-        console.error("❌ Supabaseログアウトエラー:", error)
+        console.error("[auth-context] ❌ Supabaseログアウトエラー:", error)
       } else {
-        console.log("✅ Supabaseログアウト成功")
+        console.log("[auth-context] ✅ Supabaseログアウト成功")
       }
 
       // 4. 再度Cookie削除
-      console.log("🔄 Cookie再削除処理...")
+      console.log("[auth-context] 🔄 Cookie再削除処理...")
       clearAllCookies()
 
       // 5. 成功メッセージを表示
@@ -112,11 +142,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       })
 
       // 6. ホームページにリダイレクト
-      console.log("🏠 ホームページにリダイレクト中...")
+      console.log("[auth-context] 🏠 ホームページにリダイレクト中...")
       router.push("/")
-      console.log("✅ ログアウト処理完了")
+      console.log("[auth-context] ✅ ログアウト処理完了")
     } catch (error) {
-      console.error("❌ ログアウト処理中にエラーが発生しました:", error)
+      console.error("[auth-context] ❌ ログアウト処理中にエラーが発生しました:", error)
 
       // エラーが発生しても状態クリアとCookie削除は実行
       setUser(null)
@@ -134,25 +164,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [supabase, router, user, session, userProfile])
 
   useEffect(() => {
-    console.log("🔄 認証状態監視開始")
+    console.log("[auth-context] 🔄 認証状態監視開始")
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log("🔔 認証状態変更:", event, { session: !!session })
+      console.log("[auth-context] 🔔 認証状態変更:", event, {
+        session: !!session,
+        userId: session?.user?.id,
+        userEmail: session?.user?.email,
+      })
 
       setSession(session)
       const currentUser = session?.user ?? null
       setUser(currentUser)
 
       if (currentUser) {
-        console.log("👤 ユーザーログイン:", currentUser.email)
+        console.log("[auth-context] 👤 ユーザーログイン:", currentUser.email)
         await loadUserProfile(currentUser)
       } else {
-        console.log("👋 ユーザーログアウト")
+        console.log("[auth-context] 👋 ユーザーログアウト")
         setUserProfile(null)
       }
 
-      console.log("📊 認証状態更新完了:", {
+      console.log("[auth-context] 📊 認証状態更新完了:", {
         user: !!currentUser,
         session: !!session,
         userProfile: userProfile ? "loaded" : "null",
@@ -160,14 +194,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     })
 
     return () => {
-      console.log("🛑 認証状態監視終了")
+      console.log("[auth-context] 🛑 認証状態監視終了")
       subscription.unsubscribe()
     }
   }, [supabase, loadUserProfile])
 
   // 状態変更をログ出力
   useEffect(() => {
-    console.log("📊 AuthContext状態変更:", {
+    console.log("[auth-context] 📊 AuthContext状態変更:", {
       user: user ? user.email : null,
       session: !!session,
       userProfile: userProfile ? userProfile.display_name || userProfile.pokepoke_id : null,
