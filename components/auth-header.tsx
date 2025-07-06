@@ -23,8 +23,12 @@ export function AuthHeader() {
 
   const handleSignOut = async () => {
     console.log("🚪 AuthHeader ログアウトボタンクリック")
-    await signOut()
-    console.log("✅ AuthHeader ログアウト処理完了")
+    try {
+      await signOut()
+      console.log("✅ AuthHeader ログアウト処理完了")
+    } catch (error) {
+      console.error("❌ AuthHeader ログアウト処理エラー:", error)
+    }
   }
 
   return (

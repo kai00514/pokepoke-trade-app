@@ -55,9 +55,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     console.log("📊 ログアウト前の状態:", { user: !!user, session: !!session, userProfile: !!userProfile })
 
     try {
+      // 状態を即座にクリア（UIの即座な更新のため）
+      console.log("🧹 状態即座クリア開始...")
+      setUser(null)
+      setSession(null)
+      setUserProfile(null)
+      console.log("✅ 状態即座クリア完了")
+
       // Supabaseからログアウト
       console.log("🔄 Supabaseログアウト実行中...")
-      const { error } = await supabase.auth.signOut()
+      const logoutPromise = supabase.auth.signOut()
+
+      // タイムアウト付きでログアウト処理を実行
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error("ログアウト処理がタイムアウトしました")), 10000)
+      })
+
+      const { error } = (await Promise.race([logoutPromise, timeoutPromise])) as any
 
       if (error) {
         console.error("❌ ログアウトエラー:", error)
@@ -71,30 +85,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       console.log("✅ Supabaseログアウト成功")
 
-      // セッション削除の確認
+      // セッション削除の確認（タイムアウト付き）
       console.log("🔍 セッション削除確認中...")
-      const {
-        data: { session: remainingSession },
-      } = await supabase.auth.getSession()
-
-      if (remainingSession) {
-        console.error("⚠️ セッションが残っています:", remainingSession)
-        toast({
-          title: "ログアウトに失敗しました",
-          description: "セッションの削除に失敗しました。",
-          variant: "destructive",
+      try {
+        const sessionCheckPromise = supabase.auth.getSession()
+        const sessionTimeoutPromise = new Promise((_, reject) => {
+          setTimeout(() => reject(new Error("セッション確認がタイムアウトしました")), 5000)
         })
-        return
+
+        const {
+          data: { session: remainingSession },
+        } = (await Promise.race([sessionCheckPromise, sessionTimeoutPromise])) as any
+
+        if (remainingSession) {
+          console.warn("⚠️ セッションが残っていますが、処理を続行します:", remainingSession)
+        } else {
+          console.log("✅ セッション削除確認完了")
+        }
+      } catch (sessionError) {
+        console.warn("⚠️ セッション確認でエラーが発生しましたが、処理を続行します:", sessionError)
       }
-
-      console.log("✅ セッション削除確認完了")
-
-      // 状態をクリア
-      console.log("🧹 状態クリア中...")
-      setUser(null)
-      setSession(null)
-      setUserProfile(null)
-      console.log("✅ 状態クリア完了")
 
       // 成功メッセージを表示
       toast({
@@ -108,11 +118,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.log("✅ ログアウト処理完了")
     } catch (error) {
       console.error("❌ ログアウト処理中にエラーが発生しました:", error)
+
+      // エラーが発生しても状態はクリアしておく
+      setUser(null)
+      setSession(null)
+      setUserProfile(null)
+
       toast({
         title: "ログアウトに失敗しました",
         description: "予期しないエラーが発生しました。",
         variant: "destructive",
       })
+
+      // エラーが発生してもリダイレクトは実行
+      router.push("/")
     }
   }, [supabase, router, user, session, userProfile])
 

@@ -58,8 +58,12 @@ function Header() {
 
   const handleSignOut = async () => {
     console.log("🚪 Header ログアウトボタンクリック")
-    await signOut()
-    console.log("✅ Header ログアウト処理完了")
+    try {
+      await signOut()
+      console.log("✅ Header ログアウト処理完了")
+    } catch (error) {
+      console.error("❌ Header ログアウト処理エラー:", error)
+    }
   }
 
   const handlePokepokeIdSave = async (pokepokeId: string) => {
