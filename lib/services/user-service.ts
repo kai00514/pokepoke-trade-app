@@ -74,6 +74,43 @@ function clearProfileCache(): void {
 }
 
 /**
+ * 接続状態をキャッシュ
+ */
+function setCachedConnectionStatus(isConnected: boolean): void {
+  try {
+    localStorage.setItem(
+      CACHE_KEYS.CONNECTION_STATUS,
+      JSON.stringify({
+        connected: isConnected,
+        timestamp: Date.now(),
+      }),
+    )
+  } catch (error) {
+    console.error("[user-service] ❌ 接続状態キャッシュエラー:", error)
+  }
+}
+
+/**
+ * キャッシュされた接続状態を取得
+ */
+function getCachedConnectionStatus(): boolean | null {
+  try {
+    const cached = localStorage.getItem(CACHE_KEYS.CONNECTION_STATUS)
+    if (!cached) return null
+
+    const { connected, timestamp } = JSON.parse(cached)
+    const age = Date.now() - timestamp
+
+    // 5分以内の接続状態のみ有効
+    if (age > 5 * 60 * 1000) return null
+
+    return connected
+  } catch (error) {
+    return null
+  }
+}
+
+/**
  * Promiseにタイムアウトを設定するヘルパー関数
  */
 function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
@@ -92,6 +129,53 @@ function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
         reject(err)
       })
   })
+}
+
+/**
+ * Supabase接続テスト関数
+ */
+async function testSupabaseConnection(): Promise<boolean> {
+  console.log("[user-service] 🔧 Supabase接続テスト開始")
+
+  // キャッシュされた接続状態をチェック
+  const cachedStatus = getCachedConnectionStatus()
+  if (cachedStatus !== null) {
+    console.log("[user-service] 📦 キャッシュされた接続状態:", cachedStatus)
+    return cachedStatus
+  }
+
+  try {
+    const supabase = createClient()
+
+    // 環境変数の確認
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+    console.log("[user-service] 🔍 環境変数確認:", {
+      hasUrl: !!supabaseUrl,
+      urlPrefix: supabaseUrl ? supabaseUrl.substring(0, 20) + "..." : "未設定",
+      hasAnonKey: !!supabaseAnonKey,
+      anonKeyPrefix: supabaseAnonKey ? supabaseAnonKey.substring(0, 20) + "..." : "未設定",
+    })
+
+    // 簡単なクエリでテスト（3秒タイムアウト）
+    const testPromise = supabase.from("users").select("count", { count: "exact", head: true })
+    const { count, error } = await withTimeout(testPromise, 3000)
+
+    if (error) {
+      console.error("[user-service] ❌ 接続テスト失敗:", error.message)
+      setCachedConnectionStatus(false)
+      return false
+    }
+
+    console.log("[user-service] ✅ 接続テスト成功 - レコード数:", count)
+    setCachedConnectionStatus(true)
+    return true
+  } catch (exception: any) {
+    console.error("[user-service] 💥 接続テスト例外:", exception.message)
+    setCachedConnectionStatus(false)
+    return false
+  }
 }
 
 /**
@@ -132,29 +216,21 @@ export async function getUserProfile(userId: string, forceRefresh = false): Prom
     }
   }
 
+  // Supabase接続をテスト
+  const isConnected = await testSupabaseConnection()
+  if (!isConnected) {
+    console.error("[user-service] ❌ Supabase接続に失敗しました。フォールバック処理を実行します。")
+    const fallbackProfile = createFallbackProfile(userId)
+    setCachedProfile(fallbackProfile)
+    return fallbackProfile
+  }
+
   try {
     const supabase = createClient()
-    console.log("[user-service] 📡 Supabaseクエリ実行: usersテーブルからidで検索 (10秒タイムアウト)")
+    console.log("[user-service] 📡 Supabaseクエリ実行: usersテーブルからidで検索 (5秒タイムアウト)")
 
-    // 環境変数の確認
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-
-    console.log("[user-service] 🔍 環境変数確認:", {
-      hasUrl: !!supabaseUrl,
-      urlPrefix: supabaseUrl ? supabaseUrl.substring(0, 30) + "..." : "未設定",
-      hasAnonKey: !!supabaseAnonKey,
-      anonKeyPrefix: supabaseAnonKey ? supabaseAnonKey.substring(0, 30) + "..." : "未設定",
-    })
-
-    // 明示的にカラムを指定してavatar_urlを確実に取得
-    const queryPromise = supabase
-      .from("users")
-      .select("id, display_name, name, pokepoke_id, avatar_url, email, created_at, is_admin")
-      .eq("id", userId)
-      .maybeSingle()
-
-    const { data, error } = await withTimeout(queryPromise, 10000)
+    const queryPromise = supabase.from("users").select("*").eq("id", userId).maybeSingle()
+    const { data, error } = await withTimeout(queryPromise, 5000)
 
     if (error) {
       console.error(`[user-service] ❌ Supabaseクエリエラー: ${error.message}`, {
@@ -162,36 +238,22 @@ export async function getUserProfile(userId: string, forceRefresh = false): Prom
         details: error.details,
         hint: error.hint,
       })
-
-      // エラーが発生した場合でも、基本的なプロファイルを返す
-      console.log("[user-service] 🔄 エラー時のフォールバック処理を実行します。")
       const fallbackProfile = createFallbackProfile(userId)
       setCachedProfile(fallbackProfile)
       return fallbackProfile
     }
 
     if (data) {
-      console.log("[user-service] ✅ プロファイル取得成功:", {
-        id: data.id,
-        display_name: data.display_name,
-        name: data.name,
-        pokepoke_id: data.pokepoke_id,
-        avatar_url: data.avatar_url,
-        email: data.email,
-        hasAvatar: !!data.avatar_url,
-        avatarLength: data.avatar_url ? data.avatar_url.length : 0,
-      })
+      console.log("[user-service] ✅ プロファイル取得成功:", data)
       setCachedProfile(data)
       return data
     } else {
-      console.log("[user-service] ⚠️ プロファイルが見つかりませんでした。新規作成が必要です。")
+      console.log("[user-service] ⚠️ プロファイルが見つかりませんでした。")
       return null
     }
   } catch (exception: any) {
     console.error(`[user-service] 💥 getUserProfileで例外発生: ${exception.message}`)
-    console.error("[user-service] 🔄 例外時のフォールバック処理を実行します。")
-
-    // 例外が発生した場合でも、基本的なプロファイルを返す
+    console.error("[user-service] 🔄 フォールバック処理を実行します。")
     const fallbackProfile = createFallbackProfile(userId)
     setCachedProfile(fallbackProfile)
     return fallbackProfile
@@ -209,8 +271,8 @@ function createFallbackProfile(userId: string): UserProfile {
     display_name: "ユーザー",
     name: "ユーザー",
     pokepoke_id: null,
-    avatar_url: null,
     created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
   }
 }
 
@@ -222,6 +284,23 @@ function createFallbackProfile(userId: string): UserProfile {
  */
 export async function createUserProfile(userId: string, email: string): Promise<UserProfile> {
   console.log(`[user-service] 📝 createUserProfile 開始: userId=${userId}, email=${email}`)
+
+  // Supabase接続をテスト
+  const isConnected = await testSupabaseConnection()
+  if (!isConnected) {
+    console.error("[user-service] ❌ Supabase接続に失敗しました。フォールバックプロファイルを返します。")
+    const displayName = email.split("@")[0]
+    const fallbackProfile = {
+      id: userId,
+      display_name: displayName,
+      name: displayName,
+      pokepoke_id: null,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    }
+    setCachedProfile(fallbackProfile)
+    return fallbackProfile
+  }
 
   try {
     const supabase = createClient()
@@ -236,10 +315,10 @@ export async function createUserProfile(userId: string, email: string): Promise<
         display_name: displayName,
         name: displayName,
       })
-      .select("id, display_name, name, pokepoke_id, avatar_url, email, created_at, is_admin")
+      .select()
       .single()
 
-    const { data, error } = await withTimeout(insertPromise, 10000)
+    const { data, error } = await withTimeout(insertPromise, 5000)
 
     if (error) {
       console.error(`[user-service] ❌ ユーザープロファイルの作成エラー: ${error.message}`, {
@@ -253,19 +332,14 @@ export async function createUserProfile(userId: string, email: string): Promise<
         display_name: displayName,
         name: displayName,
         pokepoke_id: null,
-        avatar_url: null,
         created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
       }
       setCachedProfile(fallbackProfile)
       return fallbackProfile
     }
 
-    console.log("[user-service] ✅ createUserProfile成功:", {
-      id: data.id,
-      display_name: data.display_name,
-      avatar_url: data.avatar_url,
-      hasAvatar: !!data.avatar_url,
-    })
+    console.log("[user-service] ✅ createUserProfile成功:", data)
     setCachedProfile(data)
     return data
   } catch (exception: any) {
@@ -277,8 +351,8 @@ export async function createUserProfile(userId: string, email: string): Promise<
       display_name: displayName,
       name: displayName,
       pokepoke_id: null,
-      avatar_url: null,
       created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
     }
     setCachedProfile(fallbackProfile)
     return fallbackProfile
@@ -297,26 +371,15 @@ export async function updateUserProfile(userId: string, profileData: Partial<Use
   try {
     const supabase = createClient()
 
-    const updatePromise = supabase
-      .from("users")
-      .update(profileData)
-      .eq("id", userId)
-      .select("id, display_name, name, pokepoke_id, avatar_url, email, created_at, is_admin")
-      .single()
-
-    const { data, error } = await withTimeout(updatePromise, 10000)
+    const updatePromise = supabase.from("users").update(profileData).eq("id", userId).select().single()
+    const { data, error } = await withTimeout(updatePromise, 5000)
 
     if (error) {
       console.error(`[user-service] ❌ ユーザープロファイルの更新エラー: ${error.message}`)
       throw error
     }
 
-    console.log("[user-service] ✅ updateUserProfile成功:", {
-      id: data.id,
-      display_name: data.display_name,
-      avatar_url: data.avatar_url,
-      hasAvatar: !!data.avatar_url,
-    })
+    console.log("[user-service] ✅ updateUserProfile成功:", data)
 
     // 更新成功時にキャッシュも更新
     setCachedProfile(data)
