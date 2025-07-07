@@ -271,8 +271,8 @@ function createFallbackProfile(userId: string): UserProfile {
     display_name: "ユーザー",
     name: "ユーザー",
     pokepoke_id: null,
+    avatar_url: null,
     created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
   }
 }
 
@@ -295,8 +295,8 @@ export async function createUserProfile(userId: string, email: string): Promise<
       display_name: displayName,
       name: displayName,
       pokepoke_id: null,
+      avatar_url: null,
       created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
     }
     setCachedProfile(fallbackProfile)
     return fallbackProfile
@@ -332,8 +332,8 @@ export async function createUserProfile(userId: string, email: string): Promise<
         display_name: displayName,
         name: displayName,
         pokepoke_id: null,
+        avatar_url: null,
         created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
       }
       setCachedProfile(fallbackProfile)
       return fallbackProfile
@@ -351,8 +351,8 @@ export async function createUserProfile(userId: string, email: string): Promise<
       display_name: displayName,
       name: displayName,
       pokepoke_id: null,
+      avatar_url: null,
       created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
     }
     setCachedProfile(fallbackProfile)
     return fallbackProfile

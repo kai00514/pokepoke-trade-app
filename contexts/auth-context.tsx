@@ -87,6 +87,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         profileId: profile?.id,
         displayName: profile?.display_name,
         pokepokeId: profile?.pokepoke_id,
+        avatarUrl: profile?.avatar_url,
       })
 
       setUserProfile(profile)
@@ -101,8 +102,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         display_name: user.email?.split("@")[0] || "ユーザー",
         name: user.email?.split("@")[0] || "ユーザー",
         pokepoke_id: null,
+        avatar_url: null,
         created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
       }
 
       console.log("[auth-context] 🆘 フォールバックプロファイルを設定:", fallbackProfile)
