@@ -229,7 +229,13 @@ export async function getUserProfile(userId: string, forceRefresh = false): Prom
     const supabase = createClient()
     console.log("[user-service] 📡 Supabaseクエリ実行: usersテーブルからidで検索 (5秒タイムアウト)")
 
-    const queryPromise = supabase.from("users").select("*").eq("id", userId).maybeSingle()
+    // 明示的にカラムを指定してavatar_urlを確実に取得
+    const queryPromise = supabase
+      .from("users")
+      .select("id, display_name, name, pokepoke_id, avatar_url, email, created_at, is_admin")
+      .eq("id", userId)
+      .maybeSingle()
+
     const { data, error } = await withTimeout(queryPromise, 5000)
 
     if (error) {
@@ -244,7 +250,15 @@ export async function getUserProfile(userId: string, forceRefresh = false): Prom
     }
 
     if (data) {
-      console.log("[user-service] ✅ プロファイル取得成功:", data)
+      console.log("[user-service] ✅ プロファイル取得成功:", {
+        id: data.id,
+        display_name: data.display_name,
+        name: data.name,
+        pokepoke_id: data.pokepoke_id,
+        avatar_url: data.avatar_url,
+        email: data.email,
+        hasAvatar: !!data.avatar_url,
+      })
       setCachedProfile(data)
       return data
     } else {
@@ -315,7 +329,7 @@ export async function createUserProfile(userId: string, email: string): Promise<
         display_name: displayName,
         name: displayName,
       })
-      .select()
+      .select("id, display_name, name, pokepoke_id, avatar_url, email, created_at, is_admin")
       .single()
 
     const { data, error } = await withTimeout(insertPromise, 5000)
@@ -371,7 +385,13 @@ export async function updateUserProfile(userId: string, profileData: Partial<Use
   try {
     const supabase = createClient()
 
-    const updatePromise = supabase.from("users").update(profileData).eq("id", userId).select().single()
+    const updatePromise = supabase
+      .from("users")
+      .update(profileData)
+      .eq("id", userId)
+      .select("id, display_name, name, pokepoke_id, avatar_url, email, created_at, is_admin")
+      .single()
+
     const { data, error } = await withTimeout(updatePromise, 5000)
 
     if (error) {
