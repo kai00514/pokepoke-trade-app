@@ -1,10 +1,10 @@
 "use client"
 
 import type React from "react"
-import { createContext, useContext, useEffect, useState, useCallback } from "react"
+import { createContext, useContext, useEffect, useState, useCallback, useRef } from "react"
 import type { User, Session } from "@supabase/supabase-js"
 import { createClient } from "@/lib/supabase/client"
-import { getUserProfile, createUserProfile } from "@/lib/services/user-service"
+import { getUserProfile, createUserProfile, clearUserProfileCache } from "@/lib/services/user-service"
 import type { UserProfile } from "@/types/user"
 import { useRouter } from "next/navigation"
 import { toast } from "@/hooks/use-toast"
@@ -24,7 +24,6 @@ function clearAllCookies() {
   console.log("[auth-context] 🍪 Cookie削除開始")
   console.log("[auth-context] 📋 削除前のCookie:", document.cookie)
 
-  // 現在のすべてのCookieを取得
   const cookies = document.cookie.split(";")
 
   cookies.forEach((cookie) => {
@@ -33,7 +32,6 @@ function clearAllCookies() {
 
     if (name) {
       console.log(`[auth-context] 🗑️ Cookie削除: ${name}`)
-      // 複数の削除パターンを試行
       document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/`
       document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;domain=${window.location.hostname}`
       document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;domain=.${window.location.hostname}`
@@ -50,10 +48,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null)
   const router = useRouter()
 
+  // プロファイル読み込み中フラグ
+  const isLoadingProfile = useRef(false)
+  // 処理済みのユーザーIDを記録
+  const processedUserId = useRef<string | null>(null)
+
   const supabase = createClient()
 
-  const loadUserProfile = useCallback(async (user: User) => {
+  const loadUserProfile = useCallback(async (user: User, forceRefresh = false) => {
+    // 既に同じユーザーのプロファイルを処理中または処理済みの場合はスキップ
+    if (!forceRefresh && (isLoadingProfile.current || processedUserId.current === user.id)) {
+      console.log("[auth-context] ⏭️ プロファイル読み込みスキップ:", {
+        isLoading: isLoadingProfile.current,
+        processedUserId: processedUserId.current,
+        currentUserId: user.id,
+      })
+      return
+    }
+
     try {
+      isLoadingProfile.current = true
       console.log("[auth-context] 🔄 プロファイル読み込み開始:", user.id)
       console.log("[auth-context] 📊 ユーザー情報:", {
         id: user.id,
@@ -61,7 +75,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         created_at: user.created_at,
       })
 
-      let profile = await getUserProfile(user.id)
+      let profile = await getUserProfile(user.id, forceRefresh)
 
       if (!profile) {
         console.log("[auth-context] 📝 新規プロファイル作成:", user.email)
@@ -72,9 +86,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         hasProfile: !!profile,
         profileId: profile?.id,
         displayName: profile?.display_name,
+        pokepokeId: profile?.pokepoke_id,
       })
 
       setUserProfile(profile)
+      processedUserId.current = user.id
       console.log("[auth-context] ✅ プロファイル読み込み完了:", profile)
     } catch (error) {
       console.error("[auth-context] ❌ プロファイルの読み込みに失敗しました:", error)
@@ -91,13 +107,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       console.log("[auth-context] 🆘 フォールバックプロファイルを設定:", fallbackProfile)
       setUserProfile(fallbackProfile)
+      processedUserId.current = user.id
+    } finally {
+      isLoadingProfile.current = false
     }
   }, [])
 
   const refreshProfile = useCallback(async () => {
-    console.log("[auth-context] 🔄 プロファイル更新開始")
+    console.log("[auth-context] 🔄 プロファイル強制更新開始")
     if (user) {
-      await loadUserProfile(user)
+      processedUserId.current = null // 強制更新のためリセット
+      await loadUserProfile(user, true)
     }
   }, [user, loadUserProfile])
 
@@ -115,10 +135,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(null)
       setSession(null)
       setUserProfile(null)
+      processedUserId.current = null
+      isLoadingProfile.current = false
       console.log("[auth-context] ✅ 状態即座クリア完了")
 
-      // 2. Cookie削除を先に実行
-      console.log("[auth-context] 🔄 Cookie削除処理開始...")
+      // 2. キャッシュとCookie削除を先に実行
+      console.log("[auth-context] 🔄 キャッシュ・Cookie削除処理開始...")
+      clearUserProfileCache()
       clearAllCookies()
 
       // 3. Supabaseからログアウト
@@ -148,10 +171,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (error) {
       console.error("[auth-context] ❌ ログアウト処理中にエラーが発生しました:", error)
 
-      // エラーが発生しても状態クリアとCookie削除は実行
+      // エラーが発生しても状態クリアとキャッシュ削除は実行
       setUser(null)
       setSession(null)
       setUserProfile(null)
+      processedUserId.current = null
+      isLoadingProfile.current = false
+      clearUserProfileCache()
       clearAllCookies()
 
       toast({
@@ -162,6 +188,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       router.push("/")
     }
   }, [supabase, router, user, session, userProfile])
+
+  // プロファイル更新イベントのリスナー
+  useEffect(() => {
+    const handleProfileUpdate = (event: CustomEvent) => {
+      console.log("[auth-context] 🔄 プロファイル更新イベント受信:", event.detail)
+      setUserProfile(event.detail)
+    }
+
+    window.addEventListener("profileUpdated", handleProfileUpdate as EventListener)
+
+    return () => {
+      window.removeEventListener("profileUpdated", handleProfileUpdate as EventListener)
+    }
+  }, [])
 
   useEffect(() => {
     console.log("[auth-context] 🔄 認証状態監視開始")
@@ -180,10 +220,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (currentUser) {
         console.log("[auth-context] 👤 ユーザーログイン:", currentUser.email)
-        await loadUserProfile(currentUser)
+
+        // INITIAL_SESSIONの場合はキャッシュを優先的に使用
+        const forceRefresh = event === "SIGNED_IN"
+        await loadUserProfile(currentUser, forceRefresh)
       } else {
         console.log("[auth-context] 👋 ユーザーログアウト")
         setUserProfile(null)
+        processedUserId.current = null
+        isLoadingProfile.current = false
       }
 
       console.log("[auth-context] 📊 認証状態更新完了:", {
