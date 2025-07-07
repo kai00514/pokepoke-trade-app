@@ -25,7 +25,7 @@ function getCachedProfile(userId: string): UserProfile | null {
 
     const cacheAge = Date.now() - Number.parseInt(timestamp)
     if (cacheAge > CACHE_DURATION) {
-      console.log(`[user-service] ⏰ キャッシュが期限切れです (有効期間: ${Math.round(CACHE_DURATION / 60000)}分)`)
+      console.log(`[user-service] ⏰ キャッシュが期限切れです (${Math.round(cacheAge / 60000)}分経過)`)
       clearProfileCache()
       return null
     }
@@ -37,7 +37,12 @@ function getCachedProfile(userId: string): UserProfile | null {
       return null
     }
 
-    console.log("[user-service] ✅ キャッシュからプロファイル取得:", profile)
+    console.log("[user-service] ✅ キャッシュからプロファイル取得:", {
+      id: profile.id,
+      display_name: profile.display_name,
+      avatar_url: profile.avatar_url,
+      pokepoke_id: profile.pokepoke_id,
+    })
     return profile
   } catch (error) {
     console.error("[user-service] ❌ キャッシュ読み込みエラー:", error)
@@ -53,7 +58,12 @@ function setCachedProfile(profile: UserProfile): void {
   try {
     localStorage.setItem(CACHE_KEYS.USER_PROFILE, JSON.stringify(profile))
     localStorage.setItem(CACHE_KEYS.CACHE_TIMESTAMP, Date.now().toString())
-    console.log("[user-service] 💾 プロファイルをキャッシュに保存:", profile)
+    console.log("[user-service] 💾 プロファイルをキャッシュに保存:", {
+      id: profile.id,
+      display_name: profile.display_name,
+      avatar_url: profile.avatar_url,
+      pokepoke_id: profile.pokepoke_id,
+    })
   } catch (error) {
     console.error("[user-service] ❌ キャッシュ保存エラー:", error)
   }
@@ -74,6 +84,9 @@ function clearProfileCache(): void {
 
 /**
  * Promiseにタイムアウトを設定するヘルパー関数
+ * @param promise - 対象のPromise
+ * @param ms - タイムアウト時間（ミリ秒）
+ * @returns タイムアウト付きの新しいPromise
  */
 function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
   return new Promise((resolve, reject) => {
@@ -94,8 +107,44 @@ function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
 }
 
 /**
+ * Supabase接続テスト関数
+ */
+async function testSupabaseConnection(): Promise<boolean> {
+  console.log("[user-service] 🔧 Supabase接続テスト開始")
+
+  try {
+    const supabase = createClient()
+
+    // 環境変数の確認
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+    console.log("[user-service] 🔍 環境変数確認:", {
+      hasUrl: !!supabaseUrl,
+      urlPrefix: supabaseUrl ? supabaseUrl.substring(0, 20) + "..." : "未設定",
+      hasAnonKey: !!supabaseAnonKey,
+      anonKeyPrefix: supabaseAnonKey ? supabaseAnonKey.substring(0, 20) + "..." : "未設定",
+    })
+
+    // 簡単なクエリでテスト（5秒タイムアウト）
+    const testPromise = supabase.from("users").select("count", { count: "exact", head: true })
+    const { count, error } = await withTimeout(testPromise, 5000)
+
+    if (error) {
+      console.error("[user-service] ❌ 接続テスト失敗:", error.message)
+      return false
+    }
+
+    console.log("[user-service] ✅ 接続テスト成功 - レコード数:", count)
+    return true
+  } catch (exception: any) {
+    console.error("[user-service] 💥 接続テスト例外:", exception.message)
+    return false
+  }
+}
+
+/**
  * 指定されたユーザーIDのプロファイルを取得します。
- * キャッシュを優先し、バックグラウンドで更新します。
  * @param userId - 取得するユーザーのID
  * @param forceRefresh - キャッシュを無視して強制的に再取得するか
  * @returns ユーザープロファイルオブジェクト、または見つからない場合はnull
@@ -112,67 +161,78 @@ export async function getUserProfile(userId: string, forceRefresh = false): Prom
   if (!forceRefresh) {
     const cachedProfile = getCachedProfile(userId)
     if (cachedProfile) {
-      // バックグラウンドで最新データを非同期に取得
-      fetchFreshProfile(userId, cachedProfile)
+      console.log("[user-service] 🚀 キャッシュからプロファイルを返します")
+
+      // バックグラウンドで最新データを取得して更新
+      setTimeout(async () => {
+        try {
+          console.log("[user-service] 🔄 バックグラウンドで最新データを取得中...")
+          const freshProfile = await fetchProfileFromDB(userId)
+          if (freshProfile && JSON.stringify(freshProfile) !== JSON.stringify(cachedProfile)) {
+            console.log("[user-service] ✨ プロファイルに更新がありました")
+            setCachedProfile(freshProfile)
+            // カスタムイベントを発火してUIに更新を通知
+            window.dispatchEvent(new CustomEvent("profileUpdated", { detail: freshProfile }))
+          }
+        } catch (error) {
+          console.log("[user-service] ⚠️ バックグラウンド更新失敗:", error)
+        }
+      }, 100)
+
       return cachedProfile
     }
   }
 
   // キャッシュがない、または強制更新の場合はDBから直接取得
-  return await fetchAndCacheProfile(userId)
+  return await fetchProfileFromDB(userId)
 }
 
 /**
- * バックグラウンドで最新のプロファイルを取得し、更新があればイベントを発火
+ * DBからプロファイルを取得し、キャッシュに保存
  */
-async function fetchFreshProfile(userId: string, oldProfile: UserProfile): Promise<void> {
-  console.log("[user-service] 🔄 バックグラウンドでプロファイル更新を開始")
-  try {
-    const freshProfile = await fetchAndCacheProfile(userId, false) // ここではログを抑制
-    if (freshProfile && JSON.stringify(freshProfile) !== JSON.stringify(oldProfile)) {
-      console.log("[user-service] ✨ プロファイルに更新がありました。イベントを発火します。")
-      window.dispatchEvent(new CustomEvent("profileUpdated", { detail: freshProfile }))
-    } else {
-      console.log("[user-service] ✔️ プロファイルは最新です。")
-    }
-  } catch (error) {
-    console.error("[user-service] ⚠️ バックグラウンド更新中にエラー:", error)
+async function fetchProfileFromDB(userId: string): Promise<UserProfile | null> {
+  // まずSupabase接続をテスト
+  const isConnected = await testSupabaseConnection()
+  if (!isConnected) {
+    console.error("[user-service] ❌ Supabase接続に失敗しました。フォールバック処理を実行します。")
+    const fallbackProfile = createFallbackProfile(userId)
+    setCachedProfile(fallbackProfile)
+    return fallbackProfile
   }
-}
 
-/**
- * DBからプロファイルを取得し、キャッシュに保存するコアロジック
- */
-async function fetchAndCacheProfile(userId: string, log = true): Promise<UserProfile | null> {
-  if (log) console.log("[user-service] ☁️ DBからプロファイルを取得します...")
   try {
     const supabase = createClient()
+    console.log("[user-service] 📡 Supabaseクエリ実行: usersテーブルからidで検索 (8秒タイムアウト)")
+
+    // タイムアウトを8秒に延長
     const queryPromise = supabase.from("users").select("*").eq("id", userId).maybeSingle()
-    const { data, error } = await withTimeout(queryPromise, 8000) // タイムアウトを8秒に延長
+    const { data, error } = await withTimeout(queryPromise, 8000)
 
     if (error) {
-      console.error(`[user-service] ❌ Supabaseクエリエラー: ${error.message}`)
-      return createFallbackProfile(userId) // エラー時もフォールバックを返す
+      console.error(`[user-service] ❌ Supabaseクエリエラー: ${error.message}`, {
+        code: error.code,
+        details: error.details,
+        hint: error.hint,
+      })
+      const fallbackProfile = createFallbackProfile(userId)
+      setCachedProfile(fallbackProfile)
+      return fallbackProfile
     }
 
     if (data) {
-      if (log) console.log("[user-service] ✅ DBからプロファイル取得成功:", data)
+      console.log("[user-service] ✅ プロファイル取得成功:", data)
       setCachedProfile(data)
       return data
     } else {
-      if (log) console.log("[user-service] ⚠️ DBにプロファイルが見つかりません。新規作成を試みます。")
-      // DBにプロファイルがない場合、auth情報から作成を試みる
-      const {
-        data: { user },
-      } = await supabase.auth.getUser()
-      if (user && user.email) {
-        return await createUserProfile(userId, user.email)
-      }
+      console.log("[user-service] ⚠️ プロファイルが見つかりませんでした。")
       return null
     }
   } catch (exception: any) {
-    console.error(`[user-service] 💥 fetchAndCacheProfileで例外発生: ${exception.message}`)
-    return createFallbackProfile(userId)
+    console.error(`[user-service] 💥 fetchProfileFromDBで例外発生: ${exception.message}`)
+    console.error("[user-service] 🔄 フォールバック処理を実行します。")
+    const fallbackProfile = createFallbackProfile(userId)
+    setCachedProfile(fallbackProfile)
+    return fallbackProfile
   }
 }
 
@@ -181,41 +241,61 @@ async function fetchAndCacheProfile(userId: string, log = true): Promise<UserPro
  */
 function createFallbackProfile(userId: string): UserProfile {
   console.log("[user-service] 🆘 フォールバックプロファイル作成:", userId)
-  return {
+
+  const fallbackProfile: UserProfile = {
     id: userId,
     display_name: "ユーザー",
     name: "ユーザー",
     pokepoke_id: null,
-    avatar_url: null, // avatar_urlを明示的に含める
+    avatar_url: null,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
   }
+
+  console.log("[user-service] 📦 フォールバックプロファイル詳細:", fallbackProfile)
+  return fallbackProfile
 }
 
 /**
  * 新しいユーザープロファイルを作成します。
+ * @param userId - 新しいユーザーのID
+ * @param email - ユーザーのメールアドレス
+ * @returns 作成されたユーザープロファイルオブジェクト
  */
 export async function createUserProfile(userId: string, email: string): Promise<UserProfile> {
   console.log(`[user-service] 📝 createUserProfile 開始: userId=${userId}, email=${email}`)
+
+  // まずSupabase接続をテスト
+  const isConnected = await testSupabaseConnection()
+  if (!isConnected) {
+    console.error("[user-service] ❌ Supabase接続に失敗しました。フォールバックプロファイルを返します。")
+    const displayName = email.split("@")[0]
+    const fallbackProfile: UserProfile = {
+      id: userId,
+      display_name: displayName,
+      name: displayName,
+      pokepoke_id: null,
+      avatar_url: null,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    }
+    setCachedProfile(fallbackProfile)
+    return fallbackProfile
+  }
+
   try {
     const supabase = createClient()
     const displayName = email.split("@")[0]
 
-    // auth.userからアバターURLを取得
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
-    const avatarUrl = user?.user_metadata?.avatar_url || null
+    console.log(`[user-service] 📡 新規プロファイル作成中 - displayName: ${displayName}`)
 
-    console.log(`[user-service] 📡 新規プロファイル作成中 - displayName: ${displayName}, avatar_url: ${avatarUrl}`)
-
+    // タイムアウトを8秒に設定
     const insertPromise = supabase
       .from("users")
       .insert({
         id: userId,
         display_name: displayName,
         name: displayName,
-        avatar_url: avatarUrl,
       })
       .select()
       .single()
@@ -223,10 +303,24 @@ export async function createUserProfile(userId: string, email: string): Promise<
     const { data, error } = await withTimeout(insertPromise, 8000)
 
     if (error) {
-      console.error(`[user-service] ❌ ユーザープロファイルの作成エラー: ${error.message}`)
-      const fallback = createFallbackProfile(userId)
-      setCachedProfile(fallback)
-      return fallback
+      console.error(`[user-service] ❌ ユーザープロファイルの作成エラー: ${error.message}`, {
+        code: error.code,
+        details: error.details,
+        hint: error.hint,
+      })
+
+      // フォールバックプロファイルを返す
+      const fallbackProfile: UserProfile = {
+        id: userId,
+        display_name: displayName,
+        name: displayName,
+        pokepoke_id: null,
+        avatar_url: null,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      }
+      setCachedProfile(fallbackProfile)
+      return fallbackProfile
     }
 
     console.log("[user-service] ✅ createUserProfile成功:", data)
@@ -234,19 +328,36 @@ export async function createUserProfile(userId: string, email: string): Promise<
     return data
   } catch (exception: any) {
     console.error(`[user-service] 💥 createUserProfileで予期せぬ例外発生: ${exception.message}`)
-    const fallback = createFallbackProfile(userId)
-    setCachedProfile(fallback)
-    return fallback
+
+    // フォールバックプロファイルを返す
+    const displayName = email.split("@")[0]
+    const fallbackProfile: UserProfile = {
+      id: userId,
+      display_name: displayName,
+      name: displayName,
+      pokepoke_id: null,
+      avatar_url: null,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    }
+    setCachedProfile(fallbackProfile)
+    return fallbackProfile
   }
 }
 
 /**
  * 既存のユーザープロファイルを更新します。
+ * @param userId - 更新するユーザーのID
+ * @param profileData - 更新するプロファイルデータ
+ * @returns 更新されたユーザープロファイルオブジェクト
  */
 export async function updateUserProfile(userId: string, profileData: Partial<UserProfile>): Promise<UserProfile> {
   console.log(`[user-service] 🔄 updateUserProfile 開始: userId=${userId}`, profileData)
+
   try {
     const supabase = createClient()
+
+    // タイムアウトを8秒に設定
     const updatePromise = supabase.from("users").update(profileData).eq("id", userId).select().single()
     const { data, error } = await withTimeout(updatePromise, 8000)
 
@@ -256,8 +367,13 @@ export async function updateUserProfile(userId: string, profileData: Partial<Use
     }
 
     console.log("[user-service] ✅ updateUserProfile成功:", data)
+
+    // 更新成功時にキャッシュも更新
     setCachedProfile(data)
+
+    // カスタムイベントを発火してUIに更新を通知
     window.dispatchEvent(new CustomEvent("profileUpdated", { detail: data }))
+
     return data
   } catch (exception: any) {
     console.error(`[user-service] 💥 updateUserProfileで予期せぬ例外発生: ${exception.message}`)
@@ -269,5 +385,6 @@ export async function updateUserProfile(userId: string, profileData: Partial<Use
  * プロファイルキャッシュをクリアする（ログアウト時など）
  */
 export function clearUserProfileCache(): void {
+  console.log("[user-service] 🧹 プロファイルキャッシュクリア実行")
   clearProfileCache()
 }
