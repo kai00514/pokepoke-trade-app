@@ -37,6 +37,11 @@ function clearAllCookies() {
   })
 }
 
+// セッションの完全性を確認する関数
+function isSessionComplete(session: Session | null): boolean {
+  return !!(session && session.access_token && session.user && session.user.id && session.user.email)
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [session, setSession] = useState<Session | null>(null)
@@ -47,8 +52,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // 重複防止とタイムアウト制御
   const isProfileLoadingRef = useRef(false)
   const loadingTimeoutRef = useRef<NodeJS.Timeout | null>(null)
-  const hasInitialSessionProcessed = useRef(false)
   const backgroundRetryCount = useRef(0)
+  const isInitialized = useRef(false)
 
   const router = useRouter()
 
@@ -67,14 +72,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     isProfileLoadingRef.current = true
 
-    // 5秒でローディングタイムアウト
+    // 3秒でローディングタイムアウト（短縮）
     if (loadingTimeoutRef.current) {
       clearTimeout(loadingTimeoutRef.current)
     }
 
     loadingTimeoutRef.current = setTimeout(() => {
       if (isProfileLoadingRef.current) {
-        console.log("⏰ Profile loading timeout (5s), using fallback")
+        console.log("⏰ Profile loading timeout (3s), using fallback")
         const fallbackProfile = createFallbackProfile(user)
         setUserProfile(fallbackProfile)
         setIsLoading(false)
@@ -89,7 +94,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }, 2000) // 2秒後に再試行
         }
       }
-    }, 5000)
+    }, 3000) // 3秒に短縮
 
     try {
       console.log(`🚀 Starting profile load for user: ${user.id} (background: ${isBackgroundRetry})`)
@@ -142,16 +147,64 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [])
 
-  // 認証状態の監視を一度だけ設定
+  // 初期化順序の最適化
+  useEffect(() => {
+    const initializeAuth = async () => {
+      console.log("🔧 Initializing authentication...")
+
+      try {
+        // 1. セッション取得
+        const {
+          data: { session },
+          error,
+        } = await supabase.auth.getSession()
+
+        if (error) {
+          console.error("❌ Failed to get initial session:", error)
+          setIsLoading(false)
+          return
+        }
+
+        // 2. 認証状態確認
+        if (isSessionComplete(session)) {
+          console.log("✅ Complete session found, loading profile immediately")
+          setSession(session)
+          setUser(session.user)
+          setCurrentUserId(session.user.id)
+
+          // 3. プロファイル取得
+          await handleProfileLoad(session.user)
+        } else {
+          console.log("ℹ️ No complete session found")
+          setIsLoading(false)
+        }
+
+        isInitialized.current = true
+      } catch (error) {
+        console.error("❌ Auth initialization error:", error)
+        setIsLoading(false)
+      }
+    }
+
+    initializeAuth()
+  }, [handleProfileLoad])
+
+  // 認証状態の監視（INITIAL_SESSIONのみ処理）
   useEffect(() => {
     console.log("🔧 Setting up auth state listener...")
 
     const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log(`🔐 Auth state change: ${event}`)
 
-      // SIGNED_INイベントでINITIAL_SESSIONが処理済みの場合はスキップ
-      if (event === "SIGNED_IN" && hasInitialSessionProcessed.current) {
-        console.log("⏭️ Skipping SIGNED_IN as INITIAL_SESSION already processed")
+      // SIGNED_INイベントを完全にスキップ
+      if (event === "SIGNED_IN") {
+        console.log("⏭️ Skipping SIGNED_IN event - using INITIAL_SESSION only")
+        return
+      }
+
+      // 初期化完了前のINITIAL_SESSIONもスキップ
+      if (event === "INITIAL_SESSION" && !isInitialized.current) {
+        console.log("⏭️ Skipping INITIAL_SESSION - already handled in initialization")
         return
       }
 
@@ -167,12 +220,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setCurrentUserId(currentUser?.id ?? null)
         backgroundRetryCount.current = 0 // 新しいユーザーの場合はリトライカウントリセット
 
-        if (currentUser) {
-          // INITIAL_SESSIONまたはSIGNED_INの場合にプロファイルを取得
-          if (event === "INITIAL_SESSION" || event === "SIGNED_IN") {
-            if (event === "INITIAL_SESSION") {
-              hasInitialSessionProcessed.current = true
-            }
+        if (currentUser && isSessionComplete(session)) {
+          // INITIAL_SESSIONでセッションが完全な場合のみプロファイルを取得
+          if (event === "INITIAL_SESSION") {
             await handleProfileLoad(currentUser)
           }
         } else {
@@ -180,7 +230,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           console.log("👋 User logged out, clearing profile")
           setUserProfile(null)
           setIsLoading(false)
-          hasInitialSessionProcessed.current = false
         }
       } else {
         // 同じユーザーの場合はローディング状態のみ更新
@@ -195,7 +244,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         clearTimeout(loadingTimeoutRef.current)
       }
     }
-  }, [handleProfileLoad])
+  }, [currentUserId, handleProfileLoad])
 
   const signOut = useCallback(async () => {
     console.log("👋 Signing out...")
@@ -205,8 +254,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setSession(null)
     setUserProfile(null)
     setCurrentUserId(null)
-    hasInitialSessionProcessed.current = false
     backgroundRetryCount.current = 0
+    isInitialized.current = false
     clearAllCookies()
     router.push("/")
   }, [router, user])

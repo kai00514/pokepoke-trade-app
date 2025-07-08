@@ -89,71 +89,33 @@ async function fetchUserProfileWithRetry(userId: string, maxRetries = 2): Promis
     try {
       console.log(`🔄 Fetching user profile attempt ${attempt + 1}/${maxRetries} for user: ${userId}`)
 
-      // 複数のクエリ方法を試行
-      let data, error
+      // 標準的なSupabaseクエリのみを使用
+      const { data, error } = await withTimeout(
+        supabase.from("users").select("*").eq("id", userId).single().abortSignal(abortController.signal),
+        5000, // 5秒タイムアウト（余裕を持たせる）
+        abortController,
+      )
 
-      // 方法1: 標準的なSupabaseクエリ
-      try {
-        const result = await withTimeout(
-          supabase.from("users").select("*").eq("id", userId).single().abortSignal(abortController.signal),
-          3000, // 3秒タイムアウト
-          abortController,
-        )
-        data = result.data
-        error = result.error
-        console.log("📊 Standard query result:", { data: !!data, error: error?.message })
-      } catch (standardError) {
-        console.warn("⚠️ Standard query failed:", standardError)
-
-        // 方法2: 直接SQLクエリ（RLS回避）
-        try {
-          console.log("🔧 Trying direct SQL query...")
-          const directResult = await withTimeout(
-            supabase.rpc("get_user_profile", { user_id: userId }),
-            3000,
-            abortController,
-          )
-          data = directResult.data
-          error = directResult.error
-          console.log("📊 Direct SQL query result:", { data: !!data, error: error?.message })
-        } catch (directError) {
-          console.warn("⚠️ Direct SQL query failed:", directError)
-
-          // 方法3: 認証済みユーザーとしてクエリ
-          try {
-            console.log("🔐 Trying authenticated query...")
-            const authResult = await withTimeout(
-              supabase.auth.getUser().then(async ({ data: { user } }) => {
-                if (user && user.id === userId) {
-                  return supabase.from("users").select("*").eq("id", userId).single()
-                }
-                throw new Error("User not authenticated or ID mismatch")
-              }),
-              3000,
-              abortController,
-            )
-            data = authResult.data
-            error = authResult.error
-            console.log("📊 Authenticated query result:", { data: !!data, error: error?.message })
-          } catch (authError) {
-            console.error("❌ All query methods failed:", authError)
-            throw authError
-          }
-        }
-      }
+      console.log("📊 Standard query result:", {
+        data: !!data,
+        error: error?.message,
+        code: error?.code,
+      })
 
       if (error) {
+        if (error.code === "PGRST116") {
+          // 行が見つからないエラー - これは正常なケース
+          console.log("ℹ️ No user profile found in database")
+          return null
+        }
+
         console.error(`❌ Supabase error (attempt ${attempt + 1}):`, {
           code: error.code,
           message: error.message,
           details: error.details,
           hint: error.hint,
         })
-
-        if (error.code !== "PGRST116") {
-          // "PGRST116" は行が見つからないエラー
-          throw error
-        }
+        throw error
       }
 
       if (data) {
@@ -163,7 +125,7 @@ async function fetchUserProfileWithRetry(userId: string, maxRetries = 2): Promis
       }
 
       console.log("ℹ️ No user profile found in database")
-      return null // ユーザーが存在しない場合はnullを返す
+      return null
     } catch (error) {
       lastError = error as Error
       console.warn(`⚠️ Attempt ${attempt + 1} failed:`, error)
