@@ -4,20 +4,62 @@ import Link from "next/link"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { Skeleton } from "@/components/ui/skeleton"
 import { Plus, Bell, User } from "lucide-react"
 import { useAuth } from "@/contexts/auth-context"
-import { useState, useEffect } from "react"
+import { useState, useEffect, memo } from "react"
 import { getNotifications } from "@/lib/services/notification-service"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 
+// ユーザーアバター部分をメモ化
+const UserAvatar = memo(function UserAvatar({
+  userProfile,
+  displayName,
+  isLoading,
+}: {
+  userProfile: any
+  displayName: string
+  isLoading: boolean
+}) {
+  if (isLoading) {
+    return (
+      <div className="flex items-center gap-2 bg-white/10 rounded-full px-3 py-1.5">
+        <Skeleton className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-white/20" />
+        <Skeleton className="w-16 h-4 bg-white/20 hidden sm:block" />
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex items-center gap-2 bg-white/10 rounded-full px-3 py-1.5 hover:bg-white/20 transition-colors duration-200 cursor-pointer">
+      <div className="relative w-6 h-6 sm:w-8 sm:h-8">
+        {userProfile?.avatar_url ? (
+          <Image
+            src={userProfile.avatar_url || "/placeholder.svg"}
+            alt="ユーザーアバター"
+            width={32}
+            height={32}
+            className="rounded-full object-cover w-full h-full"
+          />
+        ) : (
+          <div className="w-full h-full bg-white/20 rounded-full flex items-center justify-center">
+            <User className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
+          </div>
+        )}
+      </div>
+      <span className="text-white text-sm font-medium hidden sm:inline">{displayName}</span>
+    </div>
+  )
+})
+
 function Header() {
-  const { user, userProfile, loading, signOut, displayName } = useAuth()
+  const { user, userProfile, isLoading, signOut, displayName } = useAuth()
   const [unreadCount, setUnreadCount] = useState(0)
 
   console.log("🔍 Header component - Auth state:", {
     user: user ? { id: user.id, email: user.email } : null,
-    userProfile,
-    loading,
+    userProfile: userProfile ? { id: userProfile.id, display_name: userProfile.display_name } : null,
+    isLoading,
     displayName,
   })
 
@@ -43,10 +85,10 @@ function Header() {
       }
     }
 
-    if (user && !loading) {
+    if (user && !isLoading) {
       fetchUnreadCount()
     }
-  }, [user, loading])
+  }, [user, isLoading])
 
   const handleSignOut = async () => {
     try {
@@ -114,27 +156,8 @@ function Header() {
           {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  className="flex items-center gap-2 bg-white/10 rounded-full px-3 py-1.5 hover:bg-white/20 transition-colors duration-200 cursor-pointer"
-                  aria-label="ユーザーメニューを開く"
-                >
-                  <div className="relative w-6 h-6 sm:w-8 sm:h-8">
-                    {userProfile?.avatar_url ? (
-                      <Image
-                        src={userProfile.avatar_url || "/placeholder.svg"}
-                        alt="ユーザーアバター"
-                        width={32}
-                        height={32}
-                        className="rounded-full object-cover w-full h-full"
-                      />
-                    ) : (
-                      <div className="w-full h-full bg-white/20 rounded-full flex items-center justify-center">
-                        <User className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
-                      </div>
-                    )}
-                  </div>
-                  <span className="text-white text-sm font-medium hidden sm:inline">{displayName}</span>
+                <Button variant="ghost" className="p-0 h-auto" aria-label="ユーザーメニューを開く">
+                  <UserAvatar userProfile={userProfile} displayName={displayName} isLoading={isLoading} />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48">

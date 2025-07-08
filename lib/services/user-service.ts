@@ -8,6 +8,9 @@ type CachedProfile = Pick<UserProfile, "id" | "display_name" | "avatar_url" | "u
   cachedAt: number
 }
 
+// 進行中のリクエストを追跡
+const ongoingRequests = new Map<string, Promise<UserProfile | null>>()
+
 // キャッシュ専用の同期関数
 function getCachedProfileSync(userId: string): UserProfile | null {
   if (typeof window === "undefined") return null
@@ -57,62 +60,161 @@ export function clearCachedProfile(userId: string) {
 
   try {
     localStorage.removeItem(`${CACHE_KEY_PREFIX}${userId}`)
+    // 進行中のリクエストもクリア
+    ongoingRequests.delete(userId)
   } catch (error) {
     console.error("Failed to clear user profile cache:", error)
   }
 }
 
-async function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+async function withTimeout<T>(promise: Promise<T>, ms: number, abortController?: AbortController): Promise<T> {
   return new Promise((resolve, reject) => {
-    const timeoutId = setTimeout(() => reject(new Error(`Promise timed out after ${ms} ms`)), ms)
+    const timeoutId = setTimeout(() => {
+      if (abortController) {
+        abortController.abort()
+      }
+      reject(new Error(`Promise timed out after ${ms} ms`))
+    }, ms)
+
     promise.then(resolve, reject).finally(() => clearTimeout(timeoutId))
   })
 }
 
-async function fetchUserProfileWithRetry(userId: string, retries = 2): Promise<UserProfile | null> {
-  for (let i = 0; i <= retries; i++) {
-    try {
-      const { data, error } = await withTimeout(
-        supabase.from("users").select("*").eq("id", userId).single(),
-        10000, // 10秒タイムアウト
-      )
+async function fetchUserProfileWithRetry(userId: string, maxRetries = 2): Promise<UserProfile | null> {
+  let lastError: Error | null = null
 
-      if (error && error.code !== "PGRST116") {
-        // "PGRST116" は行が見つからないエラー
-        throw error
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    const abortController = new AbortController()
+
+    try {
+      console.log(`🔄 Fetching user profile attempt ${attempt + 1}/${maxRetries} for user: ${userId}`)
+
+      // 複数のクエリ方法を試行
+      let data, error
+
+      // 方法1: 標準的なSupabaseクエリ
+      try {
+        const result = await withTimeout(
+          supabase.from("users").select("*").eq("id", userId).single().abortSignal(abortController.signal),
+          3000, // 3秒タイムアウト
+          abortController,
+        )
+        data = result.data
+        error = result.error
+        console.log("📊 Standard query result:", { data: !!data, error: error?.message })
+      } catch (standardError) {
+        console.warn("⚠️ Standard query failed:", standardError)
+
+        // 方法2: 直接SQLクエリ（RLS回避）
+        try {
+          console.log("🔧 Trying direct SQL query...")
+          const directResult = await withTimeout(
+            supabase.rpc("get_user_profile", { user_id: userId }),
+            3000,
+            abortController,
+          )
+          data = directResult.data
+          error = directResult.error
+          console.log("📊 Direct SQL query result:", { data: !!data, error: error?.message })
+        } catch (directError) {
+          console.warn("⚠️ Direct SQL query failed:", directError)
+
+          // 方法3: 認証済みユーザーとしてクエリ
+          try {
+            console.log("🔐 Trying authenticated query...")
+            const authResult = await withTimeout(
+              supabase.auth.getUser().then(async ({ data: { user } }) => {
+                if (user && user.id === userId) {
+                  return supabase.from("users").select("*").eq("id", userId).single()
+                }
+                throw new Error("User not authenticated or ID mismatch")
+              }),
+              3000,
+              abortController,
+            )
+            data = authResult.data
+            error = authResult.error
+            console.log("📊 Authenticated query result:", { data: !!data, error: error?.message })
+          } catch (authError) {
+            console.error("❌ All query methods failed:", authError)
+            throw authError
+          }
+        }
+      }
+
+      if (error) {
+        console.error(`❌ Supabase error (attempt ${attempt + 1}):`, {
+          code: error.code,
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+        })
+
+        if (error.code !== "PGRST116") {
+          // "PGRST116" は行が見つからないエラー
+          throw error
+        }
       }
 
       if (data) {
+        console.log("✅ Profile fetched successfully:", { id: data.id, display_name: data.display_name })
         setCachedProfile(data)
         return data
       }
 
+      console.log("ℹ️ No user profile found in database")
       return null // ユーザーが存在しない場合はnullを返す
     } catch (error) {
-      console.warn(`Attempt ${i + 1} failed for getUserProfile:`, error)
-      if (i === retries) {
-        console.error("All retries failed for getUserProfile.")
-        throw error // 最終的に失敗した場合はエラーをスロー
+      lastError = error as Error
+      console.warn(`⚠️ Attempt ${attempt + 1} failed:`, error)
+
+      // 最後の試行でない場合は少し待つ
+      if (attempt < maxRetries - 1) {
+        await new Promise((resolve) => setTimeout(resolve, 1000 * (attempt + 1))) // 1秒, 2秒と増加
       }
     }
   }
-  return null
+
+  console.error("❌ All retries failed for getUserProfile")
+  throw lastError || new Error("Unknown error occurred")
 }
 
 export async function getUserProfile(userId: string): Promise<UserProfile | null> {
-  if (!userId) return null
+  if (!userId) {
+    console.warn("⚠️ getUserProfile called with empty userId")
+    return null
+  }
+
+  // 進行中のリクエストがある場合はそれを返す
+  if (ongoingRequests.has(userId)) {
+    console.log("🔄 Returning ongoing request for user:", userId)
+    return ongoingRequests.get(userId)!
+  }
 
   // まずキャッシュを確認
   const cachedProfile = getCachedProfileSync(userId)
   if (cachedProfile) {
+    console.log("💾 Returning cached profile for user:", userId)
     return cachedProfile
   }
 
-  // キャッシュにない場合はSupabaseから取得
-  return fetchUserProfileWithRetry(userId)
+  // 新しいリクエストを開始
+  console.log("🚀 Starting new profile fetch for user:", userId)
+  const request = fetchUserProfileWithRetry(userId)
+  ongoingRequests.set(userId, request)
+
+  try {
+    const result = await request
+    return result
+  } finally {
+    // リクエスト完了後にクリア
+    ongoingRequests.delete(userId)
+  }
 }
 
 export async function createUserProfile(userId: string, email: string): Promise<UserProfile> {
+  console.log("🆕 Creating new user profile:", { userId, email })
+
   const displayName = email.split("@")[0]
   const { data, error } = await supabase
     .from("users")
@@ -120,17 +222,40 @@ export async function createUserProfile(userId: string, email: string): Promise<
     .select()
     .single()
 
-  if (error) throw error
+  if (error) {
+    console.error("❌ Failed to create user profile:", error)
+    throw error
+  }
 
+  console.log("✅ User profile created successfully:", data)
   setCachedProfile(data)
   return data
 }
 
 export async function updateUserProfile(userId: string, profileData: Partial<UserProfile>): Promise<UserProfile> {
+  console.log("📝 Updating user profile:", { userId, profileData })
+
   const { data, error } = await supabase.from("users").update(profileData).eq("id", userId).select().single()
 
-  if (error) throw error
+  if (error) {
+    console.error("❌ Failed to update user profile:", error)
+    throw error
+  }
 
+  console.log("✅ User profile updated successfully:", data)
   setCachedProfile(data)
   return data
+}
+
+// フォールバック用のプロファイル生成
+export function createFallbackProfile(user: { id: string; email?: string }): UserProfile {
+  return {
+    id: user.id,
+    display_name: user.email?.split("@")[0] || "ユーザー",
+    name: user.email?.split("@")[0] || "ユーザー",
+    avatar_url: null,
+    pokepoke_id: null,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  }
 }
