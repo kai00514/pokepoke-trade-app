@@ -20,12 +20,14 @@ import { PokepokeIdRegistrationModal } from "@/components/pokepoke-id-registrati
 import { UsernameRegistrationModal } from "@/components/username-registration-modal"
 import { updateUserProfile } from "@/lib/services/user-service"
 import { Skeleton } from "@/components/ui/skeleton"
+import { NotificationDropdown } from "@/components/notification-dropdown"
 
 const HeaderComponent = () => {
   const { user, userProfile, isLoading, signOut, refreshProfile } = useAuth()
   const [unreadCount, setUnreadCount] = useState(0)
   const [isPokepokeIdModalOpen, setIsPokepokeIdModalOpen] = useState(false)
   const [isUsernameModalOpen, setIsUsernameModalOpen] = useState(false)
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false)
   const router = useRouter()
 
   const displayName = useMemo(() => {
@@ -69,7 +71,7 @@ const HeaderComponent = () => {
             variant="ghost"
             size="icon"
             className="relative text-white hover:bg-white/20 rounded-full h-9 w-9 sm:h-10 sm:w-10"
-            onClick={() => router.push("/notifications")}
+            onClick={() => setIsNotificationOpen(true)}
             aria-label="通知"
           >
             <Bell className="h-5 w-5 sm:h-6 sm:w-6" />
@@ -167,6 +169,8 @@ const HeaderComponent = () => {
           </div>
         </div>
       </header>
+
+      <NotificationDropdown isOpen={isNotificationOpen} onOpenChange={setIsNotificationOpen} />
 
       <PokepokeIdRegistrationModal
         isOpen={isPokepokeIdModalOpen}
