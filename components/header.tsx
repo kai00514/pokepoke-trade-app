@@ -3,13 +3,13 @@
 import Link from "next/link"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Plus, Bell, User } from "lucide-react"
+import { Plus, User } from "lucide-react"
 import { useAuth } from "@/contexts/auth-context"
 import { useState, useEffect, memo } from "react"
 import { getNotifications } from "@/lib/services/notification-service"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { NotificationDropdown } from "@/components/notification-dropdown"
 
 // ユーザーアバター部分をメモ化
 const UserAvatar = memo(function UserAvatar({
@@ -99,11 +99,6 @@ function Header() {
     }
   }
 
-  const handleNotificationClick = () => {
-    console.log("🔔 Notification icon clicked - redirecting to /notifications")
-    window.location.href = "/notifications"
-  }
-
   // ポケポケID登録のハンドラ (仮)
   const handlePokepokeIdRegistration = () => {
     console.log("ポケポケID登録がクリックされました。")
@@ -133,25 +128,7 @@ function Header() {
             <span className="sr-only">新規投稿作成</span>
           </Button>
 
-          {user && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="relative text-white hover:bg-white/20 rounded-full h-9 w-9 sm:h-10 sm:w-10 transition-all duration-200"
-              onClick={handleNotificationClick}
-              aria-label={`通知 ${unreadCount > 0 ? `(${unreadCount}件の未読)` : ""}`}
-            >
-              <Bell className="h-5 w-5 sm:h-6 sm:w-6" />
-              {unreadCount > 0 && (
-                <Badge
-                  variant="destructive"
-                  className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs font-bold border-2 border-violet-500"
-                >
-                  {unreadCount > 99 ? "99+" : unreadCount}
-                </Badge>
-              )}
-            </Button>
-          )}
+          {user && <NotificationDropdown />}
 
           {user ? (
             <DropdownMenu>
