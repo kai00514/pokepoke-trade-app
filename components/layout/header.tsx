@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Plus, Bell, User } from "lucide-react"
 import { useAuth } from "@/contexts/auth-context"
-import { useState, useEffect, useMemo, useCallback } from "react"
+import { useState, useEffect } from "react"
 import { getNotifications } from "@/lib/services/notification-service"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { useRouter } from "next/navigation"
@@ -21,72 +21,76 @@ export default function Header() {
   const [isUsernameModalOpen, setIsUsernameModalOpen] = useState(false)
   const router = useRouter()
 
-  const displayName = useMemo(() => {
-    return (
-      userProfile?.display_name ||
-      userProfile?.name ||
-      userProfile?.pokepoke_id ||
-      user?.email?.split("@")[0] ||
-      "ユーザー"
-    )
-  }, [userProfile, user])
+  console.log("🎯 Header レンダリング:", {
+    user: !!user,
+    userProfile: !!userProfile,
+    displayName: userProfile?.display_name || userProfile?.pokepoke_id || user?.email?.split("@")[0],
+  })
+
+  const displayName =
+    userProfile?.display_name ||
+    userProfile?.name ||
+    userProfile?.pokepoke_id ||
+    user?.email?.split("@")[0] ||
+    "ユーザー"
 
   const avatarUrl = userProfile?.avatar_url
 
-  // 通知取得は一度だけ実行
   useEffect(() => {
-    if (!user) {
+    console.log("🔔 Header 通知取得開始:", { user: !!user })
+    if (user) {
+      getNotifications(user.id)
+        .then((result) => {
+          if (result.success && result.notifications) {
+            const unread = result.notifications.filter((n) => !n.is_read).length
+            setUnreadCount(unread)
+            console.log("📬 通知取得完了:", { unread })
+          }
+        })
+        .catch((error) => {
+          console.error("❌ 通知取得エラー:", error)
+          setUnreadCount(0)
+        })
+    } else {
       setUnreadCount(0)
-      return
     }
+  }, [user])
 
-    getNotifications(user.id)
-      .then((result) => {
-        if (result.success && result.notifications) {
-          const unread = result.notifications.filter((n) => !n.is_read).length
-          setUnreadCount(unread)
-        }
-      })
-      .catch(() => {
-        setUnreadCount(0)
-      })
-  }, [user]) // userのみに依存
-
-  const handleSignOut = useCallback(async () => {
+  const handleSignOut = async () => {
+    console.log("🚪 Header ログアウトボタンクリック")
     try {
       await signOut()
+      console.log("✅ Header ログアウト処理完了")
     } catch (error) {
-      console.error("[header] ログアウトエラー:", error)
+      console.error("❌ Header ログアウト処理エラー:", error)
     }
-  }, [signOut])
+  }
 
-  const handlePokepokeIdSave = useCallback(
-    async (pokepokeId: string) => {
-      if (!user) return
-      try {
-        await updateUserProfile(user.id, { pokepoke_id: pokepokeId })
-        await refreshProfile()
-        setIsPokepokeIdModalOpen(false)
-      } catch (error) {
-        console.error("[header] ポケポケID保存エラー:", error)
-      }
-    },
-    [user, refreshProfile],
-  )
+  const handlePokepokeIdSave = async (pokepokeId: string) => {
+    if (!user) return
+    console.log("💾 ポケポケID保存開始:", pokepokeId)
+    try {
+      await updateUserProfile(user.id, { pokepoke_id: pokepokeId })
+      await refreshProfile()
+      setIsPokepokeIdModalOpen(false)
+      console.log("✅ ポケポケID保存完了")
+    } catch (error) {
+      console.error("❌ ポケポケIDの保存に失敗しました:", error)
+    }
+  }
 
-  const handleUsernameSave = useCallback(
-    async (username: string) => {
-      if (!user) return
-      try {
-        await updateUserProfile(user.id, { display_name: username })
-        await refreshProfile()
-        setIsUsernameModalOpen(false)
-      } catch (error) {
-        console.error("[header] ユーザー名保存エラー:", error)
-      }
-    },
-    [user, refreshProfile],
-  )
+  const handleUsernameSave = async (username: string) => {
+    if (!user) return
+    console.log("💾 ユーザー名保存開始:", username)
+    try {
+      await updateUserProfile(user.id, { display_name: username })
+      await refreshProfile()
+      setIsUsernameModalOpen(false)
+      console.log("✅ ユーザー名保存完了")
+    } catch (error) {
+      console.error("❌ ユーザー名の保存に失敗しました:", error)
+    }
+  }
 
   return (
     <>
