@@ -4,20 +4,16 @@ import { useState, useEffect } from "react"
 import { Bell, Check, CheckCheck, Package, Users } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-} from "@/components/ui/dropdown-menu"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import {
   getNotifications,
   markNotificationAsRead,
   markAllNotificationsAsRead,
+  getNotificationRedirectPath,
 } from "@/lib/services/notification-service"
 import { useAuth } from "@/contexts/auth-context"
+import { useRouter } from "next/navigation"
 
 interface Notification {
   id: string
@@ -31,9 +27,11 @@ interface Notification {
 
 export function NotificationDropdown() {
   const { user } = useAuth()
+  const router = useRouter()
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [unreadCount, setUnreadCount] = useState(0)
   const [loading, setLoading] = useState(false)
+  const [isOpen, setIsOpen] = useState(false)
 
   useEffect(() => {
     if (user) {
@@ -82,6 +80,22 @@ export function NotificationDropdown() {
       }
     } catch (error) {
       console.error("Error marking all notifications as read:", error)
+    }
+  }
+
+  const handleNotificationClick = async (notification: Notification) => {
+    // 未読の場合は既読にする
+    if (!notification.is_read) {
+      await handleMarkAsRead(notification.id)
+    }
+
+    // ドロップダウンを閉じる
+    setIsOpen(false)
+
+    // 適切なページに遷移
+    const redirectPath = getNotificationRedirectPath(notification)
+    if (redirectPath && redirectPath !== "/") {
+      router.push(redirectPath)
     }
   }
 
@@ -159,7 +173,7 @@ export function NotificationDropdown() {
   if (!user) return null
 
   return (
-    <DropdownMenu>
+    <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
       <DropdownMenuTrigger asChild>
         <Button
           variant="ghost"
@@ -178,77 +192,115 @@ export function NotificationDropdown() {
           )}
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-96">
-        <div className="flex items-center justify-between p-3">
-          <h3 className="font-semibold text-lg">通知</h3>
+      <DropdownMenuContent align="end" className="w-80 sm:w-96 max-w-[calc(100vw-2rem)] mx-2 sm:mx-0" sideOffset={8}>
+        <div className="flex items-center justify-between p-3 border-b">
+          <h3 className="font-semibold text-base sm:text-lg">通知</h3>
           {unreadCount > 0 && (
-            <Button variant="ghost" size="sm" onClick={handleMarkAllAsRead} className="text-xs">
-              <CheckCheck className="h-4 w-4 mr-1" />
-              全て既読
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleMarkAllAsRead}
+              className="text-xs h-8 px-2 hover:bg-gray-100 transition-colors"
+            >
+              <CheckCheck className="h-3 w-3 mr-1" />
+              <span className="hidden sm:inline">全て既読</span>
+              <span className="sm:hidden">既読</span>
             </Button>
           )}
         </div>
-        <DropdownMenuSeparator />
-        <ScrollArea className="h-96">
-          {loading ? (
-            <div className="p-4 text-center text-sm text-muted-foreground">読み込み中...</div>
-          ) : notifications.length === 0 ? (
-            <div className="p-4 text-center text-sm text-muted-foreground">通知はありません</div>
-          ) : (
-            notifications.map((notification) => {
-              const typeInfo = getNotificationTypeInfo(notification.type)
-              const { senderName, contentTitle } = parseNotificationContent(notification.content)
 
-              return (
-                <DropdownMenuItem
-                  key={notification.id}
-                  className={`p-4 cursor-pointer border-b border-gray-100 last:border-b-0 ${
-                    !notification.is_read ? "bg-blue-50 hover:bg-blue-100" : "hover:bg-gray-50"
-                  }`}
-                  onClick={() => !notification.is_read && handleMarkAsRead(notification.id)}
-                >
-                  <div className="flex items-start gap-3 w-full">
-                    <div className="flex-shrink-0 mt-1">
-                      <div className={`${typeInfo.color} text-white rounded-full p-2 flex items-center justify-center`}>
-                        {typeInfo.icon}
+        <ScrollArea className="h-80 sm:h-96 max-h-[60vh]">
+          {loading ? (
+            <div className="p-6 text-center">
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500 mx-auto mb-2"></div>
+              <p className="text-sm text-muted-foreground">読み込み中...</p>
+            </div>
+          ) : notifications.length === 0 ? (
+            <div className="p-6 text-center">
+              <Bell className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+              <p className="text-sm text-muted-foreground">通知はありません</p>
+            </div>
+          ) : (
+            <div className="divide-y divide-gray-100">
+              {notifications.map((notification) => {
+                const typeInfo = getNotificationTypeInfo(notification.type)
+                const { senderName, contentTitle } = parseNotificationContent(notification.content)
+
+                return (
+                  <DropdownMenuItem
+                    key={notification.id}
+                    className={`p-3 sm:p-4 cursor-pointer transition-colors duration-150 ${
+                      !notification.is_read
+                        ? "bg-blue-50 hover:bg-blue-100 border-l-4 border-blue-500"
+                        : "hover:bg-gray-50"
+                    }`}
+                    onClick={() => handleNotificationClick(notification)}
+                  >
+                    <div className="flex items-start gap-3 w-full">
+                      <div className="flex-shrink-0 mt-0.5">
+                        <div
+                          className={`${typeInfo.color} text-white rounded-full p-1.5 sm:p-2 flex items-center justify-center shadow-sm`}
+                        >
+                          {typeInfo.icon}
+                        </div>
                       </div>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <Badge variant="secondary" className={`${typeInfo.color} text-white text-xs px-2 py-1`}>
-                          {typeInfo.label}
-                        </Badge>
-                        {!notification.is_read && <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0" />}
-                      </div>
-                      <p className="text-xs text-gray-600 mb-1 line-clamp-1">
-                        {senderName !== "不明なユーザー" && contentTitle !== "詳細不明"
-                          ? `${senderName}さんから「${contentTitle}」について`
-                          : "通知"}
-                      </p>
-                      <p className="text-xs text-gray-500 mb-2 line-clamp-2">{notification.content}</p>
-                      <div className="flex items-center justify-between">
-                        <p className="text-xs text-gray-400">{formatDateTime(notification.created_at)}</p>
-                        {!notification.is_read && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-6 w-6 p-0 hover:bg-blue-200"
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              handleMarkAsRead(notification.id)
-                            }}
+
+                      <div className="flex-1 min-w-0 space-y-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <Badge
+                            variant="secondary"
+                            className={`${typeInfo.color} text-white text-xs px-2 py-0.5 font-medium`}
                           >
-                            <Check className="h-3 w-3" />
-                          </Button>
+                            {typeInfo.label}
+                          </Badge>
+                          <div className="flex items-center gap-1">
+                            <p className="text-xs text-gray-400 truncate">{formatDateTime(notification.created_at)}</p>
+                            {!notification.is_read && (
+                              <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0" />
+                            )}
+                          </div>
+                        </div>
+
+                        {senderName !== "不明なユーザー" && contentTitle !== "詳細不明" && (
+                          <p className="text-xs text-gray-600 font-medium line-clamp-1">
+                            {senderName}さんから「{contentTitle}」について
+                          </p>
+                        )}
+
+                        <p className="text-sm text-gray-800 line-clamp-2 leading-relaxed">{notification.content}</p>
+
+                        {!notification.is_read && (
+                          <div className="flex justify-end pt-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 w-6 p-0 hover:bg-blue-200 rounded-full transition-colors"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                handleMarkAsRead(notification.id)
+                              }}
+                              aria-label="既読にする"
+                            >
+                              <Check className="h-3 w-3" />
+                            </Button>
+                          </div>
                         )}
                       </div>
                     </div>
-                  </div>
-                </DropdownMenuItem>
-              )
-            })
+                  </DropdownMenuItem>
+                )
+              })}
+            </div>
           )}
         </ScrollArea>
+
+        {notifications.length > 0 && (
+          <div className="p-2 border-t bg-gray-50">
+            <p className="text-xs text-center text-gray-500">
+              {notifications.length >= 50 ? "最新50件を表示" : `${notifications.length}件の通知`}
+            </p>
+          </div>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   )

@@ -294,11 +294,22 @@ export async function handleMatchNotification(
  * 通知タイプに基づいてリダイレクト先を決定する
  */
 export function getNotificationRedirectPath(notification: Notification): string {
+  if (!notification.related_id) {
+    return "/"
+  }
+
   switch (notification.type) {
     case "comment":
     case "reply":
     case "comment_on_post":
-      return `/trade/${notification.related_id}`
+    case "trade":
+    case "trade_comment":
+    case "trade_request":
+      return `/trades/${notification.related_id}`
+    case "deck":
+    case "deck_comment":
+    case "deck_like":
+      return `/decks/${notification.related_id}`
     case "match_request":
     case "match_accepted":
     case "match_rejected":
@@ -374,19 +385,33 @@ export async function createNotification(options: {
   }
 }
 
+interface NotificationResult {
+  success: boolean
+  notifications?: any[]
+  error?: string
+}
+
 /**
  * 通知を取得する
  */
-export async function getNotifications(
-  userId: string,
-): Promise<{ success: boolean; notifications?: Notification[]; error?: string }> {
+export async function getNotifications(userId: string): Promise<NotificationResult> {
   try {
     const supabase = createClient()
 
     // trade_notificationsとdeck_notificationsの両方から取得
     const [tradeResult, deckResult] = await Promise.all([
-      supabase.from("trade_notifications").select("*").eq("user_id", userId).order("created_at", { ascending: false }),
-      supabase.from("deck_notifications").select("*").eq("user_id", userId).order("created_at", { ascending: false }),
+      supabase
+        .from("trade_notifications")
+        .select("*")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false })
+        .limit(50),
+      supabase
+        .from("deck_notifications")
+        .select("*")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false })
+        .limit(50),
     ])
 
     if (tradeResult.error) {
@@ -397,19 +422,22 @@ export async function getNotifications(
       console.error("Error fetching deck notifications:", deckResult.error)
     }
 
-    // 両方のテーブルからのデータを結合
+    // 両方の結果を結合
     const allNotifications = [...(tradeResult.data || []), ...(deckResult.data || [])]
 
     // 作成日時でソート
     allNotifications.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
 
-    // 最新50件に制限
-    const limitedNotifications = allNotifications.slice(0, 50)
-
-    return { success: true, notifications: limitedNotifications }
+    return {
+      success: true,
+      notifications: allNotifications.slice(0, 50), // 最大50件
+    }
   } catch (error) {
     console.error("Error in getNotifications:", error)
-    return { success: false, error: "通知の取得に失敗しました" }
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error",
+    }
   }
 }
 
@@ -421,28 +449,25 @@ export async function markNotificationAsRead(notificationId: string): Promise<{ 
     const supabase = createClient()
 
     // まずtrade_notificationsで試す
-    const { error: tradeError } = await supabase
-      .from("trade_notifications")
-      .update({ is_read: true })
-      .eq("id", notificationId)
+    const tradeResult = await supabase.from("trade_notifications").update({ is_read: true }).eq("id", notificationId)
 
     // trade_notificationsで見つからない場合はdeck_notificationsで試す
-    if (tradeError) {
-      const { error: deckError } = await supabase
-        .from("deck_notifications")
-        .update({ is_read: true })
-        .eq("id", notificationId)
+    if (tradeResult.error || (tradeResult.data && tradeResult.data.length === 0)) {
+      const deckResult = await supabase.from("deck_notifications").update({ is_read: true }).eq("id", notificationId)
 
-      if (deckError) {
-        console.error("Error marking notification as read:", deckError)
-        return { success: false, error: deckError.message }
+      if (deckResult.error) {
+        console.error("Error marking deck notification as read:", deckResult.error)
+        return { success: false, error: deckResult.error.message }
       }
     }
 
     return { success: true }
   } catch (error) {
     console.error("Error in markNotificationAsRead:", error)
-    return { success: false, error: "通知の既読処理に失敗しました" }
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error",
+    }
   }
 }
 
@@ -453,7 +478,7 @@ export async function markAllNotificationsAsRead(userId: string): Promise<{ succ
   try {
     const supabase = createClient()
 
-    // 両方のテーブルで既読処理
+    // 両方のテーブルで未読通知を既読にする
     const [tradeResult, deckResult] = await Promise.all([
       supabase.from("trade_notifications").update({ is_read: true }).eq("user_id", userId).eq("is_read", false),
       supabase.from("deck_notifications").update({ is_read: true }).eq("user_id", userId).eq("is_read", false),
@@ -467,18 +492,13 @@ export async function markAllNotificationsAsRead(userId: string): Promise<{ succ
       console.error("Error marking deck notifications as read:", deckResult.error)
     }
 
-    // どちらか一方でもエラーがあった場合はエラーを返す
-    if (tradeResult.error || deckResult.error) {
-      return {
-        success: false,
-        error: tradeResult.error?.message || deckResult.error?.message || "通知の既読処理に失敗しました",
-      }
-    }
-
     return { success: true }
   } catch (error) {
     console.error("Error in markAllNotificationsAsRead:", error)
-    return { success: false, error: "全通知の既読処理に失敗しました" }
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error",
+    }
   }
 }
 
