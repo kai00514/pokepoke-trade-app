@@ -4,13 +4,7 @@ import { useState, useEffect } from "react"
 import { Bell, Check, CheckCheck, Package, Users } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { ScrollArea } from "@/components/ui/scroll-area"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import {
   getNotifications,
   markNotificationAsRead,
@@ -38,20 +32,22 @@ export function NotificationDropdown() {
   const [loading, setLoading] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
 
-  /* ------------------------------ fetch ------------------------------ */
   useEffect(() => {
-    if (user) fetchNotifications()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    if (user) {
+      fetchNotifications()
+    }
   }, [user])
 
   const fetchNotifications = async () => {
     if (!user) return
+
     setLoading(true)
     try {
       const result = await getNotifications(user.id)
       if (result.success && result.notifications) {
         setNotifications(result.notifications)
-        setUnreadCount(result.notifications.filter((n) => !n.is_read).length)
+        const unread = result.notifications.filter((n) => !n.is_read).length
+        setUnreadCount(unread)
       }
     } catch (error) {
       console.error("Error fetching notifications:", error)
@@ -60,14 +56,11 @@ export function NotificationDropdown() {
     }
   }
 
-  /* ------------------------------ handlers --------------------------- */
   const handleMarkAsRead = async (notificationId: string) => {
     try {
       const result = await markNotificationAsRead(notificationId)
       if (result.success) {
-        setNotifications((prev) =>
-          prev.map((n) => (n.id === notificationId ? { ...n, is_read: true } : n)),
-        )
+        setNotifications((prev) => prev.map((n) => (n.id === notificationId ? { ...n, is_read: true } : n)))
         setUnreadCount((prev) => Math.max(0, prev - 1))
       }
     } catch (error) {
@@ -77,6 +70,7 @@ export function NotificationDropdown() {
 
   const handleMarkAllAsRead = async () => {
     if (!user) return
+
     try {
       const result = await markAllNotificationsAsRead(user.id)
       if (result.success) {
@@ -89,14 +83,21 @@ export function NotificationDropdown() {
   }
 
   const handleNotificationClick = async (notification: Notification) => {
-    if (!notification.is_read) await handleMarkAsRead(notification.id)
+    // 未読の場合は既読にする
+    if (!notification.is_read) {
+      await handleMarkAsRead(notification.id)
+    }
+
+    // ドロップダウンを閉じる
     setIsOpen(false)
 
+    // 適切なページに遷移
     const redirectPath = getNotificationRedirectPath(notification)
-    if (redirectPath && redirectPath !== "/") router.push(redirectPath)
+    if (redirectPath && redirectPath !== "/") {
+      router.push(redirectPath)
+    }
   }
 
-  /* ------------------------------ utils ------------------------------ */
   const getNotificationTypeInfo = (type: string) => {
     switch (type) {
       case "trade":
@@ -149,24 +150,29 @@ export function NotificationDropdown() {
   }
 
   const parseNotificationContent = (content: string) => {
+    // contentから情報を抽出
     let senderName = "不明なユーザー"
     let contentTitle = "詳細不明"
 
+    // "○○さんが「××」にコメントしました" のようなパターンを解析
     const userNameMatch = content.match(/^(.+?)さんが/)
-    if (userNameMatch) senderName = userNameMatch[1]
+    if (userNameMatch) {
+      senderName = userNameMatch[1]
+    }
 
+    // 「」で囲まれたタイトルを抽出
     const titleMatch = content.match(/「(.+?)」/)
-    if (titleMatch) contentTitle = titleMatch[1]
+    if (titleMatch) {
+      contentTitle = titleMatch[1]
+    }
 
     return { senderName, contentTitle }
   }
 
-  /* ------------------------------------------------------------------ */
   if (!user) return null
 
   return (
     <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
-      {/* --------------------------- trigger --------------------------- */}
       <DropdownMenuTrigger asChild>
         <Button
           variant="ghost"
@@ -185,27 +191,28 @@ export function NotificationDropdown() {
           )}
         </Button>
       </DropdownMenuTrigger>
-
-      {/* --------------------------- content --------------------------- */}
       <DropdownMenuContent
         align="end"
         side="bottom"
-        sideOffset={12}
-        alignOffset={-16}
-        avoidCollisions
-        collisionPadding={{ top: 8, right: 16, bottom: 8, left: 16 }}
-        /* ★ 画面高の 80% か 480px を上限にし、内部だけスクロール */
-        className="w-64 sm:w-80 max-w-[min(380px,calc(100vw-32px))] max-h-[min(480px,80vh)] overflow-y-auto shadow-lg border bg-white rounded-lg mr-2 sm:mr-0"
+        sideOffset={8}
+        alignOffset={-8}
+        avoidCollisions={true}
+        collisionPadding={16}
+        className="w-72 sm:w-80 max-w-[calc(100vw-2rem)] shadow-lg border bg-white rounded-lg overflow-hidden"
+        style={{
+          maxHeight: "min(400px, 50vh)",
+          height: "auto",
+        }}
       >
-        {/* ---------- header ---------- */}
-        <div className="flex items-center justify-between p-3 border-b bg-gray-50/50 sticky top-0 z-10">
+        {/* ヘッダー - 固定高さ */}
+        <div className="flex items-center justify-between p-3 border-b bg-gray-50/50 flex-shrink-0">
           <h3 className="font-semibold text-sm text-gray-900">通知</h3>
           {unreadCount > 0 && (
             <Button
               variant="ghost"
               size="sm"
               onClick={handleMarkAllAsRead}
-              className="text-xs h-7 px-2 hover:bg-gray-100 transition-colors text-gray-600 hover:text-gray-900 flex-shrink-0"
+              className="text-xs h-6 px-2 hover:bg-gray-100 transition-colors text-gray-600 hover:text-gray-900"
             >
               <CheckCheck className="h-3 w-3 mr-1" />
               <span className="hidden sm:inline">全て既読</span>
@@ -214,13 +221,17 @@ export function NotificationDropdown() {
           )}
         </div>
 
-        {/* -------- notification list -------- */}
-        <ScrollArea /* ★ 上限高だけ指定して可変に */
-          className="max-h-[min(400px,70vh)]"
+        {/* 通知リスト - スクロール可能エリア */}
+        <div
+          className="overflow-y-auto flex-1"
+          style={{
+            maxHeight: "320px",
+            minHeight: "120px",
+          }}
         >
           {loading ? (
             <div className="p-6 text-center">
-              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500 mx-auto mb-2" />
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500 mx-auto mb-2"></div>
               <p className="text-sm text-muted-foreground">読み込み中...</p>
             </div>
           ) : notifications.length === 0 ? (
@@ -260,9 +271,7 @@ export function NotificationDropdown() {
                             {typeInfo.label}
                           </Badge>
                           <div className="flex items-center gap-1">
-                            <p className="text-xs text-gray-400 truncate">
-                              {formatDateTime(notification.created_at)}
-                            </p>
+                            <p className="text-xs text-gray-400 truncate">{formatDateTime(notification.created_at)}</p>
                             {!notification.is_read && (
                               <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0" />
                             )}
@@ -275,9 +284,7 @@ export function NotificationDropdown() {
                           </p>
                         )}
 
-                        <p className="text-sm text-gray-800 line-clamp-2 leading-relaxed">
-                          {notification.content}
-                        </p>
+                        <p className="text-sm text-gray-800 line-clamp-2 leading-relaxed">{notification.content}</p>
 
                         {!notification.is_read && (
                           <div className="flex justify-end pt-1">
@@ -302,11 +309,11 @@ export function NotificationDropdown() {
               })}
             </div>
           )}
-        </ScrollArea>
+        </div>
 
-        {/* ---------- footer ---------- */}
+        {/* フッター - 固定高さ */}
         {notifications.length > 0 && (
-          <div className="p-2 border-t bg-gray-50/30 sticky bottom-0">
+          <div className="p-2 border-t bg-gray-50/30 flex-shrink-0">
             <p className="text-xs text-center text-gray-500">
               {notifications.length >= 50 ? "最新50件を表示" : `${notifications.length}件の通知`}
             </p>
