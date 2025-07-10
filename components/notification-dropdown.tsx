@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Bell, Check, CheckCheck, Package, Users } from 'lucide-react'
+import { Bell, Check, CheckCheck, Package, Users } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
@@ -195,11 +195,11 @@ export function NotificationDropdown() {
       <DropdownMenuContent
         align="end"
         side="bottom"
-        className="w-72 sm:w-80 max-w-[calc(100vw-2rem)] shadow-lg border bg-white rounded-lg overflow-hidden"
-        sideOffset={8}
-        alignOffset={-8}
+        className="w-64 sm:w-80 max-w-[min(380px,calc(100vw-32px))] shadow-lg border bg-white rounded-lg overflow-hidden mr-2 sm:mr-0"
+        sideOffset={12}
+        alignOffset={-16}
         avoidCollisions={true}
-        collisionPadding={16}
+        collisionPadding={{ top: 8, right: 16, bottom: 8, left: 16 }}
       >
         {/* ヘッダー */}
         <div className="flex items-center justify-between p-3 border-b bg-gray-50/50 sticky top-0 z-10">
@@ -209,7 +209,7 @@ export function NotificationDropdown() {
               variant="ghost"
               size="sm"
               onClick={handleMarkAllAsRead}
-              className="text-xs h-6 px-2 hover:bg-gray-100 transition-colors text-gray-600 hover:text-gray-900"
+              className="text-xs h-7 px-2 hover:bg-gray-100 transition-colors text-gray-600 hover:text-gray-900 flex-shrink-0"
             >
               <CheckCheck className="h-3 w-3 mr-1" />
               <span className="hidden sm:inline">全て既読</span>
@@ -219,7 +219,7 @@ export function NotificationDropdown() {
         </div>
 
         {/* 通知リスト */}
-        <div className="max-h-[50vh] min-h-[200px] overflow-hidden">
+        <div className="h-[min(400px,50vh)] overflow-hidden">
           <ScrollArea className="h-full">
             {loading ? (
               <div className="p-6 text-center">
