@@ -1,55 +1,135 @@
-import { supabase } from "@/lib/supabase/client"
+import { createClient } from "@/lib/supabase/client"
 
-export interface NotificationResult {
-  success: boolean
-  notifications?: any[]
-  error?: string
+interface Notification {
+  id: string
+  user_id: string
+  type: string
+  title: string
+  message: string
+  is_read: boolean
+  created_at: string
+  related_id?: string
+  sender_name?: string
+  trade_title?: string
+  deck_title?: string
 }
 
-export interface MarkReadResult {
-  success: boolean
-  error?: string
-}
-
-export async function getNotifications(userId: string): Promise<NotificationResult> {
+export async function getNotifications(
+  userId: string,
+): Promise<{ success: boolean; notifications?: Notification[]; error?: string }> {
   try {
-    // 通知データを取得し、関連するユーザー情報も一緒に取得
-    const { data, error } = await supabase
-      .from("notifications")
-      .select(`
-        *,
-        sender:sender_id(display_name),
-        trade:related_id(title, creator_id),
-        deck:related_id(title, creator_id)
-      `)
+    const supabase = createClient()
+
+    // まず基本的な通知データを取得
+    const { data: notifications, error: notificationsError } = await supabase
+      .from("deck_notifications")
+      .select("*")
       .eq("user_id", userId)
       .order("created_at", { ascending: false })
       .limit(50)
 
-    if (error) {
-      console.error("Error fetching notifications:", error)
-      return { success: false, error: error.message }
+    if (notificationsError) {
+      console.error("Error fetching notifications:", notificationsError)
+      return { success: false, error: notificationsError.message }
     }
 
-    // データを整形してユーザー名とタイトルを含める
-    const formattedNotifications =
-      data?.map((notification) => ({
-        ...notification,
-        sender_name: notification.sender?.display_name,
-        trade_title: notification.trade?.title,
-        deck_title: notification.deck?.title,
-      })) || []
+    if (!notifications || notifications.length === 0) {
+      return { success: true, notifications: [] }
+    }
 
-    return { success: true, notifications: formattedNotifications }
+    // 各通知に対して関連情報を取得
+    const enrichedNotifications = await Promise.all(
+      notifications.map(async (notification) => {
+        let senderName = "不明なユーザー"
+        let contentTitle = "詳細不明"
+
+        try {
+          // related_idがある場合、関連するトレードまたはデッキの情報を取得
+          if (notification.related_id) {
+            if (notification.type.includes("trade")) {
+              // トレード関連の通知
+              const { data: tradeData } = await supabase
+                .from("trade_posts")
+                .select("title, creator_id")
+                .eq("id", notification.related_id)
+                .single()
+
+              if (tradeData) {
+                contentTitle = tradeData.title || "トレード投稿"
+
+                // 作成者の情報を取得
+                const { data: userData } = await supabase
+                  .from("users")
+                  .select("display_name")
+                  .eq("id", tradeData.creator_id)
+                  .single()
+
+                if (userData?.display_name) {
+                  senderName = userData.display_name
+                }
+              }
+            } else if (notification.type.includes("deck")) {
+              // デッキ関連の通知
+              const { data: deckData } = await supabase
+                .from("deck_posts")
+                .select("title, creator_id")
+                .eq("id", notification.related_id)
+                .single()
+
+              if (deckData) {
+                contentTitle = deckData.title || "デッキ投稿"
+
+                // 作成者の情報を取得
+                const { data: userData } = await supabase
+                  .from("users")
+                  .select("display_name")
+                  .eq("id", deckData.creator_id)
+                  .single()
+
+                if (userData?.display_name) {
+                  senderName = userData.display_name
+                }
+              }
+            }
+          }
+
+          // メッセージからも情報を抽出（フォールバック）
+          if (notification.message) {
+            const userNameMatch = notification.message.match(/^(.+?)さんが/)
+            if (userNameMatch && senderName === "不明なユーザー") {
+              senderName = userNameMatch[1]
+            }
+
+            const titleMatch = notification.message.match(/「(.+?)」/)
+            if (titleMatch && contentTitle === "詳細不明") {
+              contentTitle = titleMatch[1]
+            }
+          }
+        } catch (error) {
+          console.error("Error enriching notification:", error)
+        }
+
+        return {
+          ...notification,
+          sender_name: senderName,
+          trade_title: notification.type.includes("trade") ? contentTitle : undefined,
+          deck_title: notification.type.includes("deck") ? contentTitle : undefined,
+        }
+      }),
+    )
+
+    return { success: true, notifications: enrichedNotifications }
   } catch (error) {
     console.error("Error in getNotifications:", error)
     return { success: false, error: "通知の取得に失敗しました" }
   }
 }
 
-export async function markNotificationAsRead(notificationId: string): Promise<MarkReadResult> {
+export async function markNotificationAsRead(notificationId: string): Promise<{ success: boolean; error?: string }> {
   try {
-    const { error } = await supabase.from("notifications").update({ is_read: true }).eq("id", notificationId)
+    const supabase = createClient()
+
+    const { error } = await supabase.from("deck_notifications").update({ is_read: true }).eq("id", notificationId)
 
     if (error) {
       console.error("Error marking notification as read:", error)
@@ -63,10 +143,12 @@ export async function markNotificationAsRead(notificationId: string): Promise<Ma
   }
 }
 
-export async function markAllNotificationsAsRead(userId: string): Promise<MarkReadResult> {
+export async function markAllNotificationsAsRead(userId: string): Promise<{ success: boolean; error?: string }> {
   try {
+    const supabase = createClient()
+
     const { error } = await supabase
-      .from("notifications")
+      .from("deck_notifications")
       .update({ is_read: true })
       .eq("user_id", userId)
       .eq("is_read", false)
