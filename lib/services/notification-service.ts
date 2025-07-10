@@ -2,12 +2,12 @@ import { createClient } from "@/lib/supabase/client"
 
 type NotificationType = "comment" | "reply" | "match" | "match_request" | "match_accepted" | "match_rejected"
 
-type Notification = {
+interface Notification {
   id: string
   user_id: string
   type: string
   content: string
-  related_id: string
+  related_id?: string
   is_read: boolean
   created_at: string
 }
@@ -383,21 +383,33 @@ export async function getNotifications(
   try {
     const supabase = createClient()
 
-    const { data, error } = await supabase
-      .from("deck_notifications")
-      .select("*")
-      .eq("user_id", userId)
-      .order("created_at", { ascending: false })
+    // trade_notificationsとdeck_notificationsの両方から取得
+    const [tradeResult, deckResult] = await Promise.all([
+      supabase.from("trade_notifications").select("*").eq("user_id", userId).order("created_at", { ascending: false }),
+      supabase.from("deck_notifications").select("*").eq("user_id", userId).order("created_at", { ascending: false }),
+    ])
 
-    if (error) {
-      console.error("Error fetching notifications:", error)
-      return { success: false, error: error.message }
+    if (tradeResult.error) {
+      console.error("Error fetching trade notifications:", tradeResult.error)
     }
 
-    return { success: true, notifications: data || [] }
+    if (deckResult.error) {
+      console.error("Error fetching deck notifications:", deckResult.error)
+    }
+
+    // 両方のテーブルからのデータを結合
+    const allNotifications = [...(tradeResult.data || []), ...(deckResult.data || [])]
+
+    // 作成日時でソート
+    allNotifications.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+
+    // 最新50件に制限
+    const limitedNotifications = allNotifications.slice(0, 50)
+
+    return { success: true, notifications: limitedNotifications }
   } catch (error) {
     console.error("Error in getNotifications:", error)
-    return { success: false, error: "Failed to fetch notifications" }
+    return { success: false, error: "通知の取得に失敗しました" }
   }
 }
 
@@ -408,17 +420,29 @@ export async function markNotificationAsRead(notificationId: string): Promise<{ 
   try {
     const supabase = createClient()
 
-    const { error } = await supabase.from("deck_notifications").update({ is_read: true }).eq("id", notificationId)
+    // まずtrade_notificationsで試す
+    const { error: tradeError } = await supabase
+      .from("trade_notifications")
+      .update({ is_read: true })
+      .eq("id", notificationId)
 
-    if (error) {
-      console.error("Error marking notification as read:", error)
-      return { success: false, error: error.message }
+    // trade_notificationsで見つからない場合はdeck_notificationsで試す
+    if (tradeError) {
+      const { error: deckError } = await supabase
+        .from("deck_notifications")
+        .update({ is_read: true })
+        .eq("id", notificationId)
+
+      if (deckError) {
+        console.error("Error marking notification as read:", deckError)
+        return { success: false, error: deckError.message }
+      }
     }
 
     return { success: true }
   } catch (error) {
     console.error("Error in markNotificationAsRead:", error)
-    return { success: false, error: "Failed to mark notification as read" }
+    return { success: false, error: "通知の既読処理に失敗しました" }
   }
 }
 
@@ -429,21 +453,32 @@ export async function markAllNotificationsAsRead(userId: string): Promise<{ succ
   try {
     const supabase = createClient()
 
-    const { error } = await supabase
-      .from("deck_notifications")
-      .update({ is_read: true })
-      .eq("user_id", userId)
-      .eq("is_read", false)
+    // 両方のテーブルで既読処理
+    const [tradeResult, deckResult] = await Promise.all([
+      supabase.from("trade_notifications").update({ is_read: true }).eq("user_id", userId).eq("is_read", false),
+      supabase.from("deck_notifications").update({ is_read: true }).eq("user_id", userId).eq("is_read", false),
+    ])
 
-    if (error) {
-      console.error("Error marking all notifications as read:", error)
-      return { success: false, error: error.message }
+    if (tradeResult.error) {
+      console.error("Error marking trade notifications as read:", tradeResult.error)
+    }
+
+    if (deckResult.error) {
+      console.error("Error marking deck notifications as read:", deckResult.error)
+    }
+
+    // どちらか一方でもエラーがあった場合はエラーを返す
+    if (tradeResult.error || deckResult.error) {
+      return {
+        success: false,
+        error: tradeResult.error?.message || deckResult.error?.message || "通知の既読処理に失敗しました",
+      }
     }
 
     return { success: true }
   } catch (error) {
     console.error("Error in markAllNotificationsAsRead:", error)
-    return { success: false, error: "Failed to mark all notifications as read" }
+    return { success: false, error: "全通知の既読処理に失敗しました" }
   }
 }
 
