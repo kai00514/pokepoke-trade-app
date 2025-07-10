@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Bell, Check, CheckCheck } from "lucide-react"
+import { Bell, Check, CheckCheck, Package, Users } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import {
@@ -28,6 +28,9 @@ interface Notification {
   is_read: boolean
   created_at: string
   related_id?: string
+  sender_name?: string
+  trade_title?: string
+  deck_title?: string
 }
 
 export function NotificationDropdown() {
@@ -86,6 +89,67 @@ export function NotificationDropdown() {
     }
   }
 
+  const getNotificationTypeInfo = (type: string) => {
+    switch (type) {
+      case "trade":
+      case "trade_comment":
+      case "trade_request":
+        return {
+          label: "トレード",
+          color: "bg-blue-500",
+          icon: <Users className="h-3 w-3" />,
+        }
+      case "deck":
+      case "deck_comment":
+      case "deck_like":
+        return {
+          label: "デッキ",
+          color: "bg-green-500",
+          icon: <Package className="h-3 w-3" />,
+        }
+      default:
+        return {
+          label: "その他",
+          color: "bg-gray-500",
+          icon: <Bell className="h-3 w-3" />,
+        }
+    }
+  }
+
+  const formatDateTime = (dateString: string) => {
+    const date = new Date(dateString)
+    const now = new Date()
+    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60))
+
+    if (diffInHours < 1) {
+      const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60))
+      return diffInMinutes < 1 ? "今" : `${diffInMinutes}分前`
+    } else if (diffInHours < 24) {
+      return `${diffInHours}時間前`
+    } else {
+      return date.toLocaleString("ja-JP", {
+        year: "numeric",
+        month: "numeric",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      })
+    }
+  }
+
+  const getNotificationContent = (notification: Notification) => {
+    const typeInfo = getNotificationTypeInfo(notification.type)
+    const senderName = notification.sender_name || "不明なユーザー"
+    const contentTitle = notification.trade_title || notification.deck_title || "詳細不明"
+
+    return {
+      typeInfo,
+      senderName,
+      contentTitle,
+      description: `${senderName}さんから「${contentTitle}」について`,
+    }
+  }
+
   if (!user) return null
 
   return (
@@ -108,9 +172,9 @@ export function NotificationDropdown() {
           )}
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-80">
-        <div className="flex items-center justify-between p-2">
-          <h3 className="font-semibold">通知</h3>
+      <DropdownMenuContent align="end" className="w-96">
+        <div className="flex items-center justify-between p-3">
+          <h3 className="font-semibold text-lg">通知</h3>
           {unreadCount > 0 && (
             <Button variant="ghost" size="sm" onClick={handleMarkAllAsRead} className="text-xs">
               <CheckCheck className="h-4 w-4 mr-1" />
@@ -125,38 +189,54 @@ export function NotificationDropdown() {
           ) : notifications.length === 0 ? (
             <div className="p-4 text-center text-sm text-muted-foreground">通知はありません</div>
           ) : (
-            notifications.map((notification) => (
-              <DropdownMenuItem
-                key={notification.id}
-                className={`p-3 cursor-pointer ${!notification.is_read ? "bg-blue-50" : ""}`}
-                onClick={() => !notification.is_read && handleMarkAsRead(notification.id)}
-              >
-                <div className="flex items-start gap-2 w-full">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <h4 className="text-sm font-medium">{notification.title}</h4>
-                      {!notification.is_read && <div className="w-2 h-2 bg-blue-500 rounded-full" />}
+            notifications.map((notification) => {
+              const { typeInfo, senderName, contentTitle, description } = getNotificationContent(notification)
+
+              return (
+                <DropdownMenuItem
+                  key={notification.id}
+                  className={`p-4 cursor-pointer border-b border-gray-100 last:border-b-0 ${
+                    !notification.is_read ? "bg-blue-50 hover:bg-blue-100" : "hover:bg-gray-50"
+                  }`}
+                  onClick={() => !notification.is_read && handleMarkAsRead(notification.id)}
+                >
+                  <div className="flex items-start gap-3 w-full">
+                    <div className="flex-shrink-0 mt-1">
+                      <div className={`${typeInfo.color} text-white rounded-full p-2 flex items-center justify-center`}>
+                        {typeInfo.icon}
+                      </div>
                     </div>
-                    <p className="text-xs text-muted-foreground mt-1">{notification.message}</p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {new Date(notification.created_at).toLocaleString("ja-JP")}
-                    </p>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <Badge variant="secondary" className={`${typeInfo.color} text-white text-xs px-2 py-1`}>
+                          {typeInfo.label}
+                        </Badge>
+                        {!notification.is_read && <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0" />}
+                      </div>
+                      <h4 className="text-sm font-medium text-gray-900 mb-1 line-clamp-1">{notification.title}</h4>
+                      <p className="text-xs text-gray-600 mb-1 line-clamp-1">{description}</p>
+                      <p className="text-xs text-gray-500 mb-2 line-clamp-2">{notification.message}</p>
+                      <div className="flex items-center justify-between">
+                        <p className="text-xs text-gray-400">{formatDateTime(notification.created_at)}</p>
+                        {!notification.is_read && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 w-6 p-0 hover:bg-blue-200"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleMarkAsRead(notification.id)
+                            }}
+                          >
+                            <Check className="h-3 w-3" />
+                          </Button>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                  {!notification.is_read && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        handleMarkAsRead(notification.id)
-                      }}
-                    >
-                      <Check className="h-4 w-4" />
-                    </Button>
-                  )}
-                </div>
-              </DropdownMenuItem>
-            ))
+                </DropdownMenuItem>
+              )
+            })
           )}
         </ScrollArea>
       </DropdownMenuContent>
