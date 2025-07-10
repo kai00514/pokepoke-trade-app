@@ -194,7 +194,7 @@ export function NotificationDropdown() {
       </DropdownMenuTrigger>
       <DropdownMenuContent
         align="end"
-        className="w-72 sm:w-80 md:w-96 max-w-[calc(100vw-1rem)] mx-2 sm:mx-0 shadow-lg border-0 bg-white rounded-lg overflow-hidden"
+        className="w-80 sm:w-96 max-w-[calc(100vw-1rem)] mx-2 sm:mx-0 shadow-lg border-0 bg-white rounded-lg overflow-hidden"
         sideOffset={8}
       >
         {/* ヘッダー */}
@@ -214,8 +214,8 @@ export function NotificationDropdown() {
           )}
         </div>
 
-        {/* 通知リスト */}
-        <div className="max-h-[50vh] sm:max-h-[60vh] md:max-h-[70vh] min-h-[200px] overflow-hidden">
+        {/* 通知リスト - 画面の中央まで表示、それ以降はスクロール */}
+        <div className="h-80 max-h-[40vh] overflow-hidden">
           <ScrollArea className="h-full">
             {loading ? (
               <div className="p-6 text-center">
@@ -229,7 +229,7 @@ export function NotificationDropdown() {
               </div>
             ) : (
               <div className="divide-y divide-gray-100">
-                {notifications.map((notification, index) => {
+                {notifications.map((notification) => {
                   const typeInfo = getNotificationTypeInfo(notification.type)
                   const { senderName, contentTitle } = parseNotificationContent(notification.content)
 

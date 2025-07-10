@@ -293,30 +293,23 @@ export async function handleMatchNotification(
 /**
  * 通知タイプに基づいてリダイレクト先を決定する
  */
-export function getNotificationRedirectPath(notification: Notification): string {
+export function getNotificationRedirectPath(notification: any): string {
   if (!notification.related_id) {
     return "/"
   }
 
   switch (notification.type) {
-    case "comment":
-    case "reply":
-    case "comment_on_post":
     case "trade":
     case "trade_comment":
     case "trade_request":
+    case "comment":
+    case "reply":
+    case "comment_on_post":
       return `/trades/${notification.related_id}`
     case "deck":
     case "deck_comment":
     case "deck_like":
       return `/decks/${notification.related_id}`
-    case "match_request":
-    case "match_accepted":
-    case "match_rejected":
-      return `/matching`
-    case "trade_completion_request":
-    case "trade_completed":
-      return `/chat/${notification.related_id}`
     default:
       return "/"
   }
@@ -405,13 +398,13 @@ export async function getNotifications(userId: string): Promise<NotificationResu
         .select("*")
         .eq("user_id", userId)
         .order("created_at", { ascending: false })
-        .limit(50),
+        .limit(25),
       supabase
         .from("deck_notifications")
         .select("*")
         .eq("user_id", userId)
         .order("created_at", { ascending: false })
-        .limit(50),
+        .limit(25),
     ])
 
     if (tradeResult.error) {
@@ -441,10 +434,15 @@ export async function getNotifications(userId: string): Promise<NotificationResu
   }
 }
 
+interface MarkAsReadResult {
+  success: boolean
+  error?: string
+}
+
 /**
  * 通知を既読にする
  */
-export async function markNotificationAsRead(notificationId: string): Promise<{ success: boolean; error?: string }> {
+export async function markNotificationAsRead(notificationId: string): Promise<MarkAsReadResult> {
   try {
     const supabase = createClient()
 
@@ -466,7 +464,7 @@ export async function markNotificationAsRead(notificationId: string): Promise<{ 
     console.error("Error in markNotificationAsRead:", error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Unknown error",
+      error: error instanceof Error ? error.message : "Failed to mark notification as read",
     }
   }
 }
@@ -474,7 +472,7 @@ export async function markNotificationAsRead(notificationId: string): Promise<{ 
 /**
  * すべての通知を既読にする
  */
-export async function markAllNotificationsAsRead(userId: string): Promise<{ success: boolean; error?: string }> {
+export async function markAllNotificationsAsRead(userId: string): Promise<MarkAsReadResult> {
   try {
     const supabase = createClient()
 
@@ -497,7 +495,7 @@ export async function markAllNotificationsAsRead(userId: string): Promise<{ succ
     console.error("Error in markAllNotificationsAsRead:", error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Unknown error",
+      error: error instanceof Error ? error.message : "Failed to mark all notifications as read",
     }
   }
 }

@@ -18,7 +18,7 @@ ALTER TABLE public.trade_notifications
   ALTER COLUMN created_at SET DEFAULT now();
 
 -- 複合インデックスを追加（パフォーマンス向上）
-CREATE INDEX IF NOT EXISTS idx_trade_notifications_user_unread_created 
+CREATE INDEX IF NOT EXISTS idx_trade_notifications_user_unread_date 
   ON public.trade_notifications (user_id, is_read, created_at DESC);
 
 -- typeカラムにインデックスを追加
@@ -47,7 +47,7 @@ ALTER TABLE public.deck_notifications
   ALTER COLUMN created_at SET DEFAULT now();
 
 -- 複合インデックスを追加（パフォーマンス向上）
-CREATE INDEX IF NOT EXISTS idx_deck_notifications_user_unread_created 
+CREATE INDEX IF NOT EXISTS idx_deck_notifications_user_unread_date 
   ON public.deck_notifications (user_id, is_read, created_at DESC);
 
 -- typeカラムにインデックスを追加
@@ -70,13 +70,6 @@ BEGIN
   DELETE FROM public.deck_notifications 
   WHERE is_read = true 
     AND created_at < NOW() - INTERVAL '30 days';
-    
-  -- 90日以上前の未読通知も削除（古すぎる通知は意味がない）
-  DELETE FROM public.trade_notifications 
-  WHERE created_at < NOW() - INTERVAL '90 days';
-    
-  DELETE FROM public.deck_notifications 
-  WHERE created_at < NOW() - INTERVAL '90 days';
 END;
 $$ LANGUAGE plpgsql;
 
@@ -123,32 +116,32 @@ ALTER TABLE public.trade_notifications ENABLE ROW LEVEL SECURITY;
 
 -- ユーザーは自分の通知のみ閲覧・操作可能
 CREATE POLICY "Users can view own trade notifications" ON public.trade_notifications
-  FOR SELECT USING (auth.uid() = user_id);
+  FOR SELECT USING (auth.uid()::text = user_id);
 
 CREATE POLICY "Users can insert own trade notifications" ON public.trade_notifications
-  FOR INSERT WITH CHECK (auth.uid() = user_id);
+  FOR INSERT WITH CHECK (auth.uid()::text = user_id);
 
 CREATE POLICY "Users can update own trade notifications" ON public.trade_notifications
-  FOR UPDATE USING (auth.uid() = user_id);
+  FOR UPDATE USING (auth.uid()::text = user_id);
 
 CREATE POLICY "Users can delete own trade notifications" ON public.trade_notifications
-  FOR DELETE USING (auth.uid() = user_id);
+  FOR DELETE USING (auth.uid()::text = user_id);
 
 -- deck_notificationsのRLS有効化
 ALTER TABLE public.deck_notifications ENABLE ROW LEVEL SECURITY;
 
 -- ユーザーは自分の通知のみ閲覧・操作可能
 CREATE POLICY "Users can view own deck notifications" ON public.deck_notifications
-  FOR SELECT USING (auth.uid() = user_id);
+  FOR SELECT USING (auth.uid()::text = user_id);
 
 CREATE POLICY "Users can insert own deck notifications" ON public.deck_notifications
-  FOR INSERT WITH CHECK (auth.uid() = user_id);
+  FOR INSERT WITH CHECK (auth.uid()::text = user_id);
 
 CREATE POLICY "Users can update own deck notifications" ON public.deck_notifications
-  FOR UPDATE USING (auth.uid() = user_id);
+  FOR UPDATE USING (auth.uid()::text = user_id);
 
 CREATE POLICY "Users can delete own deck notifications" ON public.deck_notifications
-  FOR DELETE USING (auth.uid() = user_id);
+  FOR DELETE USING (auth.uid()::text = user_id);
 
 -- 7. 通知作成時のトリガー関数
 CREATE OR REPLACE FUNCTION notify_user_on_notification()
@@ -177,7 +170,63 @@ CREATE TRIGGER trigger_notify_user_on_deck_notification
   AFTER INSERT ON public.deck_notifications
   FOR EACH ROW EXECUTE FUNCTION notify_user_on_notification();
 
--- 8. パフォーマンス向上のための部分インデックス
+-- 8. 通知作成用の関数
+CREATE OR REPLACE FUNCTION create_trade_notification(
+  p_user_id text,
+  p_type text,
+  p_content text,
+  p_related_id uuid DEFAULT NULL
+)
+RETURNS uuid AS $$
+DECLARE
+  notification_id uuid;
+BEGIN
+  INSERT INTO public.trade_notifications (user_id, type, content, related_id)
+  VALUES (p_user_id, p_type, p_content, p_related_id)
+  RETURNING id INTO notification_id;
+  
+  RETURN notification_id;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION create_deck_notification(
+  p_user_id text,
+  p_type text,
+  p_content text,
+  p_related_id uuid DEFAULT NULL
+)
+RETURNS uuid AS $$
+DECLARE
+  notification_id uuid;
+BEGIN
+  INSERT INTO public.deck_notifications (user_id, type, content, related_id)
+  VALUES (p_user_id, p_type, p_content, p_related_id)
+  RETURNING id INTO notification_id;
+  
+  RETURN notification_id;
+END;
+$$ LANGUAGE plpgsql;
+
+-- 9. 未読通知数を取得する関数
+CREATE OR REPLACE FUNCTION get_unread_notification_count(p_user_id text)
+RETURNS integer AS $$
+DECLARE
+  trade_count integer;
+  deck_count integer;
+BEGIN
+  SELECT COUNT(*) INTO trade_count
+  FROM public.trade_notifications
+  WHERE user_id = p_user_id::uuid AND is_read = false;
+  
+  SELECT COUNT(*) INTO deck_count
+  FROM public.deck_notifications
+  WHERE user_id = p_user_id::uuid AND is_read = false;
+  
+  RETURN COALESCE(trade_count, 0) + COALESCE(deck_count, 0);
+END;
+$$ LANGUAGE plpgsql;
+
+-- 10. パフォーマンス向上のための部分インデックス
 -- 未読通知のみのインデックス（よく使われるクエリを高速化）
 CREATE INDEX IF NOT EXISTS idx_trade_notifications_unread_only 
   ON public.trade_notifications (user_id, created_at DESC) 
@@ -187,7 +236,7 @@ CREATE INDEX IF NOT EXISTS idx_deck_notifications_unread_only
   ON public.deck_notifications (user_id, created_at DESC) 
   WHERE is_read = false;
 
--- 9. 統計情報の更新
+-- 11. 統計情報の更新
 ANALYZE public.trade_notifications;
 ANALYZE public.deck_notifications;
 
@@ -200,4 +249,6 @@ BEGIN
   RAISE NOTICE '- RLSポリシーの設定';
   RAISE NOTICE '- 自動クリーンアップ機能の追加';
   RAISE NOTICE '- リアルタイム通知機能の追加';
+  RAISE NOTICE '- 通知作成用の関数の追加';
+  RAISE NOTICE '- 未読通知数を取得する関数の追加';
 END $$;
