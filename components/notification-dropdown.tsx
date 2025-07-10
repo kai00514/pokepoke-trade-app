@@ -28,6 +28,9 @@ interface Notification {
   is_read: boolean
   created_at: string
   related_id?: string
+  sender_name?: string
+  trade_title?: string
+  deck_title?: string
 }
 
 export function NotificationDropdown() {
@@ -134,24 +137,34 @@ export function NotificationDropdown() {
     }
   }
 
-  const parseNotificationMessage = (message: string) => {
-    // メッセージから情報を抽出
-    let senderName = "不明なユーザー"
-    let contentTitle = "詳細不明"
+  const getNotificationContent = (notification: Notification) => {
+    const typeInfo = getNotificationTypeInfo(notification.type)
 
-    // "○○さんが「××」にコメントしました" のようなパターンを解析
-    const userNameMatch = message.match(/^(.+?)さんが/)
-    if (userNameMatch) {
-      senderName = userNameMatch[1]
+    // メッセージからユーザー名を抽出する処理
+    let senderName = notification.sender_name || "不明なユーザー"
+    let contentTitle = notification.trade_title || notification.deck_title || "詳細不明"
+
+    // メッセージからユーザー名とタイトルを抽出
+    if (notification.message) {
+      // "○○さんが「××」にコメントしました" のようなパターンを解析
+      const userNameMatch = notification.message.match(/^(.+?)さんが/)
+      if (userNameMatch) {
+        senderName = userNameMatch[1]
+      }
+
+      // 「」で囲まれたタイトルを抽出
+      const titleMatch = notification.message.match(/「(.+?)」/)
+      if (titleMatch) {
+        contentTitle = titleMatch[1]
+      }
     }
 
-    // 「」で囲まれたタイトルを抽出
-    const titleMatch = message.match(/「(.+?)」/)
-    if (titleMatch) {
-      contentTitle = titleMatch[1]
+    return {
+      typeInfo,
+      senderName,
+      contentTitle,
+      description: `${senderName}さんから「${contentTitle}」について`,
     }
-
-    return { senderName, contentTitle }
   }
 
   if (!user) return null
@@ -194,8 +207,7 @@ export function NotificationDropdown() {
             <div className="p-4 text-center text-sm text-muted-foreground">通知はありません</div>
           ) : (
             notifications.map((notification) => {
-              const typeInfo = getNotificationTypeInfo(notification.type)
-              const { senderName, contentTitle } = parseNotificationMessage(notification.message)
+              const { typeInfo, senderName, contentTitle, description } = getNotificationContent(notification)
 
               return (
                 <DropdownMenuItem
@@ -219,9 +231,7 @@ export function NotificationDropdown() {
                         {!notification.is_read && <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0" />}
                       </div>
                       <h4 className="text-sm font-medium text-gray-900 mb-1 line-clamp-1">{notification.title}</h4>
-                      <p className="text-xs text-gray-600 mb-1 line-clamp-1">
-                        {senderName}さんから「{contentTitle}」について
-                      </p>
+                      <p className="text-xs text-gray-600 mb-1 line-clamp-1">{description}</p>
                       <p className="text-xs text-gray-500 mb-2 line-clamp-2">{notification.message}</p>
                       <div className="flex items-center justify-between">
                         <p className="text-xs text-gray-400">{formatDateTime(notification.created_at)}</p>
