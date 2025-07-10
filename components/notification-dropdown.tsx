@@ -139,8 +139,25 @@ export function NotificationDropdown() {
 
   const getNotificationContent = (notification: Notification) => {
     const typeInfo = getNotificationTypeInfo(notification.type)
-    const senderName = notification.sender_name || "不明なユーザー"
-    const contentTitle = notification.trade_title || notification.deck_title || "詳細不明"
+
+    // メッセージからユーザー名を抽出する処理
+    let senderName = notification.sender_name || "不明なユーザー"
+    let contentTitle = notification.trade_title || notification.deck_title || "詳細不明"
+
+    // メッセージからユーザー名とタイトルを抽出
+    if (notification.message) {
+      // "○○さんが「××」にコメントしました" のようなパターンを解析
+      const userNameMatch = notification.message.match(/^(.+?)さんが/)
+      if (userNameMatch) {
+        senderName = userNameMatch[1]
+      }
+
+      // 「」で囲まれたタイトルを抽出
+      const titleMatch = notification.message.match(/「(.+?)」/)
+      if (titleMatch) {
+        contentTitle = titleMatch[1]
+      }
+    }
 
     return {
       typeInfo,
