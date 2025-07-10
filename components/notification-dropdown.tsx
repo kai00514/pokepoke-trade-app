@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Bell, Check, CheckCheck, Package, Users } from "lucide-react"
+import { Bell, Check, CheckCheck, Package, Users } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
@@ -194,18 +194,22 @@ export function NotificationDropdown() {
       </DropdownMenuTrigger>
       <DropdownMenuContent
         align="end"
-        className="w-80 sm:w-96 max-w-[calc(100vw-1rem)] mx-2 sm:mx-0 shadow-lg border-0 bg-white rounded-lg overflow-hidden"
+        side="bottom"
+        className="w-72 sm:w-80 max-w-[calc(100vw-2rem)] shadow-lg border bg-white rounded-lg overflow-hidden"
         sideOffset={8}
+        alignOffset={-8}
+        avoidCollisions={true}
+        collisionPadding={16}
       >
         {/* ヘッダー */}
-        <div className="flex items-center justify-between p-3 sm:p-4 border-b bg-gray-50/50">
-          <h3 className="font-semibold text-sm sm:text-base text-gray-900">通知</h3>
+        <div className="flex items-center justify-between p-3 border-b bg-gray-50/50 sticky top-0 z-10">
+          <h3 className="font-semibold text-sm text-gray-900">通知</h3>
           {unreadCount > 0 && (
             <Button
               variant="ghost"
               size="sm"
               onClick={handleMarkAllAsRead}
-              className="text-xs h-7 px-2 hover:bg-gray-100 transition-colors text-gray-600 hover:text-gray-900"
+              className="text-xs h-6 px-2 hover:bg-gray-100 transition-colors text-gray-600 hover:text-gray-900"
             >
               <CheckCheck className="h-3 w-3 mr-1" />
               <span className="hidden sm:inline">全て既読</span>
@@ -214,8 +218,8 @@ export function NotificationDropdown() {
           )}
         </div>
 
-        {/* 通知リスト - 画面の中央まで表示、それ以降はスクロール */}
-        <div className="h-80 max-h-[40vh] overflow-hidden">
+        {/* 通知リスト */}
+        <div className="max-h-[50vh] min-h-[200px] overflow-hidden">
           <ScrollArea className="h-full">
             {loading ? (
               <div className="p-6 text-center">
@@ -236,7 +240,7 @@ export function NotificationDropdown() {
                   return (
                     <DropdownMenuItem
                       key={notification.id}
-                      className={`p-3 sm:p-4 cursor-pointer transition-all duration-200 hover:bg-gray-50 focus:bg-gray-50 ${
+                      className={`p-3 cursor-pointer transition-all duration-200 hover:bg-gray-50 focus:bg-gray-50 ${
                         !notification.is_read ? "bg-blue-50/50 border-l-4 border-blue-500" : ""
                       }`}
                       onClick={() => handleNotificationClick(notification)}
@@ -281,7 +285,7 @@ export function NotificationDropdown() {
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                className="h-6 w-6 p-0 hover:bg-blue-200 rounded-full transition-colors opacity-70 hover:opacity-100"
+                                className="h-5 w-5 p-0 hover:bg-blue-200 rounded-full transition-colors opacity-70 hover:opacity-100"
                                 onClick={(e) => {
                                   e.stopPropagation()
                                   handleMarkAsRead(notification.id)
@@ -304,7 +308,7 @@ export function NotificationDropdown() {
 
         {/* フッター */}
         {notifications.length > 0 && (
-          <div className="p-2 border-t bg-gray-50/30">
+          <div className="p-2 border-t bg-gray-50/30 sticky bottom-0">
             <p className="text-xs text-center text-gray-500">
               {notifications.length >= 50 ? "最新50件を表示" : `${notifications.length}件の通知`}
             </p>
