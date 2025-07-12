@@ -1,74 +1,32 @@
 "use client"
-
-import type React from "react"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { GoogleIcon } from "@/components/icons/google-icon"
 import { XIcon } from "@/components/icons/twitter-icon"
 import { createClient } from "@/lib/supabase/client"
 import { useToast } from "@/components/ui/use-toast"
+import { Mail, ArrowRight } from "lucide-react"
 
 export default function SignupPage() {
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [confirmPassword, setConfirmPassword] = useState("")
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState<string | null>(null)
   const router = useRouter()
   const { toast } = useToast()
   const supabase = createClient()
 
-  const handleEmailSignup = async (e: React.FormEvent) => {
-    e.preventDefault()
-
-    if (password !== confirmPassword) {
-      toast({
-        title: "パスワードエラー",
-        description: "パスワードが一致しません。",
-        variant: "destructive",
-      })
-      return
-    }
-
-    setLoading(true)
-
-    try {
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
-        },
-      })
-
-      if (error) {
-        toast({
-          title: "登録エラー",
-          description: error.message,
-          variant: "destructive",
-        })
-      } else {
-        toast({
-          title: "登録完了",
-          description: "メールアドレスに確認メールを送信しました。",
-        })
-        router.push("/auth/login")
-      }
-    } catch (error) {
-      toast({
-        title: "エラー",
-        description: "登録に失敗しました。",
-        variant: "destructive",
-      })
-    } finally {
-      setLoading(false)
-    }
+  const handleEmailSignup = () => {
+    // メール登録画面への遷移（実装予定）
+    toast({
+      title: "準備中",
+      description: "メールアドレスでの登録機能は準備中です。",
+      variant: "destructive",
+    })
   }
 
   const handleSocialSignup = async (provider: "google" | "twitter") => {
+    setLoading(provider)
+
     try {
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider,
@@ -99,78 +57,91 @@ export default function SignupPage() {
         description: "ソーシャル登録に失敗しました。",
         variant: "destructive",
       })
+    } finally {
+      setLoading(null)
     }
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center">新規登録</CardTitle>
-          <CardDescription className="text-center">新しいアカウントを作成してください</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <form onSubmit={handleEmailSignup} className="space-y-4">
-            <div className="space-y-2">
-              <Input
-                type="email"
-                placeholder="メールアドレス"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Input
-                type="password"
-                placeholder="パスワード"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Input
-                type="password"
-                placeholder="パスワード確認"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                required
-              />
-            </div>
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "登録中..." : "新規登録"}
-            </Button>
-          </form>
+    <div className="min-h-screen bg-gradient-to-br from-purple-400 via-purple-500 to-purple-600 flex items-center justify-center px-4 py-8">
+      <div className="w-full max-w-md">
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-white mb-2">会員登録</h1>
+          <p className="text-purple-100">アカウントを作成してポケモンカードの取引を始めましょう</p>
+        </div>
 
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t" />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-white px-2 text-gray-500">または</span>
-            </div>
+        <div className="bg-white rounded-2xl p-8 shadow-xl">
+          <div className="space-y-4">
+            <Button
+              onClick={handleEmailSignup}
+              className="w-full h-14 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-xl flex items-center justify-between px-6"
+            >
+              <div className="flex items-center">
+                <Mail className="h-5 w-5 mr-3" />
+                <span>メールアドレスで新規登録</span>
+              </div>
+              <ArrowRight className="h-5 w-5" />
+            </Button>
+
+            <Button
+              onClick={() => handleSocialSignup("google")}
+              variant="outline"
+              className="w-full h-14 border-gray-200 hover:bg-gray-50 rounded-xl flex items-center justify-between px-6"
+              disabled={loading === "google"}
+            >
+              <div className="flex items-center">
+                <GoogleIcon className="h-5 w-5 mr-3" />
+                <span className="font-medium">{loading === "google" ? "登録中..." : "Googleで登録"}</span>
+              </div>
+              <ArrowRight className="h-5 w-5" />
+            </Button>
+
+            <Button
+              variant="outline"
+              className="w-full h-14 border-gray-200 rounded-xl flex items-center justify-between px-6 opacity-50 cursor-not-allowed bg-transparent"
+              disabled
+            >
+              <div className="flex items-center">
+                <div className="w-5 h-5 mr-3 bg-green-500 rounded flex items-center justify-center">
+                  <span className="text-white text-xs font-bold">L</span>
+                </div>
+                <span className="font-medium text-gray-400">LINEで登録（準備中）</span>
+              </div>
+              <ArrowRight className="h-5 w-5 text-gray-400" />
+            </Button>
+
+            <Button
+              onClick={() => handleSocialSignup("twitter")}
+              variant="outline"
+              className="w-full h-14 border-gray-200 hover:bg-gray-50 rounded-xl flex items-center justify-between px-6"
+              disabled={loading === "twitter"}
+            >
+              <div className="flex items-center">
+                <XIcon className="h-5 w-5 mr-3" />
+                <span className="font-medium">{loading === "twitter" ? "登録中..." : "Xで登録"}</span>
+              </div>
+              <ArrowRight className="h-5 w-5" />
+            </Button>
           </div>
 
-          <div className="space-y-2">
-            <Button variant="outline" className="w-full bg-transparent" onClick={() => handleSocialSignup("google")}>
-              <GoogleIcon className="mr-2 h-4 w-4" />
-              Googleで登録
-            </Button>
-            <Button variant="outline" className="w-full bg-transparent" onClick={() => handleSocialSignup("twitter")}>
-              <XIcon className="mr-2 h-4 w-4" />
-              Twitterで登録
-            </Button>
+          <div className="mt-6 text-center text-sm text-gray-500">
+            ※ソーシャルログイン機能は現在ブラウザのみで提供しています。
           </div>
 
-          <div className="text-center text-sm">
-            <span className="text-gray-600">すでにアカウントをお持ちの方は </span>
-            <Link href="/auth/login" className="text-blue-600 hover:underline">
+          <div className="mt-6 text-center text-xs text-gray-500 leading-relaxed">
+            会員登録は利用規約およびプライバシーポリシーに同意したとみなします。
+            <br />
+            ご確認の上、会員登録を進めてください。
+          </div>
+
+          <div className="mt-8 text-center">
+            <p className="text-gray-600 mb-2">すでにアカウントをお持ちの方</p>
+            <Link href="/auth/login" className="text-purple-600 hover:text-purple-700 font-medium">
               ログイン
             </Link>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   )
 }
