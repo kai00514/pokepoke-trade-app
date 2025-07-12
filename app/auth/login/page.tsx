@@ -151,7 +151,7 @@ export default function LoginPage() {
     <div className="min-h-screen bg-gradient-to-br from-purple-400 via-purple-500 to-purple-600 flex items-center justify-center px-4 py-8">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">ログイン</h1>
+          <h1 className="text-3xl font-bold text-black mb-2">ログイン</h1>
         </div>
 
         <div className="bg-white rounded-2xl p-8 shadow-xl">

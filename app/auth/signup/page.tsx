@@ -67,7 +67,7 @@ export default function SignupPage() {
     <div className="min-h-screen bg-gradient-to-br from-purple-400 via-purple-500 to-purple-600 flex items-center justify-center px-4 py-8">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">会員登録</h1>
+          <h1 className="text-3xl font-bold text-black mb-2">会員登録</h1>
           <p className="text-purple-100">アカウントを作成してポケモンカードの取引を始めましょう</p>
         </div>
 
