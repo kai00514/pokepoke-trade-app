@@ -11,7 +11,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
-import { LoginPrompt } from "@/components/login-prompt"
+import LoginPromptModal from "@/components/ui/login-prompt-modal"
 
 export default function FavoritesPage() {
   const [favoriteDecks, setFavoriteDecks] = useState<Deck[]>([])
@@ -131,9 +131,9 @@ export default function FavoritesPage() {
           </Card>
         </div>
 
-        <LoginPrompt
-          open={showLoginPrompt}
-          setOpen={setShowLoginPrompt}
+        <LoginPromptModal
+          isOpen={showLoginPrompt}
+          onClose={() => setShowLoginPrompt(false)}
           title="お気に入りデッキを表示するにはログインが必要です"
           description="お気に入りのデッキを保存して、いつでも簡単にアクセスできるようにしましょう。"
           onContinueAsGuest={handleContinueAsGuest}
