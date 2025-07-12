@@ -229,7 +229,7 @@ export default function DecksPage() {
       <Header />
       <main className="flex-grow container mx-auto px-4 pb-8">
         {/* デッキを投稿するボタンとお気に入りボタン */}
-        <div className="my-6 flex justify-center items-center relative">
+        <div className="my-6 flex justify-center items-center gap-4">
           <Button
             asChild
             className="bg-emerald-500 hover:bg-emerald-600 text-white text-base font-semibold py-3 px-8 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 ease-in-out transform hover:-translate-y-0.5"
@@ -242,7 +242,7 @@ export default function DecksPage() {
 
           <Button
             asChild
-            className="absolute right-0 bg-yellow-500 hover:bg-yellow-600 text-white text-base font-semibold py-3 px-6 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 ease-in-out transform hover:-translate-y-0.5"
+            className="bg-yellow-500 hover:bg-yellow-600 text-white text-base font-semibold py-3 px-8 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 ease-in-out transform hover:-translate-y-0.5"
           >
             <Link href="/favorites">
               <Star className="mr-2 h-5 w-5" />
