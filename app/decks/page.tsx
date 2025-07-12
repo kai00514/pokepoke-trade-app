@@ -177,7 +177,7 @@ export default function DecksPage() {
   const renderDeckList = () => {
     if (isLoading) {
       return (
-        <div className="flex justify-center items-center py-10 sm:py-16">
+        <div className="flex justify-center items-center py-20">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
             <p className="text-slate-500">デッキを読み込み中...</p>
@@ -188,7 +188,7 @@ export default function DecksPage() {
 
     if (error) {
       return (
-        <div className="text-center py-10 sm:py-16">
+        <div className="text-center py-20">
           <p className="text-red-500 mb-4">{error}</p>
           <Button onClick={() => handleCategoryClick(selectedCategory || "posted")} variant="outline">
             再試行
@@ -199,15 +199,13 @@ export default function DecksPage() {
 
     if (decks.length === 0) {
       return (
-        <div className="text-center py-10 sm:py-16">
-          <div className="mb-4 sm:mb-6">
-            <PlusCircle className="h-12 w-12 sm:h-16 sm:w-16 text-slate-300 mx-auto mb-2 sm:mb-4" />
-            <h3 className="text-base sm:text-lg font-semibold text-slate-600 mb-1 sm:mb-2">
-              まだデッキが投稿されていません
-            </h3>
-            <p className="text-sm sm:text-base text-slate-500 mb-4 sm:mb-6">最初のデッキを投稿してみませんか？</p>
+        <div className="text-center py-20">
+          <div className="mb-6">
+            <PlusCircle className="h-16 w-16 text-slate-300 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-slate-600 mb-2">まだデッキが投稿されていません</h3>
+            <p className="text-slate-500 mb-6">最初のデッキを投稿してみませんか？</p>
           </div>
-          <Button asChild className="bg-emerald-500 hover:bg-emerald-600 text-white text-sm sm:text-base">
+          <Button asChild className="bg-emerald-500 hover:bg-emerald-600 text-white">
             <Link href="/decks/create">
               <PlusCircle className="mr-2 h-4 w-4" />
               デッキを投稿する
@@ -218,7 +216,7 @@ export default function DecksPage() {
     }
 
     return (
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
         {decks.map((deck) => (
           <DeckCard key={deck.id} deck={deck} />
         ))}
@@ -229,32 +227,32 @@ export default function DecksPage() {
   return (
     <div className="p-0 py-0">
       <Header />
-      <main className="flex-grow container mx-auto px-3 sm:px-4 pb-6 sm:pb-8">
+      <main className="flex-grow container mx-auto px-4 pb-8">
         {/* デッキを投稿するボタンとお気に入りボタン */}
-        <div className="my-4 sm:my-6 flex flex-col sm:flex-row justify-center items-center gap-3 sm:gap-4">
+        <div className="my-6 flex justify-center items-center gap-4">
           <Button
             asChild
-            className="w-full sm:w-auto bg-emerald-500 hover:bg-emerald-600 text-white text-sm sm:text-base font-semibold py-2.5 px-6 sm:py-3 sm:px-8 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 ease-in-out transform hover:-translate-y-0.5"
+            className="bg-emerald-500 hover:bg-emerald-600 text-white text-base font-semibold py-3 px-8 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 ease-in-out transform hover:-translate-y-0.5"
           >
             <Link href="/decks/create">
-              <PlusCircle className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+              <PlusCircle className="mr-2 h-5 w-5" />
               デッキを投稿する
             </Link>
           </Button>
 
           <Button
             asChild
-            className="w-full sm:w-auto bg-yellow-500 hover:bg-yellow-600 text-white text-sm sm:text-base font-semibold py-2.5 px-6 sm:py-3 sm:px-8 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 ease-in-out transform hover:-translate-y-0.5"
+            className="bg-yellow-500 hover:bg-yellow-600 text-white text-base font-semibold py-3 px-8 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 ease-in-out transform hover:-translate-y-0.5"
           >
             <Link href="/favorites">
-              <Star className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+              <Star className="mr-2 h-5 w-5" />
               お気に入り
             </Link>
           </Button>
         </div>
 
         {/* カテゴリグリッド（2x2） */}
-        <div className="grid grid-cols-2 gap-3 sm:gap-4 max-w-xl mx-auto mb-6 sm:mb-8">
+        <div className="grid grid-cols-2 gap-4 max-w-2xl mx-auto mb-8">
           {categories.map((category) => {
             const IconComponent = category.icon
             const isActive = selectedCategory === category.id
@@ -262,24 +260,22 @@ export default function DecksPage() {
               <button
                 key={category.id}
                 onClick={() => handleCategoryClick(category.id)}
-                className={`group rounded-xl p-4 sm:p-6 shadow-lg transition-all duration-300 transform hover:-translate-y-1 border ${
+                className={`group rounded-xl p-6 shadow-lg transition-all duration-300 transform hover:-translate-y-1 border ${
                   isActive
                     ? "bg-purple-100 border-purple-300 shadow-xl"
                     : "bg-white border-purple-100 hover:border-purple-200 hover:shadow-xl"
                 }`}
               >
-                <div className="flex flex-col items-center text-center space-y-2 sm:space-y-3">
+                <div className="flex flex-col items-center text-center space-y-3">
                   <div
-                    className={`p-2 sm:p-3 rounded-full transition-colors duration-300 ${
+                    className={`p-3 rounded-full transition-colors duration-300 ${
                       isActive ? "bg-purple-200" : "bg-purple-100 group-hover:bg-purple-200"
                     }`}
                   >
-                    <IconComponent className="h-5 w-5 sm:h-6 sm:w-6 text-purple-600" />
+                    <IconComponent className="h-6 w-6 text-purple-600" />
                   </div>
                   <div>
-                    <h3
-                      className={`text-xs sm:text-sm font-semibold mb-0.5 sm:mb-1 ${isActive ? "text-purple-800" : "text-slate-800"}`}
-                    >
+                    <h3 className={`text-sm font-semibold mb-1 ${isActive ? "text-purple-800" : "text-slate-800"}`}>
                       {category.title}
                     </h3>
                     {category.description && (
@@ -293,9 +289,9 @@ export default function DecksPage() {
         </div>
 
         {/* デッキリスト */}
-        <div className="space-y-4 sm:space-y-6">
+        <div className="space-y-6">
           <div className="flex items-center justify-center">
-            <h2 className="text-xl sm:text-2xl font-bold text-slate-800">
+            <h2 className="text-2xl font-bold text-slate-800">
               {categories.find((cat) => cat.id === selectedCategory)?.title || "みんなのデッキ"}
             </h2>
           </div>
