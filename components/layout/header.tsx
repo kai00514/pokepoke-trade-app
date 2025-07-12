@@ -8,10 +8,18 @@ import { useAuth } from "@/contexts/auth-context"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { NotificationDropdown } from "@/components/notification-dropdown"
 import { useRouter } from "next/navigation"
+import { useState } from "react" // useStateをインポート
+import { PokepokeIdRegistrationModal } from "@/components/pokepoke-id-registration-modal" // モーダルをインポート
+import { UsernameRegistrationModal } from "@/components/username-registration-modal" // モーダルをインポート
+import { updateUserProfile } from "@/lib/services/user-service" // ユーザーサービスをインポート
 
 export default function Header() {
   const { user, userProfile, loading, signOut, displayName } = useAuth()
   const router = useRouter()
+
+  // モーダルの表示状態を管理するstate
+  const [isPokepokeIdModalOpen, setIsPokepokeIdModalOpen] = useState(false)
+  const [isUsernameModalOpen, setIsUsernameModalOpen] = useState(false)
 
   console.log("🔍 Header component - Auth state:", {
     user: user ? { id: user.id, email: user.email } : null,
@@ -29,16 +37,54 @@ export default function Header() {
     }
   }
 
-  // ポケポケID登録のハンドラ (仮)
+  // ポケポケID登録のハンドラ
   const handlePokepokeIdRegistration = () => {
     console.log("ポケポケID登録がクリックされました。")
-    // ここにポケポケID登録ページへの遷移ロジックなどを追加
+    setIsPokepokeIdModalOpen(true) // モーダルを表示
   }
 
-  // ユーザー名登録のハンドラ (仮)
+  // ユーザー名登録のハンドラ
   const handleUsernameRegistration = () => {
     console.log("ユーザー名登録がクリックされました。")
-    // ここにユーザー名登録ページへの遷移ロジックなどを追加
+    setIsUsernameModalOpen(true) // モーダルを表示
+  }
+
+  // ポケポケID保存のハンドラ
+  const handleSavePokepokeId = async (pokepokeId: string) => {
+    if (!user) {
+      console.error("ユーザーが認証されていません。")
+      throw new Error("ユーザーが認証されていません。")
+    }
+    try {
+      const result = await updateUserProfile(user.id, { pokepoke_id: pokepokeId })
+      if (!result.success) {
+        throw new Error(result.error || "ポケポケIDの更新に失敗しました。")
+      }
+      console.log("ポケポケIDが正常に保存されました。")
+      // auth-contextのuserProfileが自動的に更新されることを期待
+    } catch (error) {
+      console.error("ポケポケIDの保存エラー:", error)
+      throw error // モーダルにエラーを伝えるため再スロー
+    }
+  }
+
+  // ユーザー名保存のハンドラ
+  const handleSaveUsername = async (username: string) => {
+    if (!user) {
+      console.error("ユーザーが認証されていません。")
+      throw new Error("ユーザーが認証されていません。")
+    }
+    try {
+      const result = await updateUserProfile(user.id, { display_name: username })
+      if (!result.success) {
+        throw new Error(result.error || "ユーザー名の更新に失敗しました。")
+      }
+      console.log("ユーザー名が正常に保存されました。")
+      // auth-contextのuserProfileが自動的に更新されることを期待
+    } catch (error) {
+      console.error("ユーザー名の保存エラー:", error)
+      throw error // モーダルにエラーを伝えるため再スロー
+    }
   }
 
   return (
@@ -121,6 +167,22 @@ export default function Header() {
           )}
         </div>
       </div>
+      {user && (
+        <>
+          <PokepokeIdRegistrationModal
+            isOpen={isPokepokeIdModalOpen}
+            onOpenChange={setIsPokepokeIdModalOpen}
+            currentPokepokeId={userProfile?.pokepoke_id || ""}
+            onSave={handleSavePokepokeId}
+          />
+          <UsernameRegistrationModal
+            isOpen={isUsernameModalOpen}
+            onOpenChange={setIsUsernameModalOpen}
+            currentUsername={userProfile?.display_name || ""}
+            onSave={handleSaveUsername}
+          />
+        </>
+      )}
     </header>
   )
 }
