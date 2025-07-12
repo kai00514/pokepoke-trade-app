@@ -18,6 +18,7 @@ import { createTradePost } from "@/lib/actions/trade-actions"
 import { supabase } from "@/lib/supabase/client"
 import LoginPromptModal from "@/components/ui/login-prompt-modal"
 import { checkTimeSync, formatTimeSkew, type TimeSync } from "@/lib/utils/time-sync"
+import { useAuth } from "@/contexts/auth-context"
 
 type SelectionContextType = "wanted" | "offered" | null
 
@@ -40,6 +41,7 @@ export default function CreateTradePage() {
   const [modalInitialCards, setModalInitialCards] = useState<SelectedCardType[]>([])
   const { toast } = useToast()
   const router = useRouter()
+  const { user, userProfile, isLoading: authLoading } = useAuth()
 
   useEffect(() => {
     const checkTime = async () => {
@@ -74,6 +76,13 @@ export default function CreateTradePage() {
       authListener.subscription.unsubscribe()
     }
   }, [toast])
+
+  // 会員ユーザーの場合、ポケポケIDを自動入力
+  useEffect(() => {
+    if (user && userProfile && userProfile.pokepoke_id && !appId) {
+      setAppId(userProfile.pokepoke_id)
+    }
+  }, [user, userProfile, appId])
 
   const validateForm = () => {
     const errors: { [key: string]: string } = {}
@@ -226,7 +235,7 @@ export default function CreateTradePage() {
     )
   }
 
-  if (isAuthenticated === null) {
+  if (isAuthenticated === null || authLoading) {
     return (
       <div className="flex flex-col min-h-screen bg-slate-100">
         <Header />
@@ -247,7 +256,7 @@ export default function CreateTradePage() {
           タイムラインに戻る
         </Link>
         <div className="bg-white p-6 sm:p-8 rounded-lg shadow-md max-w-2xl mx-auto">
-          <h1 className="text-2xl font-bold text-slate-800 mb-6 text-center">トレードカードを登���</h1>
+          <h1 className="text-2xl font-bold text-slate-800 mb-6 text-center">トレードカードを登録</h1>
           {timeSync?.isSkewed && (
             <Alert className="mb-6 bg-yellow-50 border-yellow-200">
               <AlertTriangle className="h-5 w-5 text-yellow-600" />
@@ -334,7 +343,9 @@ export default function CreateTradePage() {
               />
               <p className="text-xs text-slate-500 mt-1">
                 {isAuthenticated
-                  ? "ログイン中です。ポケポケIDは任意です。"
+                  ? userProfile?.pokepoke_id
+                    ? "登録済みのポケポケIDが自動入力されています。"
+                    : "ログイン中です。ポケポケIDは任意です。"
                   : "ゲストユーザーとして投稿します。ポケポケIDは任意です。"}
               </p>
             </div>
