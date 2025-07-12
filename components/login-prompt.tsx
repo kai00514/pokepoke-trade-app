@@ -1,62 +1,34 @@
-"use client"
-
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { useRouter } from "next/navigation"
+import Link from "next/link"
+import { cn } from "@/lib/utils"
 
 interface LoginPromptProps {
-  open: boolean
-  setOpen: (open: boolean) => void
-  title?: string
-  description?: string
-  onContinueAsGuest?: () => void
+  className?: string
 }
 
-export function LoginPrompt({
-  open,
-  setOpen,
-  title = "ログインが必要です",
-  description = "この機能を使用するにはログインしてください。",
-  onContinueAsGuest,
-}: LoginPromptProps) {
-  const router = useRouter()
-
-  const handleLogin = () => {
-    setOpen(false)
-    router.push("/auth/login")
-  }
-
-  const handleSignup = () => {
-    setOpen(false)
-    router.push("/auth/signup")
-  }
-
-  const handleContinueAsGuest = () => {
-    setOpen(false)
-    if (onContinueAsGuest) {
-      onContinueAsGuest()
-    }
-  }
-
+export function LoginPrompt({ className }: LoginPromptProps) {
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
-          <DialogDescription>{description}</DialogDescription>
-        </DialogHeader>
-        <div className="flex flex-col gap-3 mt-4">
-          <Button onClick={handleLogin} className="w-full">
-            ログイン
-          </Button>
-          <Button onClick={handleSignup} variant="outline" className="w-full">
-            新規登録
-          </Button>
-          <Button onClick={handleContinueAsGuest} variant="ghost" className="w-full">
-            ゲストとして続ける
-          </Button>
-        </div>
-      </DialogContent>
-    </Dialog>
+    <div className={cn("flex flex-col items-center justify-center p-4", className)}>
+      <Card className="w-full max-w-sm text-center">
+        <CardHeader>
+          <CardTitle>ログインが必要です</CardTitle>
+          <CardDescription>この機能を利用するにはログインしてください。</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <p className="mb-4 text-sm text-gray-600">お気に入り機能のご利用には、会員登録またはログインが必要です。</p>
+        </CardContent>
+        <CardFooter className="flex flex-col gap-2">
+          <Link href="/auth/login" className="w-full">
+            <Button className="w-full">ログイン</Button>
+          </Link>
+          <Link href="/auth/signup" className="w-full">
+            <Button variant="outline" className="w-full bg-transparent">
+              新規登録
+            </Button>
+          </Link>
+        </CardFooter>
+      </Card>
+    </div>
   )
 }

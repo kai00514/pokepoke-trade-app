@@ -1,69 +1,77 @@
 "use client"
 
-import { useRef, useEffect } from "react"
-import { useRouter } from "next/navigation"
-import { LogIn, UserPlus } from "lucide-react"
+import type React from "react"
 
-type LoginPromptModalProps = {
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import { Button } from "@/components/ui/button"
+import { useRouter } from "next/navigation"
+import { Lock, UserPlus } from "lucide-react"
+
+interface LoginPromptModalProps {
+  isOpen: boolean
   onClose: () => void
-  onContinueAsGuest: () => void
+  title?: string
+  description?: string
+  onContinueAsGuest?: () => void
 }
 
-export default function LoginPromptModal({ onClose, onContinueAsGuest }: LoginPromptModalProps) {
+const LoginPromptModal: React.FC<LoginPromptModalProps> = ({
+  isOpen,
+  onClose,
+  title = "ログインが必要です",
+  description = "この機能を利用するには、ログインまたは新規登録を行ってください。",
+  onContinueAsGuest,
+}) => {
   const router = useRouter()
-  const modalRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
-        onClose()
-      }
-    }
-
-    document.addEventListener("mousedown", handleClickOutside)
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside)
-    }
-  }, [onClose])
 
   const handleLogin = () => {
-    router.push("/login")
+    onClose()
+    router.push("/auth/login")
   }
 
   const handleRegister = () => {
-    router.push("/register")
+    onClose()
+    router.push("/auth/signup")
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div ref={modalRef} className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-        <h2 className="text-xl font-bold mb-4">アカウント登録のご案内</h2>
-        <p className="text-gray-600 mb-6">
-          ログインするとコメントの管理や通知の受け取りがより便利になります。アカウントをお持ちでない方は新規登録も簡単です。
-        </p>
-        <div className="grid grid-cols-2 gap-4 mb-4">
-          <button
-            onClick={handleLogin}
-            className="bg-[#6246ea] text-white rounded-lg py-3 text-center font-medium hover:bg-opacity-90 transition-colors flex items-center justify-center"
-          >
-            <LogIn size={18} className="mr-2" />
-            ログイン
-          </button>
-          <button
-            onClick={handleRegister}
-            className="bg-[#e45858] text-white rounded-lg py-3 text-center font-medium hover:bg-opacity-90 transition-colors flex items-center justify-center"
-          >
-            <UserPlus size={18} className="mr-2" />
-            新規登録
-          </button>
-        </div>
-        <button
-          onClick={onContinueAsGuest}
-          className="w-full border border-gray-300 rounded-lg py-3 text-gray-700 font-medium hover:bg-gray-50 transition-colors"
-        >
-          ゲストとして続ける
-        </button>
-      </div>
-    </div>
+    <AlertDialog open={isOpen} onOpenChange={onClose}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle className="text-xl font-bold text-center">{title}</AlertDialogTitle>
+          <AlertDialogDescription className="text-center text-gray-600 mt-2">{description}</AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter className="flex flex-col space-y-3 sm:flex-col sm:space-x-0 sm:space-y-3">
+          <Button onClick={handleLogin} className="w-full bg-purple-600 hover:bg-purple-700 text-white">
+            <Lock className="mr-2 h-4 w-4" /> ログイン
+          </Button>
+          <Button onClick={handleRegister} className="w-full bg-blue-600 hover:bg-blue-700 text-white">
+            <UserPlus className="mr-2 h-4 w-4" /> 新規登録
+          </Button>
+          {onContinueAsGuest && (
+            <Button
+              onClick={onContinueAsGuest}
+              variant="outline"
+              className="w-full text-gray-700 border-gray-300 hover:bg-gray-50 bg-transparent"
+            >
+              ゲストとして続ける
+            </Button>
+          )}
+          <AlertDialogCancel className="w-full text-red-500 border-red-500 hover:bg-red-50 hover:text-red-600">
+            閉じる
+          </AlertDialogCancel>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   )
 }
+
+export default LoginPromptModal
