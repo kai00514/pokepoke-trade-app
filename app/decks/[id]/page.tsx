@@ -19,7 +19,7 @@ import type { DeckWithCards } from "@/types/deck-types"
 import type { CardData } from "@/lib/card-utils"
 import { AuthProvider } from "@/contexts/auth-context"
 import DeckComments from "@/components/DeckComments"
-import { LoginPrompt } from "@/components/login-prompt"
+import { LoginPrompt } from "@/components/ui/login-prompt-modal"
 
 export default function DeckDetailPage() {
   const { id } = useParams() as { id: string }
