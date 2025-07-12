@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
 import Image from "next/image"
-import { Heart, StarIcon, ArrowLeft, User, Calendar, MessageCircle, Loader2 } from 'lucide-react'
+import { Heart, StarIcon, ArrowLeft, User, Calendar, MessageCircle, Loader2 } from "lucide-react"
 import { useAuth } from "@/contexts/auth-context"
 import { getDeckById, likeDeck, unlikeDeck, favoriteDeck, unfavoriteDeck } from "@/lib/services/deck-service"
 import { fetchCardDetailsByIds } from "@/lib/card-api"
@@ -19,7 +19,7 @@ import type { DeckWithCards } from "@/types/deck-types"
 import type { CardData } from "@/lib/card-utils"
 import { AuthProvider } from "@/contexts/auth-context"
 import DeckComments from "@/components/DeckComments"
-import { LoginPrompt } from "@/components/login-prompt"
+import LoginPromptModal from "@/components/ui/login-prompt-modal"
 
 export default function DeckDetailPage() {
   const { id } = useParams() as { id: string }
@@ -443,12 +443,15 @@ export default function DeckDetailPage() {
         </div>
 
         {/* ログイン誘導モーダル */}
-        <LoginPrompt
-          open={showLoginPrompt}
-          setOpen={setShowLoginPrompt}
-          title="お気に入り機能は会員限定です"
-          description="お気に入りのデッキを保存するにはログインしてください。"
-        />
+        {showLoginPrompt && (
+          <LoginPromptModal
+            onClose={() => setShowLoginPrompt(false)}
+            onContinueAsGuest={() => {
+              setShowLoginPrompt(false)
+              router.push("/decks")
+            }}
+          />
+        )}
       </AuthProvider>
     </ThemeProvider>
   )

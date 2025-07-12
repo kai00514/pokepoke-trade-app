@@ -1,19 +1,18 @@
 "use client"
 
 import type React from "react"
-
 import Image from "next/image"
 import { useEffect, useState } from "react"
-import { fetchCardById } from "@/lib/card-api" // API関数をインポート
+import { fetchCardById } from "@/lib/card-api"
 
 interface CardDisplayProps {
   cardId: number | string
   useThumb?: boolean
-  width?: number // オプショナルに変更
-  height?: number // オプショナルに変更
+  width?: number
+  height?: number
   className?: string
-  fill?: boolean // fillプロパティを追加
-  objectFit?: "contain" | "cover" | "fill" | "none" | "scale-down" // objectFitプロパティを追加
+  fill?: boolean
+  objectFit?: "contain" | "cover" | "fill" | "none" | "scale-down"
 }
 
 const CardDisplay: React.FC<CardDisplayProps> = ({
@@ -22,8 +21,8 @@ const CardDisplay: React.FC<CardDisplayProps> = ({
   width,
   height,
   className,
-  fill = false, // デフォルトはfalse
-  objectFit = "contain", // デフォルトはcontain
+  fill = false,
+  objectFit = "contain",
 }) => {
   const [imageUrl, setImageUrl] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
@@ -33,13 +32,26 @@ const CardDisplay: React.FC<CardDisplayProps> = ({
     const getImageUrl = async () => {
       setLoading(true)
       setError(null)
+
+      // cardIdが無効な場合は即座にプレースホルダーを表示
+      if (!cardId) {
+        setLoading(false)
+        setError("カードIDがありません")
+        setImageUrl(`/placeholder.svg?width=${width || 100}&height=${height || 140}&query=no-card-id`)
+        return
+      }
+
       try {
-        // fetchCardImageById を fetchCardById に変更
-        const cardData = await fetchCardById(String(cardId)) // String(cardId) を渡す
+        const cardData = await fetchCardById(String(cardId))
         if (cardData) {
           const url = useThumb ? cardData.thumb_url || cardData.image_url : cardData.image_url
           if (url) {
-            setImageUrl(url)
+            // URLの有効性を簡単にチェック
+            if (url.startsWith("http://") || url.startsWith("https://") || url.startsWith("/")) {
+              setImageUrl(url)
+            } else {
+              throw new Error("Invalid image URL format")
+            }
           } else {
             setError("画像が見つかりません")
             setImageUrl(`/placeholder.svg?width=${width || 100}&height=${height || 140}&query=card-${cardId}`)
@@ -57,38 +69,37 @@ const CardDisplay: React.FC<CardDisplayProps> = ({
       }
     }
 
-    if (cardId) {
-      // cardIdが存在する場合のみ実行
-      getImageUrl()
-    } else {
-      setLoading(false)
-      setError("カードIDがありません")
-      setImageUrl(`/placeholder.svg?width=${width || 100}&height=${height || 140}&query=no-card-id`)
-    }
-  }, [cardId, useThumb, width, height]) // widthとheightを依存配列に追加
+    getImageUrl()
+  }, [cardId, useThumb, width, height])
 
+  // ローディング状態
   if (loading) {
     return (
       <div
         className={`flex items-center justify-center bg-gray-200 rounded-md animate-pulse ${className || ""}`}
         style={fill ? { width: "100%", height: "100%" } : { width: `${width || 100}px`, height: `${height || 140}px` }}
       >
-        {/* ローディング中のプレースホルダーの高さを指定 */}
+        <div className="text-xs text-gray-500">読み込み中...</div>
       </div>
     )
   }
 
+  // エラー状態またはimageUrlが無い場合
   if (error || !imageUrl) {
     return (
       <div
-        className={`flex items-center justify-center bg-gray-300 rounded-md text-white text-xs p-2 ${className || ""}`}
+        className={`flex items-center justify-center bg-gray-300 rounded-md text-gray-600 text-xs p-2 ${className || ""}`}
         style={fill ? { width: "100%", height: "100%" } : { width: `${width || 100}px`, height: `${height || 140}px` }}
       >
-        {error || "画像なし"}
+        <div className="text-center">
+          <div className="mb-1">📷</div>
+          <div>{error || "画像なし"}</div>
+        </div>
       </div>
     )
   }
 
+  // 画像の表示（fill使用時）
   if (fill) {
     return (
       <div className={`relative w-full h-full ${className || ""}`}>
@@ -96,24 +107,37 @@ const CardDisplay: React.FC<CardDisplayProps> = ({
           src={imageUrl || "/placeholder.svg"}
           alt={`Card ${cardId}`}
           fill
-          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" // レスポンシブなsizes属性
-          className={`object-${objectFit} rounded-md`} // objectFitを適用
-          priority={false} // 必要に応じて調整
-          unoptimized={imageUrl.includes("tcg-collector-production.s3.amazonaws.com")} // S3画像は最適化しない
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+          className={`object-${objectFit} rounded-md`}
+          priority={false}
+          unoptimized={true} // 外部画像の問題を回避するため常にunoptimizedを使用
+          onError={(e) => {
+            console.error(`Image load error for card ${cardId}:`, e)
+            // エラー時にプレースホルダーに切り替え
+            const target = e.target as HTMLImageElement
+            target.src = `/placeholder.svg?width=${width || 100}&height=${height || 140}&query=card-${cardId}-load-error`
+          }}
         />
       </div>
     )
   }
 
+  // 画像の表示（通常サイズ指定）
   return (
     <Image
       src={imageUrl || "/placeholder.svg"}
       alt={`Card ${cardId}`}
-      width={width || 100} // デフォルト値を設定
-      height={height || 140} // デフォルト値を設定
+      width={width || 100}
+      height={height || 140}
       className={`rounded-md ${className || ""}`}
-      priority={false} // 必要に応じて調整
-      unoptimized={imageUrl.includes("tcg-collector-production.s3.amazonaws.com")} // S3画像は最適化しない
+      priority={false}
+      unoptimized={true} // 外部画像の問題を回避するため常にunoptimizedを使用
+      onError={(e) => {
+        console.error(`Image load error for card ${cardId}:`, e)
+        // エラー時にプレースホルダーに切り替え
+        const target = e.target as HTMLImageElement
+        target.src = `/placeholder.svg?width=${width || 100}&height=${height || 140}&query=card-${cardId}-load-error`
+      }}
     />
   )
 }
