@@ -27,13 +27,11 @@ export default function LoginPromptModal({ onClose, onContinueAsGuest }: LoginPr
   }, [onClose])
 
   const handleLogin = () => {
-    onClose() // モーダルを閉じる
-    router.push("/auth/login") // ログイン画面へ遷移
+    router.push("/login")
   }
 
   const handleRegister = () => {
-    onClose() // モーダルを閉じる
-    router.push("/auth/signup") // 新規登録画面へ遷移
+    router.push("/register")
   }
 
   return (

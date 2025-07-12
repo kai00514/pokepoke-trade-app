@@ -150,7 +150,7 @@ export function DeckEvaluation({
     { label: "安定", value: deckStats.stability, max: 5 },
   ]
 
-  // レーダ��チャート描画のuseEffectを削除
+  // レーダーチャート描画のuseEffectを削除
   // useEffect(() => { // このuseEffectブロック全体を削除
   //   const canvas = canvasRef.current
   //   if (!canvas) return
