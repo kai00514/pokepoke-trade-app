@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/client"
+import { supabase } from "@/lib/supabase/client"
 import type { UserProfile } from "@/types/user"
 
 const CACHE_KEY_PREFIX = "user_profile_"
@@ -90,7 +90,6 @@ async function fetchUserProfileWithRetry(userId: string, maxRetries = 2): Promis
       console.log(`🔄 Fetching user profile attempt ${attempt + 1}/${maxRetries} for user: ${userId}`)
 
       // 標準的なSupabaseクエリのみを使用
-      const supabase = createClient()
       const { data, error } = await withTimeout(
         supabase.from("users").select("*").eq("id", userId).single().abortSignal(abortController.signal),
         5000, // 5秒タイムアウト（余裕を持たせる）
@@ -176,7 +175,6 @@ export async function getUserProfile(userId: string): Promise<UserProfile | null
 }
 
 export async function createUserProfile(userId: string, email: string): Promise<UserProfile> {
-  const supabase = createClient()
   console.log("🆕 Creating new user profile:", { userId, email })
 
   const displayName = email.split("@")[0]
@@ -196,28 +194,19 @@ export async function createUserProfile(userId: string, email: string): Promise<
   return data
 }
 
-export async function updateUserProfile(
-  userId: string,
-  updates: Partial<UserProfile>,
-): Promise<{ success: boolean; error?: string }> {
-  const supabase = createClient()
-  try {
-    const { data, error } = await supabase
-      .from("profiles") // プロファイルテーブル名が 'profiles' であると仮定
-      .update(updates)
-      .eq("id", userId)
-      .select()
+export async function updateUserProfile(userId: string, profileData: Partial<UserProfile>): Promise<UserProfile> {
+  console.log("📝 Updating user profile:", { userId, profileData })
 
-    if (error) {
-      console.error("Error updating user profile:", error)
-      return { success: false, error: error.message }
-    }
-    console.log("User profile updated successfully:", data)
-    return { success: true }
-  } catch (e) {
-    console.error("Exception updating user profile:", e)
-    return { success: false, error: (e as Error).message }
+  const { data, error } = await supabase.from("users").update(profileData).eq("id", userId).select().single()
+
+  if (error) {
+    console.error("❌ Failed to update user profile:", error)
+    throw error
   }
+
+  console.log("✅ User profile updated successfully:", data)
+  setCachedProfile(data)
+  return data
 }
 
 // フォールバック用のプロファイル生成

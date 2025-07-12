@@ -9,9 +9,9 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { NotificationDropdown } from "@/components/notification-dropdown"
 import { useRouter } from "next/navigation"
 import { useState } from "react" // useStateをインポート
-import { PokepokeIdRegistrationModal } from "@/components/pokepoke-id-registration-modal" // モーダルをインポート
-import { UsernameRegistrationModal } from "@/components/username-registration-modal" // モーダルをインポート
-import { updateUserProfile } from "@/lib/services/user-service" // ユーザーサービスをインポート
+import { PokepokeIdRegistrationModal } from "@/components/pokepoke-id-registration-modal" // PokepokeIdRegistrationModalをインポート
+import { UsernameRegistrationModal } from "@/components/username-registration-modal" // UsernameRegistrationModalをインポート
+import { updateUserProfile } from "@/lib/services/user-service" // updateUserProfileをインポート (保存機能用)
 
 export default function Header() {
   const { user, userProfile, loading, signOut, displayName } = useAuth()
@@ -167,7 +167,7 @@ export default function Header() {
           )}
         </div>
       </div>
-      {user && (
+      {user && ( // ユーザーがログインしている場合のみモーダルをレンダリング
         <>
           <PokepokeIdRegistrationModal
             isOpen={isPokepokeIdModalOpen}
