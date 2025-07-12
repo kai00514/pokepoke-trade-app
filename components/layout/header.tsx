@@ -8,10 +8,10 @@ import { useAuth } from "@/contexts/auth-context"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { NotificationDropdown } from "@/components/notification-dropdown"
 import { useRouter } from "next/navigation"
-import { useState } from "react" // useStateをインポート
-import { PokepokeIdRegistrationModal } from "@/components/pokepoke-id-registration-modal" // PokepokeIdRegistrationModalをインポート
-import { UsernameRegistrationModal } from "@/components/username-registration-modal" // UsernameRegistrationModalをインポート
-import { updateUserProfile } from "@/lib/services/user-service" // updateUserProfileをインポート (保存機能用)
+import { useState } from "react"
+import { PokepokeIdRegistrationModal } from "@/components/pokepoke-id-registration-modal"
+import { UsernameRegistrationModal } from "@/components/username-registration-modal"
+import { updateUserProfile } from "@/lib/services/user-service"
 
 export default function Header() {
   const { user, userProfile, loading, signOut, displayName } = useAuth()
@@ -40,13 +40,13 @@ export default function Header() {
   // ポケポケID登録のハンドラ
   const handlePokepokeIdRegistration = () => {
     console.log("ポケポケID登録がクリックされました。")
-    setIsPokepokeIdModalOpen(true) // モーダルを表示
+    setIsPokepokeIdModalOpen(true)
   }
 
   // ユーザー名登録のハンドラ
   const handleUsernameRegistration = () => {
     console.log("ユーザー名登録がクリックされました。")
-    setIsUsernameModalOpen(true) // モーダルを表示
+    setIsUsernameModalOpen(true)
   }
 
   // ポケポケID保存のハンドラ
@@ -56,15 +56,11 @@ export default function Header() {
       throw new Error("ユーザーが認証されていません。")
     }
     try {
-      const result = await updateUserProfile(user.id, { pokepoke_id: pokepokeId })
-      if (!result.success) {
-        throw new Error(result.error || "ポケポケIDの更新に失敗しました。")
-      }
+      await updateUserProfile(user.id, { pokepoke_id: pokepokeId })
       console.log("ポケポケIDが正常に保存されました。")
-      // auth-contextのuserProfileが自動的に更新されることを期待
     } catch (error) {
       console.error("ポケポケIDの保存エラー:", error)
-      throw error // モーダルにエラーを伝えるため再スロー
+      throw error
     }
   }
 
@@ -75,15 +71,11 @@ export default function Header() {
       throw new Error("ユーザーが認証されていません。")
     }
     try {
-      const result = await updateUserProfile(user.id, { display_name: username })
-      if (!result.success) {
-        throw new Error(result.error || "ユーザー名の更新に失敗しました。")
-      }
+      await updateUserProfile(user.id, { display_name: username })
       console.log("ユーザー名が正常に保存されました。")
-      // auth-contextのuserProfileが自動的に更新されることを期待
     } catch (error) {
       console.error("ユーザー名の保存エラー:", error)
-      throw error // モーダルにエラーを伝えるため再スロー
+      throw error
     }
   }
 
@@ -167,7 +159,7 @@ export default function Header() {
           )}
         </div>
       </div>
-      {user && ( // ユーザーがログインしている場合のみモーダルをレンダリング
+      {user && (
         <>
           <PokepokeIdRegistrationModal
             isOpen={isPokepokeIdModalOpen}
