@@ -147,7 +147,7 @@ export default function SignupPage() {
         <div className="w-full max-w-md">
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold text-white mb-2 drop-shadow-lg">メールアドレスで登録</h1>
-            <p className="text-violet-100">アカウント情報を入力してください</p>
+            <p className="text-white/90">アカウント情報を入力してください</p>
           </div>
 
           <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-8 shadow-2xl border border-white/20">
@@ -178,7 +178,7 @@ export default function SignupPage() {
                     placeholder="あなたのメールアドレス"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="pl-10 h-12 border-gray-200 focus:border-violet-500 focus:ring-violet-500 bg-white/80 backdrop-blur-sm"
+                    className="pl-10 h-12 rounded-xl border-gray-200 focus:border-violet-500 focus:ring-violet-500 bg-white/80 backdrop-blur-sm"
                     required
                     autoComplete="email"
                   />
@@ -197,7 +197,7 @@ export default function SignupPage() {
                     placeholder="6文字以上のパスワード"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="pl-10 pr-10 h-12 border-gray-200 focus:border-violet-500 focus:ring-violet-500 bg-white/80 backdrop-blur-sm"
+                    className="pl-10 pr-10 h-12 rounded-xl border-gray-200 focus:border-violet-500 focus:ring-violet-500 bg-white/80 backdrop-blur-sm"
                     required
                     minLength={6}
                     autoComplete="new-password"
@@ -224,7 +224,7 @@ export default function SignupPage() {
                     placeholder="パスワードを再入力"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="pl-10 pr-10 h-12 border-gray-200 focus:border-violet-500 focus:ring-violet-500 bg-white/80 backdrop-blur-sm"
+                    className="pl-10 pr-10 h-12 rounded-xl border-gray-200 focus:border-violet-500 focus:ring-violet-500 bg-white/80 backdrop-blur-sm"
                     required
                     autoComplete="new-password"
                   />
@@ -240,7 +240,7 @@ export default function SignupPage() {
 
               <Button
                 type="submit"
-                className="w-full h-12 bg-violet-600 hover:bg-violet-700 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
+                className="w-full h-12 bg-violet-600 hover:bg-violet-700 text-white font-medium rounded-xl shadow-2xl hover:shadow-3xl transition-all duration-200"
                 disabled={loading === "email"}
               >
                 {loading === "email" ? "登録中..." : "アカウントを作成"}
@@ -279,14 +279,14 @@ export default function SignupPage() {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-white mb-2 drop-shadow-lg">会員登録</h1>
-          <p className="text-violet-100">アカウントを作成してポケモンカードの取引を始めましょう</p>
+          <p className="text-white/90">アカウントを作成してポケモンカードの取引を始めましょう</p>
         </div>
 
         <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-8 shadow-2xl border border-white/20">
           <div className="space-y-4">
             <Button
               onClick={() => setShowEmailForm(true)}
-              className="w-full h-14 bg-violet-600 hover:bg-violet-700 text-white font-medium rounded-xl flex items-center justify-between px-6 shadow-lg hover:shadow-xl transition-all duration-200"
+              className="w-full h-14 bg-violet-600 hover:bg-violet-700 text-white font-medium rounded-xl flex items-center justify-between px-6 shadow-2xl hover:shadow-3xl transition-all duration-200"
             >
               <div className="flex items-center">
                 <Mail className="h-5 w-5 mr-3" />
@@ -298,7 +298,7 @@ export default function SignupPage() {
             <Button
               onClick={() => handleSocialSignup("google")}
               variant="outline"
-              className="w-full h-14 border-gray-200 hover:bg-violet-50 hover:border-violet-300 rounded-xl flex items-center justify-between px-6 bg-white/80 backdrop-blur-sm transition-all duration-200"
+              className="w-full h-14 border-violet-200 hover:bg-violet-50 hover:border-violet-400 rounded-xl flex items-center justify-between px-6 bg-white/80 backdrop-blur-sm transition-all duration-200"
               disabled={loading === "google"}
             >
               <div className="flex items-center">
@@ -310,7 +310,7 @@ export default function SignupPage() {
 
             <Button
               variant="outline"
-              className="w-full h-14 border-gray-200 rounded-xl flex items-center justify-between px-6 opacity-50 cursor-not-allowed bg-white/60 backdrop-blur-sm"
+              className="w-full h-14 border-violet-200 rounded-xl flex items-center justify-between px-6 opacity-50 cursor-not-allowed bg-white/60 backdrop-blur-sm"
               disabled
             >
               <div className="flex items-center">
@@ -325,7 +325,7 @@ export default function SignupPage() {
             <Button
               onClick={() => handleSocialSignup("twitter")}
               variant="outline"
-              className="w-full h-14 border-gray-200 hover:bg-violet-50 hover:border-violet-300 rounded-xl flex items-center justify-between px-6 bg-white/80 backdrop-blur-sm transition-all duration-200"
+              className="w-full h-14 border-violet-200 hover:bg-violet-50 hover:border-violet-400 rounded-xl flex items-center justify-between px-6 bg-white/80 backdrop-blur-sm transition-all duration-200"
               disabled={loading === "twitter"}
             >
               <div className="flex items-center">
@@ -346,7 +346,7 @@ export default function SignupPage() {
             ご確認の上、会員登録を進めてください。
           </div>
 
-          <div className="mt-8 text-center">
+          <div className="mt-10 text-center">
             <p className="text-gray-600 mb-2">すでにアカウントをお持ちの方</p>
             <Link href="/auth/login" className="text-violet-600 hover:text-violet-700 font-medium transition-colors">
               ログイン

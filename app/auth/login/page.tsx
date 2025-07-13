@@ -198,7 +198,7 @@ export default function LoginPage() {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-white mb-2 drop-shadow-lg">ログイン</h1>
-          <p className="text-violet-100">アカウントにログインしてください</p>
+          <p className="text-white/90">アカウントにログインしてください</p>
         </div>
 
         <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-8 shadow-2xl border border-white/20">
@@ -238,7 +238,7 @@ export default function LoginPage() {
                   placeholder="あなたのメールアドレス"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="pl-10 h-12 border-gray-200 focus:border-violet-500 focus:ring-violet-500 bg-white/80 backdrop-blur-sm"
+                  className="pl-10 h-12 rounded-xl border-gray-200 focus:border-violet-500 focus:ring-violet-500 bg-white/80 backdrop-blur-sm"
                   required
                 />
               </div>
@@ -261,7 +261,7 @@ export default function LoginPage() {
                   placeholder="あなたのパスワード"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="pl-10 pr-10 h-12 border-gray-200 focus:border-violet-500 focus:ring-violet-500 bg-white/80 backdrop-blur-sm"
+                  className="pl-10 pr-10 h-12 rounded-xl border-gray-200 focus:border-violet-500 focus:ring-violet-500 bg-white/80 backdrop-blur-sm"
                   required
                 />
                 <button
@@ -276,7 +276,7 @@ export default function LoginPage() {
 
             <Button
               type="submit"
-              className="w-full h-12 bg-violet-600 hover:bg-violet-700 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
+              className="w-full h-12 bg-violet-600 hover:bg-violet-700 text-white font-medium rounded-xl shadow-2xl hover:shadow-3xl transition-all duration-200"
               disabled={loading}
             >
               {loading ? "ログイン中..." : "ログインする"}
@@ -289,7 +289,7 @@ export default function LoginPage() {
                 <div className="w-full border-t border-gray-200" />
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-4 bg-white text-gray-500">または</span>
+                <span className="px-4 bg-white/95 text-gray-500">または</span>
               </div>
             </div>
 
@@ -297,7 +297,7 @@ export default function LoginPage() {
               <Button
                 type="button"
                 variant="outline"
-                className="w-full h-12 border-gray-200 hover:bg-violet-50 hover:border-violet-300 rounded-xl bg-white/80 backdrop-blur-sm transition-all duration-200"
+                className="w-full h-12 border-violet-200 hover:bg-violet-50 hover:border-violet-400 rounded-xl bg-white/80 backdrop-blur-sm transition-all duration-200"
                 onClick={() => handleSocialLogin("google")}
               >
                 <GoogleIcon className="mr-3 h-5 w-5" />
@@ -307,7 +307,7 @@ export default function LoginPage() {
               <Button
                 type="button"
                 variant="outline"
-                className="w-full h-12 border-gray-200 rounded-xl opacity-50 cursor-not-allowed bg-white/60 backdrop-blur-sm"
+                className="w-full h-12 border-violet-200 rounded-xl opacity-50 cursor-not-allowed bg-white/60 backdrop-blur-sm"
                 disabled
               >
                 <div className="w-5 h-5 mr-3 bg-green-500 rounded flex items-center justify-center">
@@ -319,7 +319,7 @@ export default function LoginPage() {
               <Button
                 type="button"
                 variant="outline"
-                className="w-full h-12 border-gray-200 hover:bg-violet-50 hover:border-violet-300 rounded-xl bg-white/80 backdrop-blur-sm transition-all duration-200"
+                className="w-full h-12 border-violet-200 hover:bg-violet-50 hover:border-violet-400 rounded-xl bg-white/80 backdrop-blur-sm transition-all duration-200"
                 onClick={() => handleSocialLogin("twitter")}
               >
                 <XIcon className="mr-3 h-5 w-5" />
