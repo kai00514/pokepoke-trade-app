@@ -56,7 +56,12 @@ export default function SignupPage() {
 
       if (error) {
         if (error.message.includes("User already registered")) {
-          setErrorMessage("このメールアドレスは既に登録されています。")
+          toast({
+            title: "登録済みアカウント",
+            description: "このメールアドレスは既に登録されています。ログインページからログインしてください。",
+            variant: "destructive",
+          })
+          return
         } else if (error.message.includes("Invalid email")) {
           setErrorMessage("有効なメールアドレスを入力してください。")
         } else {
