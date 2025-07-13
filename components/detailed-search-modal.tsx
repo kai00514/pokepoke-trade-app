@@ -469,12 +469,14 @@ export default function DetailedSearchModal({
       </Dialog>
 
       {/* ImagePreviewOverlayをDialogの外側に配置 */}
-      <ImagePreviewOverlay
-        isOpen={isPreviewOverlayOpen}
-        imageUrl={previewImageUrl}
-        cardName={previewCardName}
-        onClose={handlePreviewClose}
-      />
+      {isPreviewOverlayOpen && (
+        <ImagePreviewOverlay
+          isOpen={isPreviewOverlayOpen}
+          imageUrl={previewImageUrl}
+          cardName={previewCardName}
+          onClose={handlePreviewClose}
+        />
+      )}
     </>
   )
 }
