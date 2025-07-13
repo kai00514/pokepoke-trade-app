@@ -137,44 +137,44 @@ export default function ResetPage() {
 
   if (isRecoveryMode) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-400 via-purple-500 to-purple-600 flex items-center justify-center">
-        <div className="w-full">
-          <div className="text-center mb-16">
-            <h1 className="text-6xl font-bold text-black mb-6">新しいパスワード</h1>
-            <p className="text-purple-100 text-2xl">新しいパスワードを設定してください</p>
+      <div className="min-h-screen bg-gradient-to-br from-purple-400 via-purple-500 to-purple-600 flex items-center justify-center px-4 py-8">
+        <div className="w-full max-w-md">
+          <div className="text-center mb-8">
+            <h1 className="text-3xl font-bold text-black mb-2">新しいパスワード</h1>
+            <p className="text-purple-100">新しいパスワードを設定してください</p>
           </div>
 
-          <div className="bg-white rounded-2xl p-20 shadow-xl w-full max-w-4xl mx-auto">
+          <div className="bg-white rounded-2xl p-8 shadow-xl">
             {message && (
               <Alert
                 variant={message.type === "error" ? "destructive" : "default"}
-                className={`mb-10 ${message.type === "success" ? "border-green-200 bg-green-50" : ""}`}
+                className={`mb-6 ${message.type === "success" ? "border-green-200 bg-green-50" : ""}`}
               >
                 {message.type === "success" ? (
-                  <CheckCircle className="h-6 w-6 text-green-600" />
+                  <CheckCircle className="h-4 w-4 text-green-600" />
                 ) : (
-                  <AlertCircle className="h-6 w-6" />
+                  <AlertCircle className="h-4 w-4" />
                 )}
-                <AlertDescription className={`text-lg ${message.type === "success" ? "text-green-800" : ""}`}>
+                <AlertDescription className={message.type === "success" ? "text-green-800" : ""}>
                   {message.text}
                 </AlertDescription>
               </Alert>
             )}
 
-            <form onSubmit={handlePasswordUpdate} className="space-y-10">
-              <div className="space-y-4">
-                <label htmlFor="password" className="text-xl font-medium text-gray-700">
+            <form onSubmit={handlePasswordUpdate} className="space-y-6">
+              <div className="space-y-2">
+                <label htmlFor="password" className="text-sm font-medium text-gray-700">
                   新しいパスワード
                 </label>
                 <div className="relative">
-                  <Lock className="absolute left-6 top-1/2 transform -translate-y-1/2 h-8 w-8 text-gray-400" />
+                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                   <Input
                     id="password"
                     type={showPassword ? "text" : "password"}
                     placeholder="6文字以上のパスワード"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="pl-16 pr-16 h-16 border-gray-200 focus:border-purple-500 focus:ring-purple-500 text-lg"
+                    className="pl-10 pr-10 h-12 border-gray-200 focus:border-purple-500 focus:ring-purple-500"
                     required
                     minLength={6}
                     autoComplete="new-password"
@@ -182,50 +182,50 @@ export default function ResetPage() {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-6 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
                   >
-                    {showPassword ? <EyeOff className="h-8 w-8" /> : <Eye className="h-8 w-8" />}
+                    {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                   </button>
                 </div>
               </div>
 
-              <div className="space-y-4">
-                <label htmlFor="confirmPassword" className="text-xl font-medium text-gray-700">
+              <div className="space-y-2">
+                <label htmlFor="confirmPassword" className="text-sm font-medium text-gray-700">
                   パスワード確認
                 </label>
                 <div className="relative">
-                  <Lock className="absolute left-6 top-1/2 transform -translate-y-1/2 h-8 w-8 text-gray-400" />
+                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                   <Input
                     id="confirmPassword"
                     type={showConfirmPassword ? "text" : "password"}
                     placeholder="パスワードを再入力"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="pl-16 pr-16 h-16 border-gray-200 focus:border-purple-500 focus:ring-purple-500 text-lg"
+                    className="pl-10 pr-10 h-12 border-gray-200 focus:border-purple-500 focus:ring-purple-500"
                     required
                     autoComplete="new-password"
                   />
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-6 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
                   >
-                    {showConfirmPassword ? <EyeOff className="h-8 w-8" /> : <Eye className="h-8 w-8" />}
+                    {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                   </button>
                 </div>
               </div>
 
               <Button
                 type="submit"
-                className="w-full h-16 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-xl text-xl"
+                className="w-full h-12 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-xl"
                 disabled={loading}
               >
                 {loading ? "更新中..." : "パスワードを更新"}
               </Button>
             </form>
 
-            <div className="mt-12 text-center">
-              <Link href="/auth/login" className="text-purple-600 hover:text-purple-700 font-medium text-lg">
+            <div className="mt-8 text-center">
+              <Link href="/auth/login" className="text-purple-600 hover:text-purple-700 font-medium">
                 ログインページに戻る
               </Link>
             </div>
@@ -236,44 +236,44 @@ export default function ResetPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-400 via-purple-500 to-purple-600 flex items-center justify-center">
-      <div className="w-full">
-        <div className="text-center mb-16">
-          <h1 className="text-6xl font-bold text-black mb-6">パスワードリセット</h1>
-          <p className="text-purple-100 text-2xl">メールアドレスを入力してください</p>
+    <div className="min-h-screen bg-gradient-to-br from-purple-400 via-purple-500 to-purple-600 flex items-center justify-center px-4 py-8">
+      <div className="w-full max-w-md">
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-black mb-2">パスワードリセット</h1>
+          <p className="text-purple-100">メールアドレスを入力してください</p>
         </div>
 
-        <div className="bg-white rounded-2xl p-20 shadow-xl w-full max-w-4xl mx-auto">
+        <div className="bg-white rounded-2xl p-8 shadow-xl">
           {message && (
             <Alert
               variant={message.type === "error" ? "destructive" : "default"}
-              className={`mb-10 ${message.type === "success" ? "border-green-200 bg-green-50" : ""}`}
+              className={`mb-6 ${message.type === "success" ? "border-green-200 bg-green-50" : ""}`}
             >
               {message.type === "success" ? (
-                <CheckCircle className="h-6 w-6 text-green-600" />
+                <CheckCircle className="h-4 w-4 text-green-600" />
               ) : (
-                <AlertCircle className="h-6 w-6" />
+                <AlertCircle className="h-4 w-4" />
               )}
-              <AlertDescription className={`text-lg ${message.type === "success" ? "text-green-800" : ""}`}>
+              <AlertDescription className={message.type === "success" ? "text-green-800" : ""}>
                 {message.text}
               </AlertDescription>
             </Alert>
           )}
 
-          <form onSubmit={handlePasswordReset} className="space-y-10">
-            <div className="space-y-4">
-              <label htmlFor="email" className="text-xl font-medium text-gray-700">
+          <form onSubmit={handlePasswordReset} className="space-y-6">
+            <div className="space-y-2">
+              <label htmlFor="email" className="text-sm font-medium text-gray-700">
                 メールアドレス
               </label>
               <div className="relative">
-                <Mail className="absolute left-6 top-1/2 transform -translate-y-1/2 h-8 w-8 text-gray-400" />
+                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                 <Input
                   id="email"
                   type="email"
                   placeholder="あなたのメールアドレス"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="pl-16 h-16 border-gray-200 focus:border-purple-500 focus:ring-purple-500 text-lg"
+                  className="pl-10 h-12 border-gray-200 focus:border-purple-500 focus:ring-purple-500"
                   required
                   autoComplete="email"
                 />
@@ -282,18 +282,18 @@ export default function ResetPage() {
 
             <Button
               type="submit"
-              className="w-full h-16 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-xl text-xl"
+              className="w-full h-12 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-xl"
               disabled={loading}
             >
               {loading ? "送信中..." : "リセットメールを送信"}
             </Button>
           </form>
 
-          <div className="mt-12 text-center space-y-8">
-            <Link href="/auth/login" className="text-purple-600 hover:text-purple-700 font-medium block text-lg">
+          <div className="mt-8 text-center space-y-4">
+            <Link href="/auth/login" className="text-purple-600 hover:text-purple-700 font-medium block">
               ログインページに戻る
             </Link>
-            <Link href="/auth/signup" className="text-purple-600 hover:text-purple-700 font-medium block text-lg">
+            <Link href="/auth/signup" className="text-purple-600 hover:text-purple-700 font-medium block">
               新規会員登録
             </Link>
           </div>
