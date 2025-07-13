@@ -377,7 +377,7 @@ export default function DetailedSearchModal({
               )}
               <div className={cn("transition-opacity duration-300", isLoading ? "opacity-50" : "opacity-100")}>
                 {fetchedCards.length > 0 ? (
-                  <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
+                  <div className="grid grid-cols-5 sm:grid-cols-6 md:grid-cols-7 lg:grid-cols-8 gap-2">
                     {fetchedCards.map((card) => (
                       <button
                         key={card.id}
@@ -409,7 +409,7 @@ export default function DetailedSearchModal({
                           }
                           alt={card.name}
                           fill
-                          sizes="(max-width: 640px) 30vw, (max-width: 768px) 22vw, (max-width: 1024px) 18vw, 15vw"
+                          sizes="(max-width: 640px) 20vw, (max-width: 768px) 16vw, (max-width: 1024px) 14vw, 12vw"
                           className="object-cover bg-slate-100 pointer-events-none"
                           draggable={false}
                         />
