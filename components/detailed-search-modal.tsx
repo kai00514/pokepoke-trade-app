@@ -466,7 +466,6 @@ export default function DetailedSearchModal({
         imageUrl={previewImageUrl}
         cardName={previewCardName}
         onClose={() => setIsPreviewOverlayOpen(false)}
-        onClick={() => setIsPreviewOverlayOpen(false)}
       />
     </>
   )
