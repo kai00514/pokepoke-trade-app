@@ -105,6 +105,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         backgroundRetryCount.current = 0 // 成功したらカウントリセット
       }
     } catch (error) {
+      console.error("Profile load error:", error)
       if (!isBackgroundRetry) {
         // 初回エラーの場合のみトーストとフォールバック表示
         const fallbackProfile = createFallbackProfile(user)
@@ -147,6 +148,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         } = await supabase.auth.getSession()
 
         if (error) {
+          console.error("Error getting initial session:", error)
           setIsLoading(false)
           return
         }
@@ -165,6 +167,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         isInitialized.current = true
       } catch (error) {
+        console.error("Auth initialization error:", error)
         setIsLoading(false)
       }
     }
@@ -220,16 +223,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [currentUserId, handleProfileLoad])
 
   const signOut = useCallback(async () => {
-    if (user) clearCachedProfile(user.id)
-    await supabase.auth.signOut()
-    setUser(null)
-    setSession(null)
-    setUserProfile(null)
-    setCurrentUserId(null)
-    backgroundRetryCount.current = 0
-    isInitialized.current = false
-    clearAllCookies()
-    router.push("/")
+    try {
+      if (user) clearCachedProfile(user.id)
+      await supabase.auth.signOut()
+      setUser(null)
+      setSession(null)
+      setUserProfile(null)
+      setCurrentUserId(null)
+      backgroundRetryCount.current = 0
+      isInitialized.current = false
+      clearAllCookies()
+      router.push("/")
+    } catch (error) {
+      console.error("Sign out error:", error)
+    }
   }, [router, user])
 
   const refreshProfile = useCallback(async () => {

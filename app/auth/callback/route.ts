@@ -56,6 +56,7 @@ export async function GET(request: NextRequest) {
     // @supabase/ssrが自動的にCookieを処理するため、追加の処理は不要
     return NextResponse.redirect(redirectUrl)
   } catch (error) {
+    console.error("Auth callback error:", error)
     const errorMessage = error instanceof Error ? error.message : "Unexpected error occurred"
     return NextResponse.redirect(
       `${origin}/auth/login?error=callback_error&message=${encodeURIComponent(errorMessage)}`,

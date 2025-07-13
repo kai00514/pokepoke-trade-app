@@ -64,19 +64,32 @@ export default function LoginPage() {
     setErrorMessage(null)
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      if (!email || !password) {
+        setErrorMessage("メールアドレスとパスワードを入力してください。")
+        return
+      }
+
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       })
 
       if (error) {
-        setErrorMessage(error.message)
+        if (error.message.includes("Invalid login credentials")) {
+          setErrorMessage("メールアドレスまたはパスワードが正しくありません。")
+        } else if (error.message.includes("Email not confirmed")) {
+          setErrorMessage("メールアドレスが確認されていません。確認メールをご確認ください。")
+        } else if (error.message.includes("Too many requests")) {
+          setErrorMessage("ログイン試行回数が上限に達しました。しばらく時間をおいてから再試行してください。")
+        } else {
+          setErrorMessage(error.message || "ログインに失敗しました。")
+        }
         toast({
           title: "ログインエラー",
           description: error.message,
           variant: "destructive",
         })
-      } else {
+      } else if (data.user) {
         toast({
           title: "ログイン成功",
           description: "ログインしました。",
@@ -89,6 +102,7 @@ export default function LoginPage() {
         router.refresh()
       }
     } catch (error) {
+      console.error("Login error:", error)
       const errorMsg = "ログインに失敗しました。"
       setErrorMessage(errorMsg)
       toast({
@@ -128,9 +142,9 @@ export default function LoginPage() {
       // Code Flow 用の URL を受け取って自前でリダイレクト
       if (data?.url) {
         window.location.href = data.url
-      } else {
       }
     } catch (error) {
+      console.error("Social login error:", error)
       const errorMsg = "ソーシャルログインに失敗しました。"
       setErrorMessage(errorMsg)
       toast({
@@ -138,6 +152,44 @@ export default function LoginPage() {
         description: errorMsg,
         variant: "destructive",
       })
+    }
+  }
+
+  const handleResendConfirmation = async () => {
+    if (!email) {
+      setErrorMessage("メールアドレスを入力してください。")
+      return
+    }
+
+    setLoading(true)
+    try {
+      const { error } = await supabase.auth.resend({
+        type: "signup",
+        email,
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/confirm`,
+        },
+      })
+
+      if (error) {
+        setErrorMessage(error.message || "確認メールの再送信に失敗しました。")
+        toast({
+          title: "エラー",
+          description: error.message,
+          variant: "destructive",
+        })
+      } else {
+        toast({
+          title: "確認メール再送信",
+          description: "確認メールを再送信しました。",
+        })
+        setErrorMessage(null)
+      }
+    } catch (error) {
+      console.error("Resend confirmation error:", error)
+      setErrorMessage("予期しないエラーが発生しました。")
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -152,7 +204,22 @@ export default function LoginPage() {
           {errorMessage && (
             <Alert variant="destructive" className="mb-6">
               <AlertCircle className="h-4 w-4" />
-              <AlertDescription>{errorMessage}</AlertDescription>
+              <AlertDescription>
+                {errorMessage}
+                {errorMessage.includes("確認されていません") && (
+                  <div className="mt-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={handleResendConfirmation}
+                      disabled={loading}
+                    >
+                      確認メールを再送信
+                    </Button>
+                  </div>
+                )}
+              </AlertDescription>
             </Alert>
           )}
 
