@@ -98,7 +98,7 @@ export default function TradeBoardPage() {
 
           <section className="w-full lg:flex-grow">
             <div className="text-center mb-6">
-              <h1 className="text-3xl font-bold text-slate-800">ポケリンクトレード掲示板</h1>
+              <h1 className="text-3xl font-bold text-slate-800">PokeLinkトレード掲示板</h1>
               <p className="text-slate-600">ポケモンカードの交換相手を見つけよう！</p>
             </div>
 

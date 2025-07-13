@@ -229,7 +229,7 @@ export default function DecksPage() {
       <Header />
       <main className="flex-grow container mx-auto px-4 pb-8">
         {/* デッキを投稿するボタンとお気に入りボタン */}
-        <div className="my-6 flex justify-center items-center gap-4">
+        <div className="my-6 flex flex-col sm:flex-row justify-center items-center gap-4 max-w-sm mx-auto">
           <Button
             asChild
             className="bg-emerald-500 hover:bg-emerald-600 text-white text-base font-semibold py-3 px-8 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 ease-in-out transform hover:-translate-y-0.5"
