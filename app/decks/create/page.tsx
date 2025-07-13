@@ -11,7 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { useToast } from "@/components/ui/use-toast"
 import { useAuth } from "@/contexts/auth-context"
-import { createDeck } from "@/lib/services/deck-service"
+import { createDeck } from "@/lib/actions/deck-posts"
 import { searchCards } from "@/lib/card-api"
 import CardDisplay from "@/components/card-display"
 import Header from "@/components/layout/header"
@@ -68,12 +68,12 @@ export default function CreateDeckPage() {
   const addCardToDeck = (card: CardData) => {
     const existingCard = deckCards.find((dc) => dc.card_id === card.id)
     if (existingCard) {
-      if (existingCard.quantity < 4) {
+      if (existingCard.quantity < 2) {
         setDeckCards(deckCards.map((dc) => (dc.card_id === card.id ? { ...dc, quantity: dc.quantity + 1 } : dc)))
       } else {
         toast({
           title: "制限に達しました",
-          description: "同じカードは4枚まで追加できます",
+          description: "同じカードは2枚まで追加できます",
           variant: "destructive",
         })
       }
@@ -119,10 +119,10 @@ export default function CreateDeckPage() {
     }
 
     const totalCards = getTotalCards()
-    if (totalCards < 20 || totalCards > 60) {
+    if (totalCards !== 20) {
       toast({
         title: "エラー",
-        description: "デッキは20枚以上60枚以下で構成してください",
+        description: "デッキはちょうど20枚で構成してください",
         variant: "destructive",
       })
       return
@@ -133,10 +133,14 @@ export default function CreateDeckPage() {
       const { data, error } = await createDeck({
         title: title.trim(),
         description: description.trim(),
-        cards: deckCards.map((dc) => ({
+        user_id: user?.id,
+        is_authenticated: !!user,
+        is_public: true,
+        deck_cards: deckCards.map((dc) => ({
           card_id: dc.card_id,
           quantity: dc.quantity,
         })),
+        thumbnail_card_id: deckCards[0]?.card_id,
       })
 
       if (error) {
@@ -228,7 +232,7 @@ export default function CreateDeckPage() {
                         maxLength={500}
                       />
                     </div>
-                    <div className="text-sm text-gray-600">カード枚数: {getTotalCards()}/60 (最低20枚)</div>
+                    <div className="text-sm text-gray-600">カード枚数: {getTotalCards()}/20 (ちょうど20枚)</div>
                   </CardContent>
                 </Card>
 
@@ -302,7 +306,7 @@ export default function CreateDeckPage() {
                               size="sm"
                               variant="outline"
                               onClick={() => addCardToDeck(deckCard.cardData!)}
-                              disabled={deckCard.quantity >= 4}
+                              disabled={deckCard.quantity >= 2}
                             >
                               <Plus className="h-3 w-3" />
                             </Button>

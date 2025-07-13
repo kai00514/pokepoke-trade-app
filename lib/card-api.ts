@@ -48,3 +48,25 @@ export async function fetchCardById(cardId: string | number): Promise<CardData |
     return null
   }
 }
+
+export async function searchCards(query: string): Promise<CardData[]> {
+  try {
+    if (!query.trim()) return []
+
+    const { data, error } = await supabase
+      .from("cards")
+      .select("id, name, image_url, thumb_url, type_code, rarity_code, category")
+      .ilike("name", `%${query}%`)
+      .limit(20)
+
+    if (error) {
+      console.error("Error searching cards:", error)
+      return []
+    }
+
+    return data || []
+  } catch (err) {
+    console.error("Error in searchCards:", err)
+    return []
+  }
+}
