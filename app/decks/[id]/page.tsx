@@ -327,40 +327,27 @@ export default function DeckDetailPage() {
             </div>
 
             <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
-                  <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">{deck.title}</h1>
-                  <div className="flex flex-wrap gap-2 items-center text-sm text-gray-600 mb-3">
-                    <div className="flex items-center">
-                      <User className="h-4 w-4 mr-1" />
-                      <span>{deck.user_display_name || "匿名ユーザー"}</span>
-                    </div>
-                    <div className="flex items-center">
-                      <Calendar className="h-4 w-4 mr-1" />
-                      <span>作成日: {new Date(deck.created_at).toLocaleDateString()}</span>
-                    </div>
-                  </div>
-                  {deck.description && <p className="text-gray-700 mb-4">{deck.description}</p>}
-                </div>
-
-                <div className="flex items-center gap-4">
+              {/* タイトルとアイコンを横並びにする新しいflexコンテナ */}
+              <div className="flex items-start justify-between gap-4 mb-2">
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 flex-1">{deck.title}</h1>
+                <div className="flex items-center gap-2 flex-shrink-0">
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <button
                           onClick={handleLike}
                           disabled={isLikeLoading}
-                          className={`flex flex-col items-center p-2 rounded-full hover:bg-gray-100 transition-colors ${
+                          className={`flex flex-col items-center transition-colors ${
                             isLiked ? "text-red-500" : "text-gray-500"
                           } ${isLikeLoading ? "opacity-50 cursor-not-allowed" : ""}`}
                           aria-label={isLiked ? "いいねを取り消す" : "いいねする"}
                         >
                           {isLikeLoading ? (
-                            <Loader2 className="h-6 w-6 animate-spin" />
+                            <Loader2 className="h-5 w-5 animate-spin" />
                           ) : (
-                            <Heart className="h-6 w-6" fill={isLiked ? "currentColor" : "none"} />
+                            <Heart className="h-5 w-5" fill={isLiked ? "currentColor" : "none"} />
                           )}
-                          <span className="text-xs mt-1">{likeCount}</span>
+                          <span className="text-xs mt-0.5">{likeCount}</span>
                         </button>
                       </TooltipTrigger>
                       <TooltipContent>
@@ -375,17 +362,17 @@ export default function DeckDetailPage() {
                         <button
                           onClick={handleFavorite}
                           disabled={isFavoriteLoading}
-                          className={`flex flex-col items-center p-2 rounded-full hover:bg-gray-100 transition-colors ${
+                          className={`flex flex-col items-center transition-colors ${
                             isFavorited ? "text-yellow-500" : "text-gray-500"
                           } ${isFavoriteLoading ? "opacity-50 cursor-not-allowed" : ""}`}
                           aria-label={isFavorited ? "お気に入りから削除" : "お気に入りに追加"}
                         >
                           {isFavoriteLoading ? (
-                            <Loader2 className="h-6 w-6 animate-spin" />
+                            <Loader2 className="h-5 w-5 animate-spin" />
                           ) : (
-                            <StarIcon className="h-6 w-6" fill={isFavorited ? "currentColor" : "none"} />
+                            <StarIcon className="h-5 w-5" fill={isFavorited ? "currentColor" : "none"} />
                           )}
-                          <span className="text-xs mt-1">{favoriteCount}</span>
+                          <span className="text-xs mt-0.5">{favoriteCount}</span>
                         </button>
                       </TooltipTrigger>
                       <TooltipContent>
@@ -394,12 +381,24 @@ export default function DeckDetailPage() {
                     </Tooltip>
                   </TooltipProvider>
 
-                  <div className="flex flex-col items-center p-2 text-gray-500">
-                    <MessageCircle className="h-6 w-6" />
-                    <span className="text-xs mt-1">{commentCount}</span>
+                  <div className="flex flex-col items-center text-gray-500">
+                    <MessageCircle className="h-5 w-5" />
+                    <span className="text-xs mt-0.5">{commentCount}</span>
                   </div>
                 </div>
               </div>
+
+              <div className="flex flex-wrap gap-2 items-center text-sm text-gray-600 mb-3">
+                <div className="flex items-center">
+                  <User className="h-4 w-4 mr-1" />
+                  <span>{deck.user_display_name || "匿名ユーザー"}</span>
+                </div>
+                <div className="flex items-center">
+                  <Calendar className="h-4 w-4 mr-1" />
+                  <span>作成日: {new Date(deck.created_at).toLocaleDateString()}</span>
+                </div>
+              </div>
+              {deck.description && <div className="text-gray-700 mb-4 whitespace-pre-wrap">{deck.description}</div>}
             </div>
 
             <div className="bg-white rounded-lg shadow-md p-6">
