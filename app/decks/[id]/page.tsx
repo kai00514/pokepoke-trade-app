@@ -21,6 +21,21 @@ import { AuthProvider } from "@/contexts/auth-context"
 import DeckComments from "@/components/DeckComments"
 import LoginPromptModal from "@/components/ui/login-prompt-modal"
 
+// 仮のエネルギータイプデータ
+const energyTypes = [
+  { id: "grass", name: "草", icon: "/images/types/草.png" },
+  { id: "fire", name: "炎", icon: "/images/types/炎.png" },
+  { id: "water", name: "水", icon: "/images/types/水.png" },
+  { id: "lightning", name: "雷", icon: "/images/types/雷.png" },
+  { id: "psychic", name: "超", icon: "/images/types/超.png" },
+  { id: "fighting", name: "闘", icon: "/images/types/闘.png" },
+  { id: "darkness", name: "悪", icon: "/images/types/悪.png" },
+  { id: "metal", name: "鋼", icon: "/images/types/鋼.png" },
+  { id: "dragon", name: "龍", icon: "/images/types/龍.png" },
+  { id: "fairy", name: "妖", icon: "/images/types/妖.png" },
+  { id: "colorless", name: "無色", icon: "/images/types/無色.png" },
+]
+
 export default function DeckDetailPage() {
   const { id } = useParams() as { id: string }
   const router = useRouter()
@@ -424,32 +439,42 @@ export default function DeckDetailPage() {
                 <TabsList className="mb-4">
                   <TabsTrigger value="all">全てのカード</TabsTrigger>
                   {deck.tags && deck.tags.length > 0
-                    ? deck.tags.map((tagType) => (
-                        <TabsTrigger key={tagType} value={tagType}>
-                          <Image
-                            src={`/images/types/${getLocalizedTypeName(tagType)}.png`}
-                            alt={tagType}
-                            width={24}
-                            height={24}
-                            className="inline-block mr-1"
-                            onError={(e) => {
-                              e.currentTarget.src = "/placeholder.svg?width=24&height=24"
-                              e.currentTarget.alt = "不明なタイプ"
-                            }}
-                          />
-                          <span className="sr-only">{tagType}</span>
-                        </TabsTrigger>
-                      ))
+                    ? deck.tags.map((tagId) => {
+                        const energyType = energyTypes.find((et) => et.id === tagId)
+                        // energyTypeが見つからない、またはそのタイプのカードがデッキに存在しない場合はタブをレンダリングしない
+                        if (!energyType || !cardsByType[energyType.name]) return null
+
+                        return (
+                          <TabsTrigger key={energyType.id} value={energyType.name}>
+                            <Image
+                              src={energyType.icon || "/placeholder.svg"}
+                              alt={energyType.name}
+                              width={24}
+                              height={24}
+                              className="inline-block mr-1"
+                              onError={(e) => {
+                                e.currentTarget.src = "/placeholder.svg?width=24&height=24"
+                                e.currentTarget.alt = "不明なタイプ"
+                              }}
+                            />
+                            <span className="sr-only">{energyType.name}</span>
+                          </TabsTrigger>
+                        )
+                      })
                     : null}
                 </TabsList>
                 <TabsContent value="all">{renderCardGrid(cardsWithDetails)}</TabsContent>
                 {deck.tags &&
                   deck.tags.length > 0 &&
-                  deck.tags.map((tagType) => (
-                    <TabsContent key={tagType} value={tagType}>
-                      {renderCardGrid(cardsByType[tagType] || [])}
-                    </TabsContent>
-                  ))}
+                  deck.tags.map((tagId) => {
+                    const energyType = energyTypes.find((et) => et.id === tagId)
+                    if (!energyType) return null
+                    return (
+                      <TabsContent key={energyType.id} value={energyType.name}>
+                        {renderCardGrid(cardsByType[energyType.name] || [])}
+                      </TabsContent>
+                    )
+                  })}
               </Tabs>
             </div>
 
