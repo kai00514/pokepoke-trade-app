@@ -143,11 +143,11 @@ export default function SignupPage() {
 
   if (showEmailForm) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-400 via-purple-500 to-pink-500 flex items-center justify-center px-4 py-8">
+      <div className="min-h-screen bg-violet-500 flex items-center justify-center px-4 py-8">
         <div className="w-full max-w-md">
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold text-white mb-2 drop-shadow-lg">メールアドレスで登録</h1>
-            <p className="text-blue-100">アカウント情報を入力してください</p>
+            <p className="text-violet-100">アカウント情報を入力してください</p>
           </div>
 
           <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-8 shadow-2xl border border-white/20">
@@ -171,14 +171,14 @@ export default function SignupPage() {
                   メールアドレス
                 </label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-blue-500" />
+                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-violet-500" />
                   <Input
                     id="email"
                     type="email"
                     placeholder="あなたのメールアドレス"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="pl-10 h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500 bg-white/80 backdrop-blur-sm"
+                    className="pl-10 h-12 border-gray-200 focus:border-violet-500 focus:ring-violet-500 bg-white/80 backdrop-blur-sm"
                     required
                     autoComplete="email"
                   />
@@ -190,14 +190,14 @@ export default function SignupPage() {
                   パスワード
                 </label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-blue-500" />
+                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-violet-500" />
                   <Input
                     id="password"
                     type={showPassword ? "text" : "password"}
                     placeholder="6文字以上のパスワード"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="pl-10 pr-10 h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500 bg-white/80 backdrop-blur-sm"
+                    className="pl-10 pr-10 h-12 border-gray-200 focus:border-violet-500 focus:ring-violet-500 bg-white/80 backdrop-blur-sm"
                     required
                     minLength={6}
                     autoComplete="new-password"
@@ -205,7 +205,7 @@ export default function SignupPage() {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-blue-600 transition-colors"
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-violet-600 transition-colors"
                   >
                     {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                   </button>
@@ -217,21 +217,21 @@ export default function SignupPage() {
                   パスワード確認
                 </label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-blue-500" />
+                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-violet-500" />
                   <Input
                     id="confirmPassword"
                     type={showConfirmPassword ? "text" : "password"}
                     placeholder="パスワードを再入力"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="pl-10 pr-10 h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500 bg-white/80 backdrop-blur-sm"
+                    className="pl-10 pr-10 h-12 border-gray-200 focus:border-violet-500 focus:ring-violet-500 bg-white/80 backdrop-blur-sm"
                     required
                     autoComplete="new-password"
                   />
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-blue-600 transition-colors"
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-violet-600 transition-colors"
                   >
                     {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                   </button>
@@ -240,7 +240,7 @@ export default function SignupPage() {
 
               <Button
                 type="submit"
-                className="w-full h-12 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
+                className="w-full h-12 bg-violet-600 hover:bg-violet-700 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
                 disabled={loading === "email"}
               >
                 {loading === "email" ? "登録中..." : "アカウントを作成"}
@@ -252,7 +252,7 @@ export default function SignupPage() {
                 type="button"
                 variant="ghost"
                 onClick={() => setShowEmailForm(false)}
-                className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 transition-colors"
+                className="text-violet-600 hover:text-violet-700 hover:bg-violet-50 transition-colors"
               >
                 ← 他の登録方法を選択
               </Button>
@@ -264,7 +264,7 @@ export default function SignupPage() {
 
             <div className="mt-8 text-center">
               <p className="text-gray-600 mb-2">すでにアカウントをお持ちの方</p>
-              <Link href="/auth/login" className="text-blue-600 hover:text-blue-700 font-medium transition-colors">
+              <Link href="/auth/login" className="text-violet-600 hover:text-violet-700 font-medium transition-colors">
                 ログイン
               </Link>
             </div>
@@ -275,18 +275,18 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-400 via-purple-500 to-pink-500 flex items-center justify-center px-4 py-8">
+    <div className="min-h-screen bg-violet-500 flex items-center justify-center px-4 py-8">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-white mb-2 drop-shadow-lg">会員登録</h1>
-          <p className="text-blue-100">アカウントを作成してポケモンカードの取引を始めましょう</p>
+          <p className="text-violet-100">アカウントを作成してポケモンカードの取引を始めましょう</p>
         </div>
 
         <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-8 shadow-2xl border border-white/20">
           <div className="space-y-4">
             <Button
               onClick={() => setShowEmailForm(true)}
-              className="w-full h-14 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium rounded-xl flex items-center justify-between px-6 shadow-lg hover:shadow-xl transition-all duration-200"
+              className="w-full h-14 bg-violet-600 hover:bg-violet-700 text-white font-medium rounded-xl flex items-center justify-between px-6 shadow-lg hover:shadow-xl transition-all duration-200"
             >
               <div className="flex items-center">
                 <Mail className="h-5 w-5 mr-3" />
@@ -298,7 +298,7 @@ export default function SignupPage() {
             <Button
               onClick={() => handleSocialSignup("google")}
               variant="outline"
-              className="w-full h-14 border-gray-200 hover:bg-blue-50 hover:border-blue-300 rounded-xl flex items-center justify-between px-6 bg-white/80 backdrop-blur-sm transition-all duration-200"
+              className="w-full h-14 border-gray-200 hover:bg-violet-50 hover:border-violet-300 rounded-xl flex items-center justify-between px-6 bg-white/80 backdrop-blur-sm transition-all duration-200"
               disabled={loading === "google"}
             >
               <div className="flex items-center">
@@ -325,7 +325,7 @@ export default function SignupPage() {
             <Button
               onClick={() => handleSocialSignup("twitter")}
               variant="outline"
-              className="w-full h-14 border-gray-200 hover:bg-blue-50 hover:border-blue-300 rounded-xl flex items-center justify-between px-6 bg-white/80 backdrop-blur-sm transition-all duration-200"
+              className="w-full h-14 border-gray-200 hover:bg-violet-50 hover:border-violet-300 rounded-xl flex items-center justify-between px-6 bg-white/80 backdrop-blur-sm transition-all duration-200"
               disabled={loading === "twitter"}
             >
               <div className="flex items-center">
@@ -348,7 +348,7 @@ export default function SignupPage() {
 
           <div className="mt-8 text-center">
             <p className="text-gray-600 mb-2">すでにアカウントをお持ちの方</p>
-            <Link href="/auth/login" className="text-blue-600 hover:text-blue-700 font-medium transition-colors">
+            <Link href="/auth/login" className="text-violet-600 hover:text-violet-700 font-medium transition-colors">
               ログイン
             </Link>
           </div>

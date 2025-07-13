@@ -137,11 +137,11 @@ export default function ResetPage() {
 
   if (isRecoveryMode) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-400 via-purple-500 to-pink-500 flex items-center justify-center px-4 py-8">
+      <div className="min-h-screen bg-violet-500 flex items-center justify-center px-4 py-8">
         <div className="w-full max-w-md">
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold text-white mb-2 drop-shadow-lg">新しいパスワード</h1>
-            <p className="text-blue-100">新しいパスワードを設定してください</p>
+            <p className="text-violet-100">新しいパスワードを設定してください</p>
           </div>
 
           <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-8 shadow-2xl border border-white/20">
@@ -167,14 +167,14 @@ export default function ResetPage() {
                   新しいパスワード
                 </label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-blue-500" />
+                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-violet-500" />
                   <Input
                     id="password"
                     type={showPassword ? "text" : "password"}
                     placeholder="6文字以上のパスワード"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="pl-10 pr-10 h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500 bg-white/80 backdrop-blur-sm"
+                    className="pl-10 pr-10 h-12 border-gray-200 focus:border-violet-500 focus:ring-violet-500 bg-white/80 backdrop-blur-sm"
                     required
                     minLength={6}
                     autoComplete="new-password"
@@ -182,7 +182,7 @@ export default function ResetPage() {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-blue-600 transition-colors"
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-violet-600 transition-colors"
                   >
                     {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                   </button>
@@ -194,21 +194,21 @@ export default function ResetPage() {
                   パスワード確認
                 </label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-blue-500" />
+                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-violet-500" />
                   <Input
                     id="confirmPassword"
                     type={showConfirmPassword ? "text" : "password"}
                     placeholder="パスワードを再入力"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="pl-10 pr-10 h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500 bg-white/80 backdrop-blur-sm"
+                    className="pl-10 pr-10 h-12 border-gray-200 focus:border-violet-500 focus:ring-violet-500 bg-white/80 backdrop-blur-sm"
                     required
                     autoComplete="new-password"
                   />
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-blue-600 transition-colors"
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-violet-600 transition-colors"
                   >
                     {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                   </button>
@@ -217,7 +217,7 @@ export default function ResetPage() {
 
               <Button
                 type="submit"
-                className="w-full h-12 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
+                className="w-full h-12 bg-violet-600 hover:bg-violet-700 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
                 disabled={loading}
               >
                 {loading ? "更新中..." : "パスワードを更新"}
@@ -225,7 +225,7 @@ export default function ResetPage() {
             </form>
 
             <div className="mt-8 text-center">
-              <Link href="/auth/login" className="text-blue-600 hover:text-blue-700 font-medium transition-colors">
+              <Link href="/auth/login" className="text-violet-600 hover:text-violet-700 font-medium transition-colors">
                 ログインページに戻る
               </Link>
             </div>
@@ -236,11 +236,11 @@ export default function ResetPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-400 via-purple-500 to-pink-500 flex items-center justify-center px-4 py-8">
+    <div className="min-h-screen bg-violet-500 flex items-center justify-center px-4 py-8">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-white mb-2 drop-shadow-lg">パスワードリセット</h1>
-          <p className="text-blue-100">メールアドレスを入力してください</p>
+          <p className="text-violet-100">メールアドレスを入力してください</p>
         </div>
 
         <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-8 shadow-2xl border border-white/20">
@@ -266,14 +266,14 @@ export default function ResetPage() {
                 メールアドレス
               </label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-blue-500" />
+                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-violet-500" />
                 <Input
                   id="email"
                   type="email"
                   placeholder="あなたのメールアドレス"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="pl-10 h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500 bg-white/80 backdrop-blur-sm"
+                  className="pl-10 h-12 border-gray-200 focus:border-violet-500 focus:ring-violet-500 bg-white/80 backdrop-blur-sm"
                   required
                   autoComplete="email"
                 />
@@ -282,7 +282,7 @@ export default function ResetPage() {
 
             <Button
               type="submit"
-              className="w-full h-12 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
+              className="w-full h-12 bg-violet-600 hover:bg-violet-700 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
               disabled={loading}
             >
               {loading ? "送信中..." : "リセットメールを送信"}
@@ -290,10 +290,16 @@ export default function ResetPage() {
           </form>
 
           <div className="mt-8 text-center space-y-4">
-            <Link href="/auth/login" className="text-blue-600 hover:text-blue-700 font-medium block transition-colors">
+            <Link
+              href="/auth/login"
+              className="text-violet-600 hover:text-violet-700 font-medium block transition-colors"
+            >
               ログインページに戻る
             </Link>
-            <Link href="/auth/signup" className="text-blue-600 hover:text-blue-700 font-medium block transition-colors">
+            <Link
+              href="/auth/signup"
+              className="text-violet-600 hover:text-violet-700 font-medium block transition-colors"
+            >
               新規会員登録
             </Link>
           </div>
