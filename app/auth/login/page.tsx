@@ -194,15 +194,16 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-400 via-purple-500 to-purple-600 flex items-center justify-center px-4 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-blue-400 via-purple-500 to-pink-500 flex items-center justify-center px-4 py-8">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-black mb-2">ログイン</h1>
+          <h1 className="text-3xl font-bold text-white mb-2 drop-shadow-lg">ログイン</h1>
+          <p className="text-blue-100">アカウントにログインしてください</p>
         </div>
 
-        <div className="bg-white rounded-2xl p-8 shadow-xl">
+        <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-8 shadow-2xl border border-white/20">
           {errorMessage && (
-            <Alert variant="destructive" className="mb-6">
+            <Alert variant="destructive" className="mb-6 border-red-200 bg-red-50">
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
                 {errorMessage}
@@ -214,6 +215,7 @@ export default function LoginPage() {
                       size="sm"
                       onClick={handleResendConfirmation}
                       disabled={loading}
+                      className="border-red-300 text-red-700 hover:bg-red-50 bg-transparent"
                     >
                       確認メールを再送信
                     </Button>
@@ -229,14 +231,14 @@ export default function LoginPage() {
                 メールアドレス
               </label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-blue-500" />
                 <Input
                   id="email"
                   type="email"
                   placeholder="あなたのメールアドレス"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="pl-10 h-12 border-gray-200 focus:border-purple-500 focus:ring-purple-500"
+                  className="pl-10 h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500 bg-white/80 backdrop-blur-sm"
                   required
                 />
               </div>
@@ -247,25 +249,25 @@ export default function LoginPage() {
                 <label htmlFor="password" className="text-sm font-medium text-gray-700">
                   パスワード
                 </label>
-                <Link href="/auth/reset" className="text-sm text-purple-600 hover:text-purple-700">
+                <Link href="/auth/reset" className="text-sm text-blue-600 hover:text-blue-700 font-medium">
                   パスワードを忘れた方はこちら
                 </Link>
               </div>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-blue-500" />
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
                   placeholder="あなたのパスワード"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="pl-10 pr-10 h-12 border-gray-200 focus:border-purple-500 focus:ring-purple-500"
+                  className="pl-10 pr-10 h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500 bg-white/80 backdrop-blur-sm"
                   required
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-blue-600 transition-colors"
                 >
                   {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                 </button>
@@ -274,7 +276,7 @@ export default function LoginPage() {
 
             <Button
               type="submit"
-              className="w-full h-12 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-xl"
+              className="w-full h-12 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
               disabled={loading}
             >
               {loading ? "ログイン中..." : "ログインする"}
@@ -295,7 +297,7 @@ export default function LoginPage() {
               <Button
                 type="button"
                 variant="outline"
-                className="w-full h-12 border-gray-200 hover:bg-gray-50 rounded-xl bg-transparent"
+                className="w-full h-12 border-gray-200 hover:bg-blue-50 hover:border-blue-300 rounded-xl bg-white/80 backdrop-blur-sm transition-all duration-200"
                 onClick={() => handleSocialLogin("google")}
               >
                 <GoogleIcon className="mr-3 h-5 w-5" />
@@ -305,7 +307,7 @@ export default function LoginPage() {
               <Button
                 type="button"
                 variant="outline"
-                className="w-full h-12 border-gray-200 hover:bg-gray-50 rounded-xl opacity-50 cursor-not-allowed bg-transparent"
+                className="w-full h-12 border-gray-200 rounded-xl opacity-50 cursor-not-allowed bg-white/60 backdrop-blur-sm"
                 disabled
               >
                 <div className="w-5 h-5 mr-3 bg-green-500 rounded flex items-center justify-center">
@@ -317,7 +319,7 @@ export default function LoginPage() {
               <Button
                 type="button"
                 variant="outline"
-                className="w-full h-12 border-gray-200 hover:bg-gray-50 rounded-xl bg-transparent"
+                className="w-full h-12 border-gray-200 hover:bg-blue-50 hover:border-blue-300 rounded-xl bg-white/80 backdrop-blur-sm transition-all duration-200"
                 onClick={() => handleSocialLogin("twitter")}
               >
                 <XIcon className="mr-3 h-5 w-5" />
@@ -332,7 +334,7 @@ export default function LoginPage() {
 
           <div className="mt-8 text-center">
             <p className="text-gray-600 mb-2">アカウントをお持ちでない方</p>
-            <Link href="/auth/signup" className="text-purple-600 hover:text-purple-700 font-medium">
+            <Link href="/auth/signup" className="text-blue-600 hover:text-blue-700 font-medium transition-colors">
               新規会員登録
             </Link>
           </div>
