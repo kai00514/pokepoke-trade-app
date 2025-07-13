@@ -41,7 +41,9 @@ export default function DeckDetailPage() {
 
   // ヘルパー関数：タイプコードを実際の画像ファイル名にマッピング
   const getLocalizedTypeName = (typeCode: string): string => {
-    switch (typeCode) {
+    // Unicode正規化を行い、文字列比較の不一致を防ぐ
+    const normalizedTypeCode = typeCode.normalize("NFC")
+    switch (normalizedTypeCode) {
       case "エスパー":
         return "念"
       case "ドラゴン":
