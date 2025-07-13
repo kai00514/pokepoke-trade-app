@@ -467,6 +467,8 @@ export default function DetailedSearchModal({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* ImagePreviewOverlayをDialogの外側に配置 */}
       <ImagePreviewOverlay
         isOpen={isPreviewOverlayOpen}
         imageUrl={previewImageUrl}

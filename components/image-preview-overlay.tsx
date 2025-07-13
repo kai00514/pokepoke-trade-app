@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import Image from "next/image"
 import { X } from "lucide-react"
 import { useEffect } from "react"
@@ -30,9 +29,9 @@ export default function ImagePreviewOverlay({
       }
     }
 
-    document.addEventListener("keydown", handleKeyDown)
+    document.addEventListener("keydown", handleKeyDown, true)
     return () => {
-      document.removeEventListener("keydown", handleKeyDown)
+      document.removeEventListener("keydown", handleKeyDown, true)
     }
   }, [isOpen, onClose])
 
@@ -63,12 +62,19 @@ export default function ImagePreviewOverlay({
 
   return (
     <div
-      className="fixed inset-0 bg-black/85 flex items-center justify-center z-[9999] p-4"
+      className="fixed inset-0 bg-black/85 flex items-center justify-center z-[99999] p-4"
       onClick={handleOverlayClick}
       role="dialog"
       aria-modal="true"
       aria-labelledby="image-preview-title"
-      style={{ pointerEvents: "auto" }}
+      style={{
+        pointerEvents: "auto",
+        position: "fixed",
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+      }}
     >
       <div className="relative w-auto h-auto max-w-[90vw] max-h-[90vh]" onClick={handleImageContainerClick}>
         <h2 id="image-preview-title" className="sr-only">
