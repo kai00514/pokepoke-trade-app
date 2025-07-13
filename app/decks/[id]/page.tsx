@@ -340,7 +340,7 @@ export default function DeckDetailPage() {
                       <span>作成日: {new Date(deck.created_at).toLocaleDateString()}</span>
                     </div>
                   </div>
-                  {deck.description && <p className="text-gray-700 mb-4">{deck.description}</p>}
+                  {deck.description && <p className="text-gray-700 mb-4 whitespace-pre-wrap">{deck.description}</p>}
                 </div>
 
                 <div className="flex items-center gap-4">
