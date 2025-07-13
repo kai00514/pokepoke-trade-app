@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input"
 import { createClient } from "@/lib/supabase/client"
 import { useToast } from "@/components/ui/use-toast"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Mail, Lock, Eye, EyeOff, AlertCircle, CheckCircle } from "lucide-react"
+import { Mail, Lock, Eye, EyeOff, AlertCircle, CheckCircle, ArrowLeft } from "lucide-react"
 
 export default function ResetPage() {
   const [email, setEmail] = useState("")
@@ -137,14 +137,17 @@ export default function ResetPage() {
 
   if (isRecoveryMode) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-400 via-purple-500 to-purple-600 flex items-center justify-center px-4 py-8">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center px-4 py-8">
         <div className="w-full max-w-md">
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-black mb-2">新しいパスワード</h1>
-            <p className="text-purple-100">新しいパスワードを設定してください</p>
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full mb-4">
+              <Lock className="h-8 w-8 text-white" />
+            </div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">新しいパスワード</h1>
+            <p className="text-gray-600">新しいパスワードを設定してください</p>
           </div>
 
-          <div className="bg-white rounded-2xl p-8 shadow-xl">
+          <div className="bg-white rounded-2xl p-8 shadow-xl border border-gray-100">
             {message && (
               <Alert
                 variant={message.type === "error" ? "destructive" : "default"}
@@ -163,7 +166,7 @@ export default function ResetPage() {
 
             <form onSubmit={handlePasswordUpdate} className="space-y-6">
               <div className="space-y-2">
-                <label htmlFor="password" className="text-sm font-medium text-gray-700">
+                <label htmlFor="password" className="text-sm font-semibold text-gray-700">
                   新しいパスワード
                 </label>
                 <div className="relative">
@@ -174,14 +177,15 @@ export default function ResetPage() {
                     placeholder="6文字以上のパスワード"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="pl-10 pr-10 h-12 border-gray-200 focus:border-purple-500 focus:ring-purple-500"
+                    className="pl-10 pr-10 h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500 rounded-xl"
                     required
                     minLength={6}
+                    autocomplete="new-password"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
                   >
                     {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                   </button>
@@ -189,7 +193,7 @@ export default function ResetPage() {
               </div>
 
               <div className="space-y-2">
-                <label htmlFor="confirmPassword" className="text-sm font-medium text-gray-700">
+                <label htmlFor="confirmPassword" className="text-sm font-semibold text-gray-700">
                   パスワード確認
                 </label>
                 <div className="relative">
@@ -200,13 +204,14 @@ export default function ResetPage() {
                     placeholder="パスワードを再入力"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="pl-10 pr-10 h-12 border-gray-200 focus:border-purple-500 focus:ring-purple-500"
+                    className="pl-10 pr-10 h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500 rounded-xl"
                     required
+                    autocomplete="new-password"
                   />
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
                   >
                     {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                   </button>
@@ -215,15 +220,26 @@ export default function ResetPage() {
 
               <Button
                 type="submit"
-                className="w-full h-12 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-xl"
+                className="w-full h-12 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
                 disabled={loading}
               >
-                {loading ? "更新中..." : "パスワードを更新"}
+                {loading ? (
+                  <div className="flex items-center space-x-2">
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    <span>更新中...</span>
+                  </div>
+                ) : (
+                  "パスワードを更新"
+                )}
               </Button>
             </form>
 
             <div className="mt-8 text-center">
-              <Link href="/auth/login" className="text-purple-600 hover:text-purple-700 font-medium">
+              <Link
+                href="/auth/login"
+                className="inline-flex items-center text-blue-600 hover:text-blue-700 font-medium transition-colors"
+              >
+                <ArrowLeft className="h-4 w-4 mr-1" />
                 ログインページに戻る
               </Link>
             </div>
@@ -234,14 +250,17 @@ export default function ResetPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-400 via-purple-500 to-purple-600 flex items-center justify-center px-4 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center px-4 py-8">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-black mb-2">パスワードリセット</h1>
-          <p className="text-purple-100">メールアドレスを入力してください</p>
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full mb-4">
+            <Mail className="h-8 w-8 text-white" />
+          </div>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">パスワードリセット</h1>
+          <p className="text-gray-600">メールアドレスを入力してください</p>
         </div>
 
-        <div className="bg-white rounded-2xl p-8 shadow-xl">
+        <div className="bg-white rounded-2xl p-8 shadow-xl border border-gray-100">
           {message && (
             <Alert
               variant={message.type === "error" ? "destructive" : "default"}
@@ -260,7 +279,7 @@ export default function ResetPage() {
 
           <form onSubmit={handlePasswordReset} className="space-y-6">
             <div className="space-y-2">
-              <label htmlFor="email" className="text-sm font-medium text-gray-700">
+              <label htmlFor="email" className="text-sm font-semibold text-gray-700">
                 メールアドレス
               </label>
               <div className="relative">
@@ -271,26 +290,38 @@ export default function ResetPage() {
                   placeholder="あなたのメールアドレス"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="pl-10 h-12 border-gray-200 focus:border-purple-500 focus:ring-purple-500"
+                  className="pl-10 h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500 rounded-xl"
                   required
+                  autocomplete="email"
                 />
               </div>
             </div>
 
             <Button
               type="submit"
-              className="w-full h-12 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-xl"
+              className="w-full h-12 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
               disabled={loading}
             >
-              {loading ? "送信中..." : "リセットメールを送信"}
+              {loading ? (
+                <div className="flex items-center space-x-2">
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  <span>送信中...</span>
+                </div>
+              ) : (
+                "リセットメールを送信"
+              )}
             </Button>
           </form>
 
           <div className="mt-8 text-center space-y-4">
-            <Link href="/auth/login" className="text-purple-600 hover:text-purple-700 font-medium block">
+            <Link
+              href="/auth/login"
+              className="inline-flex items-center text-blue-600 hover:text-blue-700 font-medium transition-colors block"
+            >
+              <ArrowLeft className="h-4 w-4 mr-1" />
               ログインページに戻る
             </Link>
-            <Link href="/auth/signup" className="text-purple-600 hover:text-purple-700 font-medium block">
+            <Link href="/auth/signup" className="text-gray-600 hover:text-gray-700 font-medium transition-colors block">
               新規会員登録
             </Link>
           </div>
