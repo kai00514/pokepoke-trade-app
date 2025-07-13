@@ -98,8 +98,10 @@ export default function DetailedSearchModal({
       isInitializedRef.current = true
     } else if (!isOpen) {
       isInitializedRef.current = false
+      // Clean up preview overlay when main modal closes
       setIsPreviewOverlayOpen(false)
       setPreviewImageUrl(null)
+      setPreviewCardName(undefined)
       if (longPressTimerRef.current) clearTimeout(longPressTimerRef.current)
     }
   }, [isOpen, initialSelectedCards])
@@ -269,11 +271,54 @@ export default function DetailedSearchModal({
     onSelectionComplete([...currentSelectedCards])
   }
 
+  // Handler for preview overlay close - only closes the preview
   const handlePreviewClose = () => {
     setIsPreviewOverlayOpen(false)
     setPreviewImageUrl(null)
     setPreviewCardName(undefined)
   }
+
+  // Handler for main modal close - prevents closing if preview is open
+  const handleMainModalClose = (open: boolean) => {
+    // If trying to close the main modal but preview is open, close preview first
+    if (!open && isPreviewOverlayOpen) {
+      handlePreviewClose()
+      return // Don't close the main modal yet
+    }
+
+    // If preview is not open, allow main modal to close
+    if (!open) {
+      // Clean up any remaining preview state
+      setIsPreviewOverlayOpen(false)
+      setPreviewImageUrl(null)
+      setPreviewCardName(undefined)
+    }
+    onOpenChange(open)
+  }
+
+  // Handle escape key for proper closing sequence
+  useEffect(() => {
+    const handleEscapeKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && isOpen) {
+        if (isPreviewOverlayOpen) {
+          // If preview is open, close it first
+          handlePreviewClose()
+          event.preventDefault()
+          event.stopPropagation()
+        } else {
+          // If preview is not open, allow main modal to close
+          onOpenChange(false)
+        }
+      }
+    }
+
+    if (isOpen) {
+      document.addEventListener("keydown", handleEscapeKey, true)
+      return () => {
+        document.removeEventListener("keydown", handleEscapeKey, true)
+      }
+    }
+  }, [isOpen, isPreviewOverlayOpen, onOpenChange])
 
   const selectionText = useMemo(() => {
     let text = `${currentSelectedCards.length}枚選択中`
@@ -283,11 +328,19 @@ export default function DetailedSearchModal({
 
   return (
     <>
-      <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      <Dialog open={isOpen} onOpenChange={handleMainModalClose}>
         <DialogContent className="max-w-3xl w-[95vw] h-[90vh] p-0 flex flex-col gap-0">
           <DialogHeader className="p-4 border-b flex-shrink-0">
             <DialogTitle className="text-lg font-semibold">{modalTitle}</DialogTitle>
-            <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
+            <DialogClose
+              className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground"
+              onClick={(e) => {
+                if (isPreviewOverlayOpen) {
+                  e.preventDefault()
+                  handlePreviewClose()
+                }
+              }}
+            >
               <X className="h-5 w-5" />
               <span className="sr-only">閉じる</span>
             </DialogClose>
@@ -483,14 +536,13 @@ export default function DetailedSearchModal({
         </DialogContent>
       </Dialog>
 
-      {isPreviewOverlayOpen && previewImageUrl && (
-        <ImagePreviewOverlay
-          isOpen={isPreviewOverlayOpen}
-          imageUrl={previewImageUrl}
-          cardName={previewCardName}
-          onClose={handlePreviewClose}
-        />
-      )}
+      {/* Image preview overlay - independent state management */}
+      <ImagePreviewOverlay
+        isOpen={isPreviewOverlayOpen}
+        imageUrl={previewImageUrl}
+        cardName={previewCardName}
+        onClose={handlePreviewClose}
+      />
     </>
   )
 }
