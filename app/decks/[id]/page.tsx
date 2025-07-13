@@ -21,19 +21,17 @@ import { AuthProvider } from "@/contexts/auth-context"
 import DeckComments from "@/components/DeckComments"
 import LoginPromptModal from "@/components/ui/login-prompt-modal"
 
-// 仮のエネルギータイプデータ
 const energyTypes = [
-  { id: "grass", name: "草", icon: "/images/types/草.png" },
-  { id: "fire", name: "炎", icon: "/images/types/炎.png" },
-  { id: "water", name: "水", icon: "/images/types/水.png" },
-  { id: "lightning", name: "雷", icon: "/images/types/雷.png" },
-  { id: "psychic", name: "超", icon: "/images/types/超.png" },
-  { id: "fighting", name: "闘", icon: "/images/types/闘.png" },
-  { id: "darkness", name: "悪", icon: "/images/types/悪.png" },
-  { id: "metal", name: "鋼", icon: "/images/types/鋼.png" },
-  { id: "dragon", name: "龍", icon: "/images/types/龍.png" },
-  { id: "fairy", name: "妖", icon: "/images/types/妖.png" },
-  { id: "colorless", name: "無色", icon: "/images/types/無色.png" },
+  { name: "草", icon: "/images/types/草.png", id: "grass", color: "bg-green-500" },
+  { name: "炎", icon: "/images/types/炎.png", id: "fire", color: "bg-red-500" },
+  { name: "水", icon: "/images/types/水.png", id: "water", color: "bg-blue-500" },
+  { name: "電気", icon: "/images/types/電気.png", id: "electric", color: "bg-yellow-500" },
+  { name: "エスパー", icon: "/images/types/念.png", id: "psychic", color: "bg-purple-500" },
+  { name: "格闘", icon: "/images/types/格闘.png", id: "fighting", color: "bg-orange-500" },
+  { name: "悪", icon: "/images/types/悪.png", id: "dark", color: "bg-gray-800" },
+  { name: "鋼", icon: "/images/types/鋼.png", id: "metal", color: "bg-gray-500" },
+  { name: "無色", icon: "/images/types/無色.png", id: "colorless", color: "bg-gray-400" },
+  { name: "ドラゴン", icon: "/images/types/龍.png", id: "dragon", color: "bg-yellow-600" },
 ]
 
 export default function DeckDetailPage() {
@@ -53,22 +51,6 @@ export default function DeckDetailPage() {
   const [isFavoriteLoading, setIsFavoriteLoading] = useState(false)
   const [showLoginPrompt, setShowLoginPrompt] = useState(false)
   const { toast } = useToast()
-
-  // ヘルパー関数：タイプコードを実際の画像ファイル名にマッピング
-  const getLocalizedTypeName = (typeCode: string): string => {
-    const trimmedTypeCode = typeCode.trim() // 前後の空白を除去
-    const normalizedTypeCode = trimmedTypeCode.normalize("NFC") // Unicode正規化
-
-    // マッピングオブジェクト
-    const typeMapping: { [key: string]: string } = {
-      エスパー: "念",
-      ドラゴン: "龍",
-      // 必要に応じて他のタイプもここに追加
-    }
-
-    // マッピングが存在すればその値を返し、なければ元のタイプコードを返す
-    return typeMapping[normalizedTypeCode] || typeCode
-  }
 
   // "create"というIDが渡された場合、/decks/createにリダイレクト
   useEffect(() => {
