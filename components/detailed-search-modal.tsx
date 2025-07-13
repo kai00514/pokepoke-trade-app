@@ -181,29 +181,42 @@ export default function DetailedSearchModal({
     })
   }
 
-  const handleTouchStart = (card: Card, e: React.TouchEvent) => {
-    e.preventDefault()
-    const touch = e.touches[0]
-    touchStartTimeRef.current = Date.now()
-    touchStartPositionRef.current = { x: touch.clientX, y: touch.clientY }
+  const clearLongPressTimer = () => {
+    if (longPressTimerRef.current) {
+      clearTimeout(longPressTimerRef.current)
+      longPressTimerRef.current = null
+    }
+  }
+
+  const startLongPressTimer = (card: Card) => {
+    clearLongPressTimer()
     isLongPressTriggeredRef.current = false
-    if (longPressTimerRef.current) clearTimeout(longPressTimerRef.current)
     longPressTimerRef.current = setTimeout(() => {
       isLongPressTriggeredRef.current = true
       setPreviewImageUrl(card.imageUrl)
       setPreviewCardName(card.name)
       setIsPreviewOverlayOpen(true)
-      if (navigator.vibrate) navigator.vibrate(50)
+      if (navigator.vibrate) {
+        navigator.vibrate(50)
+      }
     }, 500)
   }
 
+  const handleTouchStart = (card: Card, e: React.TouchEvent) => {
+    e.preventDefault()
+    const touch = e.touches[0]
+    touchStartTimeRef.current = Date.now()
+    touchStartPositionRef.current = { x: touch.clientX, y: touch.clientY }
+    startLongPressTimer(card)
+  }
+
   const handleTouchMove = (e: React.TouchEvent) => {
-    if (touchStartPositionRef.current) {
+    if (touchStartPositionRef.current && e.touches[0]) {
       const touch = e.touches[0]
       const deltaX = Math.abs(touch.clientX - touchStartPositionRef.current.x)
       const deltaY = Math.abs(touch.clientY - touchStartPositionRef.current.y)
       if (deltaX > 10 || deltaY > 10) {
-        if (longPressTimerRef.current) clearTimeout(longPressTimerRef.current)
+        clearLongPressTimer()
         isLongPressTriggeredRef.current = false
       }
     }
@@ -211,38 +224,40 @@ export default function DetailedSearchModal({
 
   const handleTouchEnd = (card: Card, e: React.TouchEvent) => {
     e.preventDefault()
-    if (longPressTimerRef.current) clearTimeout(longPressTimerRef.current)
+    clearLongPressTimer()
     const touchDuration = Date.now() - touchStartTimeRef.current
-    if (!isLongPressTriggeredRef.current && touchDuration < 500) toggleCardSelection(card)
+    if (!isLongPressTriggeredRef.current && touchDuration < 500) {
+      toggleCardSelection(card)
+    }
     isLongPressTriggeredRef.current = false
     touchStartPositionRef.current = null
   }
 
   const handleTouchCancel = () => {
-    if (longPressTimerRef.current) clearTimeout(longPressTimerRef.current)
+    clearLongPressTimer()
     isLongPressTriggeredRef.current = false
     touchStartPositionRef.current = null
   }
 
-  const handleMouseDown = (card: Card) => {
-    isLongPressTriggeredRef.current = false
-    if (longPressTimerRef.current) clearTimeout(longPressTimerRef.current)
-    longPressTimerRef.current = setTimeout(() => {
-      isLongPressTriggeredRef.current = true
-      setPreviewImageUrl(card.imageUrl)
-      setPreviewCardName(card.name)
-      setIsPreviewOverlayOpen(true)
-    }, 500)
+  const handleMouseDown = (card: Card, e: React.MouseEvent) => {
+    if ("ontouchstart" in window) return
+    e.preventDefault()
+    startLongPressTimer(card)
   }
 
-  const handleMouseUp = (card: Card) => {
-    if (longPressTimerRef.current) clearTimeout(longPressTimerRef.current)
-    if (!isLongPressTriggeredRef.current) toggleCardSelection(card)
+  const handleMouseUp = (card: Card, e: React.MouseEvent) => {
+    if ("ontouchstart" in window) return
+    e.preventDefault()
+    clearLongPressTimer()
+    if (!isLongPressTriggeredRef.current) {
+      toggleCardSelection(card)
+    }
     isLongPressTriggeredRef.current = false
   }
 
   const handleMouseLeave = () => {
-    if (longPressTimerRef.current) clearTimeout(longPressTimerRef.current)
+    if ("ontouchstart" in window) return
+    clearLongPressTimer()
     isLongPressTriggeredRef.current = false
   }
 
@@ -387,8 +402,8 @@ export default function DetailedSearchModal({
                     {fetchedCards.map((card) => (
                       <button
                         key={card.id}
-                        onMouseDown={() => handleMouseDown(card)}
-                        onMouseUp={() => handleMouseUp(card)}
+                        onMouseDown={(e) => handleMouseDown(card, e)}
+                        onMouseUp={(e) => handleMouseUp(card, e)}
                         onMouseLeave={handleMouseLeave}
                         onTouchStart={(e) => handleTouchStart(card, e)}
                         onTouchMove={handleTouchMove}
@@ -468,8 +483,7 @@ export default function DetailedSearchModal({
         </DialogContent>
       </Dialog>
 
-      {/* ImagePreviewOverlayをDialogの外側に配置 */}
-      {isPreviewOverlayOpen && (
+      {isPreviewOverlayOpen && previewImageUrl && (
         <ImagePreviewOverlay
           isOpen={isPreviewOverlayOpen}
           imageUrl={previewImageUrl}
