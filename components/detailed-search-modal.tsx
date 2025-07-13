@@ -254,6 +254,12 @@ export default function DetailedSearchModal({
     onSelectionComplete([...currentSelectedCards])
   }
 
+  const handlePreviewClose = () => {
+    setIsPreviewOverlayOpen(false)
+    setPreviewImageUrl(null)
+    setPreviewCardName(undefined)
+  }
+
   const selectionText = useMemo(() => {
     let text = `${currentSelectedCards.length}枚選択中`
     if (maxSelection) text += ` (最大${maxSelection}枚)`
@@ -465,7 +471,7 @@ export default function DetailedSearchModal({
         isOpen={isPreviewOverlayOpen}
         imageUrl={previewImageUrl}
         cardName={previewCardName}
-        onClose={() => setIsPreviewOverlayOpen(false)}
+        onClose={handlePreviewClose}
       />
     </>
   )
