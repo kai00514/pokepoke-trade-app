@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
   redirectTo.searchParams.delete("next")
 
   if (token_hash && type) {
-    const supabase = await createClient()
+    const supabase = createClient()
 
     const { error } = await supabase.auth.verifyOtp({
       type,
@@ -23,14 +23,13 @@ export async function GET(request: NextRequest) {
     })
 
     if (!error) {
-      redirectTo.searchParams.delete("token_hash")
-      redirectTo.searchParams.delete("type")
-      redirectTo.searchParams.delete("next")
+      redirectTo.searchParams.delete("message")
       return NextResponse.redirect(redirectTo)
     }
   }
 
   // return the user to an error page with some instructions
   redirectTo.pathname = "/auth/auth-code-error"
+  redirectTo.searchParams.set("message", "メール確認に失敗しました。")
   return NextResponse.redirect(redirectTo)
 }
