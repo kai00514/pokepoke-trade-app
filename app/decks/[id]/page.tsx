@@ -41,16 +41,18 @@ export default function DeckDetailPage() {
 
   // ヘルパー関数：タイプコードを実際の画像ファイル名にマッピング
   const getLocalizedTypeName = (typeCode: string): string => {
-    // Unicode正規化を行い、文字列比較の不一致を防ぐ
-    const normalizedTypeCode = typeCode.normalize("NFC")
-    switch (normalizedTypeCode) {
-      case "エスパー":
-        return "念"
-      case "ドラゴン":
-        return "龍"
-      default:
-        return typeCode
+    const trimmedTypeCode = typeCode.trim() // 前後の空白を除去
+    const normalizedTypeCode = trimmedTypeCode.normalize("NFC") // Unicode正規化
+
+    // マッピングオブジェクト
+    const typeMapping: { [key: string]: string } = {
+      エスパー: "念",
+      ドラゴン: "龍",
+      // 必要に応じて他のタイプもここに追加
     }
+
+    // マッピングが存在すればその値を返し、なければ元のタイプコードを返す
+    return typeMapping[normalizedTypeCode] || typeCode
   }
 
   // "create"というIDが渡された場合、/decks/createにリダイレクト
