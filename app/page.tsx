@@ -117,20 +117,25 @@ export default function TradeBoardPage() {
             </div>
 
             <div className="mb-6 p-4 bg-white rounded-lg shadow">
-              <div className="flex flex-col sm:flex-row gap-2">
+              <div className="flex gap-1">
+                {" "}
+                {/* gap-2 から gap-1 に変更 */}
                 <Input
                   type="text"
                   placeholder="キーワード検索"
-                  className="flex-grow"
+                  className="flex-1 min-w-0"
                   value={searchKeyword}
                   onChange={(e) => setSearchKeyword(e.target.value)}
                 />
-                <Button variant="default" className="bg-violet-500 hover:bg-violet-600 text-white">
-                  <Search className="mr-2 h-4 w-4 sm:hidden" /> 検索
+                <Button
+                  variant="default"
+                  className="bg-violet-500 hover:bg-violet-600 text-white whitespace-nowrap flex-shrink-0"
+                >
+                  <Search className="mr-1 h-4 w-4" /> 検索
                 </Button>
                 <Button
                   variant="outline"
-                  className="bg-slate-200 text-slate-700 hover:bg-slate-300"
+                  className="bg-slate-200 text-slate-700 hover:bg-slate-300 whitespace-nowrap flex-shrink-0"
                   onClick={() => setIsDetailedSearchOpen(true)}
                 >
                   詳細検索
