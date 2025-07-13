@@ -2,8 +2,8 @@
 
 import type React from "react"
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { useState, useEffect } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -22,17 +22,20 @@ export default function ResetPage() {
   const [step, setStep] = useState<"request" | "update">("request")
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null)
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { toast } = useToast()
   const supabase = createClient()
 
   // URLからハッシュトークンを確認してステップを決定
-  useState(() => {
-    const hashParams = new URLSearchParams(window.location.hash.substring(1))
-    const accessToken = hashParams.get("access_token")
-    const type = hashParams.get("type")
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const hashParams = new URLSearchParams(window.location.hash.substring(1))
+      const accessToken = hashParams.get("access_token")
+      const type = hashParams.get("type")
 
-    if (accessToken && type === "recovery") {
-      setStep("update")
+      if (accessToken && type === "recovery") {
+        setStep("update")
+      }
     }
   }, [])
 
