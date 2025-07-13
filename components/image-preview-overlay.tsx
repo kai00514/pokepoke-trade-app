@@ -61,7 +61,10 @@ export default function ImagePreviewOverlay({
           onClick={onClose}
         />
         <button
-          onClick={onClose}
+          onClick={(e) => {
+            e.stopPropagation()
+            onClose()
+          }}
           className="absolute -top-2 -right-2 sm:top-2 sm:right-2 bg-slate-800/70 hover:bg-slate-700/90 text-white rounded-full p-1.5 shadow-lg transition-colors"
           aria-label="Close image preview"
         >
