@@ -39,6 +39,18 @@ export default function DeckDetailPage() {
   const [showLoginPrompt, setShowLoginPrompt] = useState(false)
   const { toast } = useToast()
 
+  // ヘルパー関数：タイプコードを実際の画像ファイル名にマッピング
+  const getLocalizedTypeName = (typeCode: string): string => {
+    switch (typeCode) {
+      case "エスパー":
+        return "念"
+      case "ドラゴン":
+        return "龍"
+      default:
+        return typeCode
+    }
+  }
+
   // "create"というIDが渡された場合、/decks/createにリダイレクト
   useEffect(() => {
     if (id === "create") {
@@ -410,7 +422,7 @@ export default function DeckDetailPage() {
                   {Object.keys(cardsByType).map((type) => (
                     <TabsTrigger key={type} value={type}>
                       <Image
-                        src={`/images/types/${type}.png`}
+                        src={`/images/types/${getLocalizedTypeName(type)}.png`}
                         alt={type}
                         width={24}
                         height={24}
