@@ -138,7 +138,7 @@ export default function ResetPage() {
   if (isRecoveryMode) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-400 via-purple-500 to-purple-600 flex items-center justify-center px-4 py-8">
-        <div className="w-full max-w-md lg:max-w-lg xl:max-w-xl">
+        <div className="w-full max-w-md sm:max-w-lg lg:max-w-xl">
           <div className="text-center mb-8">
             <h1 className="text-3xl lg:text-4xl font-bold text-black mb-2">新しいパスワード</h1>
             <p className="text-purple-100 text-lg">新しいパスワードを設定してください</p>
@@ -177,7 +177,7 @@ export default function ResetPage() {
                     className="pl-10 pr-10 h-12 lg:h-14 border-gray-200 focus:border-purple-500 focus:ring-purple-500 text-base"
                     required
                     minLength={6}
-                    autocomplete="new-password"
+                    autoComplete="new-password"
                   />
                   <button
                     type="button"
@@ -203,7 +203,7 @@ export default function ResetPage() {
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     className="pl-10 pr-10 h-12 lg:h-14 border-gray-200 focus:border-purple-500 focus:ring-purple-500 text-base"
                     required
-                    autocomplete="new-password"
+                    autoComplete="new-password"
                   />
                   <button
                     type="button"
@@ -237,7 +237,7 @@ export default function ResetPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-400 via-purple-500 to-purple-600 flex items-center justify-center px-4 py-8">
-      <div className="w-full max-w-md lg:max-w-lg xl:max-w-xl">
+      <div className="w-full max-w-md sm:max-w-lg lg:max-w-xl">
         <div className="text-center mb-8">
           <h1 className="text-3xl lg:text-4xl font-bold text-black mb-2">パスワードリセット</h1>
           <p className="text-purple-100 text-lg">メールアドレスを入力してください</p>
@@ -275,7 +275,7 @@ export default function ResetPage() {
                   onChange={(e) => setEmail(e.target.value)}
                   className="pl-10 h-12 lg:h-14 border-gray-200 focus:border-purple-500 focus:ring-purple-500 text-base"
                   required
-                  autocomplete="email"
+                  autoComplete="email"
                 />
               </div>
             </div>
