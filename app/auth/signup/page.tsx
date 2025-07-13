@@ -50,7 +50,7 @@ export default function SignupPage() {
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
+          emailRedirectTo: `${window.location.origin}/auth/confirm`,
         },
       })
 
@@ -340,7 +340,7 @@ export default function SignupPage() {
 
           <div className="mt-8 text-center">
             <p className="text-gray-600 mb-2">すでにアカウントをお持ちの方</p>
-            <Link href="/auth/signup" className="text-purple-600 hover:text-purple-700 font-medium">
+            <Link href="/auth/login" className="text-purple-600 hover:text-purple-700 font-medium">
               ログイン
             </Link>
           </div>
