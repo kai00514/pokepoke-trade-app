@@ -194,7 +194,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-violet-500 flex items-center justify-center px-4 py-8">
+    <div className="min-h-screen flex items-center justify-center">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-white mb-2 drop-shadow-lg">ログイン</h1>
@@ -332,7 +332,7 @@ export default function LoginPage() {
             ※ソーシャルログイン機能は現在ブラウザのみで提供しています。
           </div>
 
-          <div className="mt-8 text-center">
+          <div className="mt-10 text-center">
             <p className="text-gray-600 mb-2">アカウントをお持ちでない方</p>
             <Link href="/auth/signup" className="text-violet-600 hover:text-violet-700 font-medium transition-colors">
               新規会員登録

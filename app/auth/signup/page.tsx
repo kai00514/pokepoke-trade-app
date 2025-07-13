@@ -143,7 +143,7 @@ export default function SignupPage() {
 
   if (showEmailForm) {
     return (
-      <div className="min-h-screen bg-violet-500 flex items-center justify-center px-4 py-8">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="w-full max-w-md">
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold text-white mb-2 drop-shadow-lg">メールアドレスで登録</h1>
@@ -275,7 +275,7 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="min-h-screen bg-violet-500 flex items-center justify-center px-4 py-8">
+    <div className="min-h-screen flex items-center justify-center">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-white mb-2 drop-shadow-lg">会員登録</h1>

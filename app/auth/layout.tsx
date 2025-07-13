@@ -8,7 +8,7 @@ export default function AuthLayout({
   children: React.ReactNode
 }) {
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-br from-purple-50 to-purple-100 p-4">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-violet-500">
       <AuthHeader />
       <Suspense fallback={<div>認証コンテンツを読み込み中...</div>}>{children}</Suspense>
     </div>
