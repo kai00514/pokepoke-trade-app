@@ -20,45 +20,30 @@ export default function Header() {
   const [isPokepokeIdModalOpen, setIsPokepokeIdModalOpen] = useState(false)
   const [isUsernameModalOpen, setIsUsernameModalOpen] = useState(false)
 
-  console.log("🔍 Header component - Auth state:", {
-    user: user ? { id: user.id, email: user.email } : null,
-    userProfile,
-    loading,
-    displayName,
-  })
-
   const handleSignOut = async () => {
     try {
       await signOut()
-      console.log("✅ Signed out successfully from Header")
-    } catch (error) {
-      console.error("❌ Sign out error:", error)
-    }
+    } catch (error) {}
   }
 
   // ポケポケID登録のハンドラ
   const handlePokepokeIdRegistration = () => {
-    console.log("ポケポケID登録がクリックされました。")
     setIsPokepokeIdModalOpen(true)
   }
 
   // ユーザー名登録のハンドラ
   const handleUsernameRegistration = () => {
-    console.log("ユーザー名登録がクリックされました。")
     setIsUsernameModalOpen(true)
   }
 
   // ポケポケID保存のハンドラ
   const handleSavePokepokeId = async (pokepokeId: string) => {
     if (!user) {
-      console.error("ユーザーが認証されていません。")
       throw new Error("ユーザーが認証されていません。")
     }
     try {
       await updateUserProfile(user.id, { pokepoke_id: pokepokeId })
-      console.log("ポケポケIDが正常に保存されました。")
     } catch (error) {
-      console.error("ポケポケIDの保存エラー:", error)
       throw error
     }
   }
@@ -66,14 +51,11 @@ export default function Header() {
   // ユーザー名保存のハンドラ
   const handleSaveUsername = async (username: string) => {
     if (!user) {
-      console.error("ユーザーが認証されていません。")
       throw new Error("ユーザーが認証されていません。")
     }
     try {
       await updateUserProfile(user.id, { display_name: username })
-      console.log("ユーザー名が正常に保存されました。")
     } catch (error) {
-      console.error("ユーザー名の保存エラー:", error)
       throw error
     }
   }

@@ -6,16 +6,10 @@ import { useAuth } from "@/contexts/auth-context"
 export function AuthHeader() {
   const { session, signOut } = useAuth()
 
-  console.log("🎯 AuthHeader レンダリング:", { session: !!session })
-
   const handleSignOut = async () => {
-    console.log("🚪 AuthHeader ログアウトボタンクリック")
     try {
       await signOut()
-      console.log("✅ AuthHeader ログアウト処理完了")
-    } catch (error) {
-      console.error("❌ AuthHeader ログアウト処理エラー:", error)
-    }
+    } catch (error) {}
   }
 
   return null

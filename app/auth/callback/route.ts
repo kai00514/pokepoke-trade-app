@@ -9,45 +9,30 @@ export async function GET(request: NextRequest) {
   const error = searchParams.get("error")
   const errorDescription = searchParams.get("error_description")
 
-  console.log("🔄 Callback route called with:", {
-    code: code ? "present" : "missing",
-    next,
-    error,
-    errorDescription,
-  })
-
-  // エラーがある場合はエラーページにリダイレクト
   if (error) {
-    console.error("❌ OAuth error:", error, errorDescription)
     return NextResponse.redirect(
       `${origin}/auth/login?error=${encodeURIComponent(error)}&description=${encodeURIComponent(errorDescription || "")}`,
     )
   }
 
   if (!code) {
-    console.error("❌ No code parameter found")
     return NextResponse.redirect(`${origin}/auth/login?error=no_code`)
   }
 
   try {
     const supabase = await createClient()
 
-    console.log("🔄 Exchanging code for session...")
     const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
 
     if (exchangeError) {
-      console.error("❌ Session exchange failed:", exchangeError)
       return NextResponse.redirect(
         `${origin}/auth/login?error=callback_error&message=${encodeURIComponent(exchangeError.message)}`,
       )
     }
 
     if (!data?.session) {
-      console.error("❌ No session after exchange")
       return NextResponse.redirect(`${origin}/auth/login?error=no_session`)
     }
-
-    console.log("✅ Session exchange successful for user:", data.session.user.email)
 
     // リダイレクトURLの構築（codeパラメータなし）
     let redirectUrl: string
@@ -68,12 +53,9 @@ export async function GET(request: NextRequest) {
       redirectUrl = `${deployUrl}${next}`
     }
 
-    console.log("🔄 Redirecting to:", redirectUrl)
-
     // @supabase/ssrが自動的にCookieを処理するため、追加の処理は不要
     return NextResponse.redirect(redirectUrl)
   } catch (error) {
-    console.error("❌ Unexpected callback error:", error)
     const errorMessage = error instanceof Error ? error.message : "Unexpected error occurred"
     return NextResponse.redirect(
       `${origin}/auth/login?error=callback_error&message=${encodeURIComponent(errorMessage)}`,

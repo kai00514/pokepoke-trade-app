@@ -60,13 +60,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const handleProfileLoad = useCallback(async (user: User, isBackgroundRetry = false) => {
     // 既に取得中の場合はスキップ（バックグラウンド再取得は除く）
     if (isProfileLoadingRef.current && !isBackgroundRetry) {
-      console.log("🔄 Profile loading already in progress, skipping...")
       return
     }
 
     // バックグラウンド再取得の回数制限
     if (isBackgroundRetry && backgroundRetryCount.current >= 2) {
-      console.log("🚫 Background retry limit reached")
       return
     }
 
@@ -79,7 +77,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     loadingTimeoutRef.current = setTimeout(() => {
       if (isProfileLoadingRef.current) {
-        console.log("⏰ Profile loading timeout (3s), using fallback")
         const fallbackProfile = createFallbackProfile(user)
         setUserProfile(fallbackProfile)
         setIsLoading(false)
@@ -88,7 +85,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // バックグラウンドで再取得を試行
         if (backgroundRetryCount.current < 2) {
           backgroundRetryCount.current++
-          console.log(`🔄 Starting background retry ${backgroundRetryCount.current}/2`)
           setTimeout(() => {
             handleProfileLoad(user, true)
           }, 2000) // 2秒後に再試行
@@ -97,25 +93,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }, 3000) // 3秒に短縮
 
     try {
-      console.log(`🚀 Starting profile load for user: ${user.id} (background: ${isBackgroundRetry})`)
-
       let profile = await getUserProfile(user.id)
 
       if (!profile) {
-        console.log("👤 No profile found, creating new profile...")
         profile = await createUserProfile(user.id, user.email!)
       }
 
-      console.log("✅ Profile loaded successfully:", profile.display_name)
       setUserProfile(profile)
 
       if (isBackgroundRetry) {
-        console.log("🎉 Background retry successful")
         backgroundRetryCount.current = 0 // 成功したらカウントリセット
       }
     } catch (error) {
-      console.error(`❌ Profile load error (background: ${isBackgroundRetry}):`, error)
-
       if (!isBackgroundRetry) {
         // 初回エラーの場合のみトーストとフォールバック表示
         const fallbackProfile = createFallbackProfile(user)
@@ -150,8 +139,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // 初期化順序の最適化
   useEffect(() => {
     const initializeAuth = async () => {
-      console.log("🔧 Initializing authentication...")
-
       try {
         // 1. セッション取得
         const {
@@ -160,14 +147,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         } = await supabase.auth.getSession()
 
         if (error) {
-          console.error("❌ Failed to get initial session:", error)
           setIsLoading(false)
           return
         }
 
         // 2. 認証状態確認
         if (isSessionComplete(session)) {
-          console.log("✅ Complete session found, loading profile immediately")
           setSession(session)
           setUser(session.user)
           setCurrentUserId(session.user.id)
@@ -175,13 +160,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           // 3. プロファイル取得
           await handleProfileLoad(session.user)
         } else {
-          console.log("ℹ️ No complete session found")
           setIsLoading(false)
         }
 
         isInitialized.current = true
       } catch (error) {
-        console.error("❌ Auth initialization error:", error)
         setIsLoading(false)
       }
     }
@@ -191,20 +174,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // 認証状態の監視（INITIAL_SESSIONのみ処理）
   useEffect(() => {
-    console.log("🔧 Setting up auth state listener...")
-
     const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log(`🔐 Auth state change: ${event}`)
-
       // SIGNED_INイベントを完全にスキップ
       if (event === "SIGNED_IN") {
-        console.log("⏭️ Skipping SIGNED_IN event - using INITIAL_SESSION only")
         return
       }
 
       // 初期化完了前のINITIAL_SESSIONもスキップ
       if (event === "INITIAL_SESSION" && !isInitialized.current) {
-        console.log("⏭️ Skipping INITIAL_SESSION - already handled in initialization")
         return
       }
 
@@ -214,8 +191,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       // ユーザーIDが変更された場合のみ処理を実行
       if (currentUser?.id !== currentUserId) {
-        console.log(`👤 User changed: ${currentUserId} -> ${currentUser?.id}`)
-
         setUser(currentUser)
         setCurrentUserId(currentUser?.id ?? null)
         backgroundRetryCount.current = 0 // 新しいユーザーの場合はリトライカウントリセット
@@ -227,7 +202,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
         } else {
           // ログアウト時
-          console.log("👋 User logged out, clearing profile")
           setUserProfile(null)
           setIsLoading(false)
         }
@@ -238,7 +212,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     })
 
     return () => {
-      console.log("🧹 Cleaning up auth listener")
       authListener.subscription.unsubscribe()
       if (loadingTimeoutRef.current) {
         clearTimeout(loadingTimeoutRef.current)
@@ -247,7 +220,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [currentUserId, handleProfileLoad])
 
   const signOut = useCallback(async () => {
-    console.log("👋 Signing out...")
     if (user) clearCachedProfile(user.id)
     await supabase.auth.signOut()
     setUser(null)
@@ -262,7 +234,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const refreshProfile = useCallback(async () => {
     if (user) {
-      console.log("🔄 Refreshing profile...")
       setIsLoading(true)
       clearCachedProfile(user.id)
       backgroundRetryCount.current = 0

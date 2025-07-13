@@ -8,8 +8,6 @@ export async function GET(request: NextRequest) {
     const deckId = searchParams.get("deckId")
     const commentType = searchParams.get("commentType") as "deck" | "deck_page" | null
 
-    console.log("🌐 [API GET] Received request:", { deckId, commentType })
-
     if (!deckId) {
       console.log("❌ [API GET] Missing deckId parameter")
       return NextResponse.json({ success: false, error: "deckId parameter is required" }, { status: 400 })

@@ -105,8 +105,6 @@ export default function LoginPage() {
     setErrorMessage(null)
 
     try {
-      console.log("OAuth サインイン開始:", { provider })
-
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
@@ -116,8 +114,6 @@ export default function LoginPage() {
           },
         },
       })
-
-      console.log("OAuth サインイン結果:", { data, error })
 
       if (error) {
         setErrorMessage(error.message)
@@ -131,10 +127,8 @@ export default function LoginPage() {
 
       // Code Flow 用の URL を受け取って自前でリダイレクト
       if (data?.url) {
-        console.log("リダイレクト URL:", data.url)
         window.location.href = data.url
       } else {
-        console.log("リダイレクト URL が存在しません。")
       }
     } catch (error) {
       const errorMsg = "ソーシャルログインに失敗しました。"
