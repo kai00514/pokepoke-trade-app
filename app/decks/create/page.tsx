@@ -25,12 +25,12 @@ const energyTypes = [
   { name: "炎", icon: "/images/types/炎.png", id: "fire", color: "bg-red-500" },
   { name: "水", icon: "/images/types/水.png", id: "water", color: "bg-blue-500" },
   { name: "電気", icon: "/images/types/電気.png", id: "electric", color: "bg-yellow-500" },
-  { name: "エスパー", icon: "/images/types/念.png", id: "psychic", color: "bg-purple-500" },
+  { name: "エスパー", icon: "/images/types/%E5%BF%B5.png", id: "psychic", color: "bg-purple-500" },
   { name: "格闘", icon: "/images/types/格闘.png", id: "fighting", color: "bg-orange-500" },
   { name: "悪", icon: "/images/types/悪.png", id: "dark", color: "bg-gray-800" },
   { name: "鋼", icon: "/images/types/鋼.png", id: "metal", color: "bg-gray-500" },
   { name: "無色", icon: "/images/types/無色.png", id: "colorless", color: "bg-gray-400" },
-  { name: "ドラゴン", icon: "/images/types/龍.png", id: "dragon", color: "bg-yellow-600" },
+  { name: "ドラゴン", icon: "/images/types/%E9%BE%8D.png", id: "dragon", color: "bg-yellow-600" },
 ]
 
 const cardCategoriesForFilter = ["全て", "ポケモン", "トレーナーズ", "グッズ", "どうぐ"]
@@ -403,7 +403,14 @@ export default function CreateDeckPage() {
                   : "border-gray-300 hover:border-gray-400",
               )}
             >
-              <Image src={type.icon || "/placeholder.svg"} alt={type.name} width={20} height={20} className="w-5 h-5" />
+              <Image
+                src={type.icon || "/placeholder.svg"}
+                alt={type.name}
+                width={20}
+                height={20}
+                className="w-5 h-5"
+                unoptimized
+              />
             </button>
           ))}
         </div>
