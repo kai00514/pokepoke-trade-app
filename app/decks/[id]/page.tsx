@@ -21,6 +21,19 @@ import { AuthProvider } from "@/contexts/auth-context"
 import DeckComments from "@/components/DeckComments"
 import LoginPromptModal from "@/components/ui/login-prompt-modal"
 
+const energyTypes = [
+  { name: "草", icon: "/images/types/草.png", id: "grass", color: "bg-green-500" },
+  { name: "炎", icon: "/images/types/炎.png", id: "fire", color: "bg-red-500" },
+  { name: "水", icon: "/images/types/水.png", id: "water", color: "bg-blue-500" },
+  { name: "電気", icon: "/images/types/電気.png", id: "electric", color: "bg-yellow-500" },
+  { name: "エスパー", icon: "/images/types/念.png", id: "psychic", color: "bg-purple-500" },
+  { name: "格闘", icon: "/images/types/格闘.png", id: "fighting", color: "bg-orange-500" },
+  { name: "悪", icon: "/images/types/悪.png", id: "dark", color: "bg-gray-800" },
+  { name: "鋼", icon: "/images/types/鋼.png", id: "metal", color: "bg-gray-500" },
+  { name: "無色", icon: "/images/types/無色.png", id: "colorless", color: "bg-gray-400" },
+  { name: "ドラゴン", icon: "/images/types/龍.png", id: "dragon", color: "bg-yellow-600" },
+]
+
 export default function DeckDetailPage() {
   const { id } = useParams() as { id: string }
   const router = useRouter()
@@ -40,18 +53,18 @@ export default function DeckDetailPage() {
   const { toast } = useToast()
 
   // ヘルパー関数：タイプコードを実際の画像ファイル名にマッピング
-  const getLocalizedTypeName = (typeCode: string): string => {
-    // Unicode正規化を行い、文字列比較の不一致を防ぐ
-    const normalizedTypeCode = typeCode.normalize("NFC")
-    switch (normalizedTypeCode) {
-      case "エスパー":
-        return "念"
-      case "ドラゴン":
-        return "龍"
-      default:
-        return typeCode
-    }
-  }
+  // const getLocalizedTypeName = (typeCode: string): string => {
+  //   // Unicode正規化を行い、文字列比較の不一致を防ぐ
+  //   const normalizedTypeCode = typeCode.normalize("NFC")
+  //   switch (normalizedTypeCode) {
+  //     case "エスパー":
+  //       return "念"
+  //     case "ドラゴン":
+  //       return "龍"
+  //     default:
+  //       return typeCode
+  //   }
+  // }
 
   // "create"というIDが渡された場合、/decks/createにリダイレクト
   useEffect(() => {
@@ -421,29 +434,43 @@ export default function DeckDetailPage() {
               <Tabs defaultValue="all" className="w-full">
                 <TabsList className="mb-4">
                   <TabsTrigger value="all">全てのカード</TabsTrigger>
-                  {Object.keys(cardsByType).map((type) => (
-                    <TabsTrigger key={type} value={type}>
-                      <Image
-                        src={`/images/types/${getLocalizedTypeName(type)}.png`}
-                        alt={type}
-                        width={24}
-                        height={24}
-                        className="inline-block mr-1"
-                        onError={(e) => {
-                          e.currentTarget.src = "/placeholder.svg?width=24&height=24"
-                          e.currentTarget.alt = "不明なタイプ"
-                        }}
-                      />
-                      <span className="sr-only">{type}</span>
-                    </TabsTrigger>
-                  ))}
+                  {deck.tags &&
+                    deck.tags.length > 0 &&
+                    deck.tags.map((tagId) => {
+                      const energyType = energyTypes.find((et) => et.id === tagId)
+                      if (!energyType) return null
+
+                      return (
+                        <TabsTrigger key={energyType.id} value={energyType.name}>
+                          <Image
+                            src={energyType.icon || "/placeholder.svg"}
+                            alt={energyType.name}
+                            width={24}
+                            height={24}
+                            className="inline-block mr-1"
+                            onError={(e) => {
+                              e.currentTarget.src = "/placeholder.svg?width=24&height=24"
+                              e.currentTarget.alt = "不明なタイプ"
+                            }}
+                          />
+                          <span className="sr-only">{energyType.name}</span>
+                        </TabsTrigger>
+                      )
+                    })}
                 </TabsList>
                 <TabsContent value="all">{renderCardGrid(cardsWithDetails)}</TabsContent>
-                {Object.entries(cardsByType).map(([type, cards]) => (
-                  <TabsContent key={type} value={type}>
-                    {renderCardGrid(cards)}
-                  </TabsContent>
-                ))}
+                {deck.tags &&
+                  deck.tags.length > 0 &&
+                  deck.tags.map((tagId) => {
+                    const energyType = energyTypes.find((et) => et.id === tagId)
+                    if (!energyType) return null
+
+                    return (
+                      <TabsContent key={energyType.id} value={energyType.name}>
+                        {renderCardGrid(cardsByType[energyType.name] || [])}
+                      </TabsContent>
+                    )
+                  })}
               </Tabs>
             </div>
 
