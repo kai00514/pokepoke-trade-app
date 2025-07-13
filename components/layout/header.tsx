@@ -3,7 +3,6 @@
 import Link from "next/link"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
-import { Plus } from "lucide-react"
 import { useAuth } from "@/contexts/auth-context"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { NotificationDropdown } from "@/components/notification-dropdown"
@@ -86,17 +85,6 @@ export default function Header() {
           <Image src="/pokelink-logo.png" alt="PokeLink ロゴ" width={160} height={40} className="object-contain h-10" />
         </Link>
         <div className="flex items-center gap-2 sm:gap-3">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="bg-white text-violet-600 hover:bg-violet-100 rounded-full h-9 w-9 sm:h-10 sm:w-10"
-            aria-label="新規投稿作成"
-            onClick={() => router.push("/trades/create")}
-          >
-            <Plus className="h-5 w-5 sm:h-6 sm:w-6" />
-            <span className="sr-only">新規投稿作成</span>
-          </Button>
-
           {user && <NotificationDropdown />}
 
           {user ? (
