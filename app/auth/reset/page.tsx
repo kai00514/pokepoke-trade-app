@@ -1,45 +1,53 @@
 "use client"
 
+import type React from "react"
+
 import { useState } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
-import Link from "next/link"
+import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { createClient } from "@/lib/supabase/client"
-import { useToast } from "@/components/ui/use-toast"
+import { Label } from "@/components/ui/label"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { AlertCircle, Mail, Lock, Eye, EyeOff, CheckCircle } from "lucide-react"
-import React from "react" // Renamed import to avoid redeclaration
+import { Mail, CheckCircle, AlertCircle, Eye, EyeOff, Lock } from "lucide-react"
+import Link from "next/link"
+import { useSearchParams } from "next/navigation"
+import { useEffect } from "react"
 
 export default function ResetPage() {
   const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
+  const [newPassword, setNewPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [step, setStep] = useState<"request" | "update">("request")
-  const [errorMessage, setErrorMessage] = useState<string | null>(null)
-  const [successMessage, setSuccessMessage] = useState<string | null>(null)
-  const router = useRouter()
+  const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null)
+  const [isResetMode, setIsResetMode] = useState(false)
   const searchParams = useSearchParams()
-  const { toast } = useToast()
   const supabase = createClient()
 
-  React.useEffect(() => {
-    const token_hash = searchParams.get("token_hash")
-    const type = searchParams.get("type")
-
-    if (token_hash && type === "recovery") {
-      setStep("update")
+  useEffect(() => {
+    // URLにaccess_tokenがある場合は、パスワード更新モードに切り替え
+    const accessToken = searchParams.get("access_token")
+    if (accessToken) {
+      setIsResetMode(true)
     }
   }, [searchParams])
+
+  const validatePassword = (password: string) => {
+    return password.length >= 6
+  }
 
   const handleResetRequest = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
-    setErrorMessage(null)
-    setSuccessMessage(null)
+    setMessage(null)
+
+    if (!email) {
+      setMessage({ type: "error", text: "メールアドレスを入力してください。" })
+      setLoading(false)
+      return
+    }
 
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
@@ -47,28 +55,17 @@ export default function ResetPage() {
       })
 
       if (error) {
-        setErrorMessage(error.message || "パスワードリセットメールの送信に失敗しました。")
-        toast({
-          title: "エラー",
-          description: error.message,
-          variant: "destructive",
-        })
+        setMessage({ type: "error", text: error.message || "パスワードリセットに失敗しました。" })
       } else {
-        setSuccessMessage("パスワードリセットメールを送信しました。メールをご確認ください。")
-        toast({
-          title: "メール送信完了",
-          description: "パスワードリセットメールを送信しました。",
+        setMessage({
+          type: "success",
+          text: "パスワードリセット用のメールを送信しました。メールボックスをご確認ください。",
         })
+        setEmail("")
       }
-    } catch (error) {
-      console.error("Reset request error:", error)
-      const errorMsg = "パスワードリセットの要求に失敗しました。"
-      setErrorMessage(errorMsg)
-      toast({
-        title: "エラー",
-        description: errorMsg,
-        variant: "destructive",
-      })
+    } catch (err) {
+      console.error("Reset password error:", err)
+      setMessage({ type: "error", text: "予期しないエラーが発生しました。" })
     } finally {
       setLoading(false)
     }
@@ -77,199 +74,207 @@ export default function ResetPage() {
   const handlePasswordUpdate = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
-    setErrorMessage(null)
+    setMessage(null)
+
+    if (!newPassword || !confirmPassword) {
+      setMessage({ type: "error", text: "すべてのフィールドを入力してください。" })
+      setLoading(false)
+      return
+    }
+
+    if (!validatePassword(newPassword)) {
+      setMessage({ type: "error", text: "パスワードは6文字以上である必要があります。" })
+      setLoading(false)
+      return
+    }
+
+    if (newPassword !== confirmPassword) {
+      setMessage({ type: "error", text: "パスワードが一致しません。" })
+      setLoading(false)
+      return
+    }
 
     try {
-      if (password !== confirmPassword) {
-        setErrorMessage("パスワードが一致しません。")
-        return
-      }
-
-      if (password.length < 6) {
-        setErrorMessage("パスワードは6文字以上で入力してください。")
-        return
-      }
-
       const { error } = await supabase.auth.updateUser({
-        password: password,
+        password: newPassword,
       })
 
       if (error) {
-        setErrorMessage(error.message || "パスワードの更新に失敗しました。")
-        toast({
-          title: "エラー",
-          description: error.message,
-          variant: "destructive",
-        })
+        setMessage({ type: "error", text: error.message || "パスワードの更新に失敗しました。" })
       } else {
-        toast({
-          title: "パスワード更新完了",
-          description: "パスワードが正常に更新されました。",
+        setMessage({
+          type: "success",
+          text: "パスワードが正常に更新されました。ログインページに移動してください。",
         })
-        router.push("/auth/login?reset=success")
+        setNewPassword("")
+        setConfirmPassword("")
       }
-    } catch (error) {
-      console.error("Password update error:", error)
-      const errorMsg = "パスワードの更新に失敗しました。"
-      setErrorMessage(errorMsg)
-      toast({
-        title: "エラー",
-        description: errorMsg,
-        variant: "destructive",
-      })
+    } catch (err) {
+      console.error("Update password error:", err)
+      setMessage({ type: "error", text: "予期しないエラーが発生しました。" })
     } finally {
       setLoading(false)
     }
   }
 
-  if (step === "update") {
+  if (isResetMode) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-400 via-purple-500 to-purple-600 flex items-center justify-center px-4 py-8">
-        <div className="w-full max-w-md">
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-black mb-2">新しいパスワード</h1>
-            <p className="text-purple-100">新しいパスワードを設定してください</p>
-          </div>
-
-          <div className="bg-white rounded-2xl p-8 shadow-xl">
-            {errorMessage && (
-              <Alert variant="destructive" className="mb-6">
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>{errorMessage}</AlertDescription>
-              </Alert>
-            )}
-
-            <form onSubmit={handlePasswordUpdate} className="space-y-6">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <CardTitle className="text-2xl">新しいパスワード設定</CardTitle>
+            <CardDescription>新しいパスワードを入力してください</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handlePasswordUpdate} className="space-y-4">
               <div className="space-y-2">
-                <label htmlFor="password" className="text-sm font-medium text-gray-700">
-                  新しいパスワード
-                </label>
+                <Label htmlFor="newPassword">新しいパスワード</Label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                   <Input
-                    id="password"
+                    id="newPassword"
                     type={showPassword ? "text" : "password"}
-                    placeholder="6文字以上のパスワード"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="pl-10 pr-10 h-12 border-gray-200 focus:border-purple-500 focus:ring-purple-500"
+                    placeholder="6文字以上"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    className="pl-10 pr-10"
                     required
-                    minLength={6}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
                   >
-                    {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
+                {newPassword && (
+                  <div className="text-sm">
+                    <span className={validatePassword(newPassword) ? "text-green-600" : "text-red-600"}>
+                      {validatePassword(newPassword) ? "✓ パスワードの強度: 良好" : "✗ 6文字以上必要"}
+                    </span>
+                  </div>
+                )}
               </div>
 
               <div className="space-y-2">
-                <label htmlFor="confirmPassword" className="text-sm font-medium text-gray-700">
-                  パスワード確認
-                </label>
+                <Label htmlFor="confirmPassword">パスワード確認</Label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                   <Input
                     id="confirmPassword"
                     type={showConfirmPassword ? "text" : "password"}
                     placeholder="パスワードを再入力"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="pl-10 pr-10 h-12 border-gray-200 focus:border-purple-500 focus:ring-purple-500"
+                    className="pl-10 pr-10"
                     required
                   />
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
                   >
-                    {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                    {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
+                {confirmPassword && (
+                  <div className="text-sm">
+                    <span className={newPassword === confirmPassword ? "text-green-600" : "text-red-600"}>
+                      {newPassword === confirmPassword ? "✓ パスワードが一致" : "✗ パスワードが一致しません"}
+                    </span>
+                  </div>
+                )}
               </div>
 
-              <Button
-                type="submit"
-                className="w-full h-12 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-xl"
-                disabled={loading}
-              >
+              {message && (
+                <Alert
+                  variant={message.type === "error" ? "destructive" : "default"}
+                  className={message.type === "success" ? "border-green-200 bg-green-50" : ""}
+                >
+                  {message.type === "success" ? (
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                  ) : (
+                    <AlertCircle className="h-4 w-4" />
+                  )}
+                  <AlertDescription className={message.type === "success" ? "text-green-800" : ""}>
+                    {message.text}
+                  </AlertDescription>
+                </Alert>
+              )}
+
+              <Button type="submit" className="w-full" disabled={loading}>
                 {loading ? "更新中..." : "パスワードを更新"}
               </Button>
             </form>
 
-            <div className="mt-8 text-center">
-              <Link href="/auth/login" className="text-purple-600 hover:text-purple-700 font-medium">
-                ← ログインページに戻る
+            <div className="mt-6 text-center">
+              <Link href="/auth/login" className="text-sm text-blue-600 hover:underline">
+                ログインページに戻る
               </Link>
             </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-400 via-purple-500 to-purple-600 flex items-center justify-center px-4 py-8">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-black mb-2">パスワードリセット</h1>
-          <p className="text-purple-100">登録済みのメールアドレスを入力してください</p>
-        </div>
-
-        <div className="bg-white rounded-2xl p-8 shadow-xl">
-          {errorMessage && (
-            <Alert variant="destructive" className="mb-6">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>{errorMessage}</AlertDescription>
-            </Alert>
-          )}
-
-          {successMessage && (
-            <Alert className="mb-6 border-green-200 bg-green-50">
-              <CheckCircle className="h-4 w-4 text-green-600" />
-              <AlertDescription className="text-green-800">{successMessage}</AlertDescription>
-            </Alert>
-          )}
-
-          <form onSubmit={handleResetRequest} className="space-y-6">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+      <Card className="w-full max-w-md">
+        <CardHeader className="text-center">
+          <CardTitle className="text-2xl">パスワードリセット</CardTitle>
+          <CardDescription>メールアドレスを入力してパスワードリセット用のリンクを受け取る</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleResetRequest} className="space-y-4">
             <div className="space-y-2">
-              <label htmlFor="email" className="text-sm font-medium text-gray-700">
-                メールアドレス
-              </label>
+              <Label htmlFor="email">メールアドレス</Label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                 <Input
                   id="email"
                   type="email"
-                  placeholder="あなたのメールアドレス"
+                  placeholder="your@email.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="pl-10 h-12 border-gray-200 focus:border-purple-500 focus:ring-purple-500"
+                  className="pl-10"
                   required
                 />
               </div>
             </div>
 
-            <Button
-              type="submit"
-              className="w-full h-12 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-xl"
-              disabled={loading}
-            >
+            {message && (
+              <Alert
+                variant={message.type === "error" ? "destructive" : "default"}
+                className={message.type === "success" ? "border-green-200 bg-green-50" : ""}
+              >
+                {message.type === "success" ? (
+                  <CheckCircle className="h-4 w-4 text-green-600" />
+                ) : (
+                  <AlertCircle className="h-4 w-4" />
+                )}
+                <AlertDescription className={message.type === "success" ? "text-green-800" : ""}>
+                  {message.text}
+                </AlertDescription>
+              </Alert>
+            )}
+
+            <Button type="submit" className="w-full" disabled={loading}>
               {loading ? "送信中..." : "リセットメールを送信"}
             </Button>
           </form>
 
-          <div className="mt-8 text-center">
-            <p className="text-gray-600 mb-2">パスワードを思い出した方</p>
-            <Link href="/auth/login" className="text-purple-600 hover:text-purple-700 font-medium">
-              ログインページに戻る
-            </Link>
+          <div className="mt-6 text-center">
+            <p className="text-sm text-gray-600">
+              パスワードを思い出しましたか？{" "}
+              <Link href="/auth/login" className="text-blue-600 hover:underline">
+                ログイン
+              </Link>
+            </p>
           </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     </div>
   )
 }
