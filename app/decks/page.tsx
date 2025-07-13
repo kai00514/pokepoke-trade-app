@@ -43,22 +43,28 @@ export default function DecksPage() {
       </div>
 
       {/* 検索フォーム - スマホでも横並び */}
-      <div className="mb-6 flex flex-row items-center gap-2 max-w-2xl mx-auto">
-        <div className="flex-1 min-w-0">
-          <Input
-            type="text"
-            placeholder="キーワード検索"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full"
-          />
+      <div className="mb-6 w-full max-w-4xl mx-auto">
+        <div className="flex flex-row items-center gap-2 w-full">
+          <div className="flex-1 min-w-0">
+            <Input
+              type="text"
+              placeholder="キーワード検索"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full text-sm"
+            />
+          </div>
+          <Button onClick={handleSearch} className="whitespace-nowrap px-3 py-2 text-sm flex-shrink-0">
+            検索
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => setIsDetailedSearchOpen(true)}
+            className="whitespace-nowrap px-2 py-2 text-sm flex-shrink-0"
+          >
+            詳細検索
+          </Button>
         </div>
-        <Button onClick={handleSearch} className="whitespace-nowrap px-4 py-2">
-          検索
-        </Button>
-        <Button variant="outline" onClick={() => setIsDetailedSearchOpen(true)} className="whitespace-nowrap px-3 py-2">
-          詳細検索
-        </Button>
       </div>
 
       {/* Detailed Search Modal (Placeholder) */}
