@@ -171,7 +171,7 @@ export default function DeckDetailPage() {
           if (updatedDeck) {
             console.log("Updated deck data:", updatedDeck)
             setLikeCount(updatedDeck.like_count || 0)
-            console.log("Updated like count to:", updatedDeck.like_count)
+            console.log("Updated favorite count to:", updatedDeck.like_count)
           }
         }, 100)
       }
@@ -423,29 +423,33 @@ export default function DeckDetailPage() {
               <Tabs defaultValue="all" className="w-full">
                 <TabsList className="mb-4">
                   <TabsTrigger value="all">全てのカード</TabsTrigger>
-                  {Object.keys(cardsByType).map((type) => (
-                    <TabsTrigger key={type} value={type}>
-                      <Image
-                        src={`/images/types/${getLocalizedTypeName(type)}.png`}
-                        alt={type}
-                        width={24}
-                        height={24}
-                        className="inline-block mr-1"
-                        onError={(e) => {
-                          e.currentTarget.src = "/placeholder.svg?width=24&height=24"
-                          e.currentTarget.alt = "不明なタイプ"
-                        }}
-                      />
-                      <span className="sr-only">{type}</span>
-                    </TabsTrigger>
-                  ))}
+                  {deck.tags && deck.tags.length > 0
+                    ? deck.tags.map((tagType) => (
+                        <TabsTrigger key={tagType} value={tagType}>
+                          <Image
+                            src={`/images/types/${getLocalizedTypeName(tagType)}.png`}
+                            alt={tagType}
+                            width={24}
+                            height={24}
+                            className="inline-block mr-1"
+                            onError={(e) => {
+                              e.currentTarget.src = "/placeholder.svg?width=24&height=24"
+                              e.currentTarget.alt = "不明なタイプ"
+                            }}
+                          />
+                          <span className="sr-only">{tagType}</span>
+                        </TabsTrigger>
+                      ))
+                    : null}
                 </TabsList>
                 <TabsContent value="all">{renderCardGrid(cardsWithDetails)}</TabsContent>
-                {Object.entries(cardsByType).map(([type, cards]) => (
-                  <TabsContent key={type} value={type}>
-                    {renderCardGrid(cards)}
-                  </TabsContent>
-                ))}
+                {deck.tags &&
+                  deck.tags.length > 0 &&
+                  deck.tags.map((tagType) => (
+                    <TabsContent key={tagType} value={tagType}>
+                      {renderCardGrid(cardsByType[tagType] || [])}
+                    </TabsContent>
+                  ))}
               </Tabs>
             </div>
 
