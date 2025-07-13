@@ -82,7 +82,7 @@ export default function Header() {
     <header className="bg-violet-500 text-white shadow-md">
       <div className="container mx-auto px-4 py-3 flex items-center justify-between">
         <Link href="/" className="flex items-center">
-          <Image src="/pokelink-logo.png" alt="PokeLink ロゴ" width={160} height={40} className="object-contain h-10" />
+          <Image src="/pokelink-logo.png" alt="PokeLink ロゴ" width={192} height={48} className="object-contain h-12" />
         </Link>
         <div className="flex items-center gap-2 sm:gap-3">
           {user && <NotificationDropdown />}
