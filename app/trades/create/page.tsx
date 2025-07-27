@@ -308,11 +308,11 @@ export default function CreateTradePage() {
               </label>
               <Button
                 type="button"
-                onClick={() => openModal("wanted", 1, "求めるカードを選択")}
+                onClick={() => openModal("wanted", 20, "求めるカードを選択")}
                 className="w-full bg-purple-600 hover:bg-purple-700 text-white"
                 disabled={isSubmitting}
               >
-                カードを選択 (最大1枚)
+                カードを選択 (最大20枚)
               </Button>
               {renderSelectedCards(wantedCards, "wanted")}
             </div>
@@ -322,11 +322,11 @@ export default function CreateTradePage() {
               </label>
               <Button
                 type="button"
-                onClick={() => openModal("offered", 15, "譲れるカードを選択")}
+                onClick={() => openModal("offered", 20, "譲れるカードを選択")}
                 className="w-full bg-purple-600 hover:bg-purple-700 text-white"
                 disabled={isSubmitting}
               >
-                カードを選択 (最大15枚)
+                カードを選択 (最大20枚)
               </Button>
               {renderSelectedCards(offeredCards, "offered")}
             </div>
