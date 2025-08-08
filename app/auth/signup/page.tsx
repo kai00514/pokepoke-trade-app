@@ -141,132 +141,144 @@ export default function SignupPage() {
     }
   }
 
+  // メールフォーム表示時
   if (showEmailForm) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-white">
-        <div className="w-full max-w-md">
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-slate-800 mb-2 drop-shadow-lg">メールアドレスで登録</h1>
-            <p className="text-slate-700">アカウント情報を入力してください</p>
-          </div>
-
-          <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-8 shadow-2xl border border-white/20">
-            {errorMessage && (
-              <Alert variant="destructive" className="mb-6 border-red-200 bg-red-50">
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>{errorMessage}</AlertDescription>
-              </Alert>
-            )}
-
-            {successMessage && (
-              <Alert className="mb-6 border-green-200 bg-green-50">
-                <CheckCircle className="h-4 w-4 text-green-600" />
-                <AlertDescription className="text-green-800">{successMessage}</AlertDescription>
-              </Alert>
-            )}
-
-            <form onSubmit={handleEmailSignup} className="space-y-6">
-              <div className="space-y-2">
-                <label htmlFor="email" className="text-sm font-medium text-gray-700">
-                  メールアドレス
-                </label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-violet-500" />
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="あなたのメールアドレス"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="pl-10 h-12 rounded-xl border-gray-200 focus:border-violet-500 focus:ring-violet-500 bg-white/80 backdrop-blur-sm"
-                    required
-                    autoComplete="email"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <label htmlFor="password" className="text-sm font-medium text-gray-700">
-                  パスワード
-                </label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-violet-500" />
-                  <Input
-                    id="password"
-                    type={showPassword ? "text" : "password"}
-                    placeholder="6文字以上のパスワード"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="pl-10 pr-10 h-12 rounded-xl border-gray-200 focus:border-violet-500 focus:ring-violet-500 bg-white/80 backdrop-blur-sm"
-                    required
-                    minLength={6}
-                    autoComplete="new-password"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-violet-600 transition-colors"
-                  >
-                    {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                  </button>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <label htmlFor="confirmPassword" className="text-sm font-medium text-gray-700">
-                  パスワード確認
-                </label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-violet-500" />
-                  <Input
-                    id="confirmPassword"
-                    type={showConfirmPassword ? "text" : "password"}
-                    placeholder="パスワードを再入力"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="pl-10 pr-10 h-12 rounded-xl border-gray-200 focus:border-violet-500 focus:ring-violet-500 bg-white/80 backdrop-blur-sm"
-                    required
-                    autoComplete="new-password"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-violet-600 transition-colors"
-                  >
-                    {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                  </button>
-                </div>
-              </div>
-
-              <Button
-                type="submit"
-                className="w-full h-12 bg-violet-600 hover:bg-violet-700 text-white font-medium rounded-xl shadow-2xl hover:shadow-3xl transition-all duration-200"
-                disabled={loading === "email"}
-              >
-                {loading === "email" ? "登録中..." : "アカウントを作成"}
-              </Button>
-            </form>
-
-            <div className="mt-6 text-center">
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={() => setShowEmailForm(false)}
-                className="text-violet-600 hover:text-violet-700 hover:bg-violet-50 transition-colors"
-              >
-                ← 他の登録方法を選択
-              </Button>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white">
+        <div className="container mx-auto px-4 py-10 sm:py-14 lg:py-16">
+          <div className="mx-auto w-full max-w-md">
+            <div className="text-center mb-8 sm:mb-10">
+              <h1 className="text-3xl font-bold text-slate-800 mb-2 drop-shadow-sm">メールアドレスで登録</h1>
+              <p className="text-slate-700">アカウント情報を入力してください</p>
             </div>
 
-            <div className="mt-6 text-center text-xs text-gray-500 leading-relaxed">
-              会員登録は利用規約およびプライバシーポリシーに同意したとみなします。
-            </div>
+            <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-6 sm:p-8 shadow-2xl border border-white/20">
+              {errorMessage && (
+                <Alert variant="destructive" className="mb-6 border-red-200 bg-red-50" aria-live="polite">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>{errorMessage}</AlertDescription>
+                </Alert>
+              )}
 
-            <div className="mt-8 text-center">
-              <p className="text-gray-600 mb-2">すでにアカウントをお持ちの方</p>
-              <Link href="/auth/login" className="text-violet-600 hover:text-violet-700 font-medium transition-colors">
-                ログイン
-              </Link>
+              {successMessage && (
+                <Alert className="mb-6 border-green-200 bg-green-50" aria-live="polite">
+                  <CheckCircle className="h-4 w-4 text-green-600" />
+                  <AlertDescription className="text-green-800">{successMessage}</AlertDescription>
+                </Alert>
+              )}
+
+              <form onSubmit={handleEmailSignup} className="space-y-6" noValidate>
+                <div className="space-y-2">
+                  <label htmlFor="email" className="text-sm font-medium text-gray-700">
+                    メールアドレス
+                  </label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-violet-500" aria-hidden="true" />
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="あなたのメールアドレス"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="pl-10 h-12 rounded-xl border-gray-200 focus:border-violet-500 focus:ring-violet-500 bg-white/80 backdrop-blur-sm"
+                      required
+                      autoComplete="email"
+                      aria-invalid={!!errorMessage || undefined}
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label htmlFor="password" className="text-sm font-medium text-gray-700">
+                    パスワード
+                  </label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-violet-500" aria-hidden="true" />
+                    <Input
+                      id="password"
+                      type={showPassword ? "text" : "password"}
+                      placeholder="6文字以上のパスワード"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="pl-10 pr-10 h-12 rounded-xl border-gray-200 focus:border-violet-500 focus:ring-violet-500 bg-white/80 backdrop-blur-sm"
+                      required
+                      minLength={6}
+                      autoComplete="new-password"
+                      aria-invalid={!!errorMessage || undefined}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-violet-600 transition-colors"
+                      aria-pressed={showPassword}
+                      aria-label={showPassword ? "パスワードを隠す" : "パスワードを表示"}
+                    >
+                      {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                    </button>
+                  </div>
+                  <p className="text-xs text-gray-500">半角英数6文字以上を推奨します。</p>
+                </div>
+
+                <div className="space-y-2">
+                  <label htmlFor="confirmPassword" className="text-sm font-medium text-gray-700">
+                    パスワード確認
+                  </label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-violet-500" aria-hidden="true" />
+                    <Input
+                      id="confirmPassword"
+                      type={showConfirmPassword ? "text" : "password"}
+                      placeholder="パスワードを再入力"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      className="pl-10 pr-10 h-12 rounded-xl border-gray-200 focus:border-violet-500 focus:ring-violet-500 bg-white/80 backdrop-blur-sm"
+                      required
+                      autoComplete="new-password"
+                      aria-invalid={!!errorMessage || undefined}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-violet-600 transition-colors"
+                      aria-pressed={showConfirmPassword}
+                      aria-label={showConfirmPassword ? "パスワード確認を隠す" : "パスワード確認を表示"}
+                    >
+                      {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                    </button>
+                  </div>
+                </div>
+
+                <Button
+                  type="submit"
+                  className="w-full h-12 bg-violet-600 hover:bg-violet-700 text-white font-medium rounded-xl shadow-2xl hover:shadow-3xl transition-all duration-200"
+                  disabled={loading === "email"}
+                  aria-busy={loading === "email"}
+                >
+                  {loading === "email" ? "登録中..." : "アカウントを作成"}
+                </Button>
+              </form>
+
+              <div className="mt-6 text-center">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => setShowEmailForm(false)}
+                  className="text-violet-600 hover:text-violet-700 hover:bg-violet-50 transition-colors"
+                >
+                  ← 他の登録方法を選択
+                </Button>
+              </div>
+
+              <div className="mt-6 text-center text-xs text-gray-500 leading-relaxed">
+                会員登録は利用規約およびプライバシーポリシーに同意したとみなします。
+              </div>
+
+              <div className="mt-8 text-center">
+                <p className="text-gray-600 mb-2">すでにアカウントをお持ちの方</p>
+                <Link href="/auth/login" className="text-violet-600 hover:text-violet-700 font-medium transition-colors">
+                  ログイン
+                </Link>
+              </div>
             </div>
           </div>
         </div>
@@ -274,83 +286,86 @@ export default function SignupPage() {
     )
   }
 
+  // メールフォーム未表示時（選択画面）
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-white">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-slate-800 mb-2 drop-shadow-lg">会員登録</h1>
-          <p className="text-slate-700">アカウントを作成してポケモンカードの取引を始めましょう</p>
-        </div>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white">
+      <div className="container mx-auto px-4 py-10 sm:py-14 lg:py-16">
+        <div className="mx-auto w-full max-w-md">
+          <div className="text-center mb-8 sm:mb-10">
+            <h1 className="text-3xl font-bold text-slate-800 mb-2 drop-shadow-sm">会員登録</h1>
+            <p className="text-slate-700">アカウントを作成してポケモンカードの取引を始めましょう</p>
+          </div>
 
-        <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-8 shadow-2xl border border-white/20">
-          <div className="space-y-4">
-            <Button
-              onClick={() => setShowEmailForm(true)}
-              className="w-full h-14 bg-violet-600 hover:bg-violet-700 text-white font-medium rounded-xl flex items-center justify-between px-6 shadow-2xl hover:shadow-3xl transition-all duration-200"
-            >
-              <div className="flex items-center">
-                <Mail className="h-5 w-5 mr-3" />
-                <span>メールアドレスで新規登録</span>
-              </div>
-              <ArrowRight className="h-5 w-5" />
-            </Button>
-
-            <Button
-              onClick={() => handleSocialSignup("google")}
-              variant="outline"
-              className="w-full h-14 border-violet-200 hover:bg-violet-50 hover:border-violet-400 rounded-xl flex items-center justify-between px-6 bg-white/80 backdrop-blur-sm transition-all duration-200"
-              disabled={loading === "google"}
-            >
-              <div className="flex items-center">
-                <GoogleIcon className="h-5 w-5 mr-3" />
-                <span className="font-medium">{loading === "google" ? "登録中..." : "Googleで登録"}</span>
-              </div>
-              <ArrowRight className="h-5 w-5" />
-            </Button>
-
-            <Button
-              variant="outline"
-              className="w-full h-14 border-violet-200 rounded-xl flex items-center justify-between px-6 opacity-50 cursor-not-allowed bg-white/60 backdrop-blur-sm"
-              disabled
-            >
-              <div className="flex items-center">
-                <div className="w-5 h-5 mr-3 bg-green-500 rounded flex items-center justify-center">
-                  <span className="text-white text-xs font-bold">L</span>
+          <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-6 sm:p-8 shadow-2xl border border-white/20">
+            <div className="space-y-4">
+              <Button
+                onClick={() => setShowEmailForm(true)}
+                className="w-full h-14 bg-violet-600 hover:bg-violet-700 text-white font-medium rounded-xl flex items-center justify-between px-6 shadow-2xl hover:shadow-3xl transition-all duration-200"
+              >
+                <div className="flex items-center">
+                  <Mail className="h-5 w-5 mr-3" />
+                  <span>メールアドレスで新規登録</span>
                 </div>
-                <span className="font-medium text-gray-400">LINEで登録（準備中）</span>
-              </div>
-              <ArrowRight className="h-5 w-5 text-gray-400" />
-            </Button>
+                <ArrowRight className="h-5 w-5" />
+              </Button>
 
-            <Button
-              onClick={() => handleSocialSignup("twitter")}
-              variant="outline"
-              className="w-full h-14 border-violet-200 hover:bg-violet-50 hover:border-violet-400 rounded-xl flex items-center justify-between px-6 bg-white/80 backdrop-blur-sm transition-all duration-200"
-              disabled={loading === "twitter"}
-            >
-              <div className="flex items-center">
-                <XIcon className="h-5 w-5 mr-3" />
-                <span className="font-medium">{loading === "twitter" ? "登録中..." : "Xで登録"}</span>
-              </div>
-              <ArrowRight className="h-5 w-5" />
-            </Button>
-          </div>
+              <Button
+                onClick={() => handleSocialSignup("google")}
+                variant="outline"
+                className="w-full h-14 border-violet-200 hover:bg-violet-50 hover:border-violet-400 rounded-xl flex items-center justify-between px-6 bg-white/80 backdrop-blur-sm transition-all duration-200"
+                disabled={loading === "google"}
+              >
+                <div className="flex items-center">
+                  <GoogleIcon className="h-5 w-5 mr-3" />
+                  <span className="font-medium">{loading === "google" ? "登録中..." : "Googleで登録"}</span>
+                </div>
+                <ArrowRight className="h-5 w-5" />
+              </Button>
 
-          <div className="mt-6 text-center text-sm text-gray-500">
-            ※ソーシャルログイン機能は現在ブラウザのみで提供しています。
-          </div>
+              <Button
+                variant="outline"
+                className="w-full h-14 border-violet-200 rounded-xl flex items-center justify-between px-6 opacity-50 cursor-not-allowed bg-white/60 backdrop-blur-sm"
+                disabled
+              >
+                <div className="flex items-center">
+                  <div className="w-5 h-5 mr-3 bg-green-500 rounded flex items-center justify-center">
+                    <span className="text-white text-xs font-bold">L</span>
+                  </div>
+                  <span className="font-medium text-gray-400">LINEで登録（準備中）</span>
+                </div>
+                <ArrowRight className="h-5 w-5 text-gray-400" />
+              </Button>
 
-          <div className="mt-6 text-center text-xs text-gray-500 leading-relaxed">
-            会員登録は利用規約およびプライバシーポリシーに同意したとみなします。
-            <br />
-            ご確認の上、会員登録を進めてください。
-          </div>
+              <Button
+                onClick={() => handleSocialSignup("twitter")}
+                variant="outline"
+                className="w-full h-14 border-violet-200 hover:bg-violet-50 hover:border-violet-400 rounded-xl flex items-center justify-between px-6 bg-white/80 backdrop-blur-sm transition-all duration-200"
+                disabled={loading === "twitter"}
+              >
+                <div className="flex items-center">
+                  <XIcon className="h-5 w-5 mr-3" />
+                  <span className="font-medium">{loading === "twitter" ? "登録中..." : "Xで登録"}</span>
+                </div>
+                <ArrowRight className="h-5 w-5" />
+              </Button>
+            </div>
 
-          <div className="mt-10 text-center">
-            <p className="text-gray-600 mb-2">すでにアカウントをお持ちの方</p>
-            <Link href="/auth/login" className="text-violet-600 hover:text-violet-700 font-medium transition-colors">
-              ログイン
-            </Link>
+            <div className="mt-6 text-center text-sm text-gray-500">
+              ※ソーシャルログイン機能は現在ブラウザのみで提供しています。
+            </div>
+
+            <div className="mt-6 text-center text-xs text-gray-500 leading-relaxed">
+              会員登録は利用規約およびプライバシーポリシーに同意したとみなします。
+              <br />
+              ご確認の上、会員登録を進めてください。
+            </div>
+
+            <div className="mt-10 text-center">
+              <p className="text-gray-600 mb-2">すでにアカウントをお持ちの方</p>
+              <Link href="/auth/login" className="text-violet-600 hover:text-violet-700 font-medium transition-colors">
+                ログイン
+              </Link>
+            </div>
           </div>
         </div>
       </div>

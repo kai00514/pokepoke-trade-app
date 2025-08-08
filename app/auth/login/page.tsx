@@ -194,149 +194,142 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-white">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-slate-800 mb-2 drop-shadow-lg">ログイン</h1>
-          <p className="text-slate-700">アカウントにログインしてください</p>
-        </div>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white">
+      <div className="container mx-auto px-4 py-10 sm:py-14 lg:py-16">
+        <div className="mx-auto w-full max-w-md">
+          <div className="text-center mb-8 sm:mb-10">
+            <h1 className="text-3xl font-bold text-slate-800 mb-2 drop-shadow-sm">ログイン</h1>
+            <p className="text-slate-700">アカウントにログインしてください</p>
+          </div>
 
-        <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-8 shadow-2xl border border-white/20">
-          {errorMessage && (
-            <Alert variant="destructive" className="mb-6 border-red-200 bg-red-50">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>
-                {errorMessage}
-                {errorMessage.includes("確認されていません") && (
-                  <div className="mt-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={handleResendConfirmation}
-                      disabled={loading}
-                      className="border-red-300 text-red-700 hover:bg-red-50 bg-transparent"
-                    >
-                      確認メールを再送信
-                    </Button>
-                  </div>
-                )}
-              </AlertDescription>
-            </Alert>
-          )}
+          <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-6 sm:p-8 shadow-2xl border border-white/20">
+            {errorMessage && (
+              <Alert variant="destructive" className="mb-6 border-red-200 bg-red-50" aria-live="polite">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>{errorMessage}</AlertDescription>
+              </Alert>
+            )}
 
-          <form onSubmit={handleEmailLogin} className="space-y-6">
-            <div className="space-y-2">
-              <label htmlFor="email" className="text-sm font-medium text-gray-700">
-                メールアドレス
-              </label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-violet-500" />
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="あなたのメールアドレス"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="pl-10 h-12 rounded-xl border-gray-200 focus:border-violet-500 focus:ring-violet-500 bg-white/80 backdrop-blur-sm"
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <div className="flex justify-between items-center">
-                <label htmlFor="password" className="text-sm font-medium text-gray-700">
-                  パスワード
+            <form onSubmit={handleEmailLogin} className="space-y-6" noValidate>
+              <div className="space-y-2">
+                <label htmlFor="email" className="text-sm font-medium text-gray-700">
+                  メールアドレス
                 </label>
-                <Link href="/auth/reset" className="text-sm text-violet-600 hover:text-violet-700 font-medium">
-                  パスワードを忘れた方はこちら
-                </Link>
-              </div>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-violet-500" />
-                <Input
-                  id="password"
-                  type={showPassword ? "text" : "password"}
-                  placeholder="あなたのパスワード"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="pl-10 pr-10 h-12 rounded-xl border-gray-200 focus:border-violet-500 focus:ring-violet-500 bg-white/80 backdrop-blur-sm"
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-violet-600 transition-colors"
-                >
-                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                </button>
-              </div>
-            </div>
-
-            <Button
-              type="submit"
-              className="w-full h-12 bg-violet-600 hover:bg-violet-700 text-white font-medium rounded-xl shadow-2xl hover:shadow-3xl transition-all duration-200"
-              disabled={loading}
-            >
-              {loading ? "ログイン中..." : "ログインする"}
-            </Button>
-          </form>
-
-          <div className="mt-6">
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-200" />
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-4 bg-white/95 text-gray-500">または</span>
-              </div>
-            </div>
-
-            <div className="mt-6 space-y-3">
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full h-12 border-violet-200 hover:bg-violet-50 hover:border-violet-400 rounded-xl bg-white/80 backdrop-blur-sm transition-all duration-200"
-                onClick={() => handleSocialLogin("google")}
-              >
-                <GoogleIcon className="mr-3 h-5 w-5" />
-                <span className="font-medium">Googleでログイン</span>
-              </Button>
-
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full h-12 border-violet-200 rounded-xl opacity-50 cursor-not-allowed bg-white/60 backdrop-blur-sm"
-                disabled
-              >
-                <div className="w-5 h-5 mr-3 bg-green-500 rounded flex items-center justify-center">
-                  <span className="text-white text-xs font-bold">L</span>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-violet-500" aria-hidden="true" />
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="あなたのメールアドレス"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="pl-10 h-12 rounded-xl border-gray-200 focus:border-violet-500 focus:ring-violet-500 bg-white/80 backdrop-blur-sm"
+                    required
+                    autoComplete="email"
+                    aria-invalid={!!errorMessage || undefined}
+                  />
                 </div>
-                <span className="font-medium text-gray-400">LINEでログイン（準備中）</span>
-              </Button>
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <label htmlFor="password" className="text-sm font-medium text-gray-700">
+                    パスワード
+                  </label>
+                  <Link href="/auth/reset" className="text-sm text-violet-600 hover:text-violet-700 font-medium">
+                    パスワードを忘れた方はこちら
+                  </Link>
+                </div>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-violet-500" aria-hidden="true" />
+                  <Input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="あなたのパスワード"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="pl-10 pr-10 h-12 rounded-xl border-gray-200 focus:border-violet-500 focus:ring-violet-500 bg-white/80 backdrop-blur-sm"
+                    required
+                    autoComplete="current-password"
+                    aria-invalid={!!errorMessage || undefined}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-violet-600 transition-colors"
+                    aria-pressed={showPassword}
+                    aria-label={showPassword ? "パスワードを隠す" : "パスワードを表示"}
+                  >
+                    {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  </button>
+                </div>
+              </div>
 
               <Button
-                type="button"
-                variant="outline"
-                className="w-full h-12 border-violet-200 hover:bg-violet-50 hover:border-violet-400 rounded-xl bg-white/80 backdrop-blur-sm transition-all duration-200"
-                onClick={() => handleSocialLogin("twitter")}
+                type="submit"
+                className="w-full h-12 bg-violet-600 hover:bg-violet-700 text-white font-medium rounded-xl shadow-2xl hover:shadow-3xl transition-all duration-200"
+                disabled={loading}
+                aria-busy={loading}
               >
-                <XIcon className="mr-3 h-5 w-5" />
-                <span className="font-medium">Xでログイン</span>
+                {loading ? "ログイン中..." : "ログインする"}
               </Button>
+            </form>
+
+            <div className="mt-6">
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-gray-200" />
+                </div>
+                <div className="relative flex justify-center text-sm">
+                  <span className="px-4 bg-white/95 text-gray-500">または</span>
+                </div>
+              </div>
+
+              <div className="mt-6 space-y-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full h-12 border-violet-200 hover:bg-violet-50 hover:border-violet-400 rounded-xl bg-white/80 backdrop-blur-sm transition-all duration-200"
+                  onClick={() => handleSocialLogin("google")}
+                >
+                  <GoogleIcon className="mr-3 h-5 w-5" />
+                  <span className="font-medium">Googleでログイン</span>
+                </Button>
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full h-12 border-violet-200 rounded-xl opacity-50 cursor-not-allowed bg-white/60 backdrop-blur-sm"
+                  disabled
+                >
+                  <div className="w-5 h-5 mr-3 bg-green-500 rounded flex items-center justify-center">
+                    <span className="text-white text-xs font-bold">L</span>
+                  </div>
+                  <span className="font-medium text-gray-400">LINEでログイン（準備中）</span>
+                </Button>
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full h-12 border-violet-200 hover:bg-violet-50 hover:border-violet-400 rounded-xl bg-white/80 backdrop-blur-sm transition-all duration-200"
+                  onClick={() => handleSocialLogin("twitter")}
+                >
+                  <XIcon className="mr-3 h-5 w-5" />
+                  <span className="font-medium">Xでログイン</span>
+                </Button>
+              </div>
             </div>
-          </div>
 
-          <div className="mt-6 text-center text-sm text-gray-500">
-            ※ソーシャルログイン機能は現在ブラウザのみで提供しています。
-          </div>
+            <div className="mt-6 text-center text-sm text-gray-500">
+              ※ソーシャルログイン機能は現在ブラウザのみで提供しています。
+            </div>
 
-          <div className="mt-10 text-center">
-            <p className="text-gray-600 mb-2">アカウントをお持ちでない方</p>
-            <Link href="/auth/signup" className="text-violet-600 hover:text-violet-700 font-medium transition-colors">
-              新規会員登録
-            </Link>
+            <div className="mt-10 text-center">
+              <p className="text-gray-600 mb-2">アカウントをお持ちでない方</p>
+              <Link href="/auth/signup" className="text-violet-600 hover:text-violet-700 font-medium transition-colors">
+                新規会員登録
+              </Link>
+            </div>
           </div>
         </div>
       </div>
