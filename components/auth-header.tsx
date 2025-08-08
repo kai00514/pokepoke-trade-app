@@ -35,3 +35,5 @@ function Package2Icon(props: React.SVGProps<SVGSVGElement>) {
     </svg>
   )
 }
+
+export default AuthHeader

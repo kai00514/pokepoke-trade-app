@@ -2,16 +2,17 @@
 
 import type React from "react"
 import { useState } from "react"
-import { useRouter } from "next/navigation"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { ArrowRight, CheckCircle, Eye, EyeOff, Lock, Mail, AlertCircle } from 'lucide-react'
+
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { GoogleIcon } from "@/components/icons/google-icon"
 import { XIcon } from "@/components/icons/twitter-icon"
-import { createClient } from "@/lib/supabase/client"
 import { useToast } from "@/components/ui/use-toast"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Mail, ArrowRight, Lock, Eye, EyeOff, AlertCircle, CheckCircle } from 'lucide-react'
+import { createClient } from "@/lib/supabase/client"
 
 export default function SignupPage() {
   const [email, setEmail] = useState("")
@@ -23,6 +24,7 @@ export default function SignupPage() {
   const [showEmailForm, setShowEmailForm] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
+
   const router = useRouter()
   const { toast } = useToast()
   const supabase = createClient()
@@ -34,13 +36,10 @@ export default function SignupPage() {
     setSuccessMessage(null)
 
     try {
-      // パスワード確認
       if (password !== confirmPassword) {
         setErrorMessage("パスワードが一致しません。")
         return
       }
-
-      // パスワード強度チェック
       if (password.length < 6) {
         setErrorMessage("パスワードは6文字以上で入力してください。")
         return
@@ -49,9 +48,7 @@ export default function SignupPage() {
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/auth/confirm?next=/`,
-        },
+        options: { emailRedirectTo: `${window.location.origin}/auth/confirm?next=/` },
       })
 
       if (error) {
@@ -67,36 +64,20 @@ export default function SignupPage() {
         } else {
           setErrorMessage(error.message || "登録に失敗しました。")
         }
-        toast({
-          title: "登録エラー",
-          description: error.message,
-          variant: "destructive",
-        })
+        toast({ title: "登録エラー", description: error.message, variant: "destructive" })
       } else if (data.user && !data.session) {
-        // メール確認が必要な場合
         setSuccessMessage("確認メールを送信しました。メールをご確認の上、リンクをクリックして登録を完了してください。")
-        toast({
-          title: "確認メール送信",
-          description: "メールをご確認ください。",
-        })
+        toast({ title: "確認メール送信", description: "メールをご確認ください。" })
       } else if (data.session) {
-        // 即座にログインできた場合
-        toast({
-          title: "登録完了",
-          description: "アカウントが作成されました。",
-        })
+        toast({ title: "登録完了", description: "アカウントが作成されました。" })
         router.push("/")
         router.refresh()
       }
-    } catch (error) {
-      console.error("Signup error:", error)
+    } catch (err) {
+      console.error("Signup error:", err)
       const errorMsg = "アカウント作成に失敗しました。"
       setErrorMessage(errorMsg)
-      toast({
-        title: "エラー",
-        description: errorMsg,
-        variant: "destructive",
-      })
+      toast({ title: "エラー", description: errorMsg, variant: "destructive" })
     } finally {
       setLoading(null)
     }
@@ -104,51 +85,32 @@ export default function SignupPage() {
 
   const handleSocialSignup = async (provider: "google" | "twitter") => {
     setLoading(provider)
-
     try {
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider,
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
-          queryParams: {
-            prompt: "consent",
-          },
-        },
+        options: { redirectTo: `${window.location.origin}/auth/callback`, queryParams: { prompt: "consent" } },
       })
-
       if (error) {
-        toast({
-          title: "登録エラー",
-          description: error.message,
-          variant: "destructive",
-        })
+        toast({ title: "登録エラー", description: error.message, variant: "destructive" })
         return
       }
-
-      // Code Flow 用の URL を受け取ってリダイレクト
-      if (data?.url) {
-        window.location.href = data.url
-      }
-    } catch (error) {
-      console.error("Social signup error:", error)
-      toast({
-        title: "エラー",
-        description: "ソーシャル登録に失敗しました。",
-        variant: "destructive",
-      })
+      if (data?.url) window.location.href = data.url
+    } catch (err) {
+      console.error("Social signup error:", err)
+      toast({ title: "エラー", description: "ソーシャル登録に失敗しました。", variant: "destructive" })
     } finally {
       setLoading(null)
     }
   }
 
-  // メールフォーム表示時
+  // メールフォーム
   if (showEmailForm) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white">
         <div className="container mx-auto px-4 py-10 sm:py-14 lg:py-16">
           <div className="mx-auto w-full max-w-md">
             <div className="text-center mb-8 sm:mb-10">
-              <h1 className="text-3xl font-bold text-slate-800 mb-2 drop-shadow-sm">メールアドレスで登録</h1>
+              <h1 className="text-3xl font-bold text-slate-900 mb-2 drop-shadow-sm">メールアドレスで登録</h1>
               <p className="text-slate-700">アカウント情報を入力してください</p>
             </div>
 
@@ -173,14 +135,14 @@ export default function SignupPage() {
                     メールアドレス
                   </label>
                   <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-violet-500" aria-hidden="true" />
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-blue-500" aria-hidden="true" />
                     <Input
                       id="email"
                       type="email"
                       placeholder="あなたのメールアドレス"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="pl-10 h-12 rounded-xl border-gray-200 focus:border-violet-500 focus:ring-violet-500 bg-white/80 backdrop-blur-sm"
+                      className="pl-10 h-12 rounded-xl border-gray-200 focus:border-blue-500 focus:ring-blue-500 bg-white/80 backdrop-blur-sm"
                       required
                       autoComplete="email"
                       aria-invalid={!!errorMessage || undefined}
@@ -193,14 +155,14 @@ export default function SignupPage() {
                     パスワード
                   </label>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-violet-500" aria-hidden="true" />
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-blue-500" aria-hidden="true" />
                     <Input
                       id="password"
                       type={showPassword ? "text" : "password"}
                       placeholder="6文字以上のパスワード"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="pl-10 pr-10 h-12 rounded-xl border-gray-200 focus:border-violet-500 focus:ring-violet-500 bg-white/80 backdrop-blur-sm"
+                      className="pl-10 pr-10 h-12 rounded-xl border-gray-200 focus:border-blue-500 focus:ring-blue-500 bg-white/80 backdrop-blur-sm"
                       required
                       minLength={6}
                       autoComplete="new-password"
@@ -209,7 +171,7 @@ export default function SignupPage() {
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-violet-600 transition-colors"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-blue-600 transition-colors"
                       aria-pressed={showPassword}
                       aria-label={showPassword ? "パスワードを隠す" : "パスワードを表示"}
                     >
@@ -224,14 +186,14 @@ export default function SignupPage() {
                     パスワード確認
                   </label>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-violet-500" aria-hidden="true" />
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-blue-500" aria-hidden="true" />
                     <Input
                       id="confirmPassword"
                       type={showConfirmPassword ? "text" : "password"}
                       placeholder="パスワードを再入力"
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
-                      className="pl-10 pr-10 h-12 rounded-xl border-gray-200 focus:border-violet-500 focus:ring-violet-500 bg-white/80 backdrop-blur-sm"
+                      className="pl-10 pr-10 h-12 rounded-xl border-gray-200 focus:border-blue-500 focus:ring-blue-500 bg-white/80 backdrop-blur-sm"
                       required
                       autoComplete="new-password"
                       aria-invalid={!!errorMessage || undefined}
@@ -239,7 +201,7 @@ export default function SignupPage() {
                     <button
                       type="button"
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-violet-600 transition-colors"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-blue-600 transition-colors"
                       aria-pressed={showConfirmPassword}
                       aria-label={showConfirmPassword ? "パスワード確認を隠す" : "パスワード確認を表示"}
                     >
@@ -250,7 +212,7 @@ export default function SignupPage() {
 
                 <Button
                   type="submit"
-                  className="w-full h-12 bg-violet-600 hover:bg-violet-700 text-white font-medium rounded-xl shadow-2xl hover:shadow-3xl transition-all duration-200"
+                  className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl shadow-2xl transition-all duration-200"
                   disabled={loading === "email"}
                   aria-busy={loading === "email"}
                 >
@@ -263,7 +225,7 @@ export default function SignupPage() {
                   type="button"
                   variant="ghost"
                   onClick={() => setShowEmailForm(false)}
-                  className="text-violet-600 hover:text-violet-700 hover:bg-violet-50 transition-colors"
+                  className="text-blue-600 hover:text-blue-700 hover:bg-blue-50/30 transition-colors"
                 >
                   ← 他の登録方法を選択
                 </Button>
@@ -275,7 +237,7 @@ export default function SignupPage() {
 
               <div className="mt-8 text-center">
                 <p className="text-gray-600 mb-2">すでにアカウントをお持ちの方</p>
-                <Link href="/auth/login" className="text-violet-600 hover:text-violet-700 font-medium transition-colors">
+                <Link href="/auth/login" className="text-blue-600 hover:text-blue-700 font-medium transition-colors">
                   ログイン
                 </Link>
               </div>
@@ -286,13 +248,13 @@ export default function SignupPage() {
     )
   }
 
-  // メールフォーム未表示時（選択画面）
+  // 登録方法選択
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white">
       <div className="container mx-auto px-4 py-10 sm:py-14 lg:py-16">
         <div className="mx-auto w-full max-w-md">
           <div className="text-center mb-8 sm:mb-10">
-            <h1 className="text-3xl font-bold text-slate-800 mb-2 drop-shadow-sm">会員登録</h1>
+            <h1 className="text-3xl font-bold text-slate-900 mb-2 drop-shadow-sm">会員登録</h1>
             <p className="text-slate-700">アカウントを作成してポケモンカードの取引を始めましょう</p>
           </div>
 
@@ -300,7 +262,7 @@ export default function SignupPage() {
             <div className="space-y-4">
               <Button
                 onClick={() => setShowEmailForm(true)}
-                className="w-full h-14 bg-violet-600 hover:bg-violet-700 text-white font-medium rounded-xl flex items-center justify-between px-6 shadow-2xl hover:shadow-3xl transition-all duration-200"
+                className="w-full h-14 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl flex items-center justify-between px-6 shadow-2xl transition-all duration-200"
               >
                 <div className="flex items-center">
                   <Mail className="h-5 w-5 mr-3" />
@@ -312,7 +274,7 @@ export default function SignupPage() {
               <Button
                 onClick={() => handleSocialSignup("google")}
                 variant="outline"
-                className="w-full h-14 border-violet-200 hover:bg-violet-50 hover:border-violet-400 rounded-xl flex items-center justify-between px-6 bg-white/80 backdrop-blur-sm transition-all duration-200"
+                className="w-full h-14 border-blue-200 hover:bg-blue-50 hover:border-blue-400 rounded-xl flex items-center justify-between px-6 bg-white/80 backdrop-blur-sm transition-all duration-200"
                 disabled={loading === "google"}
               >
                 <div className="flex items-center">
@@ -324,7 +286,7 @@ export default function SignupPage() {
 
               <Button
                 variant="outline"
-                className="w-full h-14 border-violet-200 rounded-xl flex items-center justify-between px-6 opacity-50 cursor-not-allowed bg-white/60 backdrop-blur-sm"
+                className="w-full h-14 border-blue-200 rounded-xl flex items-center justify-between px-6 opacity-50 cursor-not-allowed bg-white/60 backdrop-blur-sm"
                 disabled
               >
                 <div className="flex items-center">
@@ -339,7 +301,7 @@ export default function SignupPage() {
               <Button
                 onClick={() => handleSocialSignup("twitter")}
                 variant="outline"
-                className="w-full h-14 border-violet-200 hover:bg-violet-50 hover:border-violet-400 rounded-xl flex items-center justify-between px-6 bg-white/80 backdrop-blur-sm transition-all duration-200"
+                className="w-full h-14 border-blue-200 hover:bg-blue-50 hover:border-blue-400 rounded-xl flex items-center justify-between px-6 bg-white/80 backdrop-blur-sm transition-all duration-200"
                 disabled={loading === "twitter"}
               >
                 <div className="flex items-center">
@@ -362,7 +324,7 @@ export default function SignupPage() {
 
             <div className="mt-10 text-center">
               <p className="text-gray-600 mb-2">すでにアカウントをお持ちの方</p>
-              <Link href="/auth/login" className="text-violet-600 hover:text-violet-700 font-medium transition-colors">
+              <Link href="/auth/login" className="text-blue-600 hover:text-blue-700 font-medium transition-colors">
                 ログイン
               </Link>
             </div>

@@ -1,16 +1,13 @@
-import type React from "react"
-import { Suspense } from "react"
-import { AuthHeader } from "@/components/auth-header"
+import type { ReactNode } from "react"
+import AuthHeader from "@/components/auth-header"
 
-export default function AuthLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default function AuthLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-violet-500">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-blue-50 to-white">
       <AuthHeader />
-      <Suspense fallback={<div>認証コンテンツを読み込み中...</div>}>{children}</Suspense>
+      <main className="flex-1">
+        {children}
+      </main>
     </div>
   )
 }
