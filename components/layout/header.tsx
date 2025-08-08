@@ -61,7 +61,7 @@ export default function Header() {
   }
 
   return (
-    <header className="bg-violet-500 text-white shadow-md">
+    <header className="bg-[#3B82F6] text-white shadow-md">
       <div className="container mx-auto px-4 py-3 flex items-center justify-between">
         <Link href="/" className="flex items-center">
           <Image src="/pokelink-logo.png" alt="PokeLink ロゴ" width={192} height={48} className="object-contain h-12" />
@@ -112,7 +112,7 @@ export default function Header() {
               <Link href="/auth/signup">
                 <Button
                   variant="default"
-                  className="bg-white text-violet-600 hover:bg-violet-100 text-xs sm:text-sm px-3 py-1.5 sm:px-4 sm:py-2"
+                  className="bg-white text-[#1D4ED8] hover:bg-[#DBEAFE] text-xs sm:text-sm px-3 py-1.5 sm:px-4 sm:py-2"
                 >
                   新規登録
                 </Button>
@@ -120,7 +120,7 @@ export default function Header() {
               <Link href="/auth/login">
                 <Button
                   variant="outline"
-                  className="bg-white text-violet-600 border-violet-600 hover:bg-violet-100 hover:text-violet-700 text-xs sm:text-sm px-3 py-1.5 sm:px-4 sm:py-2"
+                  className="bg-white text-[#1D4ED8] border-[#1D4ED8] hover:bg-[#DBEAFE] hover:text-[#1E40AF] text-xs sm:text-sm px-3 py-1.5 sm:px-4 sm:py-2"
                 >
                   ログイン
                 </Button>

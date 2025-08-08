@@ -11,7 +11,7 @@ import { XIcon } from "@/components/icons/twitter-icon"
 import { createClient } from "@/lib/supabase/client"
 import { useToast } from "@/components/ui/use-toast"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { AlertCircle, Mail, Lock, Eye, EyeOff } from "lucide-react"
+import { AlertCircle, Mail, Lock, Eye, EyeOff } from 'lucide-react'
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")
@@ -194,11 +194,11 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-white">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2 drop-shadow-lg">ログイン</h1>
-          <p className="text-white/90">アカウントにログインしてください</p>
+          <h1 className="text-3xl font-bold text-slate-800 mb-2 drop-shadow-lg">ログイン</h1>
+          <p className="text-slate-700">アカウントにログインしてください</p>
         </div>
 
         <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-8 shadow-2xl border border-white/20">

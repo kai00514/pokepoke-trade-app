@@ -1,12 +1,12 @@
 import Header from "@/components/layout/header"
 import Footer from "@/components/footer"
 import { Card, CardContent } from "@/components/ui/card"
-import { Construction, CalendarClock } from "lucide-react"
+import { Construction, CalendarClock } from 'lucide-react'
 import Link from "next/link"
 
 export default function MatchingPage() {
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen bg-gradient-to-br from-blue-50 to-white">
       <Header />
       <main className="flex-grow container mx-auto px-4 py-12 flex flex-col items-center justify-center text-center">
         <h1 className="text-3xl font-bold text-slate-800 mb-8">マッチング</h1>

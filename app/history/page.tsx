@@ -4,7 +4,7 @@ import dynamic from "next/dynamic"
 import { useState, useRef, useEffect, useCallback } from "react"
 import Header from "@/components/layout/header"
 import Footer from "@/components/footer"
-import { Archive, MessageCircle, Users, type LucideIcon } from "lucide-react"
+import { Archive, MessageCircle, Users, TypeIcon as type, LucideIcon } from 'lucide-react'
 import { cn } from "@/lib/utils"
 import HistoryItemCard, { type HistoryItem } from "@/components/history-item-card"
 import { useSwipeable } from "react-swipeable"
@@ -188,7 +188,7 @@ function HistoryPageContent() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen bg-gradient-to-br from-blue-50 to-white">
       <Header />
       <main className="flex-grow container mx-auto px-0 sm:px-4 pb-8">
         <h1 className="text-2xl sm:text-3xl font-bold text-slate-800 text-center my-6 sm:my-8 px-4 sm:px-0">履歴</h1>
@@ -211,7 +211,7 @@ function HistoryPageContent() {
                   )}
                   style={{ flexShrink: 0 }}
                 >
-                  <tab.icon className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
+                  <tab.icon className="h-4 w-4 sm:h-5 w-5 flex-shrink-0" />
                   <span className="text-sm sm:text-base">{tab.label}</span>
                 </button>
               ))}

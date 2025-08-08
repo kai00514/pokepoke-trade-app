@@ -4,7 +4,7 @@ import Header from "@/components/layout/header"
 import Footer from "@/components/footer"
 import InfoSection from "@/components/info-section"
 import NewsArticleCard, { type NewsArticle } from "@/components/news-article-card"
-import { Newspaper, Trophy, CalendarDays, ScrollText, BookMarked, GraduationCap } from "lucide-react"
+import { Newspaper, Trophy, CalendarDays, ScrollText, BookMarked, GraduationCap } from 'lucide-react'
 import { motion } from "framer-motion"
 
 // Sample Data
@@ -52,7 +52,7 @@ const containerVariants = {
 
 export default function InformationPage() {
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen bg-gradient-to-br from-blue-50 to-white">
       <Header />
       <motion.main
         className="flex-grow container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12"

@@ -6,7 +6,7 @@ import { useState, useCallback, useEffect } from "react"
 import Header from "@/components/layout/header"
 import Footer from "@/components/footer"
 import { Button } from "@/components/ui/button"
-import { PlusCircle, Users, ListChecks, BarChartBig, Zap, Star } from "lucide-react"
+import { PlusCircle, Users, ListChecks, BarChartBig, Zap, Star } from 'lucide-react'
 import Link from "next/link"
 import { DeckCard, type Deck } from "@/components/deck-card"
 import { getDecksList, getDeckPagesList } from "@/lib/actions/deck-posts"
@@ -225,7 +225,7 @@ export default function DecksPage() {
   }
 
   return (
-    <div className="p-0 py-0">
+    <div className="p-0 py-0 bg-gradient-to-br from-blue-50 to-white">
       <Header />
       <main className="flex-grow container mx-auto px-4 pb-8">
         {/* デッキを投稿するボタンとお気に入りボタン */}

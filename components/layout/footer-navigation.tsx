@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Home, Users, Layers, History, Info } from "lucide-react"
+import { Home, Users, Layers, History, Info } from 'lucide-react'
 import { cn } from "@/lib/utils"
 
 const navItems = [
@@ -17,7 +17,7 @@ export function FooterNavigation() {
   const pathname = usePathname()
 
   return (
-    <footer className="bg-white border-t border-slate-200 shadow-t-sm sticky bottom-0 z-50">
+    <footer className="bg-blue-600 shadow-lg sticky bottom-0 z-50">
       <nav className="container mx-auto px-2 py-1.5">
         <ul className="flex justify-around items-center">
           {navItems.map((item) => (
@@ -25,8 +25,8 @@ export function FooterNavigation() {
               <Link
                 href={item.href}
                 className={cn(
-                  "flex flex-col items-center justify-center p-1.5 rounded-md text-slate-600 hover:bg-violet-50 hover:text-violet-600 transition-colors group",
-                  pathname === item.href && "text-violet-600",
+                  "flex flex-col items-center justify-center p-1.5 rounded-md text-white hover:bg-blue-500 transition-colors group",
+                  pathname === item.href && "text-blue-200",
                 )}
               >
                 <div className="relative">

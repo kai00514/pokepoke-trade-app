@@ -1,19 +1,24 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
-import { useSearchParams } from "next/navigation"
-import Header from "@/components/layout/header" // AuthHeader から Header に変更
+import { useSearchParams, useRouter } from "next/navigation"
+import { Noto_Sans_JP } from 'next/font/google'
+import Header from "@/components/layout/header"
 import Footer from "@/components/footer"
 import TradePostCard from "@/components/trade-post-card"
 import AdPlaceholder from "@/components/ad-placeholder"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { PlusCircle, Search, Loader2 } from "lucide-react"
+import { PlusCircle, Search, Loader2 } from 'lucide-react'
 import DetailedSearchModal from "@/components/detailed-search-modal"
 import type { Card as SelectedCardType } from "@/components/detailed-search-modal"
 import { getTradePostsWithCards } from "@/lib/actions/trade-actions"
 import { useToast } from "@/components/ui/use-toast"
-import { useRouter } from "next/navigation"
+
+const notoSansJP = Noto_Sans_JP({
+  subsets: ["latin"],
+  weight: ["400", "500", "700"],
+})
 
 export default function TradeBoardPage() {
   const [isDetailedSearchOpen, setIsDetailedSearchOpen] = useState(false)
@@ -28,7 +33,6 @@ export default function TradeBoardPage() {
   useEffect(() => {
     const code = searchParams.get("code")
     if (code) {
-      console.log("🧹 Cleaning up URL parameters")
       const url = new URL(window.location.href)
       url.searchParams.delete("code")
       window.history.replaceState({}, "", url.toString())
@@ -49,8 +53,7 @@ export default function TradeBoardPage() {
         })
         setTradePosts([])
       }
-    } catch (error) {
-      console.error("Error fetching trade posts:", error)
+    } catch {
       toast({
         title: "エラー",
         description: "予期しないエラーが発生しました。",
@@ -67,7 +70,7 @@ export default function TradeBoardPage() {
   }, [fetchTradePosts])
 
   const handleDetailedSearchSelectionComplete = (selectedCards: SelectedCardType[]) => {
-    console.log("Selected cards from detailed search:", selectedCards)
+    // ここで選択カードを使った検索やフィルタに接続可能
     setIsDetailedSearchOpen(false)
   }
 
@@ -84,88 +87,107 @@ export default function TradeBoardPage() {
     router.push("/trades/create")
   }
 
-  console.log("📄 TradeBoardPage rendering with Header component")
-
   return (
-    <div className="flex flex-col min-h-screen">
-      <Header /> {/* AuthHeader から Header に変更 */}
-      <main className="flex-grow container mx-auto px-2 sm:px-4 py-6">
-        <div className="flex flex-col lg:flex-row gap-6">
-          <aside className="w-full lg:w-1/5 space-y-6 hidden lg:block">
-            <AdPlaceholder title="広告スペース" className="h-64" />
-            <AdPlaceholder title="自己紹介バナー" className="h-48" />
-          </aside>
+    <div className={`flex min-h-screen flex-col ${notoSansJP.className}`}>
+      <Header />
 
-          <section className="w-full lg:flex-grow">
-            <div className="text-center mb-6">
-              <h1 className="text-3xl font-bold text-slate-800">PokeLinkトレード掲示板</h1>
-              <p className="text-slate-600">ポケモンカードの交換相手を見つけよう！</p>
+      {/* Soft blue-to-white gradient banner area */}
+      <div
+        className="w-full"
+        style={{
+          background: "linear-gradient(180deg, #DBEAFE 0%, #EFF6FF 55%, #FFFFFF 100%)",
+        }}
+      >
+        <main className="container mx-auto px-3 sm:px-4 py-8 sm:py-10">
+          <section className="text-center mb-8 sm:mb-10">
+            <div className="inline-flex items-center rounded-full bg-[#E8F2FF] text-[#1D4ED8] px-3 py-1 text-xs font-medium mb-3">
+              PokeLink トレード掲示板
             </div>
+            <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-[#111827]">
+              カードの交換相手を見つけよう
+            </h1>
+            <p className="mt-2 text-sm sm:text-base text-[#6B7280]">
+              親しみやすい＆シンプルなUIで、欲しいカードや譲れるカードをスムーズに共有できます。
+            </p>
+          </section>
 
-            <div className="mb-8 flex justify-center">
-              <Button
-                variant="default"
-                className="bg-[#EA585C] hover:bg-[#d44a4f] text-white rounded-md shadow-sm"
-                style={{ padding: "0.625rem 1.25rem" }}
-                onClick={handleCreatePostClick}
-              >
-                <div className="flex items-center justify-center">
-                  <PlusCircle className="h-5 w-5 mr-2" />
-                  <span className="text-sm font-medium">トレード希望投稿を作成</span>
-                </div>
-              </Button>
-            </div>
+          {/* Action Bar */}
+          <div className="mb-8 flex justify-center">
+            <Button
+              variant="default"
+              className="bg-[#3B82F6] hover:bg-[#2563EB] text-white rounded-md shadow-sm"
+              style={{ padding: "0.625rem 1.25rem" }}
+              onClick={handleCreatePostClick}
+            >
+              <div className="flex items-center justify-center">
+                <PlusCircle className="h-5 w-5 mr-2" />
+                <span className="text-sm font-medium">トレード希望投稿を作成</span>
+              </div>
+            </Button>
+          </div>
 
-            <div className="mb-6 p-4 bg-white rounded-lg shadow">
-              <div className="flex gap-1">
-                {" "}
-                {/* gap-2 から gap-1 に変更 */}
+          {/* Search */}
+          <div className="mb-8 rounded-xl border border-[#E5E7EB] bg-white/90 shadow-sm backdrop-blur-sm">
+            <div className="p-4">
+              <div className="flex gap-2">
                 <Input
                   type="text"
-                  placeholder="キーワード検索"
-                  className="flex-1 min-w-0"
+                  placeholder="キーワードで検索"
+                  className="flex-1 min-w-0 rounded-lg border-[#E5E7EB] text-[#111827] placeholder:text-[#9CA3AF] focus-visible:ring-[#3B82F6] focus-visible:ring-2"
                   value={searchKeyword}
                   onChange={(e) => setSearchKeyword(e.target.value)}
                 />
                 <Button
                   variant="default"
-                  className="bg-violet-500 hover:bg-violet-600 text-white whitespace-nowrap flex-shrink-0"
+                  className="bg-[#3B82F6] hover:bg-[#2563EB] text-white whitespace-nowrap flex-shrink-0 rounded-lg"
                 >
-                  <Search className="mr-1 h-4 w-4" /> 検索
+                  <Search className="mr-1.5 h-4 w-4" /> 検索
                 </Button>
                 <Button
                   variant="outline"
-                  className="bg-slate-200 text-slate-700 hover:bg-slate-300 whitespace-nowrap flex-shrink-0"
+                  className="border-[#CBD5E1] text-[#111827] bg-white hover:bg-[#F8FAFC] whitespace-nowrap flex-shrink-0 rounded-lg"
                   onClick={() => setIsDetailedSearchOpen(true)}
                 >
                   詳細検索
                 </Button>
               </div>
             </div>
+          </div>
 
-            {isLoading ? (
-              <div className="flex justify-center items-center py-20">
-                <Loader2 className="h-10 w-10 animate-spin text-purple-600" />
-              </div>
-            ) : filteredPosts.length > 0 ? (
-              <div className="space-y-6">
-                {filteredPosts.map((post) => (
-                  <TradePostCard key={post.id} post={post} />
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-20 text-slate-500">
-                {searchKeyword ? "検索条件に一致する投稿がありません。" : "投稿がありません。"}
-              </div>
-            )}
-          </section>
+          {/* Content Grid */}
+          <div className="flex flex-col lg:flex-row gap-6">
+            {/* Left Ads */}
+            <aside className="w-full lg:w-1/5 space-y-6 hidden lg:block">
+              <AdPlaceholder title="広告スペース" className="h-64 border border-[#E5E7EB] bg-white rounded-xl" />
+              <AdPlaceholder title="自己紹介バナー" className="h-48 border border-[#E5E7EB] bg-white rounded-xl" />
+            </aside>
 
-          <aside className="w-full lg:w-1/5 space-y-6 hidden lg:block">
-            <AdPlaceholder title="広告スペース" className="h-64" />
-            <AdPlaceholder title="広告スペース" className="h-40" />
-          </aside>
-        </div>
-      </main>
+            {/* Posts */}
+            <section className="w-full lg:flex-grow">
+              {isLoading ? (
+                <div className="flex justify-center items-center py-20">
+                  <Loader2 className="h-10 w-10 animate-spin text-[#3B82F6]" />
+                </div>
+              ) : filteredPosts.length > 0 ? (
+                <div className="space-y-6">
+                  {filteredPosts.map((post) => (
+                    <TradePostCard key={post.id} post={post} />
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-20 text-[#6B7280]">該当する投稿が見つかりませんでした。</div>
+              )}
+            </section>
+
+            {/* Right Ads */}
+            <aside className="w-full lg:w-1/5 space-y-6 hidden lg:block">
+              <AdPlaceholder title="広告スペース" className="h-64 border border-[#E5E7EB] bg-white rounded-xl" />
+              <AdPlaceholder title="広告スペース" className="h-40 border border-[#E5E7EB] bg-white rounded-xl" />
+            </aside>
+          </div>
+        </main>
+      </div>
+
       <Footer />
       <DetailedSearchModal
         isOpen={isDetailedSearchOpen}

@@ -11,7 +11,7 @@ import { XIcon } from "@/components/icons/twitter-icon"
 import { createClient } from "@/lib/supabase/client"
 import { useToast } from "@/components/ui/use-toast"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Mail, ArrowRight, Lock, Eye, EyeOff, AlertCircle, CheckCircle } from "lucide-react"
+import { Mail, ArrowRight, Lock, Eye, EyeOff, AlertCircle, CheckCircle } from 'lucide-react'
 
 export default function SignupPage() {
   const [email, setEmail] = useState("")
@@ -143,11 +143,11 @@ export default function SignupPage() {
 
   if (showEmailForm) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-white">
         <div className="w-full max-w-md">
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-white mb-2 drop-shadow-lg">メールアドレスで登録</h1>
-            <p className="text-white/90">アカウント情報を入力してください</p>
+            <h1 className="text-3xl font-bold text-slate-800 mb-2 drop-shadow-lg">メールアドレスで登録</h1>
+            <p className="text-slate-700">アカウント情報を入力してください</p>
           </div>
 
           <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-8 shadow-2xl border border-white/20">
@@ -275,11 +275,11 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-white">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2 drop-shadow-lg">会員登録</h1>
-          <p className="text-white/90">アカウントを作成してポケモンカードの取引を始めましょう</p>
+          <h1 className="text-3xl font-bold text-slate-800 mb-2 drop-shadow-lg">会員登録</h1>
+          <p className="text-slate-700">アカウントを作成してポケモンカードの取引を始めましょう</p>
         </div>
 
         <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-8 shadow-2xl border border-white/20">
