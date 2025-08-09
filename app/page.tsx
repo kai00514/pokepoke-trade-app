@@ -2,14 +2,14 @@
 
 import { useState, useEffect, useCallback } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
-import { Noto_Sans_JP } from 'next/font/google'
+import { Noto_Sans_JP } from "next/font/google"
 import Header from "@/components/layout/header"
 import Footer from "@/components/footer"
 import TradePostCard from "@/components/trade-post-card"
 import AdPlaceholder from "@/components/ad-placeholder"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { PlusCircle, Search, Loader2 } from 'lucide-react'
+import { PlusCircle, Search, Loader2 } from "lucide-react"
 import DetailedSearchModal from "@/components/detailed-search-modal"
 import type { Card as SelectedCardType } from "@/components/detailed-search-modal"
 import { getTradePostsWithCards } from "@/lib/actions/trade-actions"
@@ -138,17 +138,17 @@ export default function TradeBoardPage() {
                   onChange={(e) => setSearchKeyword(e.target.value)}
                 />
                 <Button
-                  variant="default"
-                  className="bg-[#3B82F6] hover:bg-[#2563EB] text-white whitespace-nowrap flex-shrink-0 rounded-lg"
-                >
-                  <Search className="mr-1.5 h-4 w-4" /> 検索
-                </Button>
-                <Button
                   variant="outline"
                   className="border-[#CBD5E1] text-[#111827] bg-white hover:bg-[#F8FAFC] whitespace-nowrap flex-shrink-0 rounded-lg"
                   onClick={() => setIsDetailedSearchOpen(true)}
                 >
-                  詳細検索
+                  詳細
+                </Button>
+                <Button
+                  variant="default"
+                  className="bg-[#3B82F6] hover:bg-[#2563EB] text-white whitespace-nowrap flex-shrink-0 rounded-lg px-2" // px-2 に変更
+                >
+                  <Search className="mr-1 h-4 w-4" /> 検索 {/* mr-1 に変更 */}
                 </Button>
               </div>
             </div>
