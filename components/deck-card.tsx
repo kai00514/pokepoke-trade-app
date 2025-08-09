@@ -405,7 +405,7 @@ export function DeckCard({ deck, onCountUpdate, currentCategory = "posts", onRem
         <Card className="h-full overflow-hidden transition-all duration-200 ease-in-out group-hover:shadow-xl group-hover:-translate-y-1 bg-white">
           <CardHeader className="p-3">
             <div className="flex justify-between items-start mb-2">
-              <CardTitle className="text-purple-600 text-sm font-bold truncate group-hover:text-purple-700 flex-1">
+              <CardTitle className="tracking-tight text-blue-600 text-sm font-bold truncate group-hover:text-blue-700 flex-1">
                 {deckName}
               </CardTitle>
               {statusBadge && ( // statusBadgeが存在する場合のみ表示

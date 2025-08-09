@@ -26,7 +26,7 @@ const energyTypes = [
   { name: "炎", icon: "/images/types/炎.png", id: "fire", color: "bg-red-500" },
   { name: "水", icon: "/images/types/水.png", id: "water", color: "bg-blue-500" },
   { name: "電気", icon: "/images/types/電気.png", id: "electric", color: "bg-yellow-500" },
-  { name: "エスパー", icon: "/images/types/念.png", id: "psychic", color: "bg-purple-500" },
+  { name: "エスパー", icon: "/images/types/念.png", id: "psychic", color: "bg-purple-500" }, // This is for the icon background, not text. Keeping as is.
   { name: "格闘", icon: "/images/types/格闘.png", id: "fighting", color: "bg-orange-500" },
   { name: "悪", icon: "/images/types/悪.png", id: "dark", color: "bg-gray-800" },
   { name: "鋼", icon: "/images/types/鋼.png", id: "metal", color: "bg-gray-500" },

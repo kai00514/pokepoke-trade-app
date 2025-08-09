@@ -1,73 +1,117 @@
 "use client"
 
 import Link from "next/link"
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { ArrowRight, CalendarDays } from "lucide-react"
 import { motion } from "framer-motion"
+import { cn } from "@/lib/utils"
 
-export interface NewsArticle {
+export type NewsArticle = {
   id: string
   title: string
-  date: string // YYYY-MM-DD
+  date: string
   summary: string
   category: string
-  categoryColor?: "sky" | "emerald" | "amber" | "rose" | "violet" // for badge color
+  /**
+   * Tailwind color name for badge, e.g. "emerald" | "sky" | "amber"
+   * Fallback goes to blue.
+   */
+  categoryColor?: string
   url: string
 }
 
-const categoryColorMap = {
-  sky: "bg-sky-100 text-sky-700 border-sky-300 hover:bg-sky-200",
-  emerald: "bg-emerald-100 text-emerald-700 border-emerald-300 hover:bg-emerald-200",
-  amber: "bg-amber-100 text-amber-700 border-amber-300 hover:bg-amber-200",
-  rose: "bg-rose-100 text-rose-700 border-rose-300 hover:bg-rose-200",
-  violet: "bg-violet-100 text-violet-700 border-violet-300 hover:bg-violet-200",
-  default: "bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200",
+interface NewsArticleCardProps {
+  article: NewsArticle
+  index?: number
 }
 
-const cardVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.3 } },
-}
-
-export default function NewsArticleCard({ article, index }: { article: NewsArticle; index: number }) {
-  const badgeColorClass = article.categoryColor ? categoryColorMap[article.categoryColor] : categoryColorMap.default
+/**
+ * Blue-themed News card used on /info.
+ * Replaces purple with blue:
+ * - Title hover: group-hover:text-blue-600
+ * - Card hover border: hover:border-blue-300
+ * - "Read more" link: text-blue-600 hover:text-blue-700 focus:ring-blue-500
+ */
+export default function NewsArticleCard({ article, index = 0 }: NewsArticleCardProps) {
+  const badge = getBadgeClasses(article.categoryColor)
 
   return (
-    <motion.div
-      variants={cardVariants}
-      custom={index} // for potential stagger effect if parent uses staggerChildren
+    <motion.article
+      className="group relative h-full rounded-lg border border-slate-200 bg-white p-5 shadow-sm transition-colors hover:border-blue-300"
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.35, delay: Math.min(index * 0.05, 0.4) }}
     >
-      <Card className="overflow-hidden bg-white hover:shadow-lg transition-shadow duration-200 h-full flex flex-col">
-        <CardHeader className="pb-3 pt-5 px-5">
-          <div className="flex justify-between items-start gap-2 mb-1">
-            <Badge variant="outline" className={`text-xs font-medium ${badgeColorClass}`}>
-              {article.category}
-            </Badge>
-            <div className="flex items-center text-xs text-slate-500">
-              <CalendarDays className="h-3.5 w-3.5 mr-1 flex-shrink-0" />
-              {article.date}
-            </div>
-          </div>
-          <CardTitle className="text-lg font-semibold text-slate-800 leading-tight">
-            <Link href={article.url} className="hover:text-purple-600 transition-colors line-clamp-2">
-              {article.title}
-            </Link>
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="px-5 pb-4 text-sm text-slate-600 flex-grow">
-          <p className="line-clamp-3">{article.summary}</p>
-        </CardContent>
-        <CardFooter className="px-5 pb-5 pt-2 bg-slate-50/30 border-t">
-          <Link
-            href={article.url}
-            className="text-sm font-medium text-purple-600 hover:text-purple-700 flex items-center group transition-colors"
-          >
-            続きを読む
-            <ArrowRight className="h-4 w-4 ml-1 transform transition-transform duration-200 group-hover:translate-x-1" />
-          </Link>
-        </CardFooter>
-      </Card>
-    </motion.div>
+      <div className="mb-3 flex items-center gap-2">
+        <span
+          className={cn(
+            "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium",
+            badge.bg,
+            badge.text,
+          )}
+        >
+          {article.category}
+        </span>
+        <time className="text-xs text-slate-500" dateTime={article.date}>
+          {formatDate(article.date)}
+        </time>
+      </div>
+
+      <h3 className="text-base sm:text-lg font-semibold text-slate-800 transition-colors group-hover:text-blue-600">
+        <Link href={article.url} className="absolute inset-0" aria-label={article.title} />
+        {article.title}
+      </h3>
+
+      <p className="mt-2 line-clamp-3 text-sm text-slate-600">{article.summary}</p>
+
+      <div className="mt-4">
+        <Link
+          href={article.url}
+          className="inline-flex items-center gap-2 text-sm font-medium text-blue-600 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded"
+          aria-label={`${article.title} を読む`}
+        >
+          <span>続きを読む</span>
+          <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path
+              fillRule="evenodd"
+              d="M10.293 3.293a1 1 0 011.414 0l5 5a.997.997 0 01.083 1.32l-.083.094-5 5a1 1 0 01-1.497-1.32l.083-.094L13.585 10H4a1 1 0 01-.117-1.993L4 8h9.585l-3.292-3.293a1 1 0 01-.083-1.32l.083-.094z"
+              clipRule="evenodd"
+            />
+          </svg>
+        </Link>
+      </div>
+    </motion.article>
   )
+}
+
+function getBadgeClasses(color?: string) {
+  // Map limited semantic colors; default to blue.
+  switch (color) {
+    case "emerald":
+      return { bg: "bg-emerald-100", text: "text-emerald-700" }
+    case "sky":
+      return { bg: "bg-sky-100", text: "text-sky-700" }
+    case "amber":
+      return { bg: "bg-amber-100", text: "text-amber-700" }
+    case "rose":
+      // If "rose" was previously used as a purple stand-in, keep it distinct.
+      return { bg: "bg-rose-100", text: "text-rose-700" }
+    case "violet":
+    case "purple":
+      // Explicitly convert purple-ish to blue for this task.
+      return { bg: "bg-blue-100", text: "text-blue-700" }
+    default:
+      return { bg: "bg-blue-100", text: "text-blue-700" }
+  }
+}
+
+function formatDate(dateStr: string) {
+  try {
+    const d = new Date(dateStr)
+    if (Number.isNaN(d.getTime())) return dateStr
+    const yyyy = d.getFullYear()
+    const mm = String(d.getMonth() + 1).padStart(2, "0")
+    const dd = String(d.getDate()).padStart(2, "0")
+    return `${yyyy}-${mm}-${dd}`
+  } catch {
+    return dateStr
+  }
 }

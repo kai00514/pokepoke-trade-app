@@ -52,7 +52,7 @@ export default function HistoryItemCard({ item }: { item: HistoryItem }) {
 
   return (
     <Link href={item.postUrl} className="block group">
-      <Card className="overflow-hidden transition-all duration-200 ease-in-out group-hover:shadow-lg bg-white hover:border-purple-300">
+      <Card className="overflow-hidden transition-all duration-200 ease-in-out group-hover:shadow-lg bg-white hover:border-blue-300">
         <CardContent className="p-4 flex items-center space-x-4">
           <div className="relative w-16 h-20 sm:w-20 sm:h-28 flex-shrink-0">
             <Image
@@ -64,7 +64,7 @@ export default function HistoryItemCard({ item }: { item: HistoryItem }) {
             />
           </div>
           <div className="flex-grow min-w-0">
-            <h3 className="text-base sm:text-lg font-semibold text-slate-800 group-hover:text-purple-600 truncate transition-colors">
+            <h3 className="text-base sm:text-lg font-semibold text-slate-800 group-hover:text-blue-600 truncate transition-colors">
               {item.title}
             </h3>
             <p className="text-xs sm:text-sm text-slate-600 truncate">{item.primaryCardName}</p>

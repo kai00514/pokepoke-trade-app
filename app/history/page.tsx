@@ -162,10 +162,10 @@ function HistoryPageContent() {
                     onClick={() => changeTab(index)}
                     className={cn(
                       "flex items-center justify-center space-x-2 p-3 sm:p-4 min-h-[56px] min-w-[100px] sm:min-w-[140px] transition-colors duration-150 ease-in-out",
-                      "focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-1",
+                      "focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1",
                       activeTabIndex === index
-                        ? "text-purple-600 border-b-2 border-purple-600 font-semibold"
-                        : "text-slate-500 hover:text-purple-500 hover:bg-slate-100",
+                        ? "text-blue-600 border-b-2 border-blue-600 font-semibold"
+                        : "text-slate-500 hover:text-blue-500 hover:bg-slate-100",
                     )}
                     style={{ flexShrink: 0 }}
                   >

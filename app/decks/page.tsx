@@ -1,13 +1,15 @@
 "use client"
 
 import type React from "react"
+
 import { useState, useCallback, useEffect } from "react"
 import Header from "@/components/layout/header"
 import Footer from "@/components/footer"
 import { Button } from "@/components/ui/button"
 import { PlusCircle, Users, ListChecks, BarChartBig, Zap, Star } from "lucide-react"
 import Link from "next/link"
-import { DeckCard, type Deck } from "@/components/deck-card"
+import type { Deck } from "@/components/deck-card"
+import DeckHorizontalRow from "@/components/deck-horizontal-row"
 import { getDecksList, getDeckPagesList } from "@/lib/actions/deck-posts"
 import { useToast } from "@/components/ui/use-toast"
 
@@ -21,12 +23,33 @@ interface CategoryInfo {
 }
 
 const categories: CategoryInfo[] = [
-  { id: "tier", title: "Tierランキング", icon: ListChecks, description: "デッキの強さランキング" },
-  { id: "featured", title: "注目ランキング", icon: BarChartBig, description: "話題のデッキランキング" },
-  { id: "newpack", title: "新パックデッキランキング", icon: Zap, description: "最新パックを使ったデッキ" },
-  { id: "posted", title: "みんなのデッキを見る", icon: Users, description: "投稿されたデッキを閲覧" },
+  {
+    id: "tier",
+    title: "Tierランキング",
+    icon: ListChecks,
+    description: "デッキの強さランキング",
+  },
+  {
+    id: "featured",
+    title: "注目ランキング",
+    icon: BarChartBig,
+    description: "話題のデッキランキング",
+  },
+  {
+    id: "newpack",
+    title: "新パックデッキランキング",
+    icon: Zap,
+    description: "最新パックを使ったデッキ",
+  },
+  {
+    id: "posted",
+    title: "みんなのデッキを見る",
+    icon: Users,
+    description: "投稿されたデッキを閲覧",
+  },
 ]
 
+// deck_pagesデータ用の拡張型
 interface DeckPageData extends Deck {
   is_deck_page?: boolean
 }
@@ -38,37 +61,53 @@ export default function DecksPage() {
   const [error, setError] = useState<string | null>(null)
   const { toast } = useToast()
 
+  // みんなのデッキを取得
   const fetchPostedDecks = useCallback(async () => {
     setIsLoading(true)
     setError(null)
     try {
       const result = await getDecksList({ isPublic: true, limit: 50 })
       if (result.success && result.data) {
-        const decksWithFlag = result.data.map((deck) => ({ ...deck, is_deck_page: false }))
+        const decksWithFlag = result.data.map((deck) => ({
+          ...deck,
+          is_deck_page: false,
+        }))
         setDecks(decksWithFlag)
       } else {
         setError(result.error || "デッキの取得に失敗しました")
-        toast({ title: "エラー", description: result.error || "デッキの取得に失敗しました", variant: "destructive" })
+        toast({
+          title: "エラー",
+          description: result.error || "デッキの取得に失敗しました",
+          variant: "destructive",
+        })
       }
-    } catch {
+    } catch (err) {
       const errorMessage = "デッキの取得中にエラーが発生しました"
       setError(errorMessage)
-      toast({ title: "エラー", description: errorMessage, variant: "destructive" })
+      toast({
+        title: "エラー",
+        description: errorMessage,
+        variant: "destructive",
+      })
     } finally {
       setIsLoading(false)
     }
   }, [toast])
 
+  // deck_pagesテーブルからデッキを取得
   const fetchDeckPages = useCallback(
     async (category: "tier" | "newpack" | "featured") => {
       setIsLoading(true)
       setError(null)
       try {
         let sortBy: "tier" | "popular" | "latest" = "latest"
+
         if (category === "tier") sortBy = "tier"
-        else if (category === "featured") sortBy = "popular"
+        if (category === "featured") sortBy = "popular"
+        if (category === "newpack") sortBy = "latest"
 
         const result = await getDeckPagesList({ category, sortBy, limit: 50 })
+
         if (result.success && result.data) {
           const formattedDecks: DeckPageData[] = result.data.map((deckPage: any) => ({
             id: deckPage.id.toString(),
@@ -81,16 +120,25 @@ export default function DecksPage() {
             views: deckPage.view_count || 0,
             comments: deckPage.comment_count || 0,
             is_deck_page: true,
+            // Note: deck_pages may not include deck_cards; DeckHorizontalRow will gracefully fallback
           }))
           setDecks(formattedDecks)
         } else {
           setError(result.error || "デッキの取得に失敗しました")
-          toast({ title: "エラー", description: result.error || "デッキの取得に失敗しました", variant: "destructive" })
+          toast({
+            title: "エラー",
+            description: result.error || "デッキの取得に失敗しました",
+            variant: "destructive",
+          })
         }
-      } catch {
+      } catch (err) {
         const errorMessage = "デッキの取得中にエラーが発生しました"
         setError(errorMessage)
-        toast({ title: "エラー", description: errorMessage, variant: "destructive" })
+        toast({
+          title: "エラー",
+          description: errorMessage,
+          variant: "destructive",
+        })
       } finally {
         setIsLoading(false)
       }
@@ -98,6 +146,7 @@ export default function DecksPage() {
     [toast],
   )
 
+  // 初期表示
   useEffect(() => {
     fetchPostedDecks()
     setSelectedCategory("posted")
@@ -105,10 +154,15 @@ export default function DecksPage() {
 
   const handleCategoryClick = (categoryId: TabId) => {
     setSelectedCategory(categoryId)
-    if (categoryId === "posted") fetchPostedDecks()
-    else if (categoryId === "tier") fetchDeckPages("tier")
-    else if (categoryId === "featured") fetchDeckPages("featured")
-    else if (categoryId === "newpack") fetchDeckPages("newpack")
+    if (categoryId === "posted") {
+      fetchPostedDecks()
+    } else if (categoryId === "tier") {
+      fetchDeckPages("tier")
+    } else if (categoryId === "featured") {
+      fetchDeckPages("featured")
+    } else if (categoryId === "newpack") {
+      fetchDeckPages("newpack")
+    }
   }
 
   const renderDeckList = () => {
@@ -116,7 +170,7 @@ export default function DecksPage() {
       return (
         <div className="flex justify-center items-center py-20">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
             <p className="text-slate-500">デッキを読み込み中...</p>
           </div>
         </div>
@@ -153,9 +207,9 @@ export default function DecksPage() {
     }
 
     return (
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+      <div className="space-y-6">
         {decks.map((deck) => (
-          <DeckCard key={deck.id} deck={deck} />
+          <DeckHorizontalRow key={deck.id} deck={deck} currentCategory={selectedCategory || "posted"} />
         ))}
       </div>
     )
@@ -205,20 +259,20 @@ export default function DecksPage() {
                   onClick={() => handleCategoryClick(category.id)}
                   className={`group rounded-xl p-6 shadow-lg transition-all duration-300 transform hover:-translate-y-1 border ${
                     isActive
-                      ? "bg-purple-100 border-purple-300 shadow-xl"
-                      : "bg-white border-purple-100 hover:border-purple-200 hover:shadow-xl"
+                      ? "bg-blue-100 border-blue-300 shadow-xl"
+                      : "bg-white border-blue-100 hover:border-blue-200 hover:shadow-xl"
                   }`}
                 >
                   <div className="flex flex-col items-center text-center space-y-3">
                     <div
                       className={`p-3 rounded-full transition-colors duration-300 ${
-                        isActive ? "bg-purple-200" : "bg-purple-100 group-hover:bg-purple-200"
+                        isActive ? "bg-blue-200" : "bg-blue-100 group-hover:bg-blue-200"
                       }`}
                     >
-                      <IconComponent className="h-6 w-6 text-purple-600" />
+                      <IconComponent className="h-6 w-6 text-blue-600" />
                     </div>
                     <div>
-                      <h3 className={`text-sm font-semibold mb-1 ${isActive ? "text-purple-800" : "text-slate-800"}`}>
+                      <h3 className={`text-sm font-semibold mb-1 ${isActive ? "text-blue-800" : "text-slate-800"}`}>
                         {category.title}
                       </h3>
                       {category.description && (
@@ -231,7 +285,7 @@ export default function DecksPage() {
             })}
           </div>
 
-          {/* デッキリスト */}
+          {/* デッキリスト（行ごとの横スクロール表示） */}
           <div className="space-y-6">
             <div className="flex items-center justify-center">
               <h2 className="text-2xl font-bold text-slate-800">

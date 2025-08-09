@@ -180,11 +180,11 @@ export default function DeckComments({ deckId, deckTitle, commentType = "deck" }
   if (isLoading) {
     return (
       <div className="bg-white rounded-lg shadow-xl">
-        <div className="bg-purple-600 text-white p-4 rounded-t-lg">
+        <div className="bg-blue-600 text-white p-4 rounded-t-lg">
           <h2 className="text-xl font-semibold">コメント</h2>
         </div>
         <div className="p-4 sm:p-6 flex justify-center items-center h-32">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
         </div>
       </div>
     )
@@ -192,7 +192,7 @@ export default function DeckComments({ deckId, deckTitle, commentType = "deck" }
 
   return (
     <div className="bg-white rounded-lg shadow-xl">
-      <div className="bg-purple-600 text-white p-4 rounded-t-lg">
+      <div className="bg-blue-600 text-white p-4 rounded-t-lg">
         <h2 className="text-xl font-semibold">コメント ({comments.length})</h2>
       </div>
       <div className="p-4 sm:p-6 space-y-4">
@@ -244,7 +244,7 @@ export default function DeckComments({ deckId, deckTitle, commentType = "deck" }
           <Button
             type="button"
             onClick={handleCommentSubmitClick}
-            className="bg-purple-600 hover:bg-purple-700 text-white"
+            className="bg-blue-600 hover:bg-blue-700 text-white"
             disabled={!newComment.trim()}
           >
             <Send className="h-4 w-4 mr-0 sm:mr-2" />

@@ -19,7 +19,7 @@ export default function MatchingPage() {
           <Card className="w-full max-w-md p-8 shadow-lg">
             <CardContent className="flex flex-col items-center gap-6 p-0">
               <div className="bg-violet-100 p-4 rounded-full">
-                <Construction className="h-12 w-12 text-violet-500" />
+                <Construction className="h-12 w-12 text-blue-500" />
               </div>
               <div className="space-y-2">
                 <h2 className="text-2xl font-bold text-slate-900">Coming Soon</h2>
@@ -31,7 +31,7 @@ export default function MatchingPage() {
               </div>
               <Link
                 href="#"
-                className="inline-flex items-center text-sm font-medium text-violet-600 hover:text-violet-800 transition-colors"
+                className="inline-flex items-center text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors"
               >
                 <CalendarClock className="mr-2 h-4 w-4" />
                 近日公開予定
