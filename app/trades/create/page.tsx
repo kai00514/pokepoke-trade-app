@@ -72,12 +72,8 @@ export default function CreateTradePage() {
       setIsAuthenticated(isAuth)
       setCurrentUserId(userId)
     })
-    return () => {
-      authListener.subscription.unsubscribe()
-    }
   }, [toast])
 
-  // 会員ユーザーの場合、ポケポケIDを自動入力
   useEffect(() => {
     if (user && userProfile && userProfile.pokepoke_id && !appId) {
       setAppId(userProfile.pokepoke_id)
@@ -237,10 +233,10 @@ export default function CreateTradePage() {
 
   if (isAuthenticated === null || authLoading) {
     return (
-      <div className="flex flex-col min-h-screen bg-slate-100">
+      <div className="flex flex-col min-h-screen bg-gradient-to-b from-blue-50 via-blue-100 to-white">
         <Header />
         <main className="flex-grow container mx-auto px-4 py-8 flex items-center justify-center">
-          <Loader2 className="h-10 w-10 animate-spin text-purple-600" />
+          <Loader2 className="h-10 w-10 animate-spin text-blue-600" />
         </main>
         <Footer />
       </div>
@@ -248,10 +244,10 @@ export default function CreateTradePage() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-slate-100">
+    <div className="flex flex-col min-h-screen bg-gradient-to-b from-blue-50 via-blue-100 to-white">
       <Header />
       <main className="flex-grow container mx-auto px-4 py-8">
-        <Link href="/" className="inline-flex items-center text-sm text-purple-600 hover:text-purple-700 mb-6">
+        <Link href="/" className="inline-flex items-center text-sm text-blue-600 hover:text-blue-700 mb-6">
           <ArrowLeft className="h-4 w-4 mr-1" />
           タイムラインに戻る
         </Link>
@@ -309,7 +305,7 @@ export default function CreateTradePage() {
               <Button
                 type="button"
                 onClick={() => openModal("wanted", 20, "求めるカードを選択")}
-                className="w-full bg-purple-600 hover:bg-purple-700 text-white"
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white"
                 disabled={isSubmitting}
               >
                 カードを選択 (最大20枚)
@@ -323,7 +319,7 @@ export default function CreateTradePage() {
               <Button
                 type="button"
                 onClick={() => openModal("offered", 20, "譲れるカードを選択")}
-                className="w-full bg-purple-600 hover:bg-purple-700 text-white"
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white"
                 disabled={isSubmitting}
               >
                 カードを選択 (最大20枚)
@@ -368,7 +364,7 @@ export default function CreateTradePage() {
               <Button
                 type="button"
                 onClick={handleSubmitClick}
-                className="w-full bg-purple-600 hover:bg-purple-700 text-white text-base py-3"
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white text-base py-3"
                 disabled={isSubmitting}
               >
                 {isSubmitting ? (

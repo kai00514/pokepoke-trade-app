@@ -1,16 +1,15 @@
 "use client"
 
 import type React from "react"
-import { useEffect, useState } from "react"
-import Link from "next/link"
+import { useState, useEffect } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { AlertCircle, CheckCircle, Eye, EyeOff, Lock, Mail } from 'lucide-react'
-
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { useToast } from "@/components/ui/use-toast"
 import { createClient } from "@/lib/supabase/client"
+import { useToast } from "@/components/ui/use-toast"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { AlertCircle, Mail, Lock, Eye, EyeOff, CheckCircle } from "lucide-react"
 
 export default function ResetPasswordPage() {
   const [email, setEmail] = useState("")
@@ -20,16 +19,16 @@ export default function ResetPasswordPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null)
-
   const router = useRouter()
   const searchParams = useSearchParams()
   const { toast } = useToast()
   const supabase = createClient()
 
+  // URLパラメータからトークンとタイプを取得
   const accessToken = searchParams.get("access_token")
   const refreshToken = searchParams.get("refresh_token")
 
-  // リンク経由で来た場合のセッション設定（クライアントのみ）
+  // クライアントサイドでのみ実行されるようにuseEffectを使用
   useEffect(() => {
     const handleAuthSession = async () => {
       if (accessToken && refreshToken) {
@@ -37,6 +36,7 @@ export default function ResetPasswordPage() {
           access_token: accessToken,
           refresh_token: refreshToken,
         })
+
         if (error) {
           setMessage({ type: "error", text: `セッション設定エラー: ${error.message}` })
           toast({
@@ -45,7 +45,7 @@ export default function ResetPasswordPage() {
             variant: "destructive",
           })
         } else {
-          // クリーンなURLへ
+          // セッションが設定されたらURLからトークンを削除
           router.replace("/auth/reset")
         }
       }
@@ -64,22 +64,36 @@ export default function ResetPasswordPage() {
         setMessage({ type: "error", text: "メールアドレスを入力してください。" })
         return
       }
+
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/auth/reset`,
       })
+
       if (error) {
         setMessage({ type: "error", text: error.message || "パスワードリセットメールの送信に失敗しました。" })
-        toast({ title: "エラー", description: error.message, variant: "destructive" })
+        toast({
+          title: "エラー",
+          description: error.message,
+          variant: "destructive",
+        })
       } else {
         setMessage({
           type: "success",
           text: "パスワードリセットのリンクをメールアドレスに送信しました。メールをご確認ください。",
         })
-        toast({ title: "メール送信完了", description: "パスワードリセットのリンクを送信しました。" })
+        toast({
+          title: "メール送信完了",
+          description: "パスワードリセットのリンクを送信しました。",
+        })
       }
-    } catch {
+    } catch (error) {
+      console.error("Reset password request error:", error)
       setMessage({ type: "error", text: "予期しないエラーが発生しました。" })
-      toast({ title: "エラー", description: "予期しないエラーが発生しました。", variant: "destructive" })
+      toast({
+        title: "エラー",
+        description: "予期しないエラーが発生しました。",
+        variant: "destructive",
+      })
     } finally {
       setLoading(false)
     }
@@ -101,26 +115,39 @@ export default function ResetPasswordPage() {
       }
 
       const { error } = await supabase.auth.updateUser({ password })
+
       if (error) {
         setMessage({ type: "error", text: error.message || "パスワードの更新に失敗しました。" })
-        toast({ title: "エラー", description: error.message, variant: "destructive" })
+        toast({
+          title: "エラー",
+          description: error.message,
+          variant: "destructive",
+        })
       } else {
-        setMessage({ type: "success", text: "パスワードが更新されました。ログインページへ移動してください。" })
-        toast({ title: "パスワード更新完了", description: "新しいパスワードでログインしてください。" })
+        setMessage({ type: "success", text: "パスワードが正常に更新されました。ログインページへ移動してください。" })
+        toast({
+          title: "パスワード更新完了",
+          description: "新しいパスワードでログインしてください。",
+        })
         router.push("/auth/login?reset=success")
       }
-    } catch {
+    } catch (error) {
+      console.error("Update password error:", error)
       setMessage({ type: "error", text: "予期しないエラーが発生しました。" })
-      toast({ title: "エラー", description: "予期しないエラーが発生しました。", variant: "destructive" })
+      toast({
+        title: "エラー",
+        description: "予期しないエラーが発生しました。",
+        variant: "destructive",
+      })
     } finally {
       setLoading(false)
     }
   }
 
-  // 新しいパスワードを設定（リンクから遷移してトークンあり）
+  // access_tokenが存在する場合、新しいパスワードを設定するフォームを表示
   if (accessToken && refreshToken) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white">
+      <div className="min-h-screen bg-blue-50">
         <div className="container mx-auto px-4 py-10 sm:py-14 lg:py-16">
           <div className="mx-auto w-full max-w-md sm:max-w-lg">
             <div className="text-center mb-8 sm:mb-10">
@@ -135,7 +162,6 @@ export default function ResetPasswordPage() {
                   className={`mb-6 ${
                     message.type === "error" ? "border-red-200 bg-red-50" : "border-green-200 bg-green-50"
                   }`}
-                  aria-live="polite"
                 >
                   {message.type === "error" ? (
                     <AlertCircle className="h-4 w-4" />
@@ -154,7 +180,7 @@ export default function ResetPasswordPage() {
                     新しいパスワード
                   </label>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-blue-500" aria-hidden="true" />
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-blue-500" />
                     <Input
                       id="password"
                       type={showPassword ? "text" : "password"}
@@ -183,7 +209,7 @@ export default function ResetPasswordPage() {
                     パスワード確認
                   </label>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-blue-500" aria-hidden="true" />
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-blue-500" />
                     <Input
                       id="confirmPassword"
                       type={showConfirmPassword ? "text" : "password"}
@@ -229,9 +255,9 @@ export default function ResetPasswordPage() {
     )
   }
 
-  // パスワードリセットリンクを送信
+  // access_tokenが存在しない場合、パスワードリセットメール送信フォームを表示
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white">
+    <div className="min-h-screen bg-blue-50">
       <div className="container mx-auto px-4 py-10 sm:py-14 lg:py-16">
         <div className="mx-auto w-full max-w-md sm:max-w-lg">
           <div className="text-center mb-8 sm:mb-10">
@@ -244,7 +270,6 @@ export default function ResetPasswordPage() {
               <Alert
                 variant={message.type === "error" ? "destructive" : "default"}
                 className={`mb-6 ${message.type === "error" ? "border-red-200 bg-red-50" : "border-green-200 bg-green-50"}`}
-                aria-live="polite"
               >
                 {message.type === "error" ? (
                   <AlertCircle className="h-4 w-4" />
@@ -263,7 +288,7 @@ export default function ResetPasswordPage() {
                   メールアドレス
                 </label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-blue-500" aria-hidden="true" />
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-blue-500" />
                   <Input
                     id="email"
                     type="email"
@@ -281,7 +306,6 @@ export default function ResetPasswordPage() {
                 type="submit"
                 className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl shadow-2xl transition-all duration-200"
                 disabled={loading}
-                aria-busy={loading}
               >
                 {loading ? "送信中..." : "パスワードリセットメールを送信"}
               </Button>

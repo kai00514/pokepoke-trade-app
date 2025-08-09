@@ -2,17 +2,16 @@
 
 import type React from "react"
 import { useState } from "react"
-import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { ArrowRight, CheckCircle, Eye, EyeOff, Lock, Mail, AlertCircle } from 'lucide-react'
-
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { GoogleIcon } from "@/components/icons/google-icon"
 import { XIcon } from "@/components/icons/twitter-icon"
+import { createClient } from "@/lib/supabase/client"
 import { useToast } from "@/components/ui/use-toast"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { createClient } from "@/lib/supabase/client"
+import { Mail, ArrowRight, Lock, Eye, EyeOff, AlertCircle, CheckCircle } from "lucide-react"
 
 export default function SignupPage() {
   const [email, setEmail] = useState("")
@@ -24,7 +23,6 @@ export default function SignupPage() {
   const [showEmailForm, setShowEmailForm] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
-
   const router = useRouter()
   const { toast } = useToast()
   const supabase = createClient()
@@ -40,6 +38,7 @@ export default function SignupPage() {
         setErrorMessage("パスワードが一致しません。")
         return
       }
+
       if (password.length < 6) {
         setErrorMessage("パスワードは6文字以上で入力してください。")
         return
@@ -48,7 +47,9 @@ export default function SignupPage() {
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
-        options: { emailRedirectTo: `${window.location.origin}/auth/confirm?next=/` },
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/confirm?next=/`,
+        },
       })
 
       if (error) {
@@ -64,20 +65,34 @@ export default function SignupPage() {
         } else {
           setErrorMessage(error.message || "登録に失敗しました。")
         }
-        toast({ title: "登録エラー", description: error.message, variant: "destructive" })
+        toast({
+          title: "登録エラー",
+          description: error.message,
+          variant: "destructive",
+        })
       } else if (data.user && !data.session) {
         setSuccessMessage("確認メールを送信しました。メールをご確認の上、リンクをクリックして登録を完了してください。")
-        toast({ title: "確認メール送信", description: "メールをご確認ください。" })
+        toast({
+          title: "確認メール送信",
+          description: "メールをご確認ください。",
+        })
       } else if (data.session) {
-        toast({ title: "登録完了", description: "アカウントが作成されました。" })
+        toast({
+          title: "登録完了",
+          description: "アカウントが作成されました。",
+        })
         router.push("/")
         router.refresh()
       }
-    } catch (err) {
-      console.error("Signup error:", err)
+    } catch (error) {
+      console.error("Signup error:", error)
       const errorMsg = "アカウント作成に失敗しました。"
       setErrorMessage(errorMsg)
-      toast({ title: "エラー", description: errorMsg, variant: "destructive" })
+      toast({
+        title: "エラー",
+        description: errorMsg,
+        variant: "destructive",
+      })
     } finally {
       setLoading(null)
     }
@@ -85,32 +100,50 @@ export default function SignupPage() {
 
   const handleSocialSignup = async (provider: "google" | "twitter") => {
     setLoading(provider)
+
     try {
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider,
-        options: { redirectTo: `${window.location.origin}/auth/callback`, queryParams: { prompt: "consent" } },
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+          queryParams: {
+            prompt: "consent",
+          },
+        },
       })
+
       if (error) {
-        toast({ title: "登録エラー", description: error.message, variant: "destructive" })
+        toast({
+          title: "登録エラー",
+          description: error.message,
+          variant: "destructive",
+        })
         return
       }
-      if (data?.url) window.location.href = data.url
-    } catch (err) {
-      console.error("Social signup error:", err)
-      toast({ title: "エラー", description: "ソーシャル登録に失敗しました。", variant: "destructive" })
+
+      if (data?.url) {
+        window.location.href = data.url
+      }
+    } catch (error) {
+      console.error("Social signup error:", error)
+      toast({
+        title: "エラー",
+        description: "ソーシャル登録に失敗しました。",
+        variant: "destructive",
+      })
     } finally {
       setLoading(null)
     }
   }
 
-  // メールフォーム
+  // メールフォーム表示時
   if (showEmailForm) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white">
+      <div className="min-h-screen bg-blue-50">
         <div className="container mx-auto px-4 py-10 sm:py-14 lg:py-16">
           <div className="mx-auto w-full max-w-md">
             <div className="text-center mb-8 sm:mb-10">
-              <h1 className="text-3xl font-bold text-slate-900 mb-2 drop-shadow-sm">メールアドレスで登録</h1>
+              <h1 className="text-3xl font-bold text-slate-800 mb-2 drop-shadow-sm">メールアドレスで登録</h1>
               <p className="text-slate-700">アカウント情報を入力してください</p>
             </div>
 
@@ -135,7 +168,10 @@ export default function SignupPage() {
                     メールアドレス
                   </label>
                   <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-blue-500" aria-hidden="true" />
+                    <Mail
+                      className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-blue-500"
+                      aria-hidden="true"
+                    />
                     <Input
                       id="email"
                       type="email"
@@ -155,7 +191,10 @@ export default function SignupPage() {
                     パスワード
                   </label>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-blue-500" aria-hidden="true" />
+                    <Lock
+                      className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-blue-500"
+                      aria-hidden="true"
+                    />
                     <Input
                       id="password"
                       type={showPassword ? "text" : "password"}
@@ -186,7 +225,10 @@ export default function SignupPage() {
                     パスワード確認
                   </label>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-blue-500" aria-hidden="true" />
+                    <Lock
+                      className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-blue-500"
+                      aria-hidden="true"
+                    />
                     <Input
                       id="confirmPassword"
                       type={showConfirmPassword ? "text" : "password"}
@@ -248,13 +290,13 @@ export default function SignupPage() {
     )
   }
 
-  // 登録方法選択
+  // メールフォーム未表示時（選択画面）
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white">
+    <div className="min-h-screen bg-blue-50">
       <div className="container mx-auto px-4 py-10 sm:py-14 lg:py-16">
         <div className="mx-auto w-full max-w-md">
           <div className="text-center mb-8 sm:mb-10">
-            <h1 className="text-3xl font-bold text-slate-900 mb-2 drop-shadow-sm">会員登録</h1>
+            <h1 className="text-3xl font-bold text-slate-800 mb-2 drop-shadow-sm">会員登録</h1>
             <p className="text-slate-700">アカウントを作成してポケモンカードの取引を始めましょう</p>
           </div>
 

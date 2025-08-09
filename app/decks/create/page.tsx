@@ -379,7 +379,7 @@ export default function CreateDeckPage() {
         <Textarea
           value={deckDescription}
           onChange={(e) => setDeckDescription(e.target.value)}
-          placeholder="デッキの説明を入力&#10;改行も可能です"
+          placeholder={"デッキの説明を入力\n改行も可能です"}
           rows={4}
           className="w-full"
         />
@@ -579,19 +579,93 @@ export default function CreateDeckPage() {
   )
 
   return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-br from-purple-50 to-purple-100">
+    <div className="flex flex-col min-h-screen">
       <Header />
-      <div className="hidden lg:block">
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex items-center justify-between mb-6">
+      <div
+        className="w-full flex-1"
+        style={{
+          background: "linear-gradient(180deg, #DBEAFE 0%, #EFF6FF 55%, #FFFFFF 100%)",
+        }}
+      >
+        <div className="hidden lg:block">
+          <div className="container mx-auto px-4 py-6">
+            <div className="flex items-center justify-between mb-6">
+              <Link href="/decks" className="inline-flex items-center text-sm text-purple-600 hover:text-purple-700">
+                <ArrowLeft className="h-4 w-4 mr-1" />
+                デッキ一覧へ
+              </Link>
+              <h1 className="text-2xl font-bold text-slate-800">デッキ構築</h1>
+              <Button
+                onClick={handleSaveClick}
+                className="bg-emerald-500 hover:bg-emerald-600 text-white"
+                disabled={!canSave}
+              >
+                {isSaving ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    投稿中...
+                  </>
+                ) : (
+                  <>
+                    <Save className="h-4 w-4 mr-2" />
+                    投稿
+                  </>
+                )}
+              </Button>
+            </div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+              <Card className="sticky top-[calc(var(--header-height,64px)+1.5rem)]">
+                <CardHeader>
+                  <CardTitle>カード検索</CardTitle>
+                </CardHeader>
+                <CardContent>{renderCardSearchSection()}</CardContent>
+              </Card>
+              <div className="space-y-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>デッキ情報</CardTitle>
+                  </CardHeader>
+                  <CardContent>{renderDeckInfo()}</CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="pt-6">{renderDeckComposition()}</CardContent>
+                </Card>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="lg:hidden">
+          <main className="container mx-auto px-4 py-6 space-y-6">
             <Link href="/decks" className="inline-flex items-center text-sm text-purple-600 hover:text-purple-700">
               <ArrowLeft className="h-4 w-4 mr-1" />
               デッキ一覧へ
             </Link>
-            <h1 className="text-2xl font-bold text-slate-800">デッキ構築</h1>
+            <Card>
+              <CardHeader className="cursor-pointer" onClick={() => setIsDeckInfoExpanded(!isDeckInfoExpanded)}>
+                <div className="flex items-center justify-between">
+                  <CardTitle>デッキ情報</CardTitle>
+                  {isDeckInfoExpanded ? (
+                    <ChevronUp className="h-5 w-5 text-slate-500" />
+                  ) : (
+                    <ChevronDown className="h-5 w-5 text-slate-500" />
+                  )}
+                </div>
+              </CardHeader>
+              {isDeckInfoExpanded && <CardContent>{renderDeckInfo()}</CardContent>}
+            </Card>
+            <Card>
+              <CardContent className="pt-6">{renderDeckComposition()}</CardContent>
+            </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle>カード検索</CardTitle>
+              </CardHeader>
+              <CardContent>{renderCardSearchSection()}</CardContent>
+            </Card>
+            {isLoadingAuth && <p className="text-center text-slate-500">認証状態を確認中...</p>}
             <Button
               onClick={handleSaveClick}
-              className="bg-emerald-500 hover:bg-emerald-600 text-white"
+              className="w-full bg-emerald-500 hover:bg-emerald-600 text-white py-3 sticky bottom-4 z-10 shadow-lg"
               disabled={!canSave}
             >
               {isSaving ? (
@@ -606,75 +680,8 @@ export default function CreateDeckPage() {
                 </>
               )}
             </Button>
-          </div>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
-            <Card className="sticky top-[calc(var(--header-height,64px)+1.5rem)]">
-              <CardHeader>
-                <CardTitle>カード検索</CardTitle>
-              </CardHeader>
-              <CardContent>{renderCardSearchSection()}</CardContent>
-            </Card>
-            <div className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>デッキ情報</CardTitle>
-                </CardHeader>
-                <CardContent>{renderDeckInfo()}</CardContent>
-              </Card>
-              <Card>
-                <CardContent className="pt-6">{renderDeckComposition()}</CardContent>
-              </Card>
-            </div>
-          </div>
+          </main>
         </div>
-      </div>
-      <div className="lg:hidden">
-        <main className="container mx-auto px-4 py-6 space-y-6">
-          <Link href="/decks" className="inline-flex items-center text-sm text-purple-600 hover:text-purple-700">
-            <ArrowLeft className="h-4 w-4 mr-1" />
-            デッキ一覧へ
-          </Link>
-          <Card>
-            <CardHeader className="cursor-pointer" onClick={() => setIsDeckInfoExpanded(!isDeckInfoExpanded)}>
-              <div className="flex items-center justify-between">
-                <CardTitle>デッキ情報</CardTitle>
-                {isDeckInfoExpanded ? (
-                  <ChevronUp className="h-5 w-5 text-slate-500" />
-                ) : (
-                  <ChevronDown className="h-5 w-5 text-slate-500" />
-                )}
-              </div>
-            </CardHeader>
-            {isDeckInfoExpanded && <CardContent>{renderDeckInfo()}</CardContent>}
-          </Card>
-          <Card>
-            <CardContent className="pt-6">{renderDeckComposition()}</CardContent>
-          </Card>
-          <Card>
-            <CardHeader>
-              <CardTitle>カード検索</CardTitle>
-            </CardHeader>
-            <CardContent>{renderCardSearchSection()}</CardContent>
-          </Card>
-          {isLoadingAuth && <p className="text-center text-slate-500">認証状態を確認中...</p>}
-          <Button
-            onClick={handleSaveClick}
-            className="w-full bg-emerald-500 hover:bg-emerald-600 text-white py-3 sticky bottom-4 z-10 shadow-lg"
-            disabled={!canSave}
-          >
-            {isSaving ? (
-              <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                投稿中...
-              </>
-            ) : (
-              <>
-                <Save className="h-4 w-4 mr-2" />
-                投稿
-              </>
-            )}
-          </Button>
-        </main>
       </div>
       <Footer />
       {showLoginPrompt && (

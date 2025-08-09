@@ -52,24 +52,8 @@ export default function DeckDetailPage() {
   const [showLoginPrompt, setShowLoginPrompt] = useState(false)
   const { toast } = useToast()
 
-  // ヘルパー関数：タイプコードを実際の画像ファイル名にマッピング
-  // const getLocalizedTypeName = (typeCode: string): string => {
-  //   // Unicode正規化を行い、文字列比較の不一致を防ぐ
-  //   const normalizedTypeCode = typeCode.normalize("NFC")
-  //   switch (normalizedTypeCode) {
-  //     case "エスパー":
-  //       return "念"
-  //     case "ドラゴン":
-  //       return "龍"
-  //     default:
-  //       return typeCode
-  //   }
-  // }
-
-  // "create"というIDが渡された場合、/decks/createにリダイレクト
   useEffect(() => {
     if (id === "create") {
-      console.log("Detected 'create' as ID, redirecting to /decks/create")
       router.replace("/decks/create")
     }
   }, [id, router])
@@ -89,37 +73,24 @@ export default function DeckDetailPage() {
   }
 
   const fetchDeckData = async () => {
-    // "create"の場合はリダイレクトされるため、ここでは処理しない
     if (id === "create") {
       setIsLoading(false)
       return
     }
 
-    console.log("Starting fetchDeckData for deck ID:", id)
     setIsLoading(true)
     setError(null)
     try {
       const { data, error } = await getDeckById(id)
       if (error || !data) {
-        console.error("Failed to fetch deck:", error)
         setError(error || "デッキの取得に失敗しました")
         return
       }
 
-      console.log("Setting deck data:", data)
       setDeck(data)
       setLikeCount(data.like_count || 0)
       setFavoriteCount(data.favorite_count || 0)
       setCommentCount(data.comment_count || 0)
-
-      console.log(
-        "Set counts - Like:",
-        data.like_count,
-        "Favorite:",
-        data.favorite_count,
-        "Comment:",
-        data.comment_count,
-      )
 
       if (data.deck_cards && data.deck_cards.length > 0) {
         const cardIds = data.deck_cards.map((dc) => String(dc.card_id))
@@ -134,7 +105,6 @@ export default function DeckDetailPage() {
         setCardDetails(detailsMap)
       }
     } catch (err) {
-      console.error("Error fetching deck:", err)
       setError("デッキの読み込み中にエラーが発生しました")
     } finally {
       setIsLoading(false)
@@ -142,52 +112,36 @@ export default function DeckDetailPage() {
   }
 
   useEffect(() => {
-    // idが"create"でない場合にのみデータをフェッチ
     if (!authLoading && id !== "create") {
       fetchDeckData()
     }
   }, [id, authLoading])
 
   const handleLike = async () => {
-    console.log("❤️ handleLike called:", { isLiked, likeCount, user: user?.id })
-
-    // いいねはログインしていなくても実行可能
     if (isLikeLoading) return
-
     setIsLikeLoading(true)
     const originalIsLiked = isLiked
     const originalLikeCount = likeCount
 
-    // UIを即座に更新
     setIsLiked(!isLiked)
     setLikeCount((prev) => (originalIsLiked ? prev - 1 : prev + 1))
 
     try {
       const action = originalIsLiked ? unlikeDeck : likeDeck
-      console.log("Calling action:", originalIsLiked ? "unlike" : "like")
-
       const { error } = await action(id)
-
       if (error) {
-        console.error("Action failed:", error)
         toast({ title: "エラー", description: error, variant: "destructive" })
-        // エラー時はUIの状態を元に戻す
         setIsLiked(originalIsLiked)
         setLikeCount(originalLikeCount)
       } else {
-        console.log("Action successful, fetching updated data...")
-        // 少し待ってから最新データを取得
         setTimeout(async () => {
           const { data: updatedDeck } = await getDeckById(id)
           if (updatedDeck) {
-            console.log("Updated deck data:", updatedDeck)
             setLikeCount(updatedDeck.like_count || 0)
-            console.log("Updated like count to:", updatedDeck.like_count)
           }
         }, 100)
       }
-    } catch (err) {
-      console.error("Error toggling like:", err)
+    } catch {
       toast({ title: "エラー", description: "操作に失敗しました", variant: "destructive" })
       setIsLiked(originalIsLiked)
       setLikeCount(originalLikeCount)
@@ -197,51 +151,36 @@ export default function DeckDetailPage() {
   }
 
   const handleFavorite = async () => {
-    console.log("⭐ handleFavorite called:", { isFavorited, favoriteCount, user: user?.id })
-
-    // お気に入りは会員ユーザーのみ実行可能
     if (!user) {
-      console.log("⭐ User not logged in - showing login prompt")
       setShowLoginPrompt(true)
       return
     }
-
     if (isFavoriteLoading) return
 
     setIsFavoriteLoading(true)
     const originalIsFavorited = isFavorited
     const originalFavoriteCount = favoriteCount
 
-    // UIを即座に更新
     setIsFavorited(!isFavorited)
     setFavoriteCount((prev) => (originalIsFavorited ? prev - 1 : prev + 1))
 
     try {
       const action = originalIsFavorited ? unfavoriteDeck : favoriteDeck
-      console.log("Calling action:", originalIsFavorited ? "unfavorite" : "favorite")
-
       const { error } = await action(id)
 
       if (error) {
-        console.error("Action failed:", error)
         toast({ title: "エラー", description: error, variant: "destructive" })
-        // エラー時はUIの状態を元に戻す
         setIsFavorited(originalIsFavorited)
         setFavoriteCount(originalFavoriteCount)
       } else {
-        console.log("Action successful, fetching updated data...")
-        // 少し待ってから最新データを取得
         setTimeout(async () => {
           const { data: updatedDeck } = await getDeckById(id)
           if (updatedDeck) {
-            console.log("Updated deck data:", updatedDeck)
             setFavoriteCount(updatedDeck.favorite_count || 0)
-            console.log("Updated favorite count to:", updatedDeck.favorite_count)
           }
         }, 100)
       }
-    } catch (err) {
-      console.error("Error toggling favorite:", err)
+    } catch {
       toast({ title: "エラー", description: "操作に失敗しました", variant: "destructive" })
       setIsFavorited(originalIsFavorited)
       setFavoriteCount(originalFavoriteCount)
@@ -250,7 +189,6 @@ export default function DeckDetailPage() {
     }
   }
 
-  // idが"create"の場合は、リダイレクト処理が完了するまで何も表示しない
   if (id === "create") {
     return null
   }
@@ -259,12 +197,12 @@ export default function DeckDetailPage() {
     return (
       <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
         <AuthProvider>
-          <div className="min-h-screen bg-gray-50">
+          <div className="min-h-screen bg-gradient-to-b from-blue-50 via-blue-100 to-white">
             <Header />
             <main className="container mx-auto px-4 py-8">
               <div className="flex items-center justify-center min-h-[400px]">
                 <div className="text-center">
-                  <Loader2 className="h-12 w-12 animate-spin text-[#6246ea] mx-auto mb-4" />
+                  <Loader2 className="h-12 w-12 animate-spin text-blue-600 mx-auto mb-4" />
                   <p className="text-gray-600 text-lg">デッキ情報を読み込み中...</p>
                 </div>
               </div>
@@ -280,7 +218,7 @@ export default function DeckDetailPage() {
     return (
       <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
         <AuthProvider>
-          <div className="min-h-screen bg-gray-50">
+          <div className="min-h-screen bg-gradient-to-b from-blue-50 via-blue-100 to-white">
             <Header />
             <main className="container mx-auto px-4 py-8">
               <div className="flex items-center justify-center min-h-[400px]">
@@ -343,7 +281,7 @@ export default function DeckDetailPage() {
   return (
     <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
       <AuthProvider>
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-gradient-to-b from-blue-50 via-blue-100 to-white">
           <Header />
           <main className="container mx-auto px-4 py-6 pb-24">
             <div className="mb-4">
@@ -483,7 +421,6 @@ export default function DeckDetailPage() {
           </div>
         </div>
 
-        {/* ログイン誘導モーダル */}
         {showLoginPrompt && (
           <LoginPromptModal
             onClose={() => setShowLoginPrompt(false)}

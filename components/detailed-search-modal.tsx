@@ -98,7 +98,6 @@ export default function DetailedSearchModal({
       isInitializedRef.current = true
     } else if (!isOpen) {
       isInitializedRef.current = false
-      // Clean up preview overlay when main modal closes
       setIsPreviewOverlayOpen(false)
       setPreviewImageUrl(null)
       setPreviewCardName(undefined)
@@ -271,24 +270,18 @@ export default function DetailedSearchModal({
     onSelectionComplete([...currentSelectedCards])
   }
 
-  // Handler for preview overlay close - only closes the preview
   const handlePreviewClose = () => {
     setIsPreviewOverlayOpen(false)
     setPreviewImageUrl(null)
     setPreviewCardName(undefined)
   }
 
-  // Handler for main modal close - prevents closing if preview is open
   const handleMainModalClose = (open: boolean) => {
-    // If trying to close the main modal but preview is open, close preview first
     if (!open && isPreviewOverlayOpen) {
       handlePreviewClose()
-      return // Don't close the main modal yet
+      return
     }
-
-    // If preview is not open, allow main modal to close
     if (!open) {
-      // Clean up any remaining preview state
       setIsPreviewOverlayOpen(false)
       setPreviewImageUrl(null)
       setPreviewCardName(undefined)
@@ -296,17 +289,14 @@ export default function DetailedSearchModal({
     onOpenChange(open)
   }
 
-  // Handle escape key for proper closing sequence
   useEffect(() => {
     const handleEscapeKey = (event: KeyboardEvent) => {
       if (event.key === "Escape" && isOpen) {
         if (isPreviewOverlayOpen) {
-          // If preview is open, close it first
           handlePreviewClose()
           event.preventDefault()
           event.stopPropagation()
         } else {
-          // If preview is not open, allow main modal to close
           onOpenChange(false)
         }
       }
@@ -362,7 +352,7 @@ export default function DetailedSearchModal({
                     size="sm"
                     onClick={() => setSelectedCategoryUI(category)}
                     className={cn(
-                      selectedCategoryUI === category && "bg-purple-600 hover:bg-purple-700 text-white",
+                      selectedCategoryUI === category && "bg-blue-600 hover:bg-blue-700 text-white",
                       "text-xs px-3 py-1 h-auto",
                     )}
                   >
@@ -378,7 +368,7 @@ export default function DetailedSearchModal({
                     size="sm"
                     onClick={() => setSelectedRarityDBValue(option.dbValue)}
                     className={cn(
-                      selectedRarityDBValue === option.dbValue && "bg-purple-600 hover:bg-purple-700 text-white",
+                      selectedRarityDBValue === option.dbValue && "bg-blue-600 hover:bg-blue-700 text-white",
                       "text-xs px-3 py-1 h-auto flex items-center gap-1",
                     )}
                   >
@@ -407,7 +397,7 @@ export default function DetailedSearchModal({
                       className={cn(
                         "p-1.5 rounded-md border transition-colors",
                         selectedTypeUI === type.id
-                          ? "border-purple-600 ring-2 ring-purple-600 ring-offset-1 bg-purple-50"
+                          ? "border-blue-600 ring-2 ring-blue-600 ring-offset-1 bg-blue-50"
                           : "border-slate-300 hover:border-slate-400",
                       )}
                       title={type.name}
@@ -415,7 +405,7 @@ export default function DetailedSearchModal({
                       {type.icon ? (
                         <Image src={type.icon || "/placeholder.svg"} alt={type.name} width={28} height={28} />
                       ) : (
-                        <span className="h-7 w-7 flex items-center justify-center text-purple-600">
+                        <span className="h-7 w-7 flex items-center justify-center text-blue-600">
                           <Check className="h-5 w-5" />
                         </span>
                       )}
@@ -433,7 +423,7 @@ export default function DetailedSearchModal({
                       size="sm"
                       onClick={() => setSelectedPackId(pack.id)}
                       className={cn(
-                        selectedPackId === pack.id && "bg-purple-600 hover:bg-purple-700 text-white",
+                        selectedPackId === pack.id && "bg-blue-600 hover:bg-blue-700 text-white",
                         "text-xs px-3 py-1 h-auto",
                       )}
                     >
@@ -446,7 +436,7 @@ export default function DetailedSearchModal({
             <div className="p-4 relative">
               {isLoading && (
                 <div className="absolute inset-0 bg-white/70 flex items-center justify-center z-10">
-                  <Loader2 className="h-12 w-12 animate-spin text-purple-600" />
+                  <Loader2 className="h-12 w-12 animate-spin text-blue-600" />
                 </div>
               )}
               <div className={cn("transition-opacity duration-300", isLoading ? "opacity-50" : "opacity-100")}>
@@ -463,10 +453,10 @@ export default function DetailedSearchModal({
                         onTouchEnd={(e) => handleTouchEnd(card, e)}
                         onTouchCancel={handleTouchCancel}
                         className={cn(
-                          "aspect-[5/7] relative rounded-md overflow-hidden border-2 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-1 transition-all cursor-pointer select-none",
+                          "aspect-[5/7] relative rounded-md overflow-hidden border-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 transition-all cursor-pointer select-none",
                           currentSelectedCards.find((sc) => sc.id === card.id)
-                            ? "border-purple-600 shadow-lg scale-105"
-                            : "border-transparent hover:border-purple-300",
+                            ? "border-blue-600 shadow-lg scale-105"
+                            : "border-transparent hover:border-blue-300",
                         )}
                         aria-label={`Select card ${card.name}`}
                         style={{
@@ -488,7 +478,7 @@ export default function DetailedSearchModal({
                           draggable={false}
                         />
                         {currentSelectedCards.find((sc) => sc.id === card.id) && (
-                          <div className="absolute inset-0 bg-purple-700 bg-opacity-60 flex items-center justify-center">
+                          <div className="absolute inset-0 bg-blue-700 bg-opacity-60 flex items-center justify-center">
                             <Check className="h-10 w-10 text-white stroke-[3px]" />
                           </div>
                         )}
@@ -523,7 +513,7 @@ export default function DetailedSearchModal({
               )}
               <Button
                 onClick={handleSelectionComplete}
-                className="bg-purple-600 hover:bg-purple-700 text-white"
+                className="bg-blue-600 hover:bg-blue-700 text-white"
                 disabled={
                   (maxSelection === 1 && currentSelectedCards.length !== 1) ||
                   (maxSelection !== 1 && currentSelectedCards.length === 0 && !!maxSelection)
@@ -536,7 +526,6 @@ export default function DetailedSearchModal({
         </DialogContent>
       </Dialog>
 
-      {/* Image preview overlay - independent state management */}
       <ImagePreviewOverlay
         isOpen={isPreviewOverlayOpen}
         imageUrl={previewImageUrl}

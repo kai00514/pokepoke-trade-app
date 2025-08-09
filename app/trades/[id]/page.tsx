@@ -236,10 +236,10 @@ export default function TradeDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="flex flex-col min-h-screen">
+      <div className="flex flex-col min-h-screen bg-gradient-to-b from-blue-50 via-blue-100 to-white">
         <Header />
         <main className="flex-grow container mx-auto px-4 py-8 flex justify-center items-center">
-          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-purple-600"></div>
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
         </main>
         <Footer />
       </div>
@@ -248,7 +248,7 @@ export default function TradeDetailPage() {
 
   if (!post) {
     return (
-      <div className="flex flex-col min-h-screen">
+      <div className="flex flex-col min-h-screen bg-gradient-to-b from-blue-50 via-blue-100 to-white">
         <Header />
         <main className="flex-grow container mx-auto px-4 py-8 text-center">
           <h1 className="text-2xl font-bold mb-4">投稿が見つかりません</h1>
@@ -284,10 +284,10 @@ export default function TradeDetailPage() {
   )
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen bg-gradient-to-b from-blue-50 via-blue-100 to-white">
       <Header />
       <main className="flex-grow container mx-auto px-4 py-8">
-        <Link href="/" className="inline-flex items-center text-sm text-purple-600 hover:text-purple-700 mb-6 group">
+        <Link href="/" className="inline-flex items-center text-sm text-blue-600 hover:text-blue-700 mb-6 group">
           <ArrowLeft className="h-4 w-4 mr-1 transition-transform group-hover:-translate-x-1" />
           タイムラインに戻る
         </Link>
@@ -339,7 +339,7 @@ export default function TradeDetailPage() {
           <OwnerActionButtons post={post} currentUserId={user?.id || null} />
         </div>
         <div className="bg-white rounded-lg shadow-xl">
-          <div className="bg-purple-600 text-white p-4 rounded-t-lg">
+          <div className="bg-blue-600 text-white p-4 rounded-t-lg">
             <h2 className="text-xl font-semibold">コメント</h2>
           </div>
           <div className="p-4 sm:p-6 space-y-4">
@@ -391,7 +391,7 @@ export default function TradeDetailPage() {
               <Button
                 type="button"
                 onClick={handleCommentSubmitClick}
-                className="bg-purple-600 hover:bg-purple-700 text-white"
+                className="bg-blue-600 hover:bg-blue-700 text-white"
                 disabled={!newComment.trim()}
               >
                 <Send className="h-4 w-4 mr-0 sm:mr-2" />

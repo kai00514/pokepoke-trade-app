@@ -1,13 +1,12 @@
 import type { ReactNode } from "react"
-import AuthHeader from "@/components/auth-header"
+import { AuthHeader } from "@/components/auth-header"
 
 export default function AuthLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-blue-50 to-white">
+    <div className="min-h-screen bg-blue-50">
+      {/* ヘッダーは透明背景。下地の薄い青がそのまま出ます */}
       <AuthHeader />
-      <main className="flex-1">
-        {children}
-      </main>
+      <main>{children}</main>
     </div>
   )
 }

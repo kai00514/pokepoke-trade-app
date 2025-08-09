@@ -1,18 +1,17 @@
 "use client"
 
 import type React from "react"
-import { useEffect, useState } from "react"
-import Link from "next/link"
+import { useState, useEffect } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { AlertCircle, Eye, EyeOff, Lock, Mail } from 'lucide-react'
-
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Alert, AlertDescription } from "@/components/ui/alert"
 import { GoogleIcon } from "@/components/icons/google-icon"
 import { XIcon } from "@/components/icons/twitter-icon"
-import { useToast } from "@/components/ui/use-toast"
 import { createClient } from "@/lib/supabase/client"
+import { useToast } from "@/components/ui/use-toast"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { AlertCircle, Mail, Lock, Eye, EyeOff } from "lucide-react"
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")
@@ -20,13 +19,12 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
-
   const router = useRouter()
   const searchParams = useSearchParams()
   const { toast } = useToast()
   const supabase = createClient()
 
-  // URLパラメータからエラーや通知を取得
+  // URLパラメータからエラーメッセージを取得
   useEffect(() => {
     const error = searchParams.get("error")
     const message = searchParams.get("message")
@@ -34,6 +32,7 @@ export default function LoginPage() {
 
     if (error) {
       let errorText = "認証エラーが発生しました。"
+
       switch (error) {
         case "callback_error":
           errorText = message || "認証プロセスでエラーが発生しました。"
@@ -47,6 +46,7 @@ export default function LoginPage() {
         default:
           errorText = message || "予期しないエラーが発生しました。"
       }
+
       setErrorMessage(errorText)
     }
 
@@ -69,7 +69,10 @@ export default function LoginPage() {
         return
       }
 
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
 
       if (error) {
         if (error.message.includes("Invalid login credentials")) {
@@ -77,7 +80,7 @@ export default function LoginPage() {
         } else if (error.message.includes("Email not confirmed")) {
           setErrorMessage("メールアドレスが確認されていません。確認メールをご確認ください。")
         } else if (error.message.includes("Too many requests")) {
-          setErrorMessage("試行回数が上限に達しました。しばらく時間をおいてから再試行してください。")
+          setErrorMessage("ログイン試行回数が上限に達しました。しばらく時間をおいてから再試行してください。")
         } else {
           setErrorMessage(error.message || "ログインに失敗しました。")
         }
@@ -87,17 +90,26 @@ export default function LoginPage() {
           variant: "destructive",
         })
       } else if (data.user) {
-        toast({ title: "ログイン成功", description: "ログインしました。" })
+        toast({
+          title: "ログイン成功",
+          description: "ログインしました。",
+        })
+
+        // リダイレクト先を取得（クリーンなURL）
         const redirect = searchParams.get("redirect") || "/"
         const cleanUrl = redirect.startsWith("/") ? redirect : "/"
         router.push(cleanUrl)
         router.refresh()
       }
-    } catch (err) {
-      console.error("Login error:", err)
+    } catch (error) {
+      console.error("Login error:", error)
       const errorMsg = "ログインに失敗しました。"
       setErrorMessage(errorMsg)
-      toast({ title: "エラー", description: errorMsg, variant: "destructive" })
+      toast({
+        title: "エラー",
+        description: errorMsg,
+        variant: "destructive",
+      })
     } finally {
       setLoading(false)
     }
@@ -105,25 +117,40 @@ export default function LoginPage() {
 
   const handleSocialLogin = async (provider: "google" | "twitter") => {
     setErrorMessage(null)
+
     try {
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
           redirectTo: `${window.location.origin}/auth/callback`,
-          queryParams: { prompt: "consent" },
+          queryParams: {
+            prompt: "consent",
+          },
         },
       })
+
       if (error) {
         setErrorMessage(error.message)
-        toast({ title: "ログインエラー", description: error.message, variant: "destructive" })
+        toast({
+          title: "ログインエラー",
+          description: error.message,
+          variant: "destructive",
+        })
         return
       }
-      if (data?.url) window.location.href = data.url
-    } catch (err) {
-      console.error("Social login error:", err)
+
+      if (data?.url) {
+        window.location.href = data.url
+      }
+    } catch (error) {
+      console.error("Social login error:", error)
       const errorMsg = "ソーシャルログインに失敗しました。"
       setErrorMessage(errorMsg)
-      toast({ title: "エラー", description: errorMsg, variant: "destructive" })
+      toast({
+        title: "エラー",
+        description: errorMsg,
+        variant: "destructive",
+      })
     }
   }
 
@@ -132,22 +159,33 @@ export default function LoginPage() {
       setErrorMessage("メールアドレスを入力してください。")
       return
     }
+
     setLoading(true)
     try {
       const { error } = await supabase.auth.resend({
         type: "signup",
         email,
-        options: { emailRedirectTo: `${window.location.origin}/auth/confirm?next=/` },
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/confirm?next=/`,
+        },
       })
+
       if (error) {
         setErrorMessage(error.message || "確認メールの再送信に失敗しました。")
-        toast({ title: "エラー", description: error.message, variant: "destructive" })
+        toast({
+          title: "エラー",
+          description: error.message,
+          variant: "destructive",
+        })
       } else {
-        toast({ title: "確認メール再送信", description: "確認メールを再送信しました。" })
+        toast({
+          title: "確認メール再送信",
+          description: "確認メールを再送信しました。",
+        })
         setErrorMessage(null)
       }
-    } catch (err) {
-      console.error("Resend confirmation error:", err)
+    } catch (error) {
+      console.error("Resend confirmation error:", error)
       setErrorMessage("予期しないエラーが発生しました。")
     } finally {
       setLoading(false)
@@ -155,11 +193,11 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white">
+    <div className="min-h-screen bg-blue-50">
       <div className="container mx-auto px-4 py-10 sm:py-14 lg:py-16">
         <div className="mx-auto w-full max-w-md">
           <div className="text-center mb-8 sm:mb-10">
-            <h1 className="text-3xl font-bold text-slate-900 mb-2 drop-shadow-sm">ログイン</h1>
+            <h1 className="text-3xl font-bold text-slate-800 mb-2 drop-shadow-sm">ログイン</h1>
             <p className="text-slate-700">アカウントにログインしてください</p>
           </div>
 
