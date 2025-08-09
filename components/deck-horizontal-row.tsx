@@ -75,7 +75,7 @@ export default function DeckHorizontalRow({
   const deckName = deck.title || deck.name || deck.deck_name || "無題のデッキ"
   const updatedDate = deck.updated_at || deck.updatedAt || deck.created_at || new Date().toISOString()
 
-  // Status badge (only when coming from favorites tab and matching category)
+  // Status badge (example for favorites tab)
   const statusBadge = useMemo(() => {
     if (deck.source_tab === "お気に入り") {
       if (deck.is_deck_page && deck.category) {
@@ -97,13 +97,11 @@ export default function DeckHorizontalRow({
   // Fetch login-dependent states
   useEffect(() => {
     if (user && deck.id) {
-      // like state from localStorage
       const likeKey = `like_${user.id}_${deck.id}`
       const savedLikeState = localStorage.getItem(likeKey)
       if (savedLikeState !== null) {
         setIsLiked(savedLikeState === "true")
       }
-      // favorited state from DB
       ;(async () => {
         const favorited = await checkIsFavorited(deck.id, deck.is_deck_page || false)
         setIsFavorited(favorited)
@@ -112,26 +110,15 @@ export default function DeckHorizontalRow({
       setIsLiked(false)
       setIsFavorited(false)
     }
-  }, [user, deck]) // Updated to include deck instead of deck.id and deck.is_deck_page
+  }, [user]) // Removed deck from dependency array
 
-  // Fetch up to 20 card images for the deck
+  // Fetch up to 20 card images for the deck (no thumbnail fallback)
   useEffect(() => {
     const run = async () => {
       try {
-        // If deck_cards missing (e.g., deck_pages), fallback to single thumbnail
         const expanded = expandDeckCards(deck, 20)
         if (!expanded.length) {
-          const fallback: CardWithImage = {
-            id: deck.thumbnail_image?.id || deck.thumbnail_card_id || 0,
-            name: deck.thumbnail_image?.name || deckName,
-            image_url:
-              deck.thumbnail_image?.thumb_url ||
-              deck.thumbnail_image?.image_url ||
-              deck.thumbnail_image_url ||
-              deck.imageUrl ||
-              "/placeholder.svg?height=168&width=120",
-          }
-          setCards([fallback])
+          setCards([])
           return
         }
 
@@ -141,11 +128,9 @@ export default function DeckHorizontalRow({
         const { getCardsByIds } = await import("@/lib/card-api")
         const fetched: PokeCard[] = await getCardsByIds(uniqueIds)
 
-        // Map fetched into a lookup
         const byId = new Map<number, PokeCard>()
         fetched.forEach((c) => byId.set(Number(c.id), c))
 
-        // Build ordered list with up to 20, carrying quantity by counting occurrences
         const quantities = expanded.reduce<Record<number, number>>((acc, id) => {
           acc[id] = (acc[id] || 0) + 1
           return acc
@@ -163,7 +148,6 @@ export default function DeckHorizontalRow({
               name: c.name || "カード",
               image_url: c.thumb_url || c.image_url,
               thumb_url: c.thumb_url,
-              quantity: undefined, // draw each copy, quantity shown via overlay of stacked repeats is optional
             })
           } else {
             ordered.push({
@@ -175,20 +159,9 @@ export default function DeckHorizontalRow({
           if (ordered.length >= 20) break
         }
         setCards(ordered)
-      } catch (e) {
-        // graceful fallback
-        setCards([
-          {
-            id: deck.thumbnail_image?.id || deck.thumbnail_card_id || 0,
-            name: deck.thumbnail_image?.name || deckName,
-            image_url:
-              deck.thumbnail_image?.thumb_url ||
-              deck.thumbnail_image?.image_url ||
-              deck.thumbnail_image_url ||
-              deck.imageUrl ||
-              "/placeholder.svg?height=168&width=120",
-          },
-        ])
+      } catch {
+        // On error, do not fallback to thumbnail; just show empty state.
+        setCards([])
       } finally {
         setCardsLoading(false)
       }
@@ -292,7 +265,7 @@ export default function DeckHorizontalRow({
         </div>
       </div>
 
-      {/* Horizontal scroller of cards */}
+      {/* Horizontal scroller of cards (no thumbnail fallback) */}
       <div className="relative px-2 py-3">
         <div
           className={cn(
@@ -300,12 +273,11 @@ export default function DeckHorizontalRow({
             "scroll-smooth",
             "[-ms-overflow-style:none] [scrollbar-width:none]",
           )}
-          style={{
-            WebkitOverflowScrolling: "touch",
-          }}
+          style={{ WebkitOverflowScrolling: "touch" }}
+          aria-label="デッキのカード一覧 横スクロール"
         >
-          {/* hide scrollbar (Webkit) */}
           <style>{`.no-scrollbar::-webkit-scrollbar{display:none}`}</style>
+
           {cardsLoading && (
             <>
               {Array.from({ length: 10 }).map((_, i) => (
@@ -317,9 +289,9 @@ export default function DeckHorizontalRow({
             </>
           )}
 
-          {!cardsLoading &&
-            (cards?.length ? (
-              cards.map((c, idx) => (
+          {!cardsLoading && cards && cards.length > 0 && (
+            <>
+              {cards.map((c, idx) => (
                 <div key={`${c.id}-${idx}`} className="relative flex-shrink-0">
                   <div className="relative w-[96px] aspect-[5/7] rounded-md border border-slate-200 bg-slate-50 overflow-hidden">
                     <Image
@@ -331,25 +303,13 @@ export default function DeckHorizontalRow({
                     />
                   </div>
                 </div>
-              ))
-            ) : (
-              <div className="relative w-[96px] aspect-[5/7] rounded-md border border-slate-200 bg-slate-50 overflow-hidden">
-                <Image
-                  src={
-                    deck.thumbnail_image?.thumb_url ||
-                    deck.thumbnail_image?.image_url ||
-                    deck.thumbnail_image_url ||
-                    deck.imageUrl ||
-                    "/placeholder.svg?height=168&width=120&query=card-fallback" ||
-                    "/placeholder.svg"
-                  }
-                  alt={deck.thumbnail_image?.name || deckName}
-                  fill
-                  sizes="96px"
-                  className="object-contain"
-                />
-              </div>
-            ))}
+              ))}
+            </>
+          )}
+
+          {!cardsLoading && cards && cards.length === 0 && (
+            <div className="py-6 px-3 text-sm text-slate-500">カード情報がありません</div>
+          )}
         </div>
       </div>
 
