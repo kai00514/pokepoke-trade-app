@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState, useCallback, useEffect } from "react"
 import Header from "@/components/layout/header"
 import Footer from "@/components/footer"
@@ -23,35 +22,15 @@ interface CategoryInfo {
 }
 
 const categories: CategoryInfo[] = [
-  {
-    id: "tier",
-    title: "Tierランキング",
-    icon: ListChecks,
-    description: "デッキの強さランキング",
-  },
-  {
-    id: "featured",
-    title: "注目ランキング",
-    icon: BarChartBig,
-    description: "話題のデッキランキング",
-  },
-  {
-    id: "newpack",
-    title: "新パックデッキランキング",
-    icon: Zap,
-    description: "最新パックを使ったデッキ",
-  },
-  {
-    id: "posted",
-    title: "みんなのデッキを見る",
-    icon: Users,
-    description: "投稿されたデッキを閲覧",
-  },
+  { id: "tier", title: "Tierランキング", icon: ListChecks, description: "デッキの強さランキング" },
+  { id: "featured", title: "注目ランキング", icon: BarChartBig, description: "話題のデッキランキング" },
+  { id: "newpack", title: "新パックデッキランキング", icon: Zap, description: "最新パックを使ったデッキ" },
+  { id: "posted", title: "みんなのデッキを見る", icon: Users, description: "投稿されたデッキを閲覧" },
 ]
 
-// deck_pagesデータ用の拡張型
 interface DeckPageData extends Deck {
   is_deck_page?: boolean
+  // optional: selected_card_ids?: number[]
 }
 
 export default function DecksPage() {
@@ -61,55 +40,46 @@ export default function DecksPage() {
   const [error, setError] = useState<string | null>(null)
   const { toast } = useToast()
 
-  // みんなのデッキを取得
+  // 投稿デッキ取得
   const fetchPostedDecks = useCallback(async () => {
     setIsLoading(true)
     setError(null)
     try {
       const result = await getDecksList({ isPublic: true, limit: 50 })
-      if (result.success && result.data) {
-        const decksWithFlag = result.data.map((deck) => ({
+      if ((result as any).success && (result as any).data) {
+        const decksWithFlag = (result as any).data.map((deck: any) => ({
           ...deck,
           is_deck_page: false,
         }))
         setDecks(decksWithFlag)
       } else {
-        setError(result.error || "デッキの取得に失敗しました")
-        toast({
-          title: "エラー",
-          description: result.error || "デッキの取得に失敗しました",
-          variant: "destructive",
-        })
+        const msg = (result as any).error || "デッキの取得に失敗しました"
+        setError(msg)
+        toast({ title: "エラー", description: msg, variant: "destructive" })
       }
-    } catch (err) {
-      const errorMessage = "デッキの取得中にエラーが発生しました"
-      setError(errorMessage)
-      toast({
-        title: "エラー",
-        description: errorMessage,
-        variant: "destructive",
-      })
+    } catch {
+      const msg = "デッキの取得中にエラーが発生しました"
+      setError(msg)
+      toast({ title: "エラー", description: msg, variant: "destructive" })
     } finally {
       setIsLoading(false)
     }
   }, [toast])
 
-  // deck_pagesテーブルからデッキを取得
+  // deck_pages 取得
   const fetchDeckPages = useCallback(
     async (category: "tier" | "newpack" | "featured") => {
       setIsLoading(true)
       setError(null)
       try {
         let sortBy: "tier" | "popular" | "latest" = "latest"
-
         if (category === "tier") sortBy = "tier"
         if (category === "featured") sortBy = "popular"
         if (category === "newpack") sortBy = "latest"
 
         const result = await getDeckPagesList({ category, sortBy, limit: 50 })
-
-        if (result.success && result.data) {
-          const formattedDecks: DeckPageData[] = result.data.map((deckPage: any) => ({
+        if ((result as any).success && (result as any).data) {
+          const formatted: DeckPageData[] = (result as any).data.map((deckPage: any) => ({
             id: deckPage.id.toString(),
             name: deckPage.title || deckPage.deck_name || "無題のデッキ",
             imageUrl: deckPage.thumbnail_image_url || "/placeholder.svg?width=120&height=168",
@@ -120,25 +90,20 @@ export default function DecksPage() {
             views: deckPage.view_count || 0,
             comments: deckPage.comment_count || 0,
             is_deck_page: true,
-            // Note: deck_pages may not include deck_cards; DeckHorizontalRow will gracefully fallback
+            // selected_card_ids が来れば DeckHorizontalRow が最優先で使用
+            selected_card_ids: deckPage.selected_card_ids || deckPage.curated_card_ids || undefined,
+            deck_cards: deckPage.deck_cards || undefined,
           }))
-          setDecks(formattedDecks)
+          setDecks(formatted)
         } else {
-          setError(result.error || "デッキの取得に失敗しました")
-          toast({
-            title: "エラー",
-            description: result.error || "デッキの取得に失敗しました",
-            variant: "destructive",
-          })
+          const msg = (result as any).error || "デッキの取得に失敗しました"
+          setError(msg)
+          toast({ title: "エラー", description: msg, variant: "destructive" })
         }
-      } catch (err) {
-        const errorMessage = "デッキの取得中にエラーが発生しました"
-        setError(errorMessage)
-        toast({
-          title: "エラー",
-          description: errorMessage,
-          variant: "destructive",
-        })
+      } catch {
+        const msg = "デッキの取得中にエラーが発生しました"
+        setError(msg)
+        toast({ title: "エラー", description: msg, variant: "destructive" })
       } finally {
         setIsLoading(false)
       }
@@ -146,7 +111,6 @@ export default function DecksPage() {
     [toast],
   )
 
-  // 初期表示
   useEffect(() => {
     fetchPostedDecks()
     setSelectedCategory("posted")
@@ -154,15 +118,10 @@ export default function DecksPage() {
 
   const handleCategoryClick = (categoryId: TabId) => {
     setSelectedCategory(categoryId)
-    if (categoryId === "posted") {
-      fetchPostedDecks()
-    } else if (categoryId === "tier") {
-      fetchDeckPages("tier")
-    } else if (categoryId === "featured") {
-      fetchDeckPages("featured")
-    } else if (categoryId === "newpack") {
-      fetchDeckPages("newpack")
-    }
+    if (categoryId === "posted") fetchPostedDecks()
+    else if (categoryId === "tier") fetchDeckPages("tier")
+    else if (categoryId === "featured") fetchDeckPages("featured")
+    else if (categoryId === "newpack") fetchDeckPages("newpack")
   }
 
   const renderDeckList = () => {
@@ -220,12 +179,10 @@ export default function DecksPage() {
       <Header />
       <div
         className="w-full flex-1"
-        style={{
-          background: "linear-gradient(180deg, #DBEAFE 0%, #EFF6FF 55%, #FFFFFF 100%)",
-        }}
+        style={{ background: "linear-gradient(180deg, #DBEAFE 0%, #EFF6FF 55%, #FFFFFF 100%)" }}
       >
         <main className="flex-grow container mx-auto px-4 pb-8">
-          {/* デッキを投稿するボタンとお気に入りボタン */}
+          {/* 上部ボタン */}
           <div className="my-6 flex flex-col sm:flex-row justify-center items-center gap-4 max-w-sm mx-auto">
             <Button
               asChild
@@ -248,7 +205,7 @@ export default function DecksPage() {
             </Button>
           </div>
 
-          {/* カテゴリグリッド（2x2） */}
+          {/* カテゴリ */}
           <div className="grid grid-cols-2 gap-4 max-w-2xl mx-auto mb-8">
             {categories.map((category) => {
               const IconComponent = category.icon
@@ -285,7 +242,7 @@ export default function DecksPage() {
             })}
           </div>
 
-          {/* デッキリスト（行ごとの横スクロール表示） */}
+          {/* リスト（各デッキ1行、20枚横スクロール） */}
           <div className="space-y-6">
             <div className="flex items-center justify-center">
               <h2 className="text-2xl font-bold text-slate-800">
