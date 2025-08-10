@@ -61,7 +61,11 @@ export default function Header() {
   }
 
   return (
-    <header className="bg-[#3B82F6] text-white shadow-md">
+    <header className="relative overflow-hidden text-white shadow-md border-b border-white/10 bg-gradient-to-r from-sky-500 via-blue-600 to-indigo-600">
+      <div aria-hidden="true" className="absolute inset-0 pointer-events-none">
+        <div className="absolute -top-24 -left-24 h-64 w-64 rounded-full bg-white/10 blur-3xl" />
+        <div className="absolute -bottom-24 -right-24 h-72 w-72 rounded-full bg-white/10 blur-3xl" />
+      </div>
       <div className="container mx-auto px-4 py-3 flex items-center justify-between">
         <Link href="/" className="flex items-center">
           <Image src="/pokelink-logo.png" alt="PokeLink ロゴ" width={192} height={48} className="object-contain h-12" />

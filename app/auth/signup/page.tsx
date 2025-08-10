@@ -139,7 +139,7 @@ export default function SignupPage() {
   // メールフォーム表示時
   if (showEmailForm) {
     return (
-      <div className="min-h-screen bg-blue-50">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-sky-50 to-blue-100">
         <div className="container mx-auto px-4 py-10 sm:py-14 lg:py-16">
           <div className="mx-auto w-full max-w-md">
             <div className="text-center mb-8 sm:mb-10">
@@ -147,7 +147,7 @@ export default function SignupPage() {
               <p className="text-slate-700">アカウント情報を入力してください</p>
             </div>
 
-            <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-6 sm:p-8 shadow-2xl border border-white/20">
+            <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-6 sm:p-8 shadow-2xl border border-blue-200">
               {errorMessage && (
                 <Alert variant="destructive" className="mb-6 border-red-200 bg-red-50" aria-live="polite">
                   <AlertCircle className="h-4 w-4" />
@@ -178,7 +178,7 @@ export default function SignupPage() {
                       placeholder="あなたのメールアドレス"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="pl-10 h-12 rounded-xl border-gray-200 focus:border-blue-500 focus:ring-blue-500 bg-white/80 backdrop-blur-sm"
+                      className="pl-10 h-12 rounded-xl border-blue-200 focus:border-blue-500 focus:ring-blue-500 bg-white/80 backdrop-blur-sm"
                       required
                       autoComplete="email"
                       aria-invalid={!!errorMessage || undefined}
@@ -201,7 +201,7 @@ export default function SignupPage() {
                       placeholder="6文字以上のパスワード"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="pl-10 pr-10 h-12 rounded-xl border-gray-200 focus:border-blue-500 focus:ring-blue-500 bg-white/80 backdrop-blur-sm"
+                      className="pl-10 pr-10 h-12 rounded-xl border-blue-200 focus:border-blue-500 focus:ring-blue-500 bg-white/80 backdrop-blur-sm"
                       required
                       minLength={6}
                       autoComplete="new-password"
@@ -235,7 +235,7 @@ export default function SignupPage() {
                       placeholder="パスワードを再入力"
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
-                      className="pl-10 pr-10 h-12 rounded-xl border-gray-200 focus:border-blue-500 focus:ring-blue-500 bg-white/80 backdrop-blur-sm"
+                      className="pl-10 pr-10 h-12 rounded-xl border-blue-200 focus:border-blue-500 focus:ring-blue-500 bg-white/80 backdrop-blur-sm"
                       required
                       autoComplete="new-password"
                       aria-invalid={!!errorMessage || undefined}
@@ -292,7 +292,7 @@ export default function SignupPage() {
 
   // メールフォーム未表示時（選択画面）
   return (
-    <div className="min-h-screen bg-blue-50">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-sky-50 to-blue-100">
       <div className="container mx-auto px-4 py-10 sm:py-14 lg:py-16">
         <div className="mx-auto w-full max-w-md">
           <div className="text-center mb-8 sm:mb-10">
@@ -300,7 +300,7 @@ export default function SignupPage() {
             <p className="text-slate-700">アカウントを作成してポケモンカードの取引を始めましょう</p>
           </div>
 
-          <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-6 sm:p-8 shadow-2xl border border-white/20">
+          <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-6 sm:p-8 shadow-2xl border border-blue-200">
             <div className="space-y-4">
               <Button
                 onClick={() => setShowEmailForm(true)}

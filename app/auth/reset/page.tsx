@@ -147,7 +147,7 @@ export default function ResetPasswordPage() {
   // access_tokenが存在する場合、新しいパスワードを設定するフォームを表示
   if (accessToken && refreshToken) {
     return (
-      <div className="min-h-screen bg-blue-50">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-sky-50 to-blue-100">
         <div className="container mx-auto px-4 py-10 sm:py-14 lg:py-16">
           <div className="mx-auto w-full max-w-md sm:max-w-lg">
             <div className="text-center mb-8 sm:mb-10">
@@ -155,7 +155,7 @@ export default function ResetPasswordPage() {
               <p className="text-slate-700">新しいパスワードを入力してください</p>
             </div>
 
-            <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-6 sm:p-8 shadow-2xl border border-white/20">
+            <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-6 sm:p-8 shadow-2xl border border-blue-200">
               {message && (
                 <Alert
                   variant={message.type === "error" ? "destructive" : "default"}
@@ -187,7 +187,7 @@ export default function ResetPasswordPage() {
                       placeholder="6文字以上の新しいパスワード"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="pl-10 pr-10 h-12 rounded-xl border-gray-200 focus:border-blue-500 focus:ring-blue-500 bg-white/80 backdrop-blur-sm"
+                      className="pl-10 pr-10 h-12 rounded-xl border-blue-200 focus:border-blue-500 focus:ring-blue-500 bg-white/80 backdrop-blur-sm"
                       required
                       minLength={6}
                       autoComplete="new-password"
@@ -216,7 +216,7 @@ export default function ResetPasswordPage() {
                       placeholder="パスワードを再入力"
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
-                      className="pl-10 pr-10 h-12 rounded-xl border-gray-200 focus:border-blue-500 focus:ring-blue-500 bg-white/80 backdrop-blur-sm"
+                      className="pl-10 pr-10 h-12 rounded-xl border-blue-200 focus:border-blue-500 focus:ring-blue-500 bg-white/80 backdrop-blur-sm"
                       required
                       autoComplete="new-password"
                     />
@@ -257,7 +257,7 @@ export default function ResetPasswordPage() {
 
   // access_tokenが存在しない場合、パスワードリセットメール送信フォームを表示
   return (
-    <div className="min-h-screen bg-blue-50">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-sky-50 to-blue-100">
       <div className="container mx-auto px-4 py-10 sm:py-14 lg:py-16">
         <div className="mx-auto w-full max-w-md sm:max-w-lg">
           <div className="text-center mb-8 sm:mb-10">
@@ -265,7 +265,7 @@ export default function ResetPasswordPage() {
             <p className="text-slate-700">登録済みのメールアドレスを入力してください</p>
           </div>
 
-          <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-6 sm:p-8 shadow-2xl border border-white/20">
+          <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-6 sm:p-8 shadow-2xl border border-blue-200">
             {message && (
               <Alert
                 variant={message.type === "error" ? "destructive" : "default"}
@@ -295,7 +295,7 @@ export default function ResetPasswordPage() {
                     placeholder="あなたのメールアドレス"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="pl-10 h-12 rounded-xl border-gray-200 focus:border-blue-500 focus:ring-blue-500 bg-white/80 backdrop-blur-sm"
+                    className="pl-10 h-12 rounded-xl border-blue-200 focus:border-blue-500 focus:ring-blue-500 bg-white/80 backdrop-blur-sm"
                     required
                     autoComplete="email"
                   />
