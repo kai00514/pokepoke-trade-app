@@ -1,42 +1,45 @@
 import Link from "next/link"
 import { fetchNewsList } from "@/lib/news"
 
-export const dynamic = "force-static"
+export const revalidate = 60
+
+function formatDate(dateStr: string) {
+  const d = new Date(dateStr)
+  if (Number.isNaN(d.getTime())) return dateStr
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, "0")
+  const day = String(d.getDate()).padStart(2, "0")
+  return `${y}-${m}-${day}`
+}
 
 export default async function NewsIndexPage() {
-  let items = []
-  try {
-    items = await fetchNewsList(50)
-  } catch (e) {
-    console.error(e)
-  }
+  const items = await fetchNewsList(100)
 
   return (
-    <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-      <h1 className="text-2xl sm:text-3xl font-bold text-slate-800 mb-6">最新情報一覧</h1>
+    <main className="min-h-screen bg-gradient-to-b from-blue-100/60 to-white">
+      <div className="container mx-auto px-4 py-10">
+        <h1 className="mb-6 text-2xl font-bold text-slate-900">最新情報一覧</h1>
 
-      {items.length === 0 ? (
-        <div className="rounded-2xl bg-white shadow p-6 text-center text-slate-500">表示できる情報がありません。</div>
-      ) : (
-        <div className="rounded-2xl bg-white shadow divide-y">
-          {items.map((item) => (
-            <div key={item.id} className="p-4 sm:p-5 flex items-start justify-between gap-4">
-              <div>
-                <Link
-                  href={`/news/${encodeURIComponent(item.slug)}`}
-                  className="text-sky-700 hover:text-sky-900 underline-offset-2 hover:underline"
-                >
-                  <span className="font-medium">{item.title}</span>
-                </Link>
-                <div className="text-xs text-slate-500 mt-1">{new Date(item.publishedAt).toLocaleString("ja-JP")}</div>
-              </div>
-              <Link href={`/news/${encodeURIComponent(item.slug)}`} className="text-sm text-sky-700 hover:text-sky-900">
-                続きを読む
-              </Link>
-            </div>
-          ))}
-        </div>
-      )}
+        {items.length === 0 ? (
+          <div className="text-slate-500">現在、表示できる最新情報はありません。</div>
+        ) : (
+          <ul className="divide-y divide-slate-200 rounded-2xl bg-white shadow">
+            {items.map((item) => {
+              const href = item.slug ? `/news/${encodeURIComponent(item.slug)}` : `/news/${encodeURIComponent(item.id)}`
+              return (
+                <li key={item.id} className="px-4 py-3 sm:px-6">
+                  <Link href={href} className="group flex items-center gap-3">
+                    <time className="shrink-0 text-xs text-slate-500">{formatDate(item.publishedAt)}</time>
+                    <span className="line-clamp-1 font-medium text-slate-900 group-hover:text-sky-700">
+                      {item.title}
+                    </span>
+                  </Link>
+                </li>
+              )
+            })}
+          </ul>
+        )}
+      </div>
     </main>
   )
 }
