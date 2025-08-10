@@ -16,33 +16,47 @@ export type NewsDetail = NewsListItem & {
   body: string
 }
 
-const SERVICE_DOMAIN = process.env.MICROCMS_SERVICE_DOMAIN
-const API_KEY = process.env.MICROCMS_API_KEY
-
-function baseUrl(path: string) {
-  if (!SERVICE_DOMAIN) throw new Error("MICROCMS_SERVICE_DOMAIN is not set")
-  return `https://${SERVICE_DOMAIN}.microcms.io/api/v1${path}`
+function getConfig() {
+  const domain = process.env.MICROCMS_SERVICE_DOMAIN
+  const key = process.env.MICROCMS_API_KEY
+  if (!domain || !key) return null
+  return { domain, key }
 }
 
-function headers() {
-  if (!API_KEY) throw new Error("MICROCMS_API_KEY is not set")
+function baseUrl(path: string, cfg: { domain: string }) {
+  return `https://${cfg.domain}.microcms.io/api/v1${path}`
+}
+
+function headers(cfg: { key: string }) {
   return {
-    "X-MICROCMS-API-KEY": API_KEY,
+    "X-MICROCMS-API-KEY": cfg.key,
   }
+}
+
+export function isMicroCMSConfigured(): boolean {
+  return !!getConfig()
 }
 
 /**
  * Fetch latest news list (ordered by publishedAt desc)
+ * Returns [] if microCMS env is not configured.
  */
 export async function fetchNewsList(limit = 20): Promise<NewsListItem[]> {
-  const url = new URL(baseUrl("/news"))
+  const cfg = getConfig()
+  if (!cfg) {
+    console.warn(
+      "[news] microCMS is not configured. Set MICROCMS_SERVICE_DOMAIN and MICROCMS_API_KEY to enable news fetching.",
+    )
+    return []
+  }
+
+  const url = new URL(baseUrl("/news", cfg))
   url.searchParams.set("orders", "-publishedAt")
   url.searchParams.set("limit", String(limit))
   url.searchParams.set("fields", ["id", "title", "slug", "publishedAt", "bannerImage"].join(","))
 
   const res = await fetch(url.toString(), {
-    headers: headers(),
-    // ISR and tag-based revalidation
+    headers: headers({ key: cfg.key }),
     next: { revalidate: 60, tags: ["news"] },
   })
 
@@ -63,15 +77,24 @@ export async function fetchNewsList(limit = 20): Promise<NewsListItem[]> {
 
 /**
  * Fetch one news by slug
+ * Returns null if microCMS env is not configured or not found.
  */
 export async function fetchNewsBySlug(slug: string): Promise<NewsDetail | null> {
-  const url = new URL(baseUrl("/news"))
+  const cfg = getConfig()
+  if (!cfg) {
+    console.warn(
+      "[news] microCMS is not configured. Set MICROCMS_SERVICE_DOMAIN and MICROCMS_API_KEY to enable news fetching.",
+    )
+    return null
+  }
+
+  const url = new URL(baseUrl("/news", cfg))
   url.searchParams.set("filters", `slug[equals]${slug}`)
   url.searchParams.set("limit", "1")
   url.searchParams.set("fields", ["id", "title", "slug", "publishedAt", "bannerImage", "body"].join(","))
 
   const res = await fetch(url.toString(), {
-    headers: headers(),
+    headers: headers({ key: cfg.key }),
     next: { revalidate: 60, tags: ["news", `news:${slug}`] },
   })
 

@@ -1,49 +1,76 @@
-import sanitizeHtml from "sanitize-html"
+import sanitize from "sanitize-html"
 
 /**
- * Sanitize HTML from CMS, allowing images, links, and iframes (YouTube, etc.).
- * Adds responsive classes to iframes.
+ * Sanitize HTML from microCMS for safe rendering in the app.
+ * - Allows basic formatting, images, links.
+ * - Allows iframes (YouTube/Vimeo) and makes them responsive via Tailwind classes.
+ * - Forces external links to open in new tab with rel safety attributes.
  */
-export function sanitizeCmsHtml(html: string): string {
-  return sanitizeHtml(html, {
-    allowedTags: sanitizeHtml.defaults.allowedTags.concat(["img", "figure", "figcaption", "iframe", "video", "source"]),
+export function sanitizeNewsHtml(html: string): string {
+  const clean = sanitize(html, {
+    allowedTags: sanitize.defaults.allowedTags.concat(["img", "iframe", "figure", "figcaption"]),
     allowedAttributes: {
+      ...sanitize.defaults.allowedAttributes,
+      img: ["src", "alt", "title", "width", "height", "loading"],
       a: ["href", "name", "target", "rel"],
-      img: ["src", "alt", "title", "width", "height", "loading", "decoding"],
-      iframe: ["src", "width", "height", "allow", "allowfullscreen", "frameborder", "referrerpolicy", "title"],
-      video: ["controls", "src", "poster", "width", "height"],
-      source: ["src", "type"],
-      "*": ["class", "style"],
+      iframe: ["src", "width", "height", "allow", "allowfullscreen", "frameborder"],
     },
-    allowedSchemes: ["http", "https", "mailto", "tel"],
+    allowedSchemes: ["http", "https", "mailto", "tel", "data"],
+    allowProtocolRelative: true,
     transformTags: {
-      iframe: (tagName, attribs) => {
-        // Force responsive iframe
-        const attrs = {
-          ...attribs,
-          class: `${attribs.class ?? ""} aspect-video w-full h-auto`.trim(),
+      a: (tagName, attribs) => {
+        const href = attribs.href || ""
+        // Open external links in new tab with rel attributes
+        const isExternal = href.startsWith("http")
+        return {
+          tagName: "a",
+          attribs: isExternal
+            ? {
+                ...attribs,
+                target: "_blank",
+                rel: "noopener noreferrer",
+              }
+            : attribs,
         }
-        // security: ensure iframes are sandboxed minimally (optional)
-        // attrs.sandbox = "allow-scripts allow-same-origin allow-presentation allow-popups"
-        return { tagName: "iframe", attribs: attrs }
+      },
+      iframe: (tagName, attribs) => {
+        // Restrict iframe src to allow only YouTube/Vimeo
+        const src = attribs.src || ""
+        const allowed =
+          src.includes("youtube.com") ||
+          src.includes("youtu.be") ||
+          src.includes("player.vimeo.com") ||
+          src.includes("vimeo.com")
+        if (!allowed) {
+          // Drop non-allowed iframes
+          return { tagName: "div", text: "" }
+        }
+        // Make iframe responsive
+        return {
+          tagName: "iframe",
+          attribs: {
+            ...attribs,
+            class: `${attribs.class || ""} w-full aspect-video rounded-xl`.trim(),
+            frameborder: "0",
+            allow:
+              attribs.allow ||
+              "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share",
+            allowfullscreen: "true",
+          },
+        }
       },
       img: (tagName, attribs) => {
-        const attrs = {
-          ...attribs,
-          loading: attribs.loading ?? "lazy",
-          decoding: attribs.decoding ?? "async",
-          class: `${attribs.class ?? ""} mx-auto`.trim(),
+        // Ensure images are responsive
+        return {
+          tagName: "img",
+          attribs: {
+            ...attribs,
+            loading: attribs.loading || "lazy",
+            class: `${attribs.class || ""} max-w-full h-auto rounded-lg`.trim(),
+          },
         }
-        return { tagName: "img", attribs: attrs }
-      },
-      a: (tagName, attribs) => {
-        const attrs = {
-          ...attribs,
-          rel: attribs.rel ?? "noopener noreferrer",
-          target: attribs.target ?? "_blank",
-        }
-        return { tagName: "a", attribs: attrs }
       },
     },
   })
+  return clean
 }

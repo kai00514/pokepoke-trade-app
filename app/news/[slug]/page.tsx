@@ -1,69 +1,53 @@
 import Image from "next/image"
-import Link from "next/link"
 import { notFound } from "next/navigation"
 import { fetchNewsBySlug } from "@/lib/news"
-import { sanitizeCmsHtml } from "@/lib/sanitize"
-
-export const revalidate = 60
+import { sanitizeNewsHtml } from "@/lib/sanitize"
 
 type Props = { params: { slug: string } }
 
 export default async function NewsDetailPage({ params }: Props) {
-  const { slug } = params
+  const data = await fetchNewsBySlug(params.slug)
+  if (!data) return notFound()
 
-  let article = null
-  try {
-    article = await fetchNewsBySlug(slug)
-  } catch (e) {
-    console.error(e)
-  }
-
-  if (!article) {
-    notFound()
-  }
-
-  const safeHtml = sanitizeCmsHtml(article!.body)
+  const html = sanitizeNewsHtml(data.body)
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-blue-100/60 to-white">
-      <div className="container mx-auto px-4 py-10">
-        <div className="mx-auto max-w-3xl">
-          <div className="mb-6 flex items-center gap-3">
-            <Link href="/news" className="text-sm text-sky-700 hover:text-sky-800">
-              ← 最新情報一覧に戻る
-            </Link>
-            <time className="ml-auto text-xs text-slate-500">{formatDate(article!.publishedAt)}</time>
+    <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+      <article className="mx-auto max-w-3xl">
+        <header className="mb-6">
+          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">{data.title}</h1>
+          <div className="text-xs text-slate-500 mt-2">{new Date(data.publishedAt).toLocaleString("ja-JP")}</div>
+        </header>
+
+        {data.bannerImage?.url ? (
+          <div className="relative w-full h-48 sm:h-64 md:h-80 rounded-2xl overflow-hidden shadow mb-6">
+            <Image
+              src={data.bannerImage.url || "/placeholder.svg"}
+              alt={data.title}
+              fill
+              sizes="(max-width: 768px) 100vw, 768px"
+              className="object-cover"
+              priority={false}
+            />
           </div>
+        ) : (
+          <div className="relative w-full h-48 sm:h-64 md:h-80 rounded-2xl overflow-hidden shadow mb-6">
+            <Image
+              src="/placeholder.svg?height=320&width=768"
+              alt="News banner placeholder"
+              fill
+              sizes="(max-width: 768px) 100vw, 768px"
+              className="object-cover"
+              priority={false}
+            />
+          </div>
+        )}
 
-          <h1 className="mb-4 text-2xl font-bold text-slate-900">{article!.title}</h1>
-
-          {article!.bannerImage?.url ? (
-            <div className="relative mb-6 aspect-[16/9] overflow-hidden rounded-2xl">
-              <Image
-                src={article!.bannerImage.url || "/placeholder.svg"}
-                alt={`${article!.title} のバナー画像`}
-                fill
-                className="object-cover"
-                sizes="(max-width: 768px) 100vw, 768px"
-                priority
-              />
-            </div>
-          ) : null}
-
-          <article className="prose prose-slate max-w-none prose-img:rounded-lg prose-a:text-sky-700 hover:prose-a:text-sky-800">
-            <div dangerouslySetInnerHTML={{ __html: safeHtml }} />
-          </article>
-        </div>
-      </div>
+        <div
+          className="prose prose-slate max-w-none prose-img:rounded-lg prose-a:text-sky-700 hover:prose-a:text-sky-900"
+          dangerouslySetInnerHTML={{ __html: html }}
+        />
+      </article>
     </main>
   )
-}
-
-function formatDate(dateStr: string) {
-  const d = new Date(dateStr)
-  if (Number.isNaN(d.getTime())) return dateStr
-  const y = d.getFullYear()
-  const m = String(d.getMonth() + 1).padStart(2, "0")
-  const day = String(d.getDate()).padStart(2, "0")
-  return `${y}-${m}-${day}`
 }

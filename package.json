@@ -47,6 +47,8 @@
     "cmdk": "latest",
     "crypto": "latest",
     "date-fns": "4.1.0",
+    "embla-carousel": "latest",
+    "embla-carousel-autoplay": "latest",
     "embla-carousel-react": "latest",
     "framer-motion": "latest",
     "input-otp": "latest",

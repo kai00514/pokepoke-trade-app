@@ -1,14 +1,18 @@
 import type { Config } from "tailwindcss"
 
+// all in fixtures is set to tailwind v3 as interims solutions
+
 const config: Config = {
   darkMode: ["class"],
   content: [
     "./pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./components/**/*.{js,ts,jsx,tsx,mdx}",
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/**/*.{ts,tsx}", // Updated content path
     "*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
+    container: { center: true, padding: "2rem" }, // Added container theme
     extend: {
       colors: {
         background: "hsl(var(--background))",
@@ -66,6 +70,8 @@ const config: Config = {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+        xl: "0.75rem", // Updated border radius
+        "2xl": "1rem", // Updated border radius
       },
       keyframes: {
         "accordion-down": {
@@ -91,6 +97,7 @@ const config: Config = {
       },
     },
   },
-  plugins: [require("tailwindcss-animate"), require("@tailwindcss/typography")],
+  plugins: [require("tailwindcss-animate"), require("@tailwindcss/typography")], // Added typography plugin
 }
+
 export default config

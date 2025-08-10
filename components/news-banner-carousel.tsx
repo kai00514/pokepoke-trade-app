@@ -1,92 +1,75 @@
 "use client"
 
-import Image from "next/image"
+import * as React from "react"
 import Link from "next/link"
-import { useEffect, useState } from "react"
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-  type CarouselApi,
-} from "@/components/ui/carousel"
-import { cn } from "@/lib/utils"
+import Image from "next/image"
+import Autoplay from "embla-carousel-autoplay"
 import type { NewsListItem } from "@/lib/news"
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel"
+import { cn } from "@/lib/utils"
 
 type Props = {
-  items?: NewsListItem[]
+  items: NewsListItem[]
   className?: string
-  intervalMs?: number
 }
 
-export default function NewsBannerCarousel({ items = [], className, intervalMs = 3500 }: Props) {
-  const [api, setApi] = useState<CarouselApi | null>(null)
-  const [isHovered, setIsHovered] = useState(false)
+export default function NewsBannerCarousel({ items, className }: Props) {
+  const plugin = React.useRef(
+    Autoplay({
+      delay: 3500,
+      stopOnMouseEnter: true,
+      stopOnInteraction: false,
+    }),
+  )
 
-  useEffect(() => {
-    if (!api) return
-    const id = setInterval(() => {
-      if (!isHovered) api.scrollNext()
-    }, intervalMs)
-    return () => clearInterval(id)
-  }, [api, intervalMs, isHovered])
-
-  if (!items.length) {
-    return (
-      <div className={cn("rounded-2xl border border-slate-200 bg-white/70 p-6 text-center text-slate-500", className)}>
-        最新情報はまだありません。
-      </div>
-    )
+  if (!items?.length) {
+    return <div className={cn("text-center text-slate-500 py-10", className)}>現在表示できる最新情報はありません。</div>
   }
 
   return (
-    <div
-      className={cn("relative", className)}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
-      <Carousel opts={{ align: "start", loop: true }} setApi={(c) => setApi(c)} className="w-full">
-        <CarouselContent className="-ml-2 sm:-ml-3 lg:-ml-4">
-          {items.map((item) => (
+    <Carousel opts={{ align: "start", loop: true }} plugins={[plugin.current]} className={cn("relative", className)}>
+      <CarouselContent className="-ml-2 sm:-ml-3">
+        {items.map((item) => {
+          const imgUrl = item.bannerImage?.url || "/placeholder.svg?height=360&width=640"
+          return (
             <CarouselItem
               key={item.id}
-              className="
-                pl-2 sm:pl-3 lg:pl-4
-                basis-[85%] sm:basis-[65%] md:basis-1/2 lg:basis-[45%] xl:basis-[40%]
-              "
+              className="pl-2 sm:pl-3 basis-[85%] sm:basis-[60%] md:basis-[50%] lg:basis-[40%]"
             >
               <Link
-                href={`/news/${item.slug}`}
-                className="group block overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:shadow-md"
-                aria-label={item.title}
+                href={`/news/${encodeURIComponent(item.slug)}`}
+                className="group block rounded-2xl overflow-hidden bg-slate-50 shadow hover:shadow-md transition-shadow"
               >
-                <div className="relative aspect-[16/9] w-full overflow-hidden rounded-t-2xl">
-                  <div className="absolute inset-0 z-0 border-2 border-dashed border-slate-300" />
+                <div className="relative h-40 sm:h-48 md:h-56">
+                  {/* Image area with clear placeholder */}
                   <Image
-                    src={
-                      item.bannerImage?.url || "/placeholder.svg?height=360&width=640&query=news%20banner%20placeholder"
-                    }
-                    alt={`${item.title} のバナー画像`}
+                    src={imgUrl || "/placeholder.svg"}
+                    alt={item.title}
                     fill
-                    sizes="(max-width: 640px) 85vw, (max-width: 1024px) 65vw, 40vw"
-                    className="object-cover transition-transform duration-500 group-hover:scale-[1.02]"
-                    priority={true}
+                    sizes="(max-width: 640px) 85vw, (max-width: 1024px) 60vw, 40vw"
+                    className="object-cover"
+                    priority={false}
                   />
-                  <div className="absolute inset-x-0 bottom-0 z-10 bg-gradient-to-t from-black/65 via-black/30 to-transparent p-4">
+                  {/* subtle overlay gradient + title */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/20 to-transparent" />
+                  <div className="absolute bottom-0 left-0 right-0 p-3 sm:p-4">
                     <h3 className="line-clamp-2 text-base sm:text-lg font-semibold text-white drop-shadow">
                       {item.title}
                     </h3>
                   </div>
+
+                  {/* A dashed border overlay to communicate 'image slot' when placeholder shows */}
+                  {!item.bannerImage?.url ? (
+                    <div className="absolute inset-0 border-2 border-dashed border-white/50 rounded-2xl pointer-events-none" />
+                  ) : null}
                 </div>
               </Link>
             </CarouselItem>
-          ))}
-        </CarouselContent>
-
-        <CarouselPrevious className="hidden sm:flex bg-white/90 hover:bg-white border-slate-200" aria-label="前へ" />
-        <CarouselNext className="hidden sm:flex bg-white/90 hover:bg-white border-slate-200" aria-label="次へ" />
-      </Carousel>
-    </div>
+          )
+        })}
+      </CarouselContent>
+      <CarouselPrevious className="hidden sm:flex" />
+      <CarouselNext className="hidden sm:flex" />
+    </Carousel>
   )
 }
