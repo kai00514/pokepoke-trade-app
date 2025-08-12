@@ -15,7 +15,7 @@ export type NewsArticle = {
    * Fallback goes to blue.
    */
   categoryColor?: string
-  url: string
+  url?: string // optional: 実際のリンクは id から /info/[id] を組み立てます
 }
 
 interface NewsArticleCardProps {
@@ -23,15 +23,9 @@ interface NewsArticleCardProps {
   index?: number
 }
 
-/**
- * Blue-themed News card used on /info.
- * Replaces purple with blue:
- * - Title hover: group-hover:text-blue-600
- * - Card hover border: hover:border-blue-300
- * - "Read more" link: text-blue-600 hover:text-blue-700 focus:ring-blue-500
- */
 export default function NewsArticleCard({ article, index = 0 }: NewsArticleCardProps) {
   const badge = getBadgeClasses(article.categoryColor)
+  const href = `/info/${article.id}`
 
   return (
     <motion.article
@@ -56,7 +50,7 @@ export default function NewsArticleCard({ article, index = 0 }: NewsArticleCardP
       </div>
 
       <h3 className="text-base sm:text-lg font-semibold text-slate-800 transition-colors group-hover:text-blue-600">
-        <Link href={article.url} className="absolute inset-0" aria-label={article.title} />
+        <Link href={href} className="absolute inset-0" aria-label={article.title} />
         {article.title}
       </h3>
 
@@ -64,7 +58,7 @@ export default function NewsArticleCard({ article, index = 0 }: NewsArticleCardP
 
       <div className="mt-4">
         <Link
-          href={article.url}
+          href={href}
           className="inline-flex items-center gap-2 text-sm font-medium text-blue-600 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded"
           aria-label={`${article.title} を読む`}
         >
@@ -83,7 +77,6 @@ export default function NewsArticleCard({ article, index = 0 }: NewsArticleCardP
 }
 
 function getBadgeClasses(color?: string) {
-  // Map limited semantic colors; default to blue.
   switch (color) {
     case "emerald":
       return { bg: "bg-emerald-100", text: "text-emerald-700" }
@@ -92,11 +85,9 @@ function getBadgeClasses(color?: string) {
     case "amber":
       return { bg: "bg-amber-100", text: "text-amber-700" }
     case "rose":
-      // If "rose" was previously used as a purple stand-in, keep it distinct.
       return { bg: "bg-rose-100", text: "text-rose-700" }
     case "violet":
     case "purple":
-      // Explicitly convert purple-ish to blue for this task.
       return { bg: "bg-blue-100", text: "text-blue-700" }
     default:
       return { bg: "bg-blue-100", text: "text-blue-700" }
