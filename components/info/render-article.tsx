@@ -1,449 +1,364 @@
-import "server-only"
+import Link from "next/link"
 import Image from "next/image"
-import { Star, ListIcon, ArrowRight } from "lucide-react"
+import { Star, ChevronRight, List, ArrowRight, AlertCircle, CheckCircle, Info } from "lucide-react"
 import type { Block } from "@/lib/actions/info-articles"
+import type { JSX } from "react"
 
-export type TocHeading = {
-  label: string
-  id: string
-  depth: 1 | 2 // H2 => 1, H3 => 2
+interface RenderArticleProps {
+  blocks: Block[]
 }
 
-export type NormalizedResult = {
-  normalized: Block[]
-  tocHeadings: TocHeading[]
+function createSafeAnchorId(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/[^\w\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "")
+    .substring(0, 50)
 }
 
-/**
- * ASCII-only slugify for safe CSS selectors.
- * - Keep a-z, 0-9, hyphen
- * - Replace whitespace with hyphen
- * - Drop other chars (including CJK) to avoid percent-encoded hashes
- */
-export function slugifyAscii(input: string): string {
+function renderHeading(block: Block & { type: "heading" }) {
+  const { level, text, anchorId } = block.data
+  const id = anchorId || createSafeAnchorId(text)
+
+  if (level === 2) {
+    return (
+      <div className="relative my-8">
+        <div className="inline-block bg-slate-800 text-white px-6 py-3 rounded-t-lg font-semibold text-lg">{text}</div>
+        <div className="h-1 bg-yellow-400 rounded-b-sm"></div>
+        <div id={id} className="absolute -top-20"></div>
+      </div>
+    )
+  }
+
+  if (level === 3) {
+    return (
+      <div className="flex items-center gap-3 my-6">
+        <div className="w-1 h-8 bg-slate-800 rounded-full"></div>
+        <div className="bg-slate-200 text-slate-700 px-4 py-2 rounded-full font-medium">{text}</div>
+        <div id={id} className="absolute -top-20"></div>
+      </div>
+    )
+  }
+
+  // H1 fallback
+  const Tag = `h${level}` as keyof JSX.IntrinsicElements
   return (
-    input
-      .toLowerCase()
-      .trim()
-      .replace(/\s+/g, "-")
-      .replace(/[^a-z0-9-]/g, "")
-      .replace(/-+/g, "-")
-      .replace(/^-+|-+$/g, "") || "section"
+    <Tag id={id} className="text-2xl font-bold text-slate-900 my-6">
+      {text}
+    </Tag>
   )
 }
 
-export function ensureUniqueId(base: string, used: Map<string, number>): string {
-  const key = base || "section"
-  const count = used.get(key) ?? 0
-  if (count === 0) {
-    used.set(key, 1)
-    return key
+function renderToc(blocks: Block[]) {
+  const headings = blocks
+    .filter((b): b is Block & { type: "heading" } => b.type === "heading")
+    .filter((b) => b.data.level === 2 || b.data.level === 3)
+
+  if (headings.length === 0) {
+    return null
   }
-  const next = count + 1
-  used.set(key, next)
-  return `${key}-${next}`
-}
-
-function isHttpUrl(url?: string | null) {
-  if (!url) return false
-  try {
-    const u = new URL(url)
-    return u.protocol === "http:" || u.protocol === "https:"
-  } catch {
-    return false
-  }
-}
-
-function aspectClass(aspect?: string) {
-  switch (aspect) {
-    case "1:1":
-      return "aspect-square"
-    case "4:3":
-      return "aspect-[4/3]"
-    default:
-      return "aspect-[16/9]"
-  }
-}
-
-/**
- * Normalize blocks before rendering:
- * - Heading anchors: ASCII-only, unique
- * - Build TOC from H2/H3 (ASCII anchors prevent querySelector errors)
- * - Image: default alt and aspect, skip non-http(s)
- * - List: trim items and drop empties
- */
-export function normalizeBlocks(blocks: Block[], pageTitle?: string): NormalizedResult {
-  const used = new Map<string, number>()
-  const toc: TocHeading[] = []
-  const normalized: Block[] = []
-
-  for (const b of blocks) {
-    if (b.type === "heading") {
-      const text = (b as any).data?.text ?? ""
-      const base = slugifyAscii((b as any).data?.anchorId || text)
-      const id = ensureUniqueId(base, used)
-      const level = (b as any).data?.level
-      normalized.push({ ...b, data: { ...(b as any).data, anchorId: id } } as Block)
-      if (level === 2 || level === 3) {
-        toc.push({ label: text, id, depth: (level === 2 ? 1 : 2) as 1 | 2 })
-      }
-      continue
-    }
-
-    if (b.type === "image") {
-      const url = (b as any).data?.url
-      if (!isHttpUrl(url)) {
-        console.warn("[render-article] Skip image without http(s) url:", url)
-        continue
-      }
-      const alt =
-        (b as any).data?.alt && (b as any).data?.alt.trim().length > 0
-          ? (b as any).data?.alt
-          : `画像: ${pageTitle ?? "記事"}`
-      const aspect = (b as any).data?.aspect || "16:9"
-      normalized.push({ ...b, data: { ...(b as any).data, url, alt, aspect } } as Block)
-      continue
-    }
-
-    if (b.type === "list") {
-      const items = ((b as any).data?.items || [])
-        .map((x: any) => (typeof x === "string" ? x.trim() : ""))
-        .filter(Boolean)
-      if (items.length === 0) {
-        console.warn("[render-article] Skip empty list block")
-        continue
-      }
-      normalized.push({ ...b, data: { ...(b as any).data, items } } as Block)
-      continue
-    }
-
-    normalized.push(b)
-  }
-
-  return { normalized, tocHeadings: toc }
-}
-
-/**
- * Render blocks with a sturdy, simple, gray-based tone and blue accents.
- * New mappings for: Pickup, TOC, H2/H3, Table, Button.
- */
-export function RenderArticle({ blocks, pageTitle }: { blocks: Block[]; pageTitle: string }) {
-  const { normalized, tocHeadings } = normalizeBlocks(blocks, pageTitle)
 
   return (
-    <div className="space-y-8">
-      {normalized.map((b, idx) => {
-        switch (b.type) {
-          case "heading": {
-            const id = (b as any).data?.anchorId ?? undefined
-            const text = (b as any).data?.text
-            const level = (b as any).data?.level
-            if (level === 1) {
+    <div className="bg-slate-50 border border-slate-200 rounded-lg overflow-hidden my-8">
+      <div className="border-l-4 border-yellow-400 bg-white">
+        <div className="flex items-center gap-2 px-4 py-3 border-b border-slate-200">
+          <List className="h-5 w-5 text-slate-600" />
+          <h3 className="font-semibold text-slate-900">目次</h3>
+        </div>
+        <nav className="px-4 py-3">
+          <ul className="space-y-2">
+            {headings.map((heading, index) => {
+              const id = heading.data.anchorId || createSafeAnchorId(heading.data.text)
+              const isH3 = heading.data.level === 3
               return (
-                <header key={`h1-${idx}`} id={id} className="space-y-2">
-                  <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">{text}</h1>
-                </header>
+                <li key={index} className={isH3 ? "ml-4" : ""}>
+                  <Link
+                    href={`#${id}`}
+                    className="flex items-center gap-2 text-blue-600 hover:text-blue-800 hover:underline text-sm"
+                  >
+                    <div className="w-1.5 h-1.5 bg-blue-600 rounded-full flex-shrink-0"></div>
+                    {heading.data.text}
+                  </Link>
+                </li>
               )
-            }
-            if (level === 2) {
-              // Black rounded tab with yellow underline accent
-              return (
-                <section key={`h2-${idx}`} id={id} className="pt-2">
-                  <div className="inline-block bg-slate-900 text-white rounded-t-xl px-4 py-2 text-base sm:text-lg font-semibold shadow-sm">
-                    {text}
-                  </div>
-                  <div className="h-1 w-full bg-amber-400 rounded-b-sm" />
-                </section>
-              )
-            }
-            // H3: left black bar + gray label pill
-            return (
-              <div key={`h3-${idx}`} id={id} className="mt-2 flex items-center gap-3">
-                <div className="h-6 w-1.5 bg-slate-900 rounded-sm" />
-                <span className="inline-block bg-slate-100 text-slate-900 px-3 py-1 rounded-md font-semibold">
-                  {text}
-                </span>
-              </div>
-            )
-          }
+            })}
+          </ul>
+        </nav>
+      </div>
+    </div>
+  )
+}
 
-          case "paragraph": {
+function renderTable(block: Block & { type: "table" }) {
+  const { headers, rows } = block.data
+
+  return (
+    <div className="my-8 overflow-x-auto">
+      <div className="bg-white border border-slate-200 rounded-lg overflow-hidden shadow-sm">
+        <table className="w-full">
+          {headers && headers.length > 0 && (
+            <thead>
+              <tr className="bg-slate-100">
+                {headers.map((header, index) => (
+                  <th
+                    key={index}
+                    className="px-4 py-3 text-left text-sm font-semibold text-slate-700 border-b border-slate-200"
+                  >
+                    {header}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+          )}
+          <tbody>
+            {rows.map((row, rowIndex) => (
+              <tr key={rowIndex} className={rowIndex % 2 === 0 ? "bg-white" : "bg-slate-50"}>
+                {row.map((cell, cellIndex) => (
+                  <td key={cellIndex} className="px-4 py-3 text-sm text-slate-600 border-b border-slate-100">
+                    {cell}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  )
+}
+
+function renderPickup(block: Block & { type: "pickup" }) {
+  const { title, items } = block.data
+
+  return (
+    <div className="my-8">
+      <div className="bg-white border-2 border-red-200 rounded-lg overflow-hidden">
+        <div className="bg-red-500 text-white px-4 py-2">
+          <span className="inline-block bg-red-600 text-white px-3 py-1 rounded-full text-sm font-medium">
+            {title || "ピックアップ情報"}
+          </span>
+        </div>
+        <div className="p-4">
+          <ul className="space-y-2">
+            {items.map((item, index) => (
+              <li key={index} className="flex items-center gap-2">
+                <Star className="h-4 w-4 text-red-500 flex-shrink-0" />
+                {item.href ? (
+                  <Link href={item.href} className="text-blue-600 hover:text-blue-800 hover:underline text-sm">
+                    {item.label}
+                  </Link>
+                ) : (
+                  <span className="text-slate-700 text-sm">{item.label}</span>
+                )}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function renderButton(block: Block & { type: "button" }) {
+  const { label, href } = block.data
+
+  return (
+    <div className="my-8 flex justify-center">
+      <Link
+        href={href}
+        className="inline-flex items-center gap-2 px-8 py-4 border-2 border-blue-500 text-blue-600 hover:bg-blue-50 rounded-2xl font-medium transition-colors"
+      >
+        <ArrowRight className="h-5 w-5" />
+        {label}
+      </Link>
+    </div>
+  )
+}
+
+function renderCallout(block: Block & { type: "callout" }) {
+  const { tone, text } = block.data
+
+  const styles = {
+    info: {
+      bg: "bg-blue-50",
+      border: "border-blue-200",
+      icon: <Info className="h-5 w-5 text-blue-600" />,
+      text: "text-blue-800",
+    },
+    warning: {
+      bg: "bg-yellow-50",
+      border: "border-yellow-200",
+      icon: <AlertCircle className="h-5 w-5 text-yellow-600" />,
+      text: "text-yellow-800",
+    },
+    success: {
+      bg: "bg-green-50",
+      border: "border-green-200",
+      icon: <CheckCircle className="h-5 w-5 text-green-600" />,
+      text: "text-green-800",
+    },
+  }
+
+  const style = styles[tone || "info"]
+
+  return (
+    <div className={`my-6 p-4 rounded-lg border ${style.bg} ${style.border}`}>
+      <div className="flex items-start gap-3">
+        {style.icon}
+        <p className={`text-sm ${style.text}`}>{text}</p>
+      </div>
+    </div>
+  )
+}
+
+export default function RenderArticle({ blocks }: RenderArticleProps) {
+  return (
+    <div className="prose prose-slate max-w-none">
+      {blocks.map((block, index) => {
+        switch (block.type) {
+          case "heading":
+            return <div key={index}>{renderHeading(block)}</div>
+
+          case "paragraph":
             return (
-              <p key={`p-${idx}`} className="text-slate-800 leading-7 whitespace-pre-line">
-                {(b as any).data?.text}
+              <p key={index} className="text-slate-700 leading-relaxed my-4">
+                {block.data.text}
               </p>
             )
-          }
 
-          case "image": {
-            const d = (b as any).data
-            const aspect = aspectClass(d.aspect)
+          case "image":
             return (
-              <figure
-                key={`img-${idx}`}
-                className="rounded-xl bg-white ring-1 ring-slate-200 overflow-hidden shadow-sm"
-              >
-                <div className={`relative w-full ${aspect} bg-slate-100`}>
+              <div key={index} className="my-8">
+                <div className="relative w-full bg-slate-100 rounded-lg overflow-hidden">
                   <Image
-                    src={d.url || "/placeholder.svg?height=600&width=1200&query=image-fallback"}
-                    alt={d.alt ?? ""}
-                    fill
-                    className="object-cover"
-                    sizes="(max-width: 768px) 100vw, 1024px"
+                    src={block.data.url || "/placeholder.svg"}
+                    alt={block.data.alt || ""}
+                    width={800}
+                    height={400}
+                    className="w-full h-auto object-cover"
                   />
                 </div>
-                {d.caption ? <figcaption className="px-4 py-2 text-sm text-slate-600">{d.caption}</figcaption> : null}
-              </figure>
+                {block.data.caption && <p className="text-sm text-slate-500 text-center mt-2">{block.data.caption}</p>}
+              </div>
             )
-          }
 
-          case "list": {
-            const d = (b as any).data
-            if (d.style === "numbered") {
-              return (
-                <ol key={`ol-${idx}`} className="list-decimal pl-5 space-y-1 text-slate-800">
-                  {d.items.map((it: string, i: number) => (
-                    <li key={i}>{it}</li>
-                  ))}
-                </ol>
-              )
-            }
+          case "toc":
+            return <div key={index}>{renderToc(blocks)}</div>
+
+          case "list":
+            const ListTag = block.data.style === "numbered" ? "ol" : "ul"
             return (
-              <ul key={`ul-${idx}`} className="list-disc pl-5 space-y-1 text-slate-800">
-                {d.items.map((it: string, i: number) => (
-                  <li key={i}>{it}</li>
+              <ListTag key={index} className="my-4 space-y-1 text-slate-700">
+                {block.data.items.map((item, itemIndex) => (
+                  <li key={itemIndex} className="leading-relaxed">
+                    {item}
+                  </li>
                 ))}
-              </ul>
+              </ListTag>
             )
-          }
 
-          case "table": {
-            const d = (b as any).data
-            const headers = d.headers as string[] | undefined
-            const rows = d.rows as string[][]
-            return (
-              <div key={`tbl-${idx}`} className="overflow-x-auto rounded-xl bg-white ring-1 ring-slate-300">
-                <table className="min-w-full text-sm">
-                  {headers && headers.length > 0 ? (
-                    <thead className="bg-slate-100 text-slate-800">
-                      <tr>
-                        {headers.map((h, i) => (
-                          <th key={i} className="px-4 py-3 border-b border-slate-300 text-center font-semibold">
-                            {h}
-                          </th>
-                        ))}
-                      </tr>
-                    </thead>
-                  ) : null}
-                  <tbody>
-                    {rows.map((r, ri) => (
-                      <tr key={ri} className={ri % 2 === 0 ? "bg-white" : "bg-slate-50"}>
-                        {r.map((c, ci) => (
-                          <td
-                            key={ci}
-                            className="px-4 py-3 border-b border-slate-200 whitespace-pre-line text-slate-800 align-top"
-                          >
-                            {c}
-                          </td>
-                        ))}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )
-          }
+          case "table":
+            return <div key={index}>{renderTable(block)}</div>
 
-          case "toc": {
-            if (!tocHeadings.length) return null
-            return (
-              <nav
-                key={`toc-${idx}`}
-                className="rounded-xl bg-white p-0 ring-1 ring-slate-300 overflow-hidden"
-                aria-label="目次"
-              >
-                {/* Title row with left icon and yellow top border */}
-                <div className="flex items-center gap-2 px-4 py-2 bg-slate-50 border-b border-dotted border-slate-300 relative">
-                  <div className="absolute top-0 left-0 right-0 h-1 bg-amber-400" />
-                  <ListIcon className="h-4 w-4 text-slate-700" aria-hidden />
-                  <span className="text-slate-800 font-semibold">目次</span>
-                </div>
-                <ul className="px-4 py-3 space-y-2">
-                  {tocHeadings.map((h, i) => (
-                    <li key={i} className="list-disc list-inside">
-                      <a href={`#${h.id}`} className="text-blue-700 hover:underline">
-                        {h.label}
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              </nav>
-            )
-          }
+          case "pickup":
+            return <div key={index}>{renderPickup(block)}</div>
 
-          case "pickup": {
-            const d = (b as any).data as { title?: string; items: { label: string; href?: string }[] }
-            return (
-              <section
-                key={`pickup-${idx}`}
-                className="rounded-xl bg-white ring-1 ring-red-300 p-4 sm:p-5 relative"
-                aria-label="ピックアップ情報"
-              >
-                {/* Red pill label */}
-                <div className="absolute -top-3 left-4">
-                  <span className="inline-block bg-red-600 text-white text-xs font-semibold px-3 py-1 rounded-full shadow-sm ring-1 ring-red-700/40">
-                    {d.title || "ピックアップ情報"}
-                  </span>
-                </div>
-                <ul className="mt-2 space-y-2">
-                  {d.items.map((it, i) => (
-                    <li key={i} className="flex items-start gap-2">
-                      <Star className="h-4 w-4 text-red-500 shrink-0 mt-0.5" aria-hidden />
-                      {it.href ? (
-                        <a href={it.href} className="text-sky-700 hover:underline">
-                          {it.label}
-                        </a>
-                      ) : (
-                        <span className="text-sky-700">{it.label}</span>
-                      )}
-                    </li>
-                  ))}
-                </ul>
-              </section>
-            )
-          }
+          case "button":
+            return <div key={index}>{renderButton(block)}</div>
 
-          case "button": {
-            const d = (b as any).data as { label: string; href: string }
-            const external = /^https?:\/\//.test(d.href) ? { target: "_blank", rel: "noopener" } : {}
-            return (
-              <div key={`btn-${idx}`} className="my-2">
-                <a
-                  href={d.href}
-                  {...external}
-                  className="group inline-flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-sky-500 px-4 py-3 text-sky-700 font-semibold hover:bg-sky-50 transition-colors"
-                >
-                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" aria-hidden />
-                  <span>{d.label}</span>
-                </a>
-              </div>
-            )
-          }
+          case "callout":
+            return <div key={index}>{renderCallout(block)}</div>
 
-          case "related-links": {
-            const d = (b as any).data
-            const items = d.items || []
-            if (!items.length) return null
+          case "divider":
+            return <hr key={index} className="my-8 border-slate-200" />
+
+          case "related-links":
             return (
-              <div
-                key={`links-${idx}`}
-                className="rounded-xl bg-white p-4 sm:p-6 ring-1 ring-slate-300"
-                role="region"
-                aria-label="関連リンク"
-              >
-                <h2 className="text-base font-semibold text-slate-900 mb-2">関連リンク</h2>
+              <div key={index} className="my-8 bg-slate-50 border border-slate-200 rounded-lg p-4">
+                <h4 className="font-semibold text-slate-900 mb-3">関連リンク</h4>
                 <ul className="space-y-2">
-                  {items.map((it: any, i: number) => {
-                    const isExternal = /^https?:\/\//.test(it.href)
-                    return (
-                      <li key={i} className="list-disc list-inside">
-                        <a
-                          href={it.href}
-                          className="text-blue-700 hover:underline"
-                          {...(isExternal ? { target: "_blank", rel: "noopener" } : {})}
-                        >
-                          {it.label}
-                        </a>
-                      </li>
-                    )
-                  })}
+                  {block.data.items.map((item, itemIndex) => (
+                    <li key={itemIndex}>
+                      <Link
+                        href={item.href}
+                        className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 hover:underline text-sm"
+                      >
+                        <ChevronRight className="h-4 w-4" />
+                        {item.label}
+                      </Link>
+                    </li>
+                  ))}
                 </ul>
               </div>
             )
-          }
 
-          case "divider": {
-            return <hr key={`div-${idx}`} className="border-slate-300" />
-          }
-
-          case "callout": {
-            const d = (b as any).data as { tone?: "info" | "warning" | "success"; text: string }
-            const tone = d.tone || "info"
-            const toneClasses =
-              tone === "warning"
-                ? "bg-amber-50 ring-amber-200 text-amber-900"
-                : tone === "success"
-                  ? "bg-emerald-50 ring-emerald-200 text-emerald-900"
-                  : "bg-sky-50 ring-sky-200 text-sky-900"
+          case "evaluation":
             return (
-              <div key={`callout-${idx}`} className={`rounded-xl ${toneClasses} ring-1 px-4 py-3`} role="note">
-                <p className="text-sm whitespace-pre-line">{d.text}</p>
-              </div>
-            )
-          }
-
-          case "evaluation": {
-            const d = (b as any).data
-            const rows: [string, string][] = []
-            if (d.tier_rank !== undefined) rows.push(["TIER", String(d.tier_rank)])
-            if (d.max_damage !== undefined) rows.push(["最大ダメ", String(d.max_damage)])
-            if (d.build_difficulty) rows.push(["構築難度", d.build_difficulty])
-            if (d.stat_accessibility) rows.push(["使いやすさ", d.stat_accessibility])
-            if (d.stat_stability) rows.push(["安定度", d.stat_stability])
-            if (d.eval_value !== undefined || d.eval_count !== undefined) {
-              const val =
-                d.eval_value !== undefined
-                  ? typeof d.eval_value === "number"
-                    ? d.eval_value.toFixed(2)
-                    : String(d.eval_value)
-                  : "-"
-              const cnt = d.eval_count !== undefined ? `(${d.eval_count})` : ""
-              rows.push(["総合評価", `${val} ${cnt}`.trim()])
-            }
-            if (rows.length === 0) return null
-            return (
-              <div key={`eval-${idx}`} className="rounded-xl bg-white p-4 sm:p-6 ring-1 ring-slate-300">
-                <h2 className="text-base font-semibold text-slate-900 mb-2">評価</h2>
-                <div className="overflow-x-auto">
-                  <table className="min-w-[320px] text-sm">
-                    <tbody>
-                      {rows.map(([k, v], i) => (
-                        <tr key={i} className={i % 2 === 0 ? "bg-white" : "bg-slate-50"}>
-                          <th className="px-3 py-2 text-left text-slate-700 border-b border-slate-200 w-32">{k}</th>
-                          <td className="px-3 py-2 text-slate-800 border-b border-slate-200 whitespace-pre-line">
-                            {v}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+              <div key={index} className="my-8 bg-white border border-slate-200 rounded-lg p-6">
+                <h4 className="font-semibold text-slate-900 mb-4">評価</h4>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  {block.data.tier_rank && (
+                    <div>
+                      <span className="text-slate-600">ティアランク:</span>
+                      <span className="ml-2 font-medium">{block.data.tier_rank}</span>
+                    </div>
+                  )}
+                  {block.data.max_damage && (
+                    <div>
+                      <span className="text-slate-600">最大ダメージ:</span>
+                      <span className="ml-2 font-medium">{block.data.max_damage}</span>
+                    </div>
+                  )}
+                  {block.data.build_difficulty && (
+                    <div>
+                      <span className="text-slate-600">構築難易度:</span>
+                      <span className="ml-2 font-medium">{block.data.build_difficulty}</span>
+                    </div>
+                  )}
+                  {block.data.stat_accessibility && (
+                    <div>
+                      <span className="text-slate-600">アクセス性:</span>
+                      <span className="ml-2 font-medium">{block.data.stat_accessibility}</span>
+                    </div>
+                  )}
+                  {block.data.stat_stability && (
+                    <div>
+                      <span className="text-slate-600">安定性:</span>
+                      <span className="ml-2 font-medium">{block.data.stat_stability}</span>
+                    </div>
+                  )}
+                  {block.data.eval_value !== undefined && block.data.eval_count !== undefined && (
+                    <div className="col-span-2">
+                      <span className="text-slate-600">評価:</span>
+                      <span className="ml-2 font-medium">
+                        {block.data.eval_value}/5 ({block.data.eval_count}件)
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
             )
-          }
 
-          case "cards-table": {
-            const d = (b as any).data
-            const items = d.items || []
-            if (!items.length) return null
+          case "cards-table":
             return (
-              <div key={`cards-${idx}`} className="rounded-xl bg-white p-4 sm:p-6 ring-1 ring-slate-300">
-                <h2 className="text-base font-semibold text-slate-900 mb-2">カード一覧</h2>
-                <div className="overflow-x-auto">
-                  <table className="min-w-[360px] text-sm">
-                    <thead className="bg-slate-100 text-slate-800">
-                      <tr>
-                        <th className="px-3 py-2 text-left border-b border-slate-300">カードID</th>
-                        <th className="px-3 py-2 text-left border-b border-slate-300">名称</th>
-                        <th className="px-3 py-2 text-left border-b border-slate-300">枚数</th>
+              <div key={index} className="my-8">
+                <div className="bg-white border border-slate-200 rounded-lg overflow-hidden">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="bg-slate-100">
+                        <th className="px-4 py-3 text-left text-sm font-semibold text-slate-700">カード名</th>
+                        <th className="px-4 py-3 text-left text-sm font-semibold text-slate-700">枚数</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {items.map((it: any, i: number) => (
-                        <tr key={i} className={i % 2 === 0 ? "bg-white" : "bg-slate-50"}>
-                          <td className="px-3 py-2 border-b border-slate-200">{String(it.card_id)}</td>
-                          <td className="px-3 py-2 border-b border-slate-200">{it.name ?? "-"}</td>
-                          <td className="px-3 py-2 border-b border-slate-200">{it.quantity ?? 1}</td>
+                      {block.data.items.map((item, itemIndex) => (
+                        <tr key={itemIndex} className={itemIndex % 2 === 0 ? "bg-white" : "bg-slate-50"}>
+                          <td className="px-4 py-3 text-sm text-slate-700">
+                            {item.name || `Card ID: ${item.card_id}`}
+                          </td>
+                          <td className="px-4 py-3 text-sm text-slate-600">{item.quantity || 1}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -451,7 +366,6 @@ export function RenderArticle({ blocks, pageTitle }: { blocks: Block[]; pageTitl
                 </div>
               </div>
             )
-          }
 
           default:
             return null
