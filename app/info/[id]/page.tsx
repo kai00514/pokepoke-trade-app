@@ -6,7 +6,7 @@ import { notFound } from "next/navigation"
 import { getInfoPageById } from "@/lib/actions/info-pages"
 import { getInfoDetailById } from "@/lib/actions/info-articles"
 import CardDisplay from "@/components/card-display"
-import { RenderArticle } from "@/components/info/render-article"
+import RenderArticle from "@/components/info/render-article"
 
 function formatDateTime(dateStr?: string | null) {
   if (!dateStr) return ""
@@ -71,7 +71,13 @@ function normalizeCardsData(raw: any): NormalizedCard[] {
   }
 }
 
-export default async function InfoDetailPage({ params }: { params: { id: string } }) {
+interface InfoDetailPageProps {
+  params: {
+    id: string
+  }
+}
+
+export default async function InfoDetailPage({ params }: InfoDetailPageProps) {
   // Fetch new info_articles data. If unavailable, surface 404 gracefully.
   let meta: any
   let blocks: any[] = []
@@ -360,7 +366,9 @@ export default async function InfoDetailPage({ params }: { params: { id: string 
             {/* Placeholder for new deck list section if needed */}
 
             {/* Render Article Blocks */}
-            <RenderArticle blocks={blocks as any} pageTitle={pageTitle || "最新情報"} />
+            <div className="prose prose-slate max-w-none">
+              <RenderArticle blocks={blocks} />
+            </div>
 
             {/* 戻るリンク */}
             <div className="mt-4">
