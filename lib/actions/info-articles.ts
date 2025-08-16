@@ -96,6 +96,7 @@ export type CalloutBlock = BlockBase<
   {
     tone?: "info" | "warning" | "success"
     text: string
+    title?: string
   }
 >
 
@@ -311,10 +312,17 @@ function validateBlocks(rawBlocks: RawDbBlock[]): Block[] {
 
         case "callout": {
           const d = rb.data as any
-          const text = typeof d?.text === "string" ? d.text.trim() : ""
+          // textフィールドとbodyフィールドの両方をチェック
+          const text = typeof d?.text === "string" ? d.text.trim() : typeof d?.body === "string" ? d.body.trim() : ""
           const tone = d?.tone === "warning" ? "warning" : d?.tone === "success" ? "success" : "info"
+          const title = typeof d?.title === "string" ? d.title.trim() : undefined
+
           if (text) {
-            safe.push({ type: "callout", display_order: order, data: { tone, text } })
+            safe.push({
+              type: "callout",
+              display_order: order,
+              data: { tone, text, title },
+            })
           } else {
             console.warn("[info-articles] Skip invalid callout block", { order, d })
           }

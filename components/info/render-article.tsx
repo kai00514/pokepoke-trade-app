@@ -24,19 +24,23 @@ function renderHeading(block: Block & { type: "heading" }) {
 
   if (level === 2) {
     return (
-      <div className="relative my-8">
-        <div className="inline-block bg-slate-800 text-white px-6 py-3 rounded-t-lg font-semibold text-lg">{text}</div>
-        <div className="h-1 bg-yellow-400 rounded-b-sm"></div>
-        <div id={id} className="absolute -top-20"></div>
+      <div className="relative my-5">
+        {" "}
+        {/* 外側の上下余白＝均等＆控えめ */}
+        <div className="bg-gradient-to-r from-slate-800 to-slate-700 text-white px-3 py-[5px] rounded-lg shadow-lg border-l-4 border-blue-500">
+          <h2 className="m-0 text-lg font-bold text-white leading-loose">{text}</h2>
+        </div>
+        <div id={id} className="absolute -top-16"></div>
       </div>
     )
   }
 
   if (level === 3) {
     return (
-      <div className="flex items-center gap-3 my-6">
-        <div className="w-1 h-8 bg-slate-800 rounded-full"></div>
-        <div className="bg-slate-200 text-slate-700 px-4 py-2 rounded-full font-medium">{text}</div>
+      <div className="relative my-3">
+        <div className="bg-gradient-to-r from-slate-600 to-slate-500 text-white px-3 py-[5px] rounded-md shadow-md border-l-4 border-green-500">
+          <h3 className="m-0 text-lg font-semibold text-white leading-snug">{text}</h3>
+        </div>
         <div id={id} className="absolute -top-20"></div>
       </div>
     )
@@ -45,7 +49,7 @@ function renderHeading(block: Block & { type: "heading" }) {
   // H1 fallback
   const Tag = `h${level}` as keyof JSX.IntrinsicElements
   return (
-    <Tag id={id} className="text-2xl font-bold text-slate-900 my-6">
+    <Tag id={id} className="text-2xl font-bold text-slate-900 mt-4 mb-2">
       {text}
     </Tag>
   )
@@ -61,24 +65,28 @@ function renderToc(blocks: Block[]) {
   }
 
   return (
-    <div className="bg-slate-50 border border-slate-200 rounded-lg overflow-hidden my-8">
+    <div className="bg-slate-50 border border-slate-200 rounded-lg overflow-hidden mt-1 mb-2 py-0">
       <div className="border-l-4 border-yellow-400 bg-white">
-        <div className="flex items-center gap-2 px-4 py-3 border-b border-slate-200">
-          <List className="h-5 w-5 text-slate-600" />
-          <h3 className="font-semibold text-slate-900">目次</h3>
+        <div className="flex items-center gap-1 px-4 py-0 border-b border-slate-200 leading-none">
+          <span className="flex items-center justify-center h-4 w-4">
+            <List className="w-4 h-4 text-slate-600 relative top-[1px]" />
+          </span>
+          <h3 className="font-semibold text-slate-900 text-sm leading-none">目次</h3>
         </div>
-        <nav className="px-4 py-3">
-          <ul className="space-y-2">
+        <nav className="px-4 py-0">
+          <ul className="list-disc list-outside marker:text-black pl-4 leading-none">
             {headings.map((heading, index) => {
               const id = heading.data.anchorId || createSafeAnchorId(heading.data.text)
               const isH3 = heading.data.level === 3
               return (
-                <li key={index} className={isH3 ? "ml-4" : ""}>
+                <li
+                  key={index}
+                  className={`${isH3 ? "ml-4" : ""} border-b border-gray-200 last:border-b-0 py-0 leading-none`}
+                >
                   <Link
                     href={`#${id}`}
-                    className="flex items-center gap-2 text-blue-600 hover:text-blue-800 hover:underline text-sm"
+                    className="text-blue-600 hover:text-blue-800 hover:underline text-sm leading-none py-0"
                   >
-                    <div className="w-1.5 h-1.5 bg-blue-600 rounded-full flex-shrink-0"></div>
                     {heading.data.text}
                   </Link>
                 </li>
@@ -95,16 +103,16 @@ function renderTable(block: Block & { type: "table" }) {
   const { headers, rows } = block.data
 
   return (
-    <div className="my-8 overflow-x-auto">
-      <div className="bg-white border border-slate-200 rounded-lg overflow-hidden shadow-sm">
-        <table className="w-full">
+    <div className="overflow-x-auto">
+      <div className="bg-white border border-slate-200 rounded-lg overflow-hidden shadow-sm !my-1">
+        <table className="w-full border-collapse my-2 border border-slate-200">
           {headers && headers.length > 0 && (
             <thead>
-              <tr className="bg-slate-100">
+              <tr className="bg-gray-100">
                 {headers.map((header, index) => (
                   <th
                     key={index}
-                    className="px-4 py-3 text-left text-sm font-semibold text-slate-700 border-b border-slate-200"
+                    className="px-4 py-0 text-left text-sm font-semibold text-slate-700 border-b border-slate-200 border-r border-slate-200 last:border-r-0"
                   >
                     {header}
                   </th>
@@ -116,7 +124,10 @@ function renderTable(block: Block & { type: "table" }) {
             {rows.map((row, rowIndex) => (
               <tr key={rowIndex} className={rowIndex % 2 === 0 ? "bg-white" : "bg-slate-50"}>
                 {row.map((cell, cellIndex) => (
-                  <td key={cellIndex} className="px-4 py-3 text-sm text-slate-600 border-b border-slate-100">
+                  <td
+                    key={cellIndex}
+                    className="px-4 py-1 text-sm text-slate-600 border-b border-slate-100 border-r border-slate-200 last:border-r-0"
+                  >
                     {cell}
                   </td>
                 ))}
@@ -133,7 +144,7 @@ function renderPickup(block: Block & { type: "pickup" }) {
   const { title, items } = block.data
 
   return (
-    <div className="my-8">
+    <div className="my-2">
       <div className="bg-white border-2 border-red-200 rounded-lg overflow-hidden">
         <div className="bg-red-500 text-white px-4 py-2">
           <span className="inline-block bg-red-600 text-white px-3 py-1 rounded-full text-sm font-medium">
@@ -165,7 +176,7 @@ function renderButton(block: Block & { type: "button" }) {
   const { label, href } = block.data
 
   return (
-    <div className="my-8 flex justify-center">
+    <div className="my-2 flex justify-center">
       <Link
         href={href}
         className="inline-flex items-center gap-2 px-8 py-4 border-2 border-blue-500 text-blue-600 hover:bg-blue-50 rounded-2xl font-medium transition-colors"
@@ -178,36 +189,44 @@ function renderButton(block: Block & { type: "button" }) {
 }
 
 function renderCallout(block: Block & { type: "callout" }) {
-  const { tone, text } = block.data
+  const { tone, text, title } = block.data
 
   const styles = {
     info: {
       bg: "bg-blue-50",
       border: "border-blue-200",
-      icon: <Info className="h-5 w-5 text-blue-600" />,
+      icon: <Info className="h-4 w-4 text-blue-600 flex-shrink-0" />,
       text: "text-blue-800",
+      label: "情報",
     },
     warning: {
       bg: "bg-yellow-50",
       border: "border-yellow-200",
-      icon: <AlertCircle className="h-5 w-5 text-yellow-600" />,
+      icon: <AlertCircle className="h-4 w-4 text-yellow-600 flex-shrink-0" />,
       text: "text-yellow-800",
+      label: "警告",
     },
     success: {
       bg: "bg-green-50",
       border: "border-green-200",
-      icon: <CheckCircle className="h-5 w-5 text-green-600" />,
+      icon: <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0" />,
       text: "text-green-800",
+      label: "成功",
     },
   }
 
   const style = styles[tone || "info"]
 
   return (
-    <div className={`my-6 p-4 rounded-lg border ${style.bg} ${style.border}`}>
-      <div className="flex items-start gap-3">
+    <div className={`my-2 px-2 py-1 rounded-lg border ${style.bg} ${style.border}`}>
+      <div className="flex items-start gap-2">
         {style.icon}
-        <p className={`text-sm ${style.text}`}>{text}</p>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-0.5">
+            <span className="font-semibold text-sm">{title || style.label}</span>
+          </div>
+          <p className={`text-sm ${style.text} leading-relaxed`}>{text}</p>
+        </div>
       </div>
     </div>
   )
@@ -223,14 +242,19 @@ export default function RenderArticle({ blocks }: RenderArticleProps) {
 
           case "paragraph":
             return (
-              <p key={index} className="text-slate-700 leading-relaxed my-4">
-                {block.data.text}
+              <p key={index} className="text-slate-700 leading-relaxed my-2">
+                {block.data.text.split("\\n").map((line, lineIndex, lines) => (
+                  <span key={lineIndex}>
+                    {line}
+                    {lineIndex < lines.length - 1 && <br />}
+                  </span>
+                ))}
               </p>
             )
 
           case "image":
             return (
-              <div key={index} className="my-8">
+              <div key={index} className="my-2">
                 <div className="relative w-full bg-slate-100 rounded-lg overflow-hidden">
                   <Image
                     src={block.data.url || "/placeholder.svg"}
@@ -250,9 +274,9 @@ export default function RenderArticle({ blocks }: RenderArticleProps) {
           case "list":
             const ListTag = block.data.style === "numbered" ? "ol" : "ul"
             return (
-              <ListTag key={index} className="my-4 space-y-1 text-slate-700">
+              <ListTag key={index} className="my-2 text-slate-700">
                 {block.data.items.map((item, itemIndex) => (
-                  <li key={itemIndex} className="leading-relaxed">
+                  <li key={itemIndex} className="leading-snug mb-1">
                     {item}
                   </li>
                 ))}
@@ -260,7 +284,11 @@ export default function RenderArticle({ blocks }: RenderArticleProps) {
             )
 
           case "table":
-            return <div key={index}>{renderTable(block)}</div>
+            return (
+              <div key={index} className="my-0">
+                {renderTable(block)}
+              </div>
+            )
 
           case "pickup":
             return <div key={index}>{renderPickup(block)}</div>
@@ -272,12 +300,12 @@ export default function RenderArticle({ blocks }: RenderArticleProps) {
             return <div key={index}>{renderCallout(block)}</div>
 
           case "divider":
-            return <hr key={index} className="my-8 border-slate-200" />
+            return <hr key={index} className="my-2 border-slate-200" />
 
           case "related-links":
             return (
-              <div key={index} className="my-8 bg-slate-50 border border-slate-200 rounded-lg p-4">
-                <h4 className="font-semibold text-slate-900 mb-3">関連リンク</h4>
+              <div key={index} className="mt-1 mb-2 bg-slate-50 border border-slate-200 rounded-lg p-2">
+                <h4 className="font-semibold text-slate-900 mb-1">関連リンク</h4>
                 <ul className="space-y-2">
                   {block.data.items.map((item, itemIndex) => (
                     <li key={itemIndex}>
@@ -296,7 +324,7 @@ export default function RenderArticle({ blocks }: RenderArticleProps) {
 
           case "evaluation":
             return (
-              <div key={index} className="my-8 bg-white border border-slate-200 rounded-lg p-6">
+              <div key={index} className="my-2 bg-white border border-slate-200 rounded-lg p-6">
                 <h4 className="font-semibold text-slate-900 mb-4">評価</h4>
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   {block.data.tier_rank && (
@@ -343,22 +371,22 @@ export default function RenderArticle({ blocks }: RenderArticleProps) {
 
           case "cards-table":
             return (
-              <div key={index} className="my-8">
+              <div key={index} className="mt-0 mb-1">
                 <div className="bg-white border border-slate-200 rounded-lg overflow-hidden">
                   <table className="w-full">
                     <thead>
-                      <tr className="bg-slate-100">
-                        <th className="px-4 py-3 text-left text-sm font-semibold text-slate-700">カード名</th>
-                        <th className="px-4 py-3 text-left text-sm font-semibold text-slate-700">枚数</th>
+                      <tr className="bg-gray-100">
+                        <th className="px-4 py-1 text-left text-sm font-semibold text-slate-700">カード名</th>
+                        <th className="px-4 py-1 text-left text-sm font-semibold text-slate-700">枚数</th>
                       </tr>
                     </thead>
                     <tbody>
                       {block.data.items.map((item, itemIndex) => (
                         <tr key={itemIndex} className={itemIndex % 2 === 0 ? "bg-white" : "bg-slate-50"}>
-                          <td className="px-4 py-3 text-sm text-slate-700">
+                          <td className="px-4 py-1 text-sm text-slate-700">
                             {item.name || `Card ID: ${item.card_id}`}
                           </td>
-                          <td className="px-4 py-3 text-sm text-slate-600">{item.quantity || 1}</td>
+                          <td className="px-4 py-1 text-sm text-slate-600">{item.quantity || 1}</td>
                         </tr>
                       ))}
                     </tbody>
