@@ -315,7 +315,7 @@ function CardsTable({
                   </td>
                 )}
                 <td className="px-3 py-3 text-sm text-slate-600 border-b border-slate-100">
-                  <div className="flex items-center gap-3">
+                  <div className="flex flex-col items-center justify-center gap-2">
                     <div className="flex-shrink-0">
                       <Image
                         src={card?.thumb_url || card?.image_url || "/placeholder.svg"}
@@ -325,8 +325,8 @@ function CardsTable({
                         className="rounded border border-slate-200 object-cover"
                       />
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-base font-medium text-slate-900 truncate">
+                    <div className="text-center">
+                      <div className="text-sm font-medium text-slate-900">
                         {card?.name || `Card ID: ${item.card_id}`}
                       </div>
                     </div>
