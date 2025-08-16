@@ -1,6 +1,10 @@
+"use client"
+
 import Link from "next/link"
 import Image from "next/image"
+import React from "react"
 import { Star, ChevronRight, List, ArrowRight, AlertCircle, CheckCircle, Info } from "lucide-react"
+import { getCardsByIds } from "@/lib/card-api"
 import type { Block } from "@/lib/actions/info-articles"
 import type { JSX } from "react"
 
@@ -103,39 +107,37 @@ function renderTable(block: Block & { type: "table" }) {
   const { headers, rows } = block.data
 
   return (
-    <div className="overflow-x-auto">
-      <div className="bg-white border border-slate-200 rounded-lg overflow-hidden shadow-sm mb-1 mt-0 leading-snug">
-        <table className="w-full border-collapse border border-slate-200">
-          {headers && headers.length > 0 && (
-            <thead>
-              <tr className="bg-gray-100 leading-snug">
-                {headers.map((header, index) => (
-                  <th
-                    key={index}
-                    className="px-4 py-0 text-left text-sm font-semibold text-slate-700 border-b border-slate-200 border-r border-slate-200 last:border-r-0"
-                  >
-                    {header}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-          )}
-          <tbody>
-            {rows.map((row, rowIndex) => (
-              <tr key={rowIndex} className={rowIndex % 2 === 0 ? "bg-white" : "bg-slate-50"}>
-                {row.map((cell, cellIndex) => (
-                  <td
-                    key={cellIndex}
-                    className="px-4 py-1 text-sm text-slate-600 border-b border-slate-100 border-r border-slate-200 last:border-r-0"
-                  >
-                    {cell}
-                  </td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+    <div className="bg-white border border-slate-200 rounded-lg overflow-hidden shadow-sm my-0 leading-snug">
+      <table className="w-full border-collapse border border-slate-200">
+        {headers && headers.length > 0 && (
+          <thead>
+            <tr className="bg-gray-100 leading-snug">
+              {headers.map((header, index) => (
+                <th
+                  key={index}
+                  className="px-4 py-0 text-left text-sm font-semibold text-slate-700 border-b border-slate-200 border-r border-slate-200 last:border-r-0"
+                >
+                  {header}
+                </th>
+              ))}
+            </tr>
+          </thead>
+        )}
+        <tbody>
+          {rows.map((row, rowIndex) => (
+            <tr key={rowIndex} className={rowIndex % 2 === 0 ? "bg-white" : "bg-slate-50"}>
+              {row.map((cell, cellIndex) => (
+                <td
+                  key={cellIndex}
+                  className="px-4 py-0 text-sm text-slate-600 border-b border-slate-100 border-r border-slate-200 last:border-r-0"
+                >
+                  {cell}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   )
 }
@@ -227,6 +229,74 @@ function renderCallout(block: Block & { type: "callout" }) {
           </div>
           <p className={`text-sm ${style.text} leading-relaxed`}>{text}</p>
         </div>
+      </div>
+    </div>
+  )
+}
+
+function CardsTable({ items }: { items: Array<{ card_id: number; quantity: number }> }) {
+  const [cards, setCards] = React.useState<Array<{ id: number; name: string; image_url: string; thumb_url?: string }>>(
+    [],
+  )
+  const [loading, setLoading] = React.useState(true)
+
+  React.useEffect(() => {
+    async function fetchCards() {
+      try {
+        const cardIds = items.map((item) => item.card_id)
+        const cardData = await getCardsByIds(cardIds)
+        setCards(cardData)
+      } catch (error) {
+        console.error("Failed to fetch cards:", error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    if (items.length > 0) {
+      fetchCards()
+    } else {
+      setLoading(false)
+    }
+  }, [items])
+
+  if (loading) {
+    return (
+      <div className="bg-white border border-slate-200 rounded-lg overflow-hidden p-4">
+        <div className="text-center text-slate-500">カード情報を読み込み中...</div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="bg-white border border-slate-200 rounded-lg overflow-hidden">
+      <div className="grid gap-0">
+        {items.map((item, itemIndex) => {
+          const card = cards.find((c) => c.id === item.card_id)
+          return (
+            <div key={itemIndex} className="flex items-center bg-slate-50 px-3">
+              <div className="flex-shrink-0">
+                <Image
+                  src={card?.thumb_url || card?.image_url || "/placeholder.svg"}
+                  alt={card?.name || `Card ${item.card_id}`}
+                  width={60}
+                  height={84}
+                  className="rounded border border-slate-200 object-cover"
+                />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="text-base font-medium text-slate-900 truncate py-0">
+                  {card?.name || `Card ID: ${item.card_id}`}
+                </div>
+              </div>
+              <div className="flex-shrink-0">
+                <span className="inline-flex items-center justify-center w-8 h-8 text-sm font-bold text-white bg-blue-600 rounded-full">
+                  {item.quantity}
+                </span>
+              </div>
+            </div>
+          )
+        })}
       </div>
     </div>
   )
@@ -371,27 +441,8 @@ export default function RenderArticle({ blocks }: RenderArticleProps) {
 
           case "cards-table":
             return (
-              <div key={index} className="mt-0 mb-1">
-                <div className="bg-white border border-slate-200 rounded-lg overflow-hidden">
-                  <table className="w-full">
-                    <thead>
-                      <tr className="bg-gray-100">
-                        <th className="px-4 py-1 text-left text-sm font-semibold text-slate-700">カード名</th>
-                        <th className="px-4 py-1 text-left text-sm font-semibold text-slate-700">枚数</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {block.data.items.map((item, itemIndex) => (
-                        <tr key={itemIndex} className={itemIndex % 2 === 0 ? "bg-white" : "bg-slate-50"}>
-                          <td className="px-4 py-1 text-sm text-slate-700">
-                            {item.name || `Card ID: ${item.card_id}`}
-                          </td>
-                          <td className="px-4 py-1 text-sm text-slate-600">{item.quantity || 1}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+              <div key={index} className="my-0">
+                <CardsTable items={block.data.items} />
               </div>
             )
 

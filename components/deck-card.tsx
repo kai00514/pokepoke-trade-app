@@ -177,7 +177,7 @@ export function DeckCard({ deck, onCountUpdate, currentCategory = "posts", onRem
       }
     }
 
-    // フォールバック: 従来の単一画像
+    // フォールバック: ���来の単一画像
     if (deck.imageUrl) {
       return { url: deck.imageUrl, name: deckName }
     }
