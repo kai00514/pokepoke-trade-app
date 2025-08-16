@@ -257,6 +257,9 @@ export async function updateArticle(id: string, articleData: CreateArticleData) 
 }
 
 export async function deleteArticle(id: string) {
+  console.log("[SERVER] === DEBUG: deleteArticle function started ===")
+  console.log("[SERVER] Article ID:", id)
+
   try {
     const supabase = await createClient()
 
@@ -266,12 +269,19 @@ export async function deleteArticle(id: string) {
       error: userError,
     } = await supabase.auth.getUser()
 
+    console.log("[SERVER] === DEBUG: Current user for delete ===")
+    console.log("[SERVER] User ID:", user?.id)
+    console.log("[SERVER] User error:", userError)
+
     if (userError || !user) {
       throw new Error("認証されていません")
     }
 
     // 記事を削除（ブロックはCASCADEで自動削除される）
     const { error } = await supabase.from("info_articles").delete().eq("id", id)
+
+    console.log("[SERVER] === DEBUG: Delete operation result ===")
+    console.log("[SERVER] Delete error:", error)
 
     if (error) {
       throw new Error(`記事の削除に失敗しました: ${error.message}`)
@@ -281,8 +291,12 @@ export async function deleteArticle(id: string) {
     revalidatePath("/admin/articles")
     revalidatePath("/info")
 
+    console.log("[SERVER] === DEBUG: Article deleted successfully ===")
     return { success: true }
   } catch (error) {
+    console.log("[SERVER] === DEBUG: Error in deleteArticle ===")
+    console.log("[SERVER] Error:", error)
+
     return {
       success: false,
       error: error instanceof Error ? error.message : "記事の削除に失敗しました",
@@ -291,9 +305,27 @@ export async function deleteArticle(id: string) {
 }
 
 export async function getArticles() {
+  console.log("[SERVER] === DEBUG: getArticles function started ===")
+
   try {
     const supabase = await createClient()
 
+    // 現在のユーザーを取得
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser()
+
+    console.log("[SERVER] === DEBUG: Current user for getArticles ===")
+    console.log("[SERVER] User ID:", user?.id)
+    console.log("[SERVER] User error:", userError)
+
+    if (userError) {
+      console.log("[SERVER] WARNING: User authentication error in getArticles:", userError)
+      // 記事一覧の取得は認証なしでも許可する場合があるので、エラーにしない
+    }
+
+    console.log("[SERVER] === DEBUG: Fetching articles ===")
     const { data: articles, error } = await supabase
       .from("info_articles")
       .select(`
@@ -311,12 +343,25 @@ export async function getArticles() {
       `)
       .order("created_at", { ascending: false })
 
+    console.log("[SERVER] === DEBUG: Articles fetch result ===")
+    console.log("[SERVER] Articles count:", articles?.length || 0)
+    console.log("[SERVER] Fetch error:", error)
+
     if (error) {
+      console.log("[SERVER] === DEBUG: Articles fetch failed ===")
+      console.log("[SERVER] Error code:", error.code)
+      console.log("[SERVER] Error message:", error.message)
+      console.log("[SERVER] Error details:", error.details)
       throw new Error(`記事の取得に失敗しました: ${error.message}`)
     }
 
-    return { success: true, data: articles }
+    console.log("[SERVER] === DEBUG: Articles fetched successfully ===")
+    return { success: true, data: articles || [] }
   } catch (error) {
+    console.log("[SERVER] === DEBUG: Error in getArticles ===")
+    console.log("[SERVER] Error message:", error instanceof Error ? error.message : String(error))
+    console.log("[SERVER] Error stack:", error instanceof Error ? error.stack : "No stack trace")
+
     return {
       success: false,
       error: error instanceof Error ? error.message : "記事の取得に失敗しました",
@@ -325,6 +370,9 @@ export async function getArticles() {
 }
 
 export async function getArticleById(id: string) {
+  console.log("[SERVER] === DEBUG: getArticleById function started ===")
+  console.log("[SERVER] Article ID:", id)
+
   try {
     const supabase = await createClient()
 
@@ -333,6 +381,10 @@ export async function getArticleById(id: string) {
       .select("*")
       .eq("id", id)
       .single()
+
+    console.log("[SERVER] === DEBUG: Article fetch result ===")
+    console.log("[SERVER] Article data:", article ? "found" : "not found")
+    console.log("[SERVER] Article error:", articleError)
 
     if (articleError) {
       throw new Error(`記事の取得に失敗しました: ${articleError.message}`)
@@ -344,10 +396,15 @@ export async function getArticleById(id: string) {
       .eq("article_id", id)
       .order("display_order")
 
+    console.log("[SERVER] === DEBUG: Blocks fetch result ===")
+    console.log("[SERVER] Blocks count:", blocks?.length || 0)
+    console.log("[SERVER] Blocks error:", blocksError)
+
     if (blocksError) {
       throw new Error(`ブロックの取得に失敗しました: ${blocksError.message}`)
     }
 
+    console.log("[SERVER] === DEBUG: Article with blocks fetched successfully ===")
     return {
       success: true,
       data: {
@@ -356,9 +413,120 @@ export async function getArticleById(id: string) {
       },
     }
   } catch (error) {
+    console.log("[SERVER] === DEBUG: Error in getArticleById ===")
+    console.log("[SERVER] Error:", error)
+
     return {
       success: false,
       error: error instanceof Error ? error.message : "記事の取得に失敗しました",
+    }
+  }
+}
+
+export async function toggleArticlePublished(id: string, isPublished: boolean) {
+  console.log("[SERVER] === DEBUG: toggleArticlePublished function started ===")
+  console.log("[SERVER] Article ID:", id)
+  console.log("[SERVER] New published status:", isPublished)
+
+  try {
+    const supabase = await createClient()
+
+    // 現在のユーザーを取得
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser()
+
+    console.log("[SERVER] === DEBUG: Current user for toggle published ===")
+    console.log("[SERVER] User ID:", user?.id)
+    console.log("[SERVER] User error:", userError)
+
+    if (userError || !user) {
+      throw new Error("認証されていません")
+    }
+
+    const { data, error } = await supabase
+      .from("info_articles")
+      .update({ is_published: isPublished })
+      .eq("id", id)
+      .select()
+      .single()
+
+    console.log("[SERVER] === DEBUG: Toggle published result ===")
+    console.log("[SERVER] Updated data:", data ? "success" : "failed")
+    console.log("[SERVER] Update error:", error)
+
+    if (error) {
+      throw new Error(`公開状態の変更に失敗しました: ${error.message}`)
+    }
+
+    // キャッシュを更新
+    revalidatePath("/admin/articles")
+    revalidatePath("/info")
+
+    console.log("[SERVER] === DEBUG: Article published status toggled successfully ===")
+    return { success: true, data }
+  } catch (error) {
+    console.log("[SERVER] === DEBUG: Error in toggleArticlePublished ===")
+    console.log("[SERVER] Error:", error)
+
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "公開状態の変更に失敗しました",
+    }
+  }
+}
+
+export async function toggleArticlePinned(id: string, isPinned: boolean) {
+  console.log("[SERVER] === DEBUG: toggleArticlePinned function started ===")
+  console.log("[SERVER] Article ID:", id)
+  console.log("[SERVER] New pinned status:", isPinned)
+
+  try {
+    const supabase = await createClient()
+
+    // 現在のユーザーを取得
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser()
+
+    console.log("[SERVER] === DEBUG: Current user for toggle pinned ===")
+    console.log("[SERVER] User ID:", user?.id)
+    console.log("[SERVER] User error:", userError)
+
+    if (userError || !user) {
+      throw new Error("認証されていません")
+    }
+
+    const { data, error } = await supabase
+      .from("info_articles")
+      .update({ pinned: isPinned })
+      .eq("id", id)
+      .select()
+      .single()
+
+    console.log("[SERVER] === DEBUG: Toggle pinned result ===")
+    console.log("[SERVER] Updated data:", data ? "success" : "failed")
+    console.log("[SERVER] Update error:", error)
+
+    if (error) {
+      throw new Error(`ピン留め状態の変更に失敗しました: ${error.message}`)
+    }
+
+    // キャッシュを更新
+    revalidatePath("/admin/articles")
+    revalidatePath("/info")
+
+    console.log("[SERVER] === DEBUG: Article pinned status toggled successfully ===")
+    return { success: true, data }
+  } catch (error) {
+    console.log("[SERVER] === DEBUG: Error in toggleArticlePinned ===")
+    console.log("[SERVER] Error:", error)
+
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "ピン留め状態の変更に失敗しました",
     }
   }
 }
