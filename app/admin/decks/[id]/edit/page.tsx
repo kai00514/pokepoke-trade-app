@@ -9,11 +9,15 @@ interface EditDeckPageProps {
 }
 
 export default async function EditDeckPage({ params }: EditDeckPageProps) {
-  const result = await getDeckById(Number.parseInt(params.id))
+  const result = await getDeckById(params.id)
 
-  if (!result.success) {
+  if (!result.success || !result.data) {
     notFound()
   }
 
-  return <DeckEditor initialData={result.data} isEditing={true} deckId={params.id} />
+  return (
+    <div className="container mx-auto py-6">
+      <DeckEditor initialData={result.data} isEditing={true} deckId={params.id} />
+    </div>
+  )
 }

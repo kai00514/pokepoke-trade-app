@@ -20,6 +20,7 @@ export interface CreateDeckData {
     card_id: number
     card_count: number
     pack_name?: string
+    display_order?: number
   }>
   deck_description: string
 
@@ -122,7 +123,7 @@ export async function createDeck(data: CreateDeckData) {
   }
 }
 
-export async function updateDeck(id: number, data: CreateDeckData) {
+export async function updateDeck(id: string, data: CreateDeckData) {
   try {
     const supabase = await createClient()
 
@@ -182,7 +183,7 @@ export async function updateDeck(id: number, data: CreateDeckData) {
   }
 }
 
-export async function deleteDeck(id: number) {
+export async function deleteDeck(id: string) {
   try {
     const supabase = await createClient()
 
@@ -201,7 +202,7 @@ export async function deleteDeck(id: number) {
   }
 }
 
-export async function toggleDeckPublished(id: number, isPublished: boolean) {
+export async function toggleDeckPublished(id: string, isPublished: boolean) {
   try {
     const supabase = await createClient()
 
@@ -227,7 +228,7 @@ export async function toggleDeckPublished(id: number, isPublished: boolean) {
   }
 }
 
-export async function getDeckById(id: number) {
+export async function getDeckById(id: string) {
   try {
     const supabase = await createClient()
 
