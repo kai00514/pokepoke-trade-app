@@ -12,8 +12,9 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarHeader,
+  SidebarFooter,
 } from "@/components/ui/sidebar"
-import { LayoutDashboard, FileText, Users, BarChart3, Settings, PenTool } from "lucide-react"
+import { LayoutDashboard, FileText, Users, Settings, BarChart3, Layers, LogOut } from "lucide-react"
 
 const menuItems = [
   {
@@ -27,19 +28,9 @@ const menuItems = [
     icon: FileText,
   },
   {
-    title: "記事作成",
-    url: "/admin/articles/create",
-    icon: PenTool,
-  },
-  {
     title: "デッキ管理",
     url: "/admin/decks",
-    icon: FileText,
-  },
-  {
-    title: "デッキ作成",
-    url: "/admin/decks/create",
-    icon: PenTool,
+    icon: Layers,
   },
   {
     title: "ユーザー管理",
@@ -74,7 +65,7 @@ export function AdminSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               {menuItems.map((item) => (
-                <SidebarMenuItem key={item.url}>
+                <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild isActive={pathname === item.url}>
                     <Link href={item.url}>
                       <item.icon className="h-4 w-4" />
@@ -87,6 +78,16 @@ export function AdminSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+      <SidebarFooter>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton>
+              <LogOut className="h-4 w-4" />
+              <span>ログアウト</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarFooter>
     </Sidebar>
   )
 }

@@ -11,12 +11,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Slider } from "@/components/ui/slider"
-import { Save, ArrowLeft, Plus, X } from "lucide-react"
+import { Save, ArrowLeft, Plus, X, Eye } from "lucide-react"
 import { toast } from "sonner"
+import { CardDisplay } from "./card-display" // Import CardDisplay component
 
 import { type CreateDeckData, createDeck, updateDeck } from "@/lib/actions/admin-decks"
 import { ImageUpload } from "./image-upload"
-import { CardSearch } from "./card-search"
+import { CardSelectionModal } from "./card-selection-modal"
 
 interface DeckEditorProps {
   deck?: any
@@ -56,16 +57,23 @@ export function DeckEditor({ deck, isEditing = false }: DeckEditorProps) {
   const [activeTab, setActiveTab] = useState("basic")
 
   const [formData, setFormData] = useState<CreateDeckData>({
+    // 基本情報
     title: deck?.title || "",
     deck_name: deck?.deck_name || "",
     category: deck?.category || "tier",
     thumbnail_image_url: deck?.thumbnail_image_url || "",
     thumbnail_alt: deck?.thumbnail_alt || "",
     deck_badge: deck?.deck_badge || "",
+
+    // セクション1
+    section1_title: deck?.section1_title || "",
     energy_type: deck?.energy_type || "炎",
     energy_image_url: deck?.energy_image_url || "",
     deck_cards: deck?.deck_cards || [],
     deck_description: deck?.deck_description || "",
+
+    // 評価セクション
+    evaluation_title: deck?.evaluation_title || "",
     tier_rank: deck?.tier_rank || "A",
     tier_name: deck?.tier_name || "Tier3",
     tier_descriptions: deck?.tier_descriptions || [],
@@ -74,11 +82,25 @@ export function DeckEditor({ deck, isEditing = false }: DeckEditorProps) {
     stat_power: deck?.stat_power || 3,
     stat_durability: deck?.stat_durability || 3,
     stat_stability: deck?.stat_stability || 3,
+
+    // セクション2
+    section2_title: deck?.section2_title || "",
     strengths_weaknesses_list: deck?.strengths_weaknesses_list || [],
     strengths_weaknesses_details: deck?.strengths_weaknesses_details || [],
+
+    // セクション3
+    section3_title: deck?.section3_title || "",
     how_to_play_list: deck?.how_to_play_list || [],
     how_to_play_steps: deck?.how_to_play_steps || [],
+
+    // その他
     is_published: deck?.is_published || false,
+    view_count: deck?.view_count || 0,
+    like_count: deck?.like_count || 0,
+    favorite_count: deck?.favorite_count || 0,
+    eval_value: deck?.eval_value || "0.00",
+    eval_count: deck?.eval_count || 0,
+    comment_count: deck?.comment_count || 0,
   })
 
   // エネルギータイプが変更されたときに画像URLを更新
@@ -88,6 +110,22 @@ export function DeckEditor({ deck, isEditing = false }: DeckEditorProps) {
       setFormData((prev) => ({ ...prev, energy_image_url: energyType.image }))
     }
   }, [formData.energy_type])
+
+  // デッキ名が変更されたときにタイトルを自動生成
+  useEffect(() => {
+    if (formData.deck_name && !isEditing) {
+      setFormData((prev) => ({
+        ...prev,
+        title: `【ポケポケ】${formData.deck_name}のレシピと評価【ポケモンカードアプリ】`,
+        section1_title: `${formData.deck_name}のレシピと評価`,
+        evaluation_title: `${formData.deck_name}の評価`,
+        section2_title: `${formData.deck_name}の強い点・弱い点`,
+        section3_title: `${formData.deck_name}の回し方`,
+        thumbnail_alt: formData.deck_name,
+        deck_badge: formData.deck_name,
+      }))
+    }
+  }, [formData.deck_name, isEditing])
 
   const handleInputChange = (field: keyof CreateDeckData, value: any) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
@@ -221,6 +259,8 @@ export function DeckEditor({ deck, isEditing = false }: DeckEditorProps) {
     }))
   }
 
+  const previewUrl = isEditing && deck?.id ? `/content/${deck.id}` : null
+
   return (
     <div className="max-w-7xl mx-auto space-y-6">
       {/* ヘッダー */}
@@ -233,6 +273,12 @@ export function DeckEditor({ deck, isEditing = false }: DeckEditorProps) {
           <h1 className="text-2xl font-bold">{isEditing ? "デッキ編集" : "デッキ作成"}</h1>
         </div>
         <div className="flex items-center space-x-2">
+          {previewUrl && (
+            <Button variant="outline" onClick={() => window.open(previewUrl, "_blank")}>
+              <Eye className="h-4 w-4 mr-2" />
+              プレビュー
+            </Button>
+          )}
           <Button onClick={handleSave} disabled={isSaving}>
             <Save className="h-4 w-4 mr-2" />
             {isSaving ? "保存中..." : "保存"}
@@ -241,12 +287,13 @@ export function DeckEditor({ deck, isEditing = false }: DeckEditorProps) {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="basic">基本情報</TabsTrigger>
           <TabsTrigger value="cards">デッキ構成</TabsTrigger>
           <TabsTrigger value="evaluation">評価</TabsTrigger>
           <TabsTrigger value="strengths">強み・弱み</TabsTrigger>
           <TabsTrigger value="howto">立ち回り</TabsTrigger>
+          <TabsTrigger value="advanced">詳細設定</TabsTrigger>
         </TabsList>
 
         <TabsContent value="basic" className="space-y-6">
@@ -278,13 +325,22 @@ export function DeckEditor({ deck, isEditing = false }: DeckEditorProps) {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="deck_description">デッキ説明</Label>
-                    <Textarea
-                      id="deck_description"
-                      value={formData.deck_description}
-                      onChange={(e) => handleInputChange("deck_description", e.target.value)}
-                      placeholder="デッキの概要を入力"
-                      rows={3}
+                    <Label htmlFor="deck_badge">デッキバッジ</Label>
+                    <Input
+                      id="deck_badge"
+                      value={formData.deck_badge}
+                      onChange={(e) => handleInputChange("deck_badge", e.target.value)}
+                      placeholder="デッキバッジテキスト"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="thumbnail_alt">サムネイルAltテキスト</Label>
+                    <Input
+                      id="thumbnail_alt"
+                      value={formData.thumbnail_alt}
+                      onChange={(e) => handleInputChange("thumbnail_alt", e.target.value)}
+                      placeholder="サムネイル画像の説明"
                     />
                   </div>
 
@@ -329,6 +385,53 @@ export function DeckEditor({ deck, isEditing = false }: DeckEditorProps) {
                   </div>
                 </CardContent>
               </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>セクションタイトル</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="section1_title">セクション1タイトル</Label>
+                    <Input
+                      id="section1_title"
+                      value={formData.section1_title}
+                      onChange={(e) => handleInputChange("section1_title", e.target.value)}
+                      placeholder="〇〇デッキのレシピと評価"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="evaluation_title">評価セクションタイトル</Label>
+                    <Input
+                      id="evaluation_title"
+                      value={formData.evaluation_title}
+                      onChange={(e) => handleInputChange("evaluation_title", e.target.value)}
+                      placeholder="〇〇デッキの評価"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="section2_title">セクション2タイトル</Label>
+                    <Input
+                      id="section2_title"
+                      value={formData.section2_title}
+                      onChange={(e) => handleInputChange("section2_title", e.target.value)}
+                      placeholder="〇〇デッキの強い点・弱い点"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="section3_title">セクション3タイトル</Label>
+                    <Input
+                      id="section3_title"
+                      value={formData.section3_title}
+                      onChange={(e) => handleInputChange("section3_title", e.target.value)}
+                      placeholder="〇〇デッキの回し方"
+                    />
+                  </div>
+                </CardContent>
+              </Card>
             </div>
 
             <div className="space-y-6">
@@ -366,13 +469,54 @@ export function DeckEditor({ deck, isEditing = false }: DeckEditorProps) {
         <TabsContent value="cards" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>デッキ構成</CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle>デッキ構成</CardTitle>
+                <CardSelectionModal
+                  selectedCards={formData.deck_cards}
+                  onChange={(cards) => handleInputChange("deck_cards", cards)}
+                />
+              </div>
             </CardHeader>
-            <CardContent>
-              <CardSearch
-                selectedCards={formData.deck_cards}
-                onChange={(cards) => handleInputChange("deck_cards", cards)}
-              />
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="deck_description">デッキ説明</Label>
+                <Textarea
+                  id="deck_description"
+                  value={formData.deck_description}
+                  onChange={(e) => handleInputChange("deck_description", e.target.value)}
+                  placeholder="デッキの概要を入力"
+                  rows={4}
+                />
+              </div>
+
+              {/* 選択されたカード一覧 */}
+              <div className="space-y-2">
+                <Label>選択されたカード ({formData.deck_cards.length}枚)</Label>
+                {formData.deck_cards.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500 border-2 border-dashed border-gray-200 rounded-lg">
+                    「カードを選択」ボタンからカードを追加してください
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {formData.deck_cards.map((card, index) => (
+                      <Card key={`${card.card_id}-${index}`}>
+                        <CardContent className="p-3">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-12 h-16 flex-shrink-0">
+                              <CardDisplay cardId={card.card_id} useThumb />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="font-medium text-sm">ID: {card.card_id}</div>
+                              <div className="text-xs text-gray-500">{card.pack_name}</div>
+                              <div className="text-xs font-medium">×{card.card_count}</div>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
@@ -624,6 +768,89 @@ export function DeckEditor({ deck, isEditing = false }: DeckEditorProps) {
               )}
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="advanced" className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>統計情報</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="view_count">閲覧数</Label>
+                  <Input
+                    id="view_count"
+                    type="number"
+                    value={formData.view_count}
+                    onChange={(e) => handleInputChange("view_count", Number.parseInt(e.target.value) || 0)}
+                    min="0"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="like_count">いいね数</Label>
+                  <Input
+                    id="like_count"
+                    type="number"
+                    value={formData.like_count}
+                    onChange={(e) => handleInputChange("like_count", Number.parseInt(e.target.value) || 0)}
+                    min="0"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="favorite_count">お気に入り数</Label>
+                  <Input
+                    id="favorite_count"
+                    type="number"
+                    value={formData.favorite_count}
+                    onChange={(e) => handleInputChange("favorite_count", Number.parseInt(e.target.value) || 0)}
+                    min="0"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="comment_count">コメント数</Label>
+                  <Input
+                    id="comment_count"
+                    type="number"
+                    value={formData.comment_count}
+                    onChange={(e) => handleInputChange("comment_count", Number.parseInt(e.target.value) || 0)}
+                    min="0"
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>評価情報</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="eval_value">評価値</Label>
+                  <Input
+                    id="eval_value"
+                    value={formData.eval_value}
+                    onChange={(e) => handleInputChange("eval_value", e.target.value)}
+                    placeholder="0.00"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="eval_count">評価数</Label>
+                  <Input
+                    id="eval_count"
+                    type="number"
+                    value={formData.eval_count}
+                    onChange={(e) => handleInputChange("eval_count", Number.parseInt(e.target.value) || 0)}
+                    min="0"
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
       </Tabs>
     </div>

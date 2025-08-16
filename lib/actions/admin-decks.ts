@@ -25,16 +25,23 @@ export interface HowToPlayStep {
 }
 
 export interface CreateDeckData {
+  // 基本情報
   title: string
   deck_name: string
   category: "tier" | "featured" | "newpack"
   thumbnail_image_url?: string
   thumbnail_alt?: string
   deck_badge?: string
+
+  // セクション1
+  section1_title?: string
   energy_type: string
   energy_image_url?: string
   deck_cards: DeckCard[]
   deck_description: string
+
+  // 評価セクション
+  evaluation_title?: string
   tier_rank: string
   tier_name: string
   tier_descriptions: string[]
@@ -43,11 +50,25 @@ export interface CreateDeckData {
   stat_power: number
   stat_durability: number
   stat_stability: number
+
+  // セクション2
+  section2_title?: string
   strengths_weaknesses_list: string[]
   strengths_weaknesses_details: StrengthWeakness[]
+
+  // セクション3
+  section3_title?: string
   how_to_play_list: string[]
   how_to_play_steps: HowToPlayStep[]
+
+  // その他
   is_published: boolean
+  view_count?: number
+  like_count?: number
+  favorite_count?: number
+  eval_value?: string
+  eval_count?: number
+  comment_count?: number
 }
 
 export interface DeckPage {
@@ -91,12 +112,12 @@ export async function createDeck(deckData: CreateDeckData) {
       thumbnail_image_url: deckData.thumbnail_image_url,
       thumbnail_alt: deckData.thumbnail_alt || deckData.deck_name,
       deck_badge: deckData.deck_badge || deckData.deck_name,
-      section1_title: `${deckData.deck_name}のレシピと評価`,
+      section1_title: deckData.section1_title || `${deckData.deck_name}のレシピと評価`,
       energy_type: deckData.energy_type,
       energy_image_url: deckData.energy_image_url,
       deck_cards: JSON.stringify(deckData.deck_cards),
       deck_description: deckData.deck_description,
-      evaluation_title: `${deckData.deck_name}の評価`,
+      evaluation_title: deckData.evaluation_title || `${deckData.deck_name}の評価`,
       tier_rank: deckData.tier_rank,
       tier_name: deckData.tier_name,
       tier_descriptions: deckData.tier_descriptions,
@@ -105,19 +126,19 @@ export async function createDeck(deckData: CreateDeckData) {
       stat_power: deckData.stat_power,
       stat_durability: deckData.stat_durability,
       stat_stability: deckData.stat_stability,
-      section2_title: `${deckData.deck_name}の強い点・弱い点`,
+      section2_title: deckData.section2_title || `${deckData.deck_name}の強い点・弱い点`,
       strengths_weaknesses_list: deckData.strengths_weaknesses_list,
       strengths_weaknesses_details: JSON.stringify(deckData.strengths_weaknesses_details),
-      section3_title: `${deckData.deck_name}の回し方`,
+      section3_title: deckData.section3_title || `${deckData.deck_name}の回し方`,
       how_to_play_list: deckData.how_to_play_list,
       how_to_play_steps: JSON.stringify(deckData.how_to_play_steps),
       is_published: deckData.is_published,
-      view_count: 0,
-      like_count: 0,
-      favorite_count: 0,
-      eval_value: "0.00",
-      eval_count: 0,
-      comment_count: 0,
+      view_count: deckData.view_count || 0,
+      like_count: deckData.like_count || 0,
+      favorite_count: deckData.favorite_count || 0,
+      eval_value: deckData.eval_value || "0.00",
+      eval_count: deckData.eval_count || 0,
+      comment_count: deckData.comment_count || 0,
       last_updated: new Date().toISOString(),
     }
 
@@ -169,12 +190,12 @@ export async function updateDeck(id: string, deckData: CreateDeckData) {
       thumbnail_image_url: deckData.thumbnail_image_url,
       thumbnail_alt: deckData.thumbnail_alt || deckData.deck_name,
       deck_badge: deckData.deck_badge || deckData.deck_name,
-      section1_title: `${deckData.deck_name}のレシピと評価`,
+      section1_title: deckData.section1_title || `${deckData.deck_name}のレシピと評価`,
       energy_type: deckData.energy_type,
       energy_image_url: deckData.energy_image_url,
       deck_cards: JSON.stringify(deckData.deck_cards),
       deck_description: deckData.deck_description,
-      evaluation_title: `${deckData.deck_name}の評価`,
+      evaluation_title: deckData.evaluation_title || `${deckData.deck_name}の評価`,
       tier_rank: deckData.tier_rank,
       tier_name: deckData.tier_name,
       tier_descriptions: deckData.tier_descriptions,
@@ -183,13 +204,19 @@ export async function updateDeck(id: string, deckData: CreateDeckData) {
       stat_power: deckData.stat_power,
       stat_durability: deckData.stat_durability,
       stat_stability: deckData.stat_stability,
-      section2_title: `${deckData.deck_name}の強い点・弱い点`,
+      section2_title: deckData.section2_title || `${deckData.deck_name}の強い点・弱い点`,
       strengths_weaknesses_list: deckData.strengths_weaknesses_list,
       strengths_weaknesses_details: JSON.stringify(deckData.strengths_weaknesses_details),
-      section3_title: `${deckData.deck_name}の回し方`,
+      section3_title: deckData.section3_title || `${deckData.deck_name}の回し方`,
       how_to_play_list: deckData.how_to_play_list,
       how_to_play_steps: JSON.stringify(deckData.how_to_play_steps),
       is_published: deckData.is_published,
+      view_count: deckData.view_count || 0,
+      like_count: deckData.like_count || 0,
+      favorite_count: deckData.favorite_count || 0,
+      eval_value: deckData.eval_value || "0.00",
+      eval_count: deckData.eval_count || 0,
+      comment_count: deckData.comment_count || 0,
       updated_at: new Date().toISOString(),
       last_updated: new Date().toISOString(),
     }
