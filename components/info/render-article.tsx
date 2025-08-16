@@ -3,7 +3,7 @@
 import Link from "next/link"
 import Image from "next/image"
 import React from "react"
-import { Star, ChevronRight, List, ArrowRight, AlertCircle, CheckCircle, Info } from "lucide-react"
+import { ChevronRight, List, AlertCircle, CheckCircle, Info } from "lucide-react"
 import type { Block } from "@/lib/actions/info-articles"
 import type { JSX } from "react"
 import { createClient } from "@supabase/supabase-js"
@@ -29,8 +29,6 @@ function renderHeading(block: Block & { type: "heading" }) {
   if (level === 2) {
     return (
       <div className="relative my-5">
-        {" "}
-        {/* 外側の上下余白＝均等＆控えめ */}
         <div className="bg-gradient-to-r from-slate-800 to-slate-700 text-white px-3 py-[5px] rounded-lg shadow-lg border-l-4 border-blue-500">
           <h2 className="m-0 text-lg font-bold text-white leading-loose">{text}</h2>
         </div>
@@ -111,7 +109,7 @@ function renderTable(block: Block & { type: "table" }) {
       <table className="w-full border-collapse border border-slate-200 leading-snug">
         {headers && headers.length > 0 && (
           <thead>
-            <tr className="bg-gray-100 leading-snug">
+            <tr className="bg-blue-100 leading-snug">
               {headers.map((header, index) => (
                 <th
                   key={index}
@@ -142,56 +140,8 @@ function renderTable(block: Block & { type: "table" }) {
   )
 }
 
-function renderPickup(block: Block & { type: "pickup" }) {
-  const { title, items } = block.data
-
-  return (
-    <div className="my-2">
-      <div className="bg-white border-2 border-red-200 rounded-lg overflow-hidden">
-        <div className="bg-red-500 text-white px-4 py-2">
-          <span className="inline-block bg-red-600 text-white px-3 py-1 rounded-full text-sm font-medium">
-            {title || "ピックアップ情報"}
-          </span>
-        </div>
-        <div className="p-4">
-          <ul className="space-y-2">
-            {items.map((item, index) => (
-              <li key={index} className="flex items-center gap-2">
-                <Star className="h-4 w-4 text-red-500 flex-shrink-0" />
-                {item.href ? (
-                  <Link href={item.href} className="text-blue-600 hover:text-blue-800 hover:underline text-sm">
-                    {item.label}
-                  </Link>
-                ) : (
-                  <span className="text-slate-700 text-sm">{item.label}</span>
-                )}
-              </li>
-            ))}
-          </ul>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-function renderButton(block: Block & { type: "button" }) {
-  const { label, href } = block.data
-
-  return (
-    <div className="my-2 flex justify-center">
-      <Link
-        href={href}
-        className="inline-flex items-center gap-2 px-8 py-4 border-2 border-blue-500 text-blue-600 hover:bg-blue-50 rounded-2xl font-medium transition-colors"
-      >
-        <ArrowRight className="h-5 w-5" />
-        {label}
-      </Link>
-    </div>
-  )
-}
-
 function renderCallout(block: Block & { type: "callout" }) {
-  const { tone, text, title } = block.data
+  const { tone, body, title } = block.data
 
   const styles = {
     info: {
@@ -227,7 +177,7 @@ function renderCallout(block: Block & { type: "callout" }) {
           <div className="flex items-center gap-2 mb-0.5">
             <span className="font-semibold text-sm">{title || style.label}</span>
           </div>
-          <p className={`text-sm ${style.text} leading-relaxed`}>{text}</p>
+          <p className={`text-sm ${style.text} leading-relaxed`}>{body}</p>
         </div>
       </div>
     </div>
@@ -238,7 +188,7 @@ function CardsTable({
   items,
   headers,
 }: {
-  items: Array<{ id?: string; card_id: number; explanation?: string; quantity: number }>
+  items: Array<{ id?: string; card_id: number; explanation?: string; quantity: number | string }>
   headers?: { id?: string; card?: string; explanation?: string; quantity?: string }
 }) {
   const [cards, setCards] = React.useState<Array<{ id: number; name: string; image_url: string; thumb_url?: string }>>(
@@ -381,6 +331,7 @@ export default function RenderArticle({ blocks }: RenderArticleProps) {
                     width={800}
                     height={400}
                     className="w-full h-auto object-cover"
+                    style={{ aspectRatio: block.data.aspect }}
                   />
                 </div>
                 {block.data.caption && <p className="text-sm text-slate-500 text-center mt-2">{block.data.caption}</p>}
@@ -408,12 +359,6 @@ export default function RenderArticle({ blocks }: RenderArticleProps) {
                 {renderTable(block)}
               </div>
             )
-
-          case "pickup":
-            return <div key={index}>{renderPickup(block)}</div>
-
-          case "button":
-            return <div key={index}>{renderButton(block)}</div>
 
           case "callout":
             return <div key={index}>{renderCallout(block)}</div>

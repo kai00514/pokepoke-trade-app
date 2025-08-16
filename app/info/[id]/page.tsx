@@ -5,7 +5,7 @@ import { notFound } from "next/navigation"
 import { getInfoPageById } from "@/lib/actions/info-pages"
 import { getInfoDetailById } from "@/lib/actions/info-articles"
 import CardDisplay from "@/components/card-display"
-import RenderArticle from "@/components/info/render-article"
+import RenderArticle from "@/components/info/render-article" // Updated import
 import PickupInfo from "@/components/pickup-info"
 
 function formatDateTime(dateStr?: string | null) {
