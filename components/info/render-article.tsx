@@ -1,297 +1,296 @@
 "use client"
 
-import Link from "next/link"
+import { useState, useEffect } from "react"
 import Image from "next/image"
-import React from "react"
-import { Star, ChevronRight, List, ArrowRight, AlertCircle, CheckCircle, Info } from "lucide-react"
-import { getCardsByIds } from "@/lib/card-api"
+import Link from "next/link"
+import { createClient } from "@supabase/supabase-js"
 import type { Block } from "@/lib/actions/info-articles"
-import type { JSX } from "react"
+import type { JSX } from "react/jsx-runtime"
 
 interface RenderArticleProps {
   blocks: Block[]
 }
 
-function createSafeAnchorId(text: string): string {
-  return text
-    .toLowerCase()
-    .replace(/[^\w\s-]/g, "")
-    .replace(/\s+/g, "-")
-    .replace(/-+/g, "-")
-    .replace(/^-|-$/g, "")
-    .substring(0, 50)
-}
-
-function renderHeading(block: Block & { type: "heading" }) {
-  const { level, text, anchorId } = block.data
-  const id = anchorId || createSafeAnchorId(text)
-
-  if (level === 2) {
-    return (
-      <div className="relative my-5">
-        {" "}
-        {/* 外側の上下余白＝均等＆控えめ */}
-        <div className="bg-gradient-to-r from-slate-800 to-slate-700 text-white px-3 py-[5px] rounded-lg shadow-lg border-l-4 border-blue-500">
-          <h2 className="m-0 text-lg font-bold text-white leading-loose">{text}</h2>
-        </div>
-        <div id={id} className="absolute -top-16"></div>
-      </div>
-    )
-  }
-
-  if (level === 3) {
-    return (
-      <div className="relative my-3">
-        <div className="bg-gradient-to-r from-slate-600 to-slate-500 text-white px-3 py-[5px] rounded-md shadow-md border-l-4 border-green-500">
-          <h3 className="m-0 text-lg font-semibold text-white leading-snug">{text}</h3>
-        </div>
-        <div id={id} className="absolute -top-20"></div>
-      </div>
-    )
-  }
-
-  // H1 fallback
-  const Tag = `h${level}` as keyof JSX.IntrinsicElements
-  return (
-    <Tag id={id} className="text-2xl font-bold text-slate-900 mt-4 mb-2">
-      {text}
-    </Tag>
-  )
-}
-
-function renderToc(blocks: Block[]) {
-  const headings = blocks
-    .filter((b): b is Block & { type: "heading" } => b.type === "heading")
-    .filter((b) => b.data.level === 2 || b.data.level === 3)
-
-  if (headings.length === 0) {
+export default function RenderArticle({ blocks }: RenderArticleProps) {
+  if (!blocks || blocks.length === 0) {
     return null
   }
 
   return (
-    <div className="bg-slate-50 border border-slate-200 rounded-lg overflow-hidden mt-1 mb-2 py-0">
-      <div className="border-l-4 border-yellow-400 bg-white">
-        <div className="flex items-center gap-1 px-4 py-1 border-b border-slate-200 leading-none">
-          <span className="flex items-center justify-center h-4 w-4">
-            <List className="w-4 h-4 text-slate-600 relative top-[1px]" />
-          </span>
-          <h3 className="font-semibold text-slate-900 text-sm leading-tight">目次</h3>
-        </div>
-        <nav className="px-4 py-0">
-          <ul className="list-disc list-outside marker:text-black pl-4 leading-none">
-            {headings.map((heading, index) => {
-              const id = heading.data.anchorId || createSafeAnchorId(heading.data.text)
-              const isH3 = heading.data.level === 3
-              return (
-                <li
-                  key={index}
-                  className={`${isH3 ? "ml-4" : ""} border-b border-gray-200 last:border-b-0 py-0 leading-tight`}
-                >
-                  <Link
-                    href={`#${id}`}
-                    className="text-blue-600 hover:text-blue-800 hover:underline text-sm leading-none py-0"
-                  >
-                    {heading.data.text}
-                  </Link>
-                </li>
-              )
-            })}
-          </ul>
-        </nav>
-      </div>
+    <div className="space-y-6">
+      {blocks.map((block, index) => (
+        <div key={index}>{renderBlock(block)}</div>
+      ))}
     </div>
   )
 }
 
-function renderTable(block: Block & { type: "table" }) {
-  const { headers, rows } = block.data
+function renderBlock(block: Block) {
+  switch (block.type) {
+    case "heading":
+      const HeadingTag = `h${block.data.level}` as keyof JSX.IntrinsicElements
+      const headingClasses = {
+        1: "w-full bg-black text-white px-4 py-3 text-xl font-bold my-2",
+        2: "w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-3 text-lg font-semibold border-l-4 border-blue-800 my-2",
+        3: "w-full bg-gradient-to-r from-gray-600 to-gray-700 text-white px-4 py-2 text-base font-semibold border-l-4 border-gray-800 my-2",
+      }
+      return (
+        <HeadingTag className={headingClasses[block.data.level]} id={block.data.anchorId}>
+          {block.data.text}
+        </HeadingTag>
+      )
 
-  return (
-    <div className="bg-white border border-slate-200 rounded-lg overflow-hidden shadow-sm my-0 leading-snug">
-      <table className="w-full border-collapse border border-slate-200">
-        {headers && headers.length > 0 && (
-          <thead>
-            <tr className="bg-gray-100 leading-snug">
-              {headers.map((header, index) => (
-                <th
-                  key={index}
-                  className="px-4 py-0 text-left text-sm font-semibold text-slate-700 border-b border-slate-200 border-r border-slate-200 last:border-r-0"
-                >
-                  {header}
-                </th>
-              ))}
-            </tr>
-          </thead>
-        )}
-        <tbody>
-          {rows.map((row, rowIndex) => (
-            <tr key={rowIndex} className={rowIndex % 2 === 0 ? "bg-white" : "bg-slate-50"}>
-              {row.map((cell, cellIndex) => (
-                <td
-                  key={cellIndex}
-                  className="px-4 py-0 text-sm text-slate-600 border-b border-slate-100 border-r border-slate-200 last:border-r-0"
-                >
-                  {cell}
-                </td>
-              ))}
-            </tr>
+    case "paragraph":
+      return <p className="text-slate-800 leading-relaxed my-2">{block.data.text}</p>
+
+    case "image":
+      return (
+        <div className="my-2">
+          <div className="relative w-full aspect-video bg-slate-100 rounded-lg overflow-hidden">
+            <Image
+              src={block.data.url || "/placeholder.svg"}
+              alt={block.data.alt || ""}
+              fill
+              className="object-cover"
+              sizes="(max-width: 768px) 100vw, 1024px"
+            />
+          </div>
+          {block.data.caption && <p className="text-sm text-slate-600 text-center mt-2">{block.data.caption}</p>}
+        </div>
+      )
+
+    case "list":
+      const ListTag = block.data.style === "numbered" ? "ol" : "ul"
+      const listClass = block.data.style === "numbered" ? "list-none space-y-2 my-2" : "list-disc pl-5 space-y-1 my-2"
+
+      return (
+        <ListTag className={listClass}>
+          {block.data.items.map((item, i) => (
+            <li key={i} className={block.data.style === "numbered" ? "flex items-center gap-3" : ""}>
+              {block.data.style === "numbered" && (
+                <span className="flex-shrink-0 w-6 h-6 bg-black text-white text-sm font-bold rounded-full flex items-center justify-center">
+                  {i + 1}
+                </span>
+              )}
+              <span className="text-slate-800">{item}</span>
+            </li>
           ))}
-        </tbody>
-      </table>
-    </div>
-  )
-}
+        </ListTag>
+      )
 
-function renderPickup(block: Block & { type: "pickup" }) {
-  const { title, items } = block.data
-
-  return (
-    <div className="my-2">
-      <div className="bg-white border-2 border-red-200 rounded-lg overflow-hidden">
-        <div className="bg-red-500 text-white px-4 py-2">
-          <span className="inline-block bg-red-600 text-white px-3 py-1 rounded-full text-sm font-medium">
-            {title || "ピックアップ情報"}
-          </span>
+    case "table":
+      return (
+        <div className="overflow-x-auto my-2">
+          <table className="min-w-full border border-slate-200 bg-white">
+            {block.data.headers && (
+              <thead>
+                <tr className="bg-blue-100">
+                  {block.data.headers.map((header, i) => (
+                    <th
+                      key={i}
+                      className="px-3 py-2 text-left text-sm font-semibold text-slate-700 border-b border-slate-200"
+                    >
+                      {header}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+            )}
+            <tbody>
+              {block.data.rows.map((row, i) => (
+                <tr key={i} className={i % 2 === 0 ? "bg-white" : "bg-slate-50"}>
+                  {row.map((cell, j) => (
+                    <td key={j} className="px-3 py-2 text-sm text-slate-600 border-b border-slate-100">
+                      {cell}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
-        <div className="p-4">
-          <ul className="space-y-2">
-            {items.map((item, index) => (
-              <li key={index} className="flex items-center gap-2">
-                <Star className="h-4 w-4 text-red-500 flex-shrink-0" />
+      )
+
+    case "callout":
+      const calloutStyles = {
+        info: "border-blue-300 bg-blue-50 text-blue-800",
+        warning: "border-yellow-300 bg-yellow-50 text-yellow-800",
+        success: "border-green-300 bg-green-50 text-green-800",
+      }
+      return (
+        <div className={`border-l-4 p-4 my-2 ${calloutStyles[block.data.tone || "info"]}`}>
+          {block.data.title && <h4 className="font-semibold mb-2">{block.data.title}</h4>}
+          <p>{block.data.text}</p>
+        </div>
+      )
+
+    case "cards-table":
+      return <CardsTable items={block.data.items} headers={block.data.headers} />
+
+    case "pickup":
+      return (
+        <div className="border-l-4 border-red-400 bg-red-50 p-4 my-2">
+          {block.data.title && <h3 className="font-semibold text-red-800 mb-2">{block.data.title}</h3>}
+          <ul className="space-y-1">
+            {block.data.items.map((item, i) => (
+              <li key={i} className="flex items-center gap-2 text-red-700">
+                <span className="text-red-500">★</span>
                 {item.href ? (
-                  <Link href={item.href} className="text-blue-600 hover:text-blue-800 hover:underline text-sm">
+                  <Link href={item.href} className="hover:underline">
                     {item.label}
                   </Link>
                 ) : (
-                  <span className="text-slate-700 text-sm">{item.label}</span>
+                  <span>{item.label}</span>
                 )}
               </li>
             ))}
           </ul>
         </div>
-      </div>
-    </div>
-  )
-}
+      )
 
-function renderButton(block: Block & { type: "button" }) {
-  const { label, href } = block.data
-
-  return (
-    <div className="my-2 flex justify-center">
-      <Link
-        href={href}
-        className="inline-flex items-center gap-2 px-8 py-4 border-2 border-blue-500 text-blue-600 hover:bg-blue-50 rounded-2xl font-medium transition-colors"
-      >
-        <ArrowRight className="h-5 w-5" />
-        {label}
-      </Link>
-    </div>
-  )
-}
-
-function renderCallout(block: Block & { type: "callout" }) {
-  const { tone, text, title } = block.data
-
-  const styles = {
-    info: {
-      bg: "bg-blue-50",
-      border: "border-blue-200",
-      icon: <Info className="h-4 w-4 text-blue-600 flex-shrink-0" />,
-      text: "text-blue-800",
-      label: "情報",
-    },
-    warning: {
-      bg: "bg-yellow-50",
-      border: "border-yellow-200",
-      icon: <AlertCircle className="h-4 w-4 text-yellow-600 flex-shrink-0" />,
-      text: "text-yellow-800",
-      label: "警告",
-    },
-    success: {
-      bg: "bg-green-50",
-      border: "border-green-200",
-      icon: <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0" />,
-      text: "text-green-800",
-      label: "成功",
-    },
-  }
-
-  const style = styles[tone || "info"]
-
-  return (
-    <div className={`my-2 px-2 py-1 rounded-lg border ${style.bg} ${style.border}`}>
-      <div className="flex items-start gap-2">
-        {style.icon}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-0.5">
-            <span className="font-semibold text-sm">{title || style.label}</span>
-          </div>
-          <p className={`text-sm ${style.text} leading-relaxed`}>{text}</p>
+    case "button":
+      return (
+        <div className="my-2">
+          <Link
+            href={block.data.href}
+            className="inline-flex items-center px-4 py-2 border-2 border-blue-600 text-blue-600 font-semibold rounded-lg hover:bg-blue-600 hover:text-white transition-colors"
+          >
+            {block.data.label}
+          </Link>
         </div>
-      </div>
-    </div>
-  )
+      )
+
+    case "related-links":
+      return (
+        <div className="bg-slate-50 p-4 rounded-lg my-2">
+          <h4 className="font-semibold text-slate-900 mb-3">関連リンク</h4>
+          <ul className="space-y-2">
+            {block.data.items.map((item, i) => (
+              <li key={i}>
+                <Link href={item.href} className="text-blue-600 hover:underline">
+                  {item.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )
+
+    case "divider":
+      return <hr className="border-slate-300 my-4" />
+
+    case "toc":
+      // TOC implementation would go here
+      return (
+        <div className="bg-slate-50 p-4 rounded-lg my-2">
+          <h4 className="font-semibold text-slate-900 mb-2">目次</h4>
+          <p className="text-sm text-slate-600">目次は準備中です</p>
+        </div>
+      )
+
+    case "evaluation":
+      return (
+        <div className="bg-white border border-slate-200 rounded-lg p-4 my-2">
+          <h4 className="font-semibold text-slate-900 mb-3">評価</h4>
+          <div className="grid grid-cols-2 gap-4 text-sm">
+            {block.data.tier_rank && (
+              <div>
+                <span className="text-slate-600">TIER: </span>
+                <span className="font-semibold">{block.data.tier_rank}</span>
+              </div>
+            )}
+            {block.data.max_damage && (
+              <div>
+                <span className="text-slate-600">最大ダメージ: </span>
+                <span className="font-semibold">{block.data.max_damage}</span>
+              </div>
+            )}
+            {block.data.build_difficulty && (
+              <div>
+                <span className="text-slate-600">構築難度: </span>
+                <span className="font-semibold">{block.data.build_difficulty}</span>
+              </div>
+            )}
+            {block.data.stat_accessibility && (
+              <div>
+                <span className="text-slate-600">使いやすさ: </span>
+                <span className="font-semibold">{block.data.stat_accessibility}</span>
+              </div>
+            )}
+            {block.data.stat_stability && (
+              <div>
+                <span className="text-slate-600">安定度: </span>
+                <span className="font-semibold">{block.data.stat_stability}</span>
+              </div>
+            )}
+            {block.data.eval_value && (
+              <div>
+                <span className="text-slate-600">総合評価: </span>
+                <span className="font-semibold">{block.data.eval_value}</span>
+                {block.data.eval_count && (
+                  <span className="text-slate-500 text-xs ml-1">({block.data.eval_count})</span>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      )
+
+    default:
+      return null
+  }
 }
 
 function CardsTable({
   items,
-}: { items: Array<{ id?: string; card_id: number; explanation?: string; quantity: number }> }) {
-  const [cards, setCards] = React.useState<Array<{ id: number; name: string; image_url: string; thumb_url?: string }>>(
-    [],
-  )
-  const [loading, setLoading] = React.useState(true)
+  headers,
+}: {
+  items: Array<{ id?: string; card_id: number; explanation?: string; quantity: number }>
+  headers?: { id?: string; card?: string; explanation?: string; quantity?: string }
+}) {
+  const [cards, setCards] = useState<Array<{ id: number; name: string; thumb_url?: string; image_url?: string }>>([])
 
-  React.useEffect(() => {
+  useEffect(() => {
     async function fetchCards() {
       try {
-        const cardIds = items.map((item) => item.card_id)
-        const cardData = await getCardsByIds(cardIds)
-        setCards(cardData)
+        const cardIds = items.map((item) => item.card_id).filter((id) => Number.isFinite(id))
+        if (cardIds.length === 0) return
+
+        const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
+        const { data } = await supabase.from("cards").select("id,name,thumb_url,image_url").in("id", cardIds)
+        setCards(data || [])
       } catch (error) {
         console.error("Failed to fetch cards:", error)
-      } finally {
-        setLoading(false)
       }
     }
 
-    if (items.length > 0) {
-      fetchCards()
-    } else {
-      setLoading(false)
-    }
+    fetchCards()
   }, [items])
 
-  if (loading) {
-    return (
-      <div className="bg-white border border-slate-200 rounded-lg overflow-hidden p-4">
-        <div className="text-center text-slate-500">カード情報を読み込み中...</div>
-      </div>
-    )
-  }
-
-  // 利用可能な列を判定
-  const hasId = items.some((item) => item.id !== undefined)
-  const hasExplanation = items.some((item) => item.explanation !== undefined)
+  // 表示するカラムを判定
+  const hasId = items.some((item) => item.id)
+  const hasExplanation = items.some((item) => item.explanation)
 
   return (
-    <div className="bg-white border border-slate-200 rounded-lg overflow-hidden">
+    <div className="bg-white border border-slate-200 rounded-lg overflow-hidden my-2">
       <table className="w-full border-collapse">
         <thead>
-          <tr className="bg-gray-200">
+          <tr className="bg-blue-100">
             {hasId && (
-              <th className="px-3 py-2 text-left text-sm font-semibold text-slate-700 border-b border-slate-200">ID</th>
-            )}
-            <th className="px-3 py-2 text-left text-sm font-semibold text-slate-700 border-b border-slate-200">
-              カード
-            </th>
-            {hasExplanation && (
-              <th className="px-3 py-2 text-left text-sm font-semibold text-slate-700 border-b border-slate-200">
-                説明
+              <th className="px-3 py-2 text-center text-sm font-semibold text-slate-700 border-b border-slate-200">
+                {headers?.id || "ID"}
               </th>
             )}
             <th className="px-3 py-2 text-center text-sm font-semibold text-slate-700 border-b border-slate-200">
-              枚数
+              {headers?.card || "カード"}
+            </th>
+            {hasExplanation && (
+              <th className="px-3 py-2 text-center text-sm font-semibold text-slate-700 border-b border-slate-200">
+                {headers?.explanation || "説明"}
+              </th>
+            )}
+            <th className="px-3 py-2 text-center text-sm font-semibold text-slate-700 border-b border-slate-200">
+              {headers?.quantity || "枚数"}
             </th>
           </tr>
         </thead>
@@ -301,189 +300,43 @@ function CardsTable({
             return (
               <tr key={itemIndex} className={itemIndex % 2 === 0 ? "bg-white" : "bg-slate-50"}>
                 {hasId && (
-                  <td className="px-3 py-2 text-sm text-slate-600 border-b border-slate-100">{item.id || "-"}</td>
+                  <td className="px-3 py-2 text-center text-sm text-slate-600 border-b border-slate-100 align-middle">
+                    {item.id || "-"}
+                  </td>
                 )}
-                <td className="px-3 py-2 text-sm text-slate-600 border-b border-slate-100">
-                  <div className="flex items-center gap-3">
+                <td className="px-3 py-2 text-center text-sm text-slate-600 border-b border-slate-100 align-middle">
+                  <div className="flex flex-col items-center justify-center gap-2">
                     <div className="flex-shrink-0">
                       <Image
                         src={card?.thumb_url || card?.image_url || "/placeholder.svg"}
                         alt={card?.name || `Card ${item.card_id}`}
-                        width={40}
-                        height={56}
+                        width={60}
+                        height={84}
                         className="rounded border border-slate-200 object-cover"
                       />
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-sm font-medium text-slate-900 truncate">
-                        {card?.name || `Card ID: ${item.card_id}`}
-                      </div>
+                    <div className="text-sm font-medium text-slate-900 text-center">
+                      {card?.name || `Card ID: ${item.card_id}`}
                     </div>
                   </div>
                 </td>
                 {hasExplanation && (
-                  <td className="px-3 py-2 text-sm text-slate-600 border-b border-slate-100">
+                  <td className="px-3 py-2 text-center text-sm text-slate-600 border-b border-slate-100 align-middle">
                     {item.explanation || "-"}
                   </td>
                 )}
-                <td className="px-3 py-2 text-center text-sm text-slate-600 border-b border-slate-100">
-                  <span className="inline-flex items-center justify-center w-6 h-6 text-xs font-bold text-white bg-blue-600 rounded-full">
-                    {item.quantity}
-                  </span>
+                <td className="px-3 py-2 text-center text-sm text-slate-600 border-b border-slate-100 align-middle">
+                  <div className="flex justify-center">
+                    <span className="inline-flex items-center justify-center w-8 h-8 text-sm font-bold text-white bg-blue-600 rounded-full">
+                      {item.quantity}
+                    </span>
+                  </div>
                 </td>
               </tr>
             )
           })}
         </tbody>
       </table>
-    </div>
-  )
-}
-
-export default function RenderArticle({ blocks }: RenderArticleProps) {
-  return (
-    <div className="prose prose-slate max-w-none">
-      {blocks.map((block, index) => {
-        switch (block.type) {
-          case "heading":
-            return <div key={index}>{renderHeading(block)}</div>
-
-          case "paragraph":
-            return (
-              <p key={index} className="text-slate-700 leading-relaxed my-2">
-                {block.data.text.split("\\n").map((line, lineIndex, lines) => (
-                  <span key={lineIndex}>
-                    {line}
-                    {lineIndex < lines.length - 1 && <br />}
-                  </span>
-                ))}
-              </p>
-            )
-
-          case "image":
-            return (
-              <div key={index} className="my-2">
-                <div className="relative w-full bg-slate-100 rounded-lg overflow-hidden">
-                  <Image
-                    src={block.data.url || "/placeholder.svg"}
-                    alt={block.data.alt || ""}
-                    width={800}
-                    height={400}
-                    className="w-full h-auto object-cover"
-                  />
-                </div>
-                {block.data.caption && <p className="text-sm text-slate-500 text-center mt-2">{block.data.caption}</p>}
-              </div>
-            )
-
-          case "toc":
-            return <div key={index}>{renderToc(blocks)}</div>
-
-          case "list":
-            const ListTag = block.data.style === "numbered" ? "ol" : "ul"
-            return (
-              <ListTag key={index} className="my-2 text-slate-700">
-                {block.data.items.map((item, itemIndex) => (
-                  <li key={itemIndex} className="leading-snug mb-1">
-                    {item}
-                  </li>
-                ))}
-              </ListTag>
-            )
-
-          case "table":
-            return (
-              <div key={index} className="my-0">
-                {renderTable(block)}
-              </div>
-            )
-
-          case "pickup":
-            return <div key={index}>{renderPickup(block)}</div>
-
-          case "button":
-            return <div key={index}>{renderButton(block)}</div>
-
-          case "callout":
-            return <div key={index}>{renderCallout(block)}</div>
-
-          case "divider":
-            return <hr key={index} className="my-2 border-slate-200" />
-
-          case "related-links":
-            return (
-              <div key={index} className="mt-1 mb-2 bg-slate-50 border border-slate-200 rounded-lg p-2">
-                <h4 className="font-semibold text-slate-900 mb-1">関連リンク</h4>
-                <ul className="space-y-2">
-                  {block.data.items.map((item, itemIndex) => (
-                    <li key={itemIndex}>
-                      <Link
-                        href={item.href}
-                        className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 hover:underline text-sm"
-                      >
-                        <ChevronRight className="h-4 w-4" />
-                        {item.label}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )
-
-          case "evaluation":
-            return (
-              <div key={index} className="my-2 bg-white border border-slate-200 rounded-lg p-6">
-                <h4 className="font-semibold text-slate-900 mb-4">評価</h4>
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  {block.data.tier_rank && (
-                    <div>
-                      <span className="text-slate-600">ティアランク:</span>
-                      <span className="ml-2 font-medium">{block.data.tier_rank}</span>
-                    </div>
-                  )}
-                  {block.data.max_damage && (
-                    <div>
-                      <span className="text-slate-600">最大ダメージ:</span>
-                      <span className="ml-2 font-medium">{block.data.max_damage}</span>
-                    </div>
-                  )}
-                  {block.data.build_difficulty && (
-                    <div>
-                      <span className="text-slate-600">構築難易度:</span>
-                      <span className="ml-2 font-medium">{block.data.build_difficulty}</span>
-                    </div>
-                  )}
-                  {block.data.stat_accessibility && (
-                    <div>
-                      <span className="text-slate-600">アクセス性:</span>
-                      <span className="ml-2 font-medium">{block.data.stat_accessibility}</span>
-                    </div>
-                  )}
-                  {block.data.stat_stability && (
-                    <div>
-                      <span className="text-slate-600">安定性:</span>
-                      <span className="ml-2 font-medium">{block.data.stat_stability}</span>
-                    </div>
-                  )}
-                  {block.data.eval_value !== undefined && block.data.eval_count !== undefined && (
-                    <div className="col-span-2">
-                      <span className="text-slate-600">評価:</span>
-                      <span className="ml-2 font-medium">
-                        {block.data.eval_value}/5 ({block.data.eval_count}件)
-                      </span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )
-
-          case "cards-table":
-            return <CardsTable key={index} items={block.data.items} />
-
-          default:
-            return null
-        }
-      })}
     </div>
   )
 }

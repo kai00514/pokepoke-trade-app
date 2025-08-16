@@ -116,7 +116,8 @@ export type EvaluationBlock = BlockBase<
 export type CardsTableBlock = BlockBase<
   "cards-table",
   {
-    items: { card_id: string | number; quantity?: number; name?: string }[]
+    items: { id?: string; card_id: string | number; explanation?: string; quantity?: number; name?: string }[]
+    headers?: { id?: string; card?: string; explanation?: string; quantity?: string }
   }
 >
 
@@ -366,14 +367,37 @@ function validateBlocks(rawBlocks: RawDbBlock[]): Block[] {
           const items = itemsRaw
             .map((it: any) => {
               const card_id = typeof it?.card_id === "number" || typeof it?.card_id === "string" ? it.card_id : null
-              const quantity =
-                typeof it?.quantity === "number" && it.quantity > 0 ? Math.floor(it.quantity) : (1 as number)
+              const quantity = typeof it?.quantity === "number" && it.quantity > 0 ? Math.floor(it.quantity) : 1
               const name = typeof it?.name === "string" ? it.name : undefined
-              return card_id ? { card_id, quantity, name } : null
+              const id = typeof it?.id === "string" ? it.id : undefined
+              const explanation = typeof it?.explanation === "string" ? it.explanation : undefined
+              return card_id ? { card_id, quantity, name, id, explanation } : null
             })
-            .filter(Boolean) as { card_id: string | number; quantity: number; name?: string }[]
+            .filter(Boolean) as {
+            card_id: string | number
+            quantity: number
+            name?: string
+            id?: string
+            explanation?: string
+          }[]
+
+          // ヘッダー情報の処理
+          const headers =
+            d?.headers && typeof d.headers === "object"
+              ? {
+                  id: typeof d.headers.id === "string" ? d.headers.id : undefined,
+                  card: typeof d.headers.card === "string" ? d.headers.card : undefined,
+                  explanation: typeof d.headers.explanation === "string" ? d.headers.explanation : undefined,
+                  quantity: typeof d.headers.quantity === "string" ? d.headers.quantity : undefined,
+                }
+              : undefined
+
           if (items.length > 0) {
-            safe.push({ type: "cards-table", display_order: order, data: { items } })
+            safe.push({
+              type: "cards-table",
+              display_order: order,
+              data: { items, headers },
+            })
           } else {
             console.warn("[info-articles] Skip invalid cards-table block", { order, d })
           }
