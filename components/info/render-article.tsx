@@ -108,14 +108,14 @@ function renderTable(block: Block & { type: "table" }) {
 
   return (
     <div className="bg-white border border-slate-200 rounded-lg overflow-hidden shadow-sm my-0 leading-snug">
-      <table className="w-full border-collapse border border-slate-200">
+      <table className="w-full border-collapse border border-slate-200 leading-snug">
         {headers && headers.length > 0 && (
           <thead>
             <tr className="bg-gray-100 leading-snug">
               {headers.map((header, index) => (
                 <th
                   key={index}
-                  className="px-4 py-0 text-left text-sm font-semibold text-slate-700 border-b border-slate-200 border-r border-slate-200 last:border-r-0"
+                  className="px-4 py-0 text-left text-sm font-semibold text-slate-700 border-b border-slate-200 border-r border-slate-200 last:border-r-0 leading-snug"
                 >
                   {header}
                 </th>
@@ -129,7 +129,7 @@ function renderTable(block: Block & { type: "table" }) {
               {row.map((cell, cellIndex) => (
                 <td
                   key={cellIndex}
-                  className="px-4 py-0 text-sm text-slate-600 border-b border-slate-100 border-r border-slate-200 last:border-r-0"
+                  className="px-4 py-0 text-sm text-slate-600 border-b border-slate-100 border-r border-slate-200 last:border-r-0 leading-snug"
                 >
                   {cell}
                 </td>

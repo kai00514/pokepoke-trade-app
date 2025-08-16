@@ -102,7 +102,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUserProfile(profile)
 
       if (isBackgroundRetry) {
-        backgroundRetryCount.current = 0 // 成功したらカウントリセット
+        backgroundRetryCount.current = 0 // 成功し��らカウントリセット
       }
     } catch (error) {
       console.error("Profile load error:", error)
