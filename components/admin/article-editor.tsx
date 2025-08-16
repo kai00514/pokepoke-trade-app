@@ -49,6 +49,11 @@ export function ArticleEditor({ article, isEditing = false }: ArticleEditorProps
     blocks: article?.blocks || [],
   })
 
+  console.log("=== DEBUG: ArticleEditor component initialized ===")
+  console.log("Initial article:", JSON.stringify(article, null, 2))
+  console.log("Is editing:", isEditing)
+  console.log("Initial form data:", JSON.stringify(formData, null, 2))
+
   // スラッグの自動生成
   useEffect(() => {
     if (!isEditing && formData.title && !formData.slug) {
@@ -57,25 +62,48 @@ export function ArticleEditor({ article, isEditing = false }: ArticleEditorProps
         .replace(/[^a-z0-9\u3040-\u309f\u30a0-\u30ff\u4e00-\u9faf]/g, "-")
         .replace(/-+/g, "-")
         .replace(/^-|-$/g, "")
+
+      console.log("=== DEBUG: Auto-generating slug ===")
+      console.log("Title:", formData.title)
+      console.log("Generated slug:", slug)
+
       setFormData((prev) => ({ ...prev, slug }))
     }
   }, [formData.title, isEditing])
 
   const handleInputChange = (field: keyof Article, value: any) => {
-    setFormData((prev) => ({ ...prev, [field]: value }))
+    console.log("=== DEBUG: Input change ===")
+    console.log("Field:", field)
+    console.log("Value:", value)
+    console.log("Value type:", typeof value)
+
+    setFormData((prev) => {
+      const newData = { ...prev, [field]: value }
+      console.log("New form data:", JSON.stringify(newData, null, 2))
+      return newData
+    })
   }
 
   const handleBlocksChange = (blocks: ArticleBlock[]) => {
+    console.log("=== DEBUG: Blocks change ===")
+    console.log("New blocks count:", blocks.length)
+    console.log("New blocks:", JSON.stringify(blocks, null, 2))
+
     setFormData((prev) => ({ ...prev, blocks }))
   }
 
   const addBlock = (type: string) => {
+    console.log("=== DEBUG: Adding block ===")
+    console.log("Block type:", type)
+
     const newBlock: ArticleBlock = {
       id: `block-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       type,
       data: getDefaultBlockData(type),
       order: formData.blocks.length,
     }
+
+    console.log("New block:", JSON.stringify(newBlock, null, 2))
 
     setFormData((prev) => ({
       ...prev,
@@ -84,24 +112,33 @@ export function ArticleEditor({ article, isEditing = false }: ArticleEditorProps
   }
 
   const getDefaultBlockData = (type: string) => {
+    console.log("=== DEBUG: Getting default block data for type:", type)
+
+    let defaultData
     switch (type) {
       case "heading":
-        return { text: "", level: 2 }
+        defaultData = { text: "", level: 2 }
+        break
       case "paragraph":
-        return { text: "" }
+        defaultData = { text: "" }
+        break
       case "image":
-        return { url: "", alt: "", caption: "", aspect: "16:9" }
+        defaultData = { url: "", alt: "", caption: "", aspect: "16:9" }
+        break
       case "list":
-        return { items: [""], style: "bulleted" }
+        defaultData = { items: [""], style: "bulleted" }
+        break
       case "table":
-        return {
+        defaultData = {
           headers: ["ヘッダー1", "ヘッダー2"],
           rows: [["セル1", "セル2"]],
         }
+        break
       case "callout":
-        return { body: "", tone: "info", title: "" }
+        defaultData = { body: "", tone: "info", title: "" }
+        break
       case "cards-table":
-        return {
+        defaultData = {
           items: [
             {
               id: "①",
@@ -117,10 +154,12 @@ export function ArticleEditor({ article, isEditing = false }: ArticleEditorProps
             explanation: "役割",
           },
         }
+        break
       case "toc":
-        return { fromHeadings: true }
+        defaultData = { fromHeadings: true }
+        break
       case "evaluation":
-        return {
+        defaultData = {
           tier_rank: "1",
           eval_count: 0,
           eval_value: 0,
@@ -129,32 +168,52 @@ export function ArticleEditor({ article, isEditing = false }: ArticleEditorProps
           build_difficulty: "",
           stat_accessibility: "",
         }
+        break
       case "related-links":
-        return {
+        defaultData = {
           items: [{ href: "", label: "" }],
         }
+        break
       case "divider":
-        return {}
+        defaultData = {}
+        break
       default:
-        return {}
+        defaultData = {}
     }
+
+    console.log("Default data for", type, ":", JSON.stringify(defaultData, null, 2))
+    return defaultData
   }
 
   const handleSave = async () => {
+    console.log("=== DEBUG: ArticleEditor - handleSave started ===")
+    console.log("Current form data:", JSON.stringify(formData, null, 2))
+    console.log("Is editing:", isEditing)
+    console.log("Article ID:", article?.id)
+
+    // バリデーション
     if (!formData.title.trim()) {
+      console.log("ERROR: Title is empty")
       toast.error("タイトルを入力してください")
       return
     }
 
     if (!formData.slug.trim()) {
+      console.log("ERROR: Slug is empty")
       toast.error("スラッグを入力してください")
       return
     }
 
-    console.log("=== DEBUG: Article Editor - handleSave ===")
-    console.log("Form data:", JSON.stringify(formData, null, 2))
-    console.log("Is editing:", isEditing)
-    console.log("Article ID:", article?.id)
+    if (!formData.category) {
+      console.log("ERROR: Category is empty")
+      toast.error("カテゴリーを選択してください")
+      return
+    }
+
+    console.log("=== DEBUG: Validation passed ===")
+    console.log("Title:", formData.title)
+    console.log("Slug:", formData.slug)
+    console.log("Category:", formData.category)
 
     setIsSaving(true)
 
@@ -162,27 +221,35 @@ export function ArticleEditor({ article, isEditing = false }: ArticleEditorProps
       let result
       if (isEditing && article?.id) {
         console.log("=== DEBUG: Updating existing article ===")
+        console.log("Article ID to update:", article.id)
         result = await updateArticle(article.id, formData)
       } else {
         console.log("=== DEBUG: Creating new article ===")
         result = await createArticle(formData)
       }
 
-      console.log("=== DEBUG: Save result ===")
-      console.log("Result:", result)
+      console.log("=== DEBUG: Save operation result ===")
+      console.log("Result success:", result.success)
+      console.log("Result data:", JSON.stringify(result.data, null, 2))
+      console.log("Result error:", result.error)
 
       if (result.success) {
+        console.log("=== DEBUG: Save successful ===")
         toast.success(isEditing ? "記事を更新しました" : "記事を作成しました")
         router.push("/admin/articles")
       } else {
-        console.error("Save failed:", result.error)
+        console.error("=== DEBUG: Save failed ===")
+        console.error("Error message:", result.error)
         toast.error(result.error || "保存に失敗しました")
       }
     } catch (error) {
-      console.error("Save error:", error)
+      console.error("=== DEBUG: Exception in handleSave ===")
+      console.error("Error message:", error instanceof Error ? error.message : "Unknown error")
       console.error("Error stack:", error instanceof Error ? error.stack : "No stack trace")
-      toast.error("保存に失敗しました")
+      console.error("Full error object:", error)
+      toast.error("保存中にエラーが発生しました")
     } finally {
+      console.log("=== DEBUG: Setting isSaving to false ===")
       setIsSaving(false)
     }
   }

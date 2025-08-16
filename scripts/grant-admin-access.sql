@@ -1,15 +1,25 @@
--- 現在のユーザーに管理者権限を付与
--- 注意: このスクリプトは管理者が実行する必要があります
+-- 現在のユーザーに管理者権限を付与（必要に応じて実行）
+-- 実際のユーザーIDに置き換えてください
 
--- 現在認証されているユーザーのメタデータを更新
-UPDATE auth.users 
-SET raw_user_meta_data = COALESCE(raw_user_meta_data, '{}'::jsonb) || '{"is_admin": "true"}'::jsonb
-WHERE id = auth.uid();
+-- 例: 特定のユーザーに管理者権限を付与
+-- UPDATE auth.users 
+-- SET raw_user_meta_data = jsonb_set(
+--   COALESCE(raw_user_meta_data, '{}'), 
+--   '{is_admin}', 
+--   'true'
+-- )
+-- WHERE email = 'your-admin-email@example.com';
 
--- 確認用クエリ（実行後に確認してください）
-SELECT 
-  id,
-  email,
-  raw_user_meta_data->>'is_admin' as is_admin
-FROM auth.users 
-WHERE id = auth.uid();
+-- または、現在ログインしているユーザーに管理者権限を付与
+-- UPDATE auth.users 
+-- SET raw_user_meta_data = jsonb_set(
+--   COALESCE(raw_user_meta_data, '{}'), 
+--   '{is_admin}', 
+--   'true'
+-- )
+-- WHERE id = auth.uid();
+
+-- 確認用クエリ
+SELECT id, email, raw_user_meta_data->>'is_admin' as is_admin
+FROM auth.users
+WHERE raw_user_meta_data->>'is_admin' = 'true';

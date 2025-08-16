@@ -12,6 +12,10 @@ if (!supabaseAnonKey) {
   throw new Error("NEXT_PUBLIC_SUPABASE_ANON_KEY is not defined in environment variables")
 }
 
+console.log("=== DEBUG: Creating Supabase client ===")
+console.log("URL:", supabaseUrl)
+console.log("Key:", supabaseAnonKey ? "present" : "missing")
+
 // シングルトンインスタンスを作成
 export const supabase = createBrowserClient(supabaseUrl, supabaseAnonKey)
 
