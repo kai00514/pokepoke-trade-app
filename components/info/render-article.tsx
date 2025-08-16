@@ -326,7 +326,7 @@ function CardsTable({
                       />
                     </div>
                     <div className="text-center">
-                      <div className="text-xs font-medium text-slate-900">
+                      <div className="text-[10px] font-medium text-slate-900">
                         {card?.name || `Card ID: ${item.card_id}`}
                       </div>
                     </div>
