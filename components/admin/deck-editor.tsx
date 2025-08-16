@@ -13,11 +13,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Slider } from "@/components/ui/slider"
 import { Save, ArrowLeft, Plus, X, Eye } from "lucide-react"
 import { toast } from "sonner"
-import { CardDisplay } from "./card-display" // Import CardDisplay component
 
 import { type CreateDeckData, createDeck, updateDeck } from "@/lib/actions/admin-decks"
 import { ImageUpload } from "./image-upload"
 import { CardSelectionModal } from "./card-selection-modal"
+import { CardDisplay } from "./card-display"
 
 interface DeckEditorProps {
   deck?: any
@@ -491,7 +491,10 @@ export function DeckEditor({ deck, isEditing = false }: DeckEditorProps) {
 
               {/* 選択されたカード一覧 */}
               <div className="space-y-2">
-                <Label>選択されたカード ({formData.deck_cards.length}枚)</Label>
+                <Label>
+                  選択されたカード ({formData.deck_cards.length}種類,{" "}
+                  {formData.deck_cards.reduce((sum, card) => sum + card.card_count, 0)}枚)
+                </Label>
                 {formData.deck_cards.length === 0 ? (
                   <div className="text-center py-8 text-gray-500 border-2 border-dashed border-gray-200 rounded-lg">
                     「カードを選択」ボタンからカードを追加してください
@@ -503,7 +506,7 @@ export function DeckEditor({ deck, isEditing = false }: DeckEditorProps) {
                         <CardContent className="p-3">
                           <div className="flex items-center space-x-3">
                             <div className="w-12 h-16 flex-shrink-0">
-                              <CardDisplay cardId={card.card_id} useThumb />
+                              <CardDisplay cardId={card.card_id} useThumb className="w-full h-full" />
                             </div>
                             <div className="flex-1 min-w-0">
                               <div className="font-medium text-sm">ID: {card.card_id}</div>
