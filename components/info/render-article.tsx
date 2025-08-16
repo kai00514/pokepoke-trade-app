@@ -129,7 +129,7 @@ function renderTable(block: Block & { type: "table" }) {
               {row.map((cell, cellIndex) => (
                 <td
                   key={cellIndex}
-                  className="px-4 py-0 text-sm text-slate-600 border-b border-slate-100 border-r border-slate-200 last:border-r-0 leading-snug"
+                  className="px-4 py-1 text-sm text-slate-600 border-b border-slate-100 border-r border-slate-200 last:border-r-0 leading-snug"
                 >
                   {cell}
                 </td>
