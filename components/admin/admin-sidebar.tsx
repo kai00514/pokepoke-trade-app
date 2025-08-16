@@ -32,6 +32,16 @@ const menuItems = [
     icon: PenTool,
   },
   {
+    title: "デッキ管理",
+    url: "/admin/decks",
+    icon: FileText,
+  },
+  {
+    title: "デッキ作成",
+    url: "/admin/decks/create",
+    icon: PenTool,
+  },
+  {
     title: "ユーザー管理",
     url: "/admin/users",
     icon: Users,
