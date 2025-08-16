@@ -1,6 +1,6 @@
-import { notFound } from "next/navigation"
-import { DeckEditor } from "@/components/admin/deck-editor"
 import { getDeckById } from "@/lib/actions/admin-decks"
+import { DeckEditor } from "@/components/admin/deck-editor"
+import { notFound } from "next/navigation"
 
 interface EditDeckPageProps {
   params: {
@@ -15,5 +15,5 @@ export default async function EditDeckPage({ params }: EditDeckPageProps) {
     notFound()
   }
 
-  return <DeckEditor initialData={result.data} isEditing />
+  return <DeckEditor initialData={result.data} isEditing={true} deckId={params.id} />
 }
