@@ -81,7 +81,7 @@ function renderToc(blocks: Block[]) {
               return (
                 <li
                   key={index}
-                  className={`${isH3 ? "ml-4" : ""} border-b border-gray-200 last:border-b-0 py-0 leading-none`}
+                  className={`${isH3 ? "ml-4" : ""} border-b border-gray-200 last:border-b-0 py-0 leading-tight`}
                 >
                   <Link
                     href={`#${id}`}
