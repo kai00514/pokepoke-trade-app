@@ -234,7 +234,9 @@ function renderCallout(block: Block & { type: "callout" }) {
   )
 }
 
-function CardsTable({ items }: { items: Array<{ card_id: number; quantity: number }> }) {
+function CardsTable({
+  items,
+}: { items: Array<{ id?: string; card_id: number; explanation?: string; quantity: number }> }) {
   const [cards, setCards] = React.useState<Array<{ id: number; name: string; image_url: string; thumb_url?: string }>>(
     [],
   )
@@ -268,36 +270,72 @@ function CardsTable({ items }: { items: Array<{ card_id: number; quantity: numbe
     )
   }
 
+  // 利用可能な列を判定
+  const hasId = items.some((item) => item.id !== undefined)
+  const hasExplanation = items.some((item) => item.explanation !== undefined)
+
   return (
     <div className="bg-white border border-slate-200 rounded-lg overflow-hidden">
-      <div className="grid gap-0">
-        {items.map((item, itemIndex) => {
-          const card = cards.find((c) => c.id === item.card_id)
-          return (
-            <div key={itemIndex} className="flex items-center bg-slate-50 px-3">
-              <div className="flex-shrink-0">
-                <Image
-                  src={card?.thumb_url || card?.image_url || "/placeholder.svg"}
-                  alt={card?.name || `Card ${item.card_id}`}
-                  width={60}
-                  height={84}
-                  className="rounded border border-slate-200 object-cover"
-                />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="text-base font-medium text-slate-900 truncate py-0">
-                  {card?.name || `Card ID: ${item.card_id}`}
-                </div>
-              </div>
-              <div className="flex-shrink-0">
-                <span className="inline-flex items-center justify-center w-8 h-8 text-sm font-bold text-white bg-blue-600 rounded-full">
-                  {item.quantity}
-                </span>
-              </div>
-            </div>
-          )
-        })}
-      </div>
+      <table className="w-full border-collapse">
+        <thead>
+          <tr className="bg-gray-200">
+            {hasId && (
+              <th className="px-3 py-2 text-left text-sm font-semibold text-slate-700 border-b border-slate-200">ID</th>
+            )}
+            <th className="px-3 py-2 text-left text-sm font-semibold text-slate-700 border-b border-slate-200">
+              カード
+            </th>
+            {hasExplanation && (
+              <th className="px-3 py-2 text-left text-sm font-semibold text-slate-700 border-b border-slate-200">
+                説明
+              </th>
+            )}
+            <th className="px-3 py-2 text-center text-sm font-semibold text-slate-700 border-b border-slate-200">
+              枚数
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {items.map((item, itemIndex) => {
+            const card = cards.find((c) => c.id === item.card_id)
+            return (
+              <tr key={itemIndex} className={itemIndex % 2 === 0 ? "bg-white" : "bg-slate-50"}>
+                {hasId && (
+                  <td className="px-3 py-2 text-sm text-slate-600 border-b border-slate-100">{item.id || "-"}</td>
+                )}
+                <td className="px-3 py-2 text-sm text-slate-600 border-b border-slate-100">
+                  <div className="flex items-center gap-3">
+                    <div className="flex-shrink-0">
+                      <Image
+                        src={card?.thumb_url || card?.image_url || "/placeholder.svg"}
+                        alt={card?.name || `Card ${item.card_id}`}
+                        width={40}
+                        height={56}
+                        className="rounded border border-slate-200 object-cover"
+                      />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-medium text-slate-900 truncate">
+                        {card?.name || `Card ID: ${item.card_id}`}
+                      </div>
+                    </div>
+                  </div>
+                </td>
+                {hasExplanation && (
+                  <td className="px-3 py-2 text-sm text-slate-600 border-b border-slate-100">
+                    {item.explanation || "-"}
+                  </td>
+                )}
+                <td className="px-3 py-2 text-center text-sm text-slate-600 border-b border-slate-100">
+                  <span className="inline-flex items-center justify-center w-6 h-6 text-xs font-bold text-white bg-blue-600 rounded-full">
+                    {item.quantity}
+                  </span>
+                </td>
+              </tr>
+            )
+          })}
+        </tbody>
+      </table>
     </div>
   )
 }
@@ -440,11 +478,7 @@ export default function RenderArticle({ blocks }: RenderArticleProps) {
             )
 
           case "cards-table":
-            return (
-              <div key={index} className="my-0">
-                <CardsTable items={block.data.items} />
-              </div>
-            )
+            return <CardsTable key={index} items={block.data.items} />
 
           default:
             return null
