@@ -67,11 +67,11 @@ function renderToc(blocks: Block[]) {
   return (
     <div className="bg-slate-50 border border-slate-200 rounded-lg overflow-hidden mt-1 mb-2 py-0">
       <div className="border-l-4 border-yellow-400 bg-white">
-        <div className="flex items-center gap-1 px-4 py-0 border-b border-slate-200 leading-none">
+        <div className="flex items-center gap-1 px-4 py-1 border-b border-slate-200 leading-none">
           <span className="flex items-center justify-center h-4 w-4">
             <List className="w-4 h-4 text-slate-600 relative top-[1px]" />
           </span>
-          <h3 className="font-semibold text-slate-900 text-sm leading-none">目次</h3>
+          <h3 className="font-semibold text-slate-900 text-sm leading-tight">目次</h3>
         </div>
         <nav className="px-4 py-0">
           <ul className="list-disc list-outside marker:text-black pl-4 leading-none">
