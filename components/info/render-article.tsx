@@ -373,7 +373,7 @@ export default function RenderArticle({ blocks }: RenderArticleProps) {
 
           case "image":
             return (
-              <div key={index} className="my-2">
+              <div key={index} className="my-">
                 <div className="relative w-full bg-slate-100 rounded-lg overflow-hidden">
                   <Image
                     src={block.data.url || "/placeholder.svg"}

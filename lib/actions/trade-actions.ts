@@ -727,7 +727,7 @@ export async function getMyTradePosts(userId: string) {
         displayStatus = "open"
       }
 
-      // プライマリカードを取得
+      // ���ライマリカードを取得
       const primaryWantedCard = wantedRelations
         ?.filter((r) => r.post_id === post.id && r.is_primary)
         .map((r) => {

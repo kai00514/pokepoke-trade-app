@@ -1,4 +1,3 @@
-import Image from "next/image"
 import Link from "next/link"
 import Header from "@/components/layout/header"
 import Footer from "@/components/footer"
@@ -171,34 +170,6 @@ export default async function InfoDetailPage({ params }: InfoDetailPageProps) {
               return null
             })()}
 
-            {/* バナー＋導入文 - blocksからimageタイプを検索 */}
-            <section className="rounded-xl bg-white ring-1 ring-slate-200 overflow-hidden">
-              <div className="relative w-full aspect-[16/9] bg-slate-100">
-                <Image
-                  src={(() => {
-                    const imageBlock = blocks.find((block) => block.type === "image")
-                    return imageBlock?.data.url || meta.thumbnail_image_url || "/placeholder.svg"
-                  })()}
-                  alt={`${meta.deck_name ?? "デッキ"} バナー画像`}
-                  fill
-                  className="object-cover"
-                  sizes="(max-width: 768px) 100vw, 1024px"
-                  priority
-                />
-              </div>
-              <div className="p-4 sm:p-6">
-                <p className="text-slate-800">
-                  {(() => {
-                    const paragraphBlock = blocks.find((block) => block.type === "paragraph")
-                    return paragraphBlock?.data.text || intro
-                  })()}
-                </p>
-              </div>
-            </section>
-
-            {/* 目次 */}
-            {/* Placeholder for table of contents if needed */}
-
             {/* 〇〇デッキのレシピ */}
             {Array.isArray(cards) && cards.length > 0 && (
               <section
@@ -361,7 +332,7 @@ export default async function InfoDetailPage({ params }: InfoDetailPageProps) {
 
             {/* Render Article Blocks - display_orderに従って表示 */}
             <div className="prose prose-slate max-w-none">
-              <RenderArticle blocks={blocks} />
+              <RenderArticle blocks={blocks.filter((block) => block.display_order >= 10)} />
             </div>
 
             {/* 戻るリンク */}
