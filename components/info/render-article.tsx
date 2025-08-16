@@ -41,7 +41,7 @@ function renderHeading(block: Block & { type: "heading" }) {
 
   if (level === 3) {
     return (
-      <div className="relative my-3">
+      <div className="relative my-5">
         <div className="bg-gradient-to-r from-slate-600 to-slate-500 text-white px-3 py-[5px] rounded-md shadow-md border-l-4 border-green-500">
           <h3 className="m-0 text-lg font-semibold text-white leading-snug">{text}</h3>
         </div>
@@ -373,7 +373,7 @@ export default function RenderArticle({ blocks }: RenderArticleProps) {
 
           case "image":
             return (
-              <div key={index} className="my-">
+              <div key={index} className="my-0">
                 <div className="relative w-full bg-slate-100 rounded-lg overflow-hidden">
                   <Image
                     src={block.data.url || "/placeholder.svg"}
