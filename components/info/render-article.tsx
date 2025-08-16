@@ -107,7 +107,7 @@ function renderTable(block: Block & { type: "table" }) {
   const { headers, rows } = block.data
 
   return (
-    <div className="bg-white border border-slate-200 rounded-lg overflow-hidden shadow-sm my-0 leading-snug">
+    <div className="bg-white border border-slate-200 rounded-lg overflow-hidden shadow-sm my-0 leading-snug py-1">
       <table className="w-full border-collapse border border-slate-200 leading-snug">
         {headers && headers.length > 0 && (
           <thead>
