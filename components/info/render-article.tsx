@@ -108,7 +108,7 @@ function renderTable(block: Block & { type: "table" }) {
         <table className="w-full border-collapse border border-slate-200">
           {headers && headers.length > 0 && (
             <thead>
-              <tr className="bg-gray-100">
+              <tr className="bg-gray-100 leading-snug">
                 {headers.map((header, index) => (
                   <th
                     key={index}
