@@ -104,7 +104,7 @@ function renderTable(block: Block & { type: "table" }) {
 
   return (
     <div className="overflow-x-auto">
-      <div className="bg-white border border-slate-200 rounded-lg overflow-hidden shadow-sm !my-1">
+      <div className="bg-white border border-slate-200 rounded-lg overflow-hidden shadow-sm mb-0 mt-0">
         <table className="w-full border-collapse my-2 border border-slate-200">
           {headers && headers.length > 0 && (
             <thead>

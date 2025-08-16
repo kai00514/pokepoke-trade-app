@@ -33,7 +33,7 @@
 ---
 
 表示ロジック（アルゴリズム）
-A. 1ページ分を読み込む際の前処理（バッチ取得）
+A. 1ページ分を読み込���際の前処理（バッチ取得）
 - Step A-1: 表示対象の全デッキからカード ID を一括抽出
   - `allIds = unique(decks.flatMap(d => d.selected_card_ids))`
 - Step A-2: `getCardsByIds(allIds)` を1回呼ぶ（バッチ化）
