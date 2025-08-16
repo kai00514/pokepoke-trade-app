@@ -9,11 +9,11 @@ interface EditDeckPageProps {
 }
 
 export default async function EditDeckPage({ params }: EditDeckPageProps) {
-  const result = await getDeckById(params.id)
+  const result = await getDeckById(Number.parseInt(params.id))
 
-  if (!result.success || !result.data) {
+  if (!result.success) {
     notFound()
   }
 
-  return <DeckEditor deck={result.data} isEditing />
+  return <DeckEditor initialData={result.data} isEditing />
 }
