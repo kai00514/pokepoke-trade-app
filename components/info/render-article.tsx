@@ -115,7 +115,7 @@ function renderTable(block: Block & { type: "table" }) {
               {headers.map((header, index) => (
                 <th
                   key={index}
-                  className="px-4 py-0 text-left text-sm font-semibold text-slate-700 border-b border-slate-200 border-r border-slate-200 last:border-r-0 leading-snug"
+                  className="px-4 py-1 text-left text-sm font-semibold text-slate-700 border-b border-slate-200 border-r border-slate-200 last:border-r-0 leading-snug"
                 >
                   {header}
                 </th>
