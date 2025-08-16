@@ -162,14 +162,23 @@ export default async function InfoDetailPage({ params }: InfoDetailPageProps) {
               </div>
             </header>
 
-            {/* ピックアップ情報 */}
-            {Array.isArray(pickups) && pickups.length > 0 && <PickupInfo items={pickups} />}
+            {/* ピックアップ情報 - blocksからpickupタイプを検索 */}
+            {(() => {
+              const pickupBlock = blocks.find((block) => block.type === "pickup")
+              if (pickupBlock && pickupBlock.data.items && pickupBlock.data.items.length > 0) {
+                return <PickupInfo items={pickupBlock.data.items.map((item) => item.label)} />
+              }
+              return null
+            })()}
 
-            {/* バナー＋導入文 */}
+            {/* バナー＋導入文 - blocksからimageタイプを検索 */}
             <section className="rounded-xl bg-white ring-1 ring-slate-200 overflow-hidden">
               <div className="relative w-full aspect-[16/9] bg-slate-100">
                 <Image
-                  src={hero || "/placeholder.svg"}
+                  src={(() => {
+                    const imageBlock = blocks.find((block) => block.type === "image")
+                    return imageBlock?.data.url || meta.thumbnail_image_url || "/placeholder.svg"
+                  })()}
                   alt={`${meta.deck_name ?? "デッキ"} バナー画像`}
                   fill
                   className="object-cover"
@@ -178,7 +187,12 @@ export default async function InfoDetailPage({ params }: InfoDetailPageProps) {
                 />
               </div>
               <div className="p-4 sm:p-6">
-                <p className="text-slate-800">{intro}</p>
+                <p className="text-slate-800">
+                  {(() => {
+                    const paragraphBlock = blocks.find((block) => block.type === "paragraph")
+                    return paragraphBlock?.data.text || intro
+                  })()}
+                </p>
               </div>
             </section>
 
@@ -268,13 +282,27 @@ export default async function InfoDetailPage({ params }: InfoDetailPageProps) {
               </section>
             )}
 
-            {/* デッキの概要 */}
-            <section id="デッキの概要" className="rounded-xl bg-white/90 p-4 sm:p-6 ring-1 ring-slate-200">
-              <h2 className="text-lg font-semibold text-slate-900">デッキの概要</h2>
-              <blockquote className="mt-2 border-l-4 border-blue-300 pl-4 text-slate-800">
-                {intro || "● 〇〇に特化した構成。〇〇や〇〇を採用し、後攻2ターン目の〇〇発動を狙う……"}
-              </blockquote>
-            </section>
+            {/* デッキの概要 - blocksからcalloutタイプまたはparagraphタイプを検索 */}
+            {(() => {
+              const overviewBlock = blocks.find(
+                (block) =>
+                  (block.type === "callout" && block.data.title?.includes("概要")) ||
+                  (block.type === "paragraph" && block.data.text?.includes("概要")),
+              )
+
+              if (!overviewBlock) return null
+
+              const overviewText = overviewBlock.data.text || overviewBlock.data.title
+
+              return (
+                <section id="デッキの概要" className="rounded-xl bg-white/90 p-4 sm:p-6 ring-1 ring-slate-200">
+                  <h2 className="text-lg font-semibold text-slate-900">デッキの概要</h2>
+                  <blockquote className="mt-2 border-l-4 border-blue-300 pl-4 text-slate-800">
+                    {overviewText}
+                  </blockquote>
+                </section>
+              )
+            })()}
 
             {/* 〇〇デッキのコード */}
             {/* Placeholder for deck code section if needed */}
@@ -331,30 +359,7 @@ export default async function InfoDetailPage({ params }: InfoDetailPageProps) {
             {/* 相性・対策 */}
             {/* Placeholder for matchup and strategy section if needed */}
 
-            {/* 関連記事 */}
-            <section id="関連記事" className="rounded-xl bg-white/90 p-4 sm:p-6 ring-1 ring-slate-200">
-              <h2 className="text-lg font-semibold text-slate-900">関連記事</h2>
-              <ul className="mt-2 list-disc pl-5 text-slate-800 space-y-1">
-                <li>
-                  <Link href="/ranking" className="text-blue-700 hover:underline">
-                    最強デッキランキングに戻る
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href={`/decks?tag=${encodeURIComponent(meta.tier_name ?? "〇〇")}`}
-                    className="text-blue-700 hover:underline"
-                  >
-                    {`${meta.tier_name ?? "〇〇"}デッキ一覧`}
-                  </Link>
-                </li>
-              </ul>
-            </section>
-
-            {/* 新デッキ一覧（プレースホルダー） */}
-            {/* Placeholder for new deck list section if needed */}
-
-            {/* Render Article Blocks */}
+            {/* Render Article Blocks - display_orderに従って表示 */}
             <div className="prose prose-slate max-w-none">
               <RenderArticle blocks={blocks} />
             </div>
