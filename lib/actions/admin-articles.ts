@@ -138,7 +138,7 @@ export async function createArticle(articleData: CreateArticleData) {
         article_id: article.id,
         type: block.type,
         data: block.data,
-        display_order: index,
+        display_order: (index + 1) * 10,
       }))
 
       console.log("[SERVER] Block data:", JSON.stringify(blockData, null, 2))
@@ -229,7 +229,7 @@ export async function updateArticle(id: string, articleData: CreateArticleData) 
         article_id: id,
         type: block.type,
         data: block.data,
-        display_order: index,
+        display_order: (index + 1) * 10,
       }))
 
       const { error: blocksError } = await supabase.from("info_article_blocks").insert(blockData)
