@@ -62,38 +62,43 @@ async function getCardImageUrl(supabase: any, cardId: number): Promise<string> {
         cardInfo.game8_image_url ||
         cardInfo.image_url ||
         cardInfo.thumb_url ||
-        "https://kidyrurtyvxqokhszgko.supabase.co/storage/v1/object/public/card-images/full/placeholder.webp"
+        `https://kidyrurtyvxqokhszgko.supabase.co/storage/v1/object/public/card-images/full/l${cardId}.webp`
       )
     }
   } catch (error) {
     console.error(`Error fetching card image for ID ${cardId}:`, error)
   }
 
-  return "https://kidyrurtyvxqokhszgko.supabase.co/storage/v1/object/public/card-images/full/placeholder.webp"
+  return `https://kidyrurtyvxqokhszgko.supabase.co/storage/v1/object/public/card-images/full/l${cardId}.webp`
 }
 
-// プレースホルダーURLを実際のカード画像URLに変換する関数
-async function convertImageUrlsToCardUrls(supabase: any, imageUrls: string[]): Promise<string[]> {
-  const convertedUrls: string[] = []
+// エネルギータイプから画像URLを取得する関数（日本語→ローマ字マッピング）
+function getEnergyImageUrl(energyType: string): string | null {
+  const energyImageMap: { [key: string]: string } = {
+    炎: "https://kidyrurtyvxqokhszgko.supabase.co/storage/v1/object/public/type-images/full/hono.png",
+    水: "https://kidyrurtyvxqokhszgko.supabase.co/storage/v1/object/public/type-images/full/mizu.png",
+    草: "https://kidyrurtyvxqokhszgko.supabase.co/storage/v1/object/public/type-images/full/kusa.png",
+    電気: "https://kidyrurtyvxqokhszgko.supabase.co/storage/v1/object/public/type-images/full/denki.png",
+    闘: "https://kidyrurtyvxqokhszgko.supabase.co/storage/v1/object/public/type-images/full/kakuto.png",
+    悪: "https://kidyrurtyvxqokhszgko.supabase.co/storage/v1/object/public/type-images/full/aku.png",
+    鋼: "https://kidyrurtyvxqokhszgko.supabase.co/storage/v1/object/public/type-images/full/hagane.png",
+    無色: "https://kidyrurtyvxqokhszgko.supabase.co/storage/v1/object/public/type-images/full/normal.png",
+    ドラゴン: "https://kidyrurtyvxqokhszgko.supabase.co/storage/v1/object/public/type-images/full/doragon.png",
+    エスパー: "https://kidyrurtyvxqokhszgko.supabase.co/storage/v1/object/public/type-images/full/esupa.png",
+  }
+  return energyImageMap[energyType] || null
+}
 
-  for (const url of imageUrls) {
-    if (url.includes("/placeholder.svg") || url.includes("placeholder")) {
-      // プレースホルダーの場合は、デフォルトのカード画像URLを使用
-      convertedUrls.push(
-        "https://kidyrurtyvxqokhszgko.supabase.co/storage/v1/object/public/card-images/full/placeholder.webp",
-      )
-    } else if (url.includes("kidyrurtyvxqokhszgko.supabase.co")) {
-      // 既にSupabaseのURLの場合はそのまま使用
-      convertedUrls.push(url)
-    } else {
-      // その他の場合はデフォルトを使用
-      convertedUrls.push(
-        "https://kidyrurtyvxqokhszgko.supabase.co/storage/v1/object/public/card-images/full/placeholder.webp",
-      )
-    }
+// 選択されたカードIDから実際の画像URLを取得する関数
+async function getSelectedCardImageUrls(supabase: any, selectedCardIds: number[]): Promise<string[]> {
+  const imageUrls: string[] = []
+
+  for (const cardId of selectedCardIds) {
+    const imageUrl = await getCardImageUrl(supabase, cardId)
+    imageUrls.push(imageUrl)
   }
 
-  return convertedUrls
+  return imageUrls
 }
 
 export async function createDeckPage(deckData: DeckPageData) {
@@ -156,29 +161,89 @@ export async function createDeckPage(deckData: DeckPageData) {
       }),
     )
 
-    // strengths_weaknesses_detailsをJSONB形式に変換（画像URLを実際のカード画像URLに変換）
+    // strengths_weaknesses_detailsをJSONB形式に変換（実際のカード画像URLを使用）
     const strengthsWeaknessesDetails = await Promise.all(
       deckData.strengths_weaknesses.map(async (item) => {
-        const convertedImageUrls = await convertImageUrlsToCardUrls(supabase, item.image_urls)
+        // 画像URLが実際のカードIDを含んでいるかチェック
+        const actualImageUrls: string[] = []
+
+        for (const url of item.image_urls) {
+          if (url.includes("/placeholder.svg") || url.includes("placeholder.webp")) {
+            // プレースホルダーの場合は、デッキ内のカードから適切な画像を選択
+            if (deckData.deck_cards.length > 0) {
+              const randomIndex = Math.floor(Math.random() * deckData.deck_cards.length)
+              const cardId = deckData.deck_cards[randomIndex].card_id
+              const actualCardUrl = await getCardImageUrl(supabase, cardId)
+              actualImageUrls.push(actualCardUrl)
+            } else {
+              actualImageUrls.push(
+                "https://kidyrurtyvxqokhszgko.supabase.co/storage/v1/object/public/card-images/full/placeholder.webp",
+              )
+            }
+          } else if (url.includes("card-images/full/l") && url.includes(".webp")) {
+            // 既に正しい形式のカード画像URLの場合はそのまま使用
+            actualImageUrls.push(url)
+          } else {
+            // その他の場合は、URLからカードIDを抽出して正しいURLを生成
+            const cardIdMatch = url.match(/l(\d+)\.webp/)
+            if (cardIdMatch) {
+              const cardId = Number.parseInt(cardIdMatch[1])
+              const actualCardUrl = await getCardImageUrl(supabase, cardId)
+              actualImageUrls.push(actualCardUrl)
+            } else {
+              actualImageUrls.push(url)
+            }
+          }
+        }
 
         return {
           title: item.title,
           description: `<p>${item.description}</p>`, // HTMLタグで囲む
-          image_urls: convertedImageUrls,
+          image_urls: actualImageUrls,
           display_order: item.display_order,
         }
       }),
     )
 
-    // how_to_play_stepsをJSONB形式に変換（画像URLを実際のカード画像URLに変換）
+    // how_to_play_stepsをJSONB形式に変換（実際のカード画像URLを使用）
     const howToPlaySteps = await Promise.all(
       deckData.play_steps.map(async (step) => {
-        const convertedImageUrls = await convertImageUrlsToCardUrls(supabase, step.image_urls)
+        // 画像URLが実際のカードIDを含んでいるかチェック
+        const actualImageUrls: string[] = []
+
+        for (const url of step.image_urls) {
+          if (url.includes("/placeholder.svg") || url.includes("placeholder.webp")) {
+            // プレースホルダーの場合は、デッキ内のカードから適切な画像を選択
+            if (deckData.deck_cards.length > 0) {
+              const randomIndex = Math.floor(Math.random() * deckData.deck_cards.length)
+              const cardId = deckData.deck_cards[randomIndex].card_id
+              const actualCardUrl = await getCardImageUrl(supabase, cardId)
+              actualImageUrls.push(actualCardUrl)
+            } else {
+              actualImageUrls.push(
+                "https://kidyrurtyvxqokhszgko.supabase.co/storage/v1/object/public/card-images/full/placeholder.webp",
+              )
+            }
+          } else if (url.includes("card-images/full/l") && url.includes(".webp")) {
+            // 既に正しい形式のカード画像URLの場合はそのまま使用
+            actualImageUrls.push(url)
+          } else {
+            // その他の場合は、URLからカードIDを抽出して正しいURLを生成
+            const cardIdMatch = url.match(/l(\d+)\.webp/)
+            if (cardIdMatch) {
+              const cardId = Number.parseInt(cardIdMatch[1])
+              const actualCardUrl = await getCardImageUrl(supabase, cardId)
+              actualImageUrls.push(actualCardUrl)
+            } else {
+              actualImageUrls.push(url)
+            }
+          }
+        }
 
         return {
           title: step.title,
           description: `<p>${step.description}</p>`, // HTMLタグで囲む
-          image_urls: convertedImageUrls,
+          image_urls: actualImageUrls,
           step_number: step.step_number,
         }
       }),
@@ -193,21 +258,7 @@ export async function createDeckPage(deckData: DeckPageData) {
     }
 
     // エネルギー画像URLを設定
-    let energyImageUrl = null
-    if (deckData.energy_type) {
-      // エネルギータイプに基づいて画像URLを設定
-      const energyImageMap: { [key: string]: string } = {
-        炎: "https://kidyrurtyvxqokhszgko.supabase.co/storage/v1/object/public/card-images/full/fire.webp",
-        水: "https://kidyrurtyvxqokhszgko.supabase.co/storage/v1/object/public/card-images/full/water.webp",
-        草: "https://kidyrurtyvxqokhszgko.supabase.co/storage/v1/object/public/card-images/full/grass.webp",
-        電気: "https://kidyrurtyvxqokhszgko.supabase.co/storage/v1/object/public/card-images/full/electric.webp",
-        闘: "https://kidyrurtyvxqokhszgko.supabase.co/storage/v1/object/public/card-images/full/fighting.webp",
-        悪: "https://kidyrurtyvxqokhszgko.supabase.co/storage/v1/object/public/card-images/full/dark.webp",
-        鋼: "https://kidyrurtyvxqokhszgko.supabase.co/storage/v1/object/public/card-images/full/steel.webp",
-        無色: "https://kidyrurtyvxqokhszgko.supabase.co/storage/v1/object/public/card-images/full/colorless.webp",
-      }
-      energyImageUrl = energyImageMap[deckData.energy_type] || null
-    }
+    const energyImageUrl = deckData.energy_type ? getEnergyImageUrl(deckData.energy_type) : null
 
     // デッキページデータの準備（CSVの期待形式に合わせる）
     const insertData = {
@@ -339,29 +390,89 @@ export async function updateDeckPage(id: string, deckData: DeckPageData) {
       }),
     )
 
-    // strengths_weaknesses_detailsをJSONB形式に変換（画像URLを実際のカード画像URLに変換）
+    // strengths_weaknesses_detailsをJSONB形式に変換（実際のカード画像URLを使用）
     const strengthsWeaknessesDetails = await Promise.all(
       deckData.strengths_weaknesses.map(async (item) => {
-        const convertedImageUrls = await convertImageUrlsToCardUrls(supabase, item.image_urls)
+        // 画像URLが実際のカードIDを含んでいるかチェック
+        const actualImageUrls: string[] = []
+
+        for (const url of item.image_urls) {
+          if (url.includes("/placeholder.svg") || url.includes("placeholder.webp")) {
+            // プレースホルダーの場合は、デッキ内のカードから適切な画像を選択
+            if (deckData.deck_cards.length > 0) {
+              const randomIndex = Math.floor(Math.random() * deckData.deck_cards.length)
+              const cardId = deckData.deck_cards[randomIndex].card_id
+              const actualCardUrl = await getCardImageUrl(supabase, cardId)
+              actualImageUrls.push(actualCardUrl)
+            } else {
+              actualImageUrls.push(
+                "https://kidyrurtyvxqokhszgko.supabase.co/storage/v1/object/public/card-images/full/placeholder.webp",
+              )
+            }
+          } else if (url.includes("card-images/full/l") && url.includes(".webp")) {
+            // 既に正しい形式のカード画像URLの場合はそのまま使用
+            actualImageUrls.push(url)
+          } else {
+            // その他の場合は、URLからカードIDを抽出して正しいURLを生成
+            const cardIdMatch = url.match(/l(\d+)\.webp/)
+            if (cardIdMatch) {
+              const cardId = Number.parseInt(cardIdMatch[1])
+              const actualCardUrl = await getCardImageUrl(supabase, cardId)
+              actualImageUrls.push(actualCardUrl)
+            } else {
+              actualImageUrls.push(url)
+            }
+          }
+        }
 
         return {
           title: item.title,
           description: `<p>${item.description}</p>`, // HTMLタグで囲む
-          image_urls: convertedImageUrls,
+          image_urls: actualImageUrls,
           display_order: item.display_order,
         }
       }),
     )
 
-    // how_to_play_stepsをJSONB形式に変換（画像URLを実際のカード画像URLに変換）
+    // how_to_play_stepsをJSONB形式に変換（実際のカード画像URLを使用）
     const howToPlaySteps = await Promise.all(
       deckData.play_steps.map(async (step) => {
-        const convertedImageUrls = await convertImageUrlsToCardUrls(supabase, step.image_urls)
+        // 画像URLが実際のカードIDを含んでいるかチェック
+        const actualImageUrls: string[] = []
+
+        for (const url of step.image_urls) {
+          if (url.includes("/placeholder.svg") || url.includes("placeholder.webp")) {
+            // プレースホルダーの場合は、デッキ内のカードから適切な画像を選択
+            if (deckData.deck_cards.length > 0) {
+              const randomIndex = Math.floor(Math.random() * deckData.deck_cards.length)
+              const cardId = deckData.deck_cards[randomIndex].card_id
+              const actualCardUrl = await getCardImageUrl(supabase, cardId)
+              actualImageUrls.push(actualCardUrl)
+            } else {
+              actualImageUrls.push(
+                "https://kidyrurtyvxqokhszgko.supabase.co/storage/v1/object/public/card-images/full/placeholder.webp",
+              )
+            }
+          } else if (url.includes("card-images/full/l") && url.includes(".webp")) {
+            // 既に正しい形式のカード画像URLの場合はそのまま使用
+            actualImageUrls.push(url)
+          } else {
+            // その他の場合は、URLからカードIDを抽出して正しいURLを生成
+            const cardIdMatch = url.match(/l(\d+)\.webp/)
+            if (cardIdMatch) {
+              const cardId = Number.parseInt(cardIdMatch[1])
+              const actualCardUrl = await getCardImageUrl(supabase, cardId)
+              actualImageUrls.push(actualCardUrl)
+            } else {
+              actualImageUrls.push(url)
+            }
+          }
+        }
 
         return {
           title: step.title,
           description: `<p>${step.description}</p>`, // HTMLタグで囲む
-          image_urls: convertedImageUrls,
+          image_urls: actualImageUrls,
           step_number: step.step_number,
         }
       }),
@@ -376,21 +487,7 @@ export async function updateDeckPage(id: string, deckData: DeckPageData) {
     }
 
     // エネルギー画像URLを設定
-    let energyImageUrl = null
-    if (deckData.energy_type) {
-      // エネルギータイプに基づいて画像URLを設定
-      const energyImageMap: { [key: string]: string } = {
-        炎: "https://kidyrurtyvxqokhszgko.supabase.co/storage/v1/object/public/card-images/full/fire.webp",
-        水: "https://kidyrurtyvxqokhszgko.supabase.co/storage/v1/object/public/card-images/full/water.webp",
-        草: "https://kidyrurtyvxqokhszgko.supabase.co/storage/v1/object/public/card-images/full/grass.webp",
-        電気: "https://kidyrurtyvxqokhszgko.supabase.co/storage/v1/object/public/card-images/full/electric.webp",
-        闘: "https://kidyrurtyvxqokhszgko.supabase.co/storage/v1/object/public/card-images/full/fighting.webp",
-        悪: "https://kidyrurtyvxqokhszgko.supabase.co/storage/v1/object/public/card-images/full/dark.webp",
-        鋼: "https://kidyrurtyvxqokhszgko.supabase.co/storage/v1/object/public/card-images/full/steel.webp",
-        無色: "https://kidyrurtyvxqokhszgko.supabase.co/storage/v1/object/public/card-images/full/colorless.webp",
-      }
-      energyImageUrl = energyImageMap[deckData.energy_type] || null
-    }
+    const energyImageUrl = deckData.energy_type ? getEnergyImageUrl(deckData.energy_type) : null
 
     // 更新データの準備（CSVの期待形式に合わせる）
     const updateData = {

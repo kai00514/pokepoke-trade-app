@@ -1,12 +1,9 @@
 "use client"
 
-import { useState } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
-import { Star, Heart, MessageCircle, Eye } from "lucide-react"
 import CardDisplay from "@/components/card-display"
 
 interface DeckPreviewModalProps {
@@ -26,314 +23,209 @@ export function DeckPreviewModal({
   strengthsWeaknesses,
   playSteps,
 }: DeckPreviewModalProps) {
-  const [activeTab, setActiveTab] = useState("overview")
-
   const totalCards = deckCards.reduce((sum, card) => sum + card.card_count, 0)
-
-  const getStatColor = (value: number) => {
-    if (value >= 4) return "bg-green-500"
-    if (value >= 3) return "bg-yellow-500"
-    return "bg-red-500"
-  }
-
-  const getStatLabel = (key: string) => {
-    const labels = {
-      accessibility: "アクセス性",
-      speed: "スピード",
-      power: "パワー",
-      durability: "耐久性",
-      stability: "安定性",
-    }
-    return labels[key as keyof typeof labels] || key
-  }
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center justify-between">
-            <span>デッキプレビュー</span>
-            <Button variant="outline" size="sm" onClick={() => onOpenChange(false)}>
-              ×
-            </Button>
-          </DialogTitle>
+          <DialogTitle>デッキプレビュー</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-6">
-          {/* ヘッダー情報 */}
-          <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-6 rounded-lg">
-            <div className="flex items-start gap-4">
-              <div className="w-32 h-20 bg-gray-200 rounded-lg overflow-hidden">
-                {formData.thumbnail_image_url ? (
-                  <img
-                    src={formData.thumbnail_image_url || "/placeholder.svg"}
-                    alt={formData.thumbnail_alt || formData.deck_name}
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement
-                      target.src = "/placeholder.svg?height=80&width=128"
-                    }}
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-gray-400">No Image</div>
-                )}
-              </div>
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-2">
-                  <h1 className="text-2xl font-bold">{formData.deck_name || "デッキ名未設定"}</h1>
+          {/* 基本情報 */}
+          <Card>
+            <CardHeader>
+              <div className="flex justify-between items-start">
+                <div>
+                  <CardTitle className="text-xl">{formData.title || "デッキタイトル"}</CardTitle>
+                  <p className="text-gray-600 mt-2">{formData.deck_description || "デッキ説明"}</p>
+                </div>
+                <div className="flex gap-2">
                   {formData.deck_badge && <Badge variant="secondary">{formData.deck_badge}</Badge>}
-                  <Badge variant="outline">{formData.tier_rank}ランク</Badge>
-                </div>
-                <p className="text-gray-600 mb-3">{formData.deck_description || "説明未設定"}</p>
-                <div className="flex items-center gap-4 text-sm text-gray-500">
-                  <div className="flex items-center gap-1">
-                    <Eye className="h-4 w-4" />
-                    <span>0 views</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Heart className="h-4 w-4" />
-                    <span>0 likes</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <MessageCircle className="h-4 w-4" />
-                    <span>0 comments</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Star className="h-4 w-4" />
-                    <span>0.0/5 (0件)</span>
-                  </div>
+                  <Badge variant={formData.is_published ? "default" : "outline"}>
+                    {formData.is_published ? "公開" : "下書き"}
+                  </Badge>
                 </div>
               </div>
-            </div>
-          </div>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm text-gray-600">デッキ名</p>
+                  <p className="font-medium">{formData.deck_name || "未設定"}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">エネルギータイプ</p>
+                  <p className="font-medium">{formData.energy_type || "未設定"}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">ティアランク</p>
+                  <p className="font-medium">{formData.tier_rank}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">カテゴリー</p>
+                  <p className="font-medium">{formData.category}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
-          {/* タブナビゲーション */}
-          <div className="flex gap-2 border-b">
-            <Button
-              variant={activeTab === "overview" ? "default" : "ghost"}
-              onClick={() => setActiveTab("overview")}
-              size="sm"
-            >
-              概要
-            </Button>
-            <Button
-              variant={activeTab === "cards" ? "default" : "ghost"}
-              onClick={() => setActiveTab("cards")}
-              size="sm"
-            >
-              カード構成
-            </Button>
-            <Button
-              variant={activeTab === "strengths" ? "default" : "ghost"}
-              onClick={() => setActiveTab("strengths")}
-              size="sm"
-            >
-              強み・弱み
-            </Button>
-            <Button
-              variant={activeTab === "strategy" ? "default" : "ghost"}
-              onClick={() => setActiveTab("strategy")}
-              size="sm"
-            >
-              プレイ方法
-            </Button>
-          </div>
+          {/* カード構成 */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex justify-between items-center">
+                カード構成
+                <Badge variant={totalCards > 20 ? "destructive" : "default"}>{totalCards}/20枚</Badge>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-4 gap-4">
+                {deckCards.map((card) => (
+                  <div key={card.id} className="text-center">
+                    <div className="w-full h-24 bg-gray-200 rounded mb-2 overflow-hidden">
+                      <CardDisplay cardId={card.card_id} useThumb fill objectFit="cover" />
+                    </div>
+                    <p className="text-xs font-medium truncate">{card.card_name}</p>
+                    <p className="text-xs text-gray-600">×{card.card_count}</p>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
 
-          {/* タブコンテンツ */}
-          {activeTab === "overview" && (
-            <div className="space-y-6">
-              {/* 評価セクション */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>{formData.evaluation_title || "デッキ評価"}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-2 gap-6">
-                    <div>
-                      <h4 className="font-semibold mb-3">ティア情報</h4>
-                      <div className="space-y-2">
-                        <div className="flex justify-between">
-                          <span>ランク:</span>
-                          <Badge variant="outline">{formData.tier_rank}</Badge>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>ティア名:</span>
-                          <span>{formData.tier_name || "Tier1"}</span>
-                        </div>
+          {/* ステータス評価 */}
+          <Card>
+            <CardHeader>
+              <CardTitle>ステータス評価</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {Object.entries(formData.stats).map(([key, value]) => {
+                  const labels = {
+                    accessibility: "アクセス性",
+                    speed: "スピード",
+                    power: "パワー",
+                    durability: "耐久性",
+                    stability: "安定性",
+                  }
+                  return (
+                    <div key={key} className="space-y-2">
+                      <div className="flex justify-between">
+                        <span className="text-sm font-medium">{labels[key as keyof typeof labels]}</span>
+                        <span className="text-sm text-gray-600">{value}/5</span>
                       </div>
-                      {formData.tier_descriptions && formData.tier_descriptions.length > 0 && (
-                        <div className="mt-3">
-                          <h5 className="font-medium mb-2">特徴:</h5>
-                          <ul className="text-sm space-y-1">
-                            {formData.tier_descriptions
-                              .filter((desc: string) => desc.trim())
-                              .map((desc: string, index: number) => (
-                                <li key={index} className="text-gray-600">
-                                  • {desc}
-                                </li>
-                              ))}
-                          </ul>
+                      <Progress value={(value as number) * 20} className="h-2" />
+                    </div>
+                  )
+                })}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* 強み・弱み */}
+          {strengthsWeaknesses.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle>強み・弱み</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {strengthsWeaknesses.map((item, index) => (
+                    <div key={item.id} className="border-l-4 border-blue-500 pl-4">
+                      <h4 className="font-medium">{item.title}</h4>
+                      <p className="text-sm text-gray-600 mt-1">{item.description}</p>
+                      {item.image_urls.length > 0 && (
+                        <div className="flex gap-2 mt-2">
+                          {item.image_urls.slice(0, 3).map((url: string, imgIndex: number) => (
+                            <img
+                              key={imgIndex}
+                              src={url || "/placeholder.svg"}
+                              alt=""
+                              className="w-12 h-12 object-cover rounded border"
+                              onError={(e) => {
+                                const target = e.target as HTMLImageElement
+                                target.src = "/placeholder.svg"
+                              }}
+                            />
+                          ))}
+                          {item.image_urls.length > 3 && (
+                            <div className="w-12 h-12 bg-gray-100 rounded border flex items-center justify-center text-xs">
+                              +{item.image_urls.length - 3}
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
-                    <div>
-                      <h4 className="font-semibold mb-3">ステータス</h4>
-                      <div className="space-y-3">
-                        {Object.entries(formData.stats).map(([key, value]) => (
-                          <div key={key}>
-                            <div className="flex justify-between text-sm mb-1">
-                              <span>{getStatLabel(key)}</span>
-                              <span>{value}/5</span>
-                            </div>
-                            <Progress value={(value as number) * 20} className="h-2" />
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* 簡易リスト */}
-              <div className="grid grid-cols-2 gap-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>強み・弱み (簡易)</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <ul className="space-y-2">
-                      {formData.strengths_weaknesses_list
-                        .filter((item: string) => item.trim())
-                        .map((item: string, index: number) => (
-                          <li key={index} className="text-sm">
-                            • {item}
-                          </li>
-                        ))}
-                    </ul>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle>プレイ方法 (簡易)</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <ul className="space-y-2">
-                      {formData.how_to_play_list
-                        .filter((item: string) => item.trim())
-                        .map((item: string, index: number) => (
-                          <li key={index} className="text-sm">
-                            • {item}
-                          </li>
-                        ))}
-                    </ul>
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
-          )}
-
-          {activeTab === "cards" && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex justify-between items-center">
-                  カード構成
-                  <Badge variant={totalCards > 20 ? "destructive" : "outline"}>{totalCards}/20枚</Badge>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 gap-3">
-                  {deckCards.map((card, index) => (
-                    <div key={index} className="flex items-center gap-4 p-3 border rounded-lg">
-                      <div className="w-12 h-16 bg-gray-200 rounded overflow-hidden">
-                        <CardDisplay cardId={card.card_id} useThumb fill objectFit="cover" />
-                      </div>
-                      <div className="flex-1">
-                        <div className="font-medium">{card.card_name}</div>
-                        <div className="text-sm text-gray-600">{card.pack_name}</div>
-                        <div className="text-xs text-gray-500">ID: {card.card_id}</div>
-                      </div>
-                      <div className="text-right">
-                        <div className="font-bold text-lg">{card.card_count}枚</div>
-                        <div className="text-xs text-gray-500">順序: {card.display_order}</div>
-                      </div>
-                    </div>
                   ))}
                 </div>
-
-                {totalCards > 20 && (
-                  <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-                    <p className="text-sm text-red-600">⚠️ デッキの枚数が20枚を超えています。</p>
-                  </div>
-                )}
               </CardContent>
             </Card>
           )}
 
-          {activeTab === "strengths" && (
-            <div className="space-y-4">
-              <h3 className="text-xl font-bold">{formData.section2_title || "強み・弱み"}</h3>
-              {strengthsWeaknesses.map((item, index) => (
-                <Card key={index}>
-                  <CardHeader>
-                    <CardTitle className="text-lg">{item.title}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-gray-700 mb-4">{item.description}</p>
-                    {item.image_urls && item.image_urls.length > 0 && (
-                      <div className="flex gap-2 flex-wrap">
-                        {item.image_urls.map((url: string, imgIndex: number) => (
-                          <img
-                            key={imgIndex}
-                            src={url || "/placeholder.svg"}
-                            alt=""
-                            className="w-16 h-20 object-cover rounded border"
-                            onError={(e) => {
-                              const target = e.target as HTMLImageElement
-                              target.src = "/placeholder.svg"
-                            }}
-                          />
-                        ))}
+          {/* プレイ方法 */}
+          {playSteps.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle>プレイ方法</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {playSteps.map((step, index) => (
+                    <div key={step.id} className="flex gap-4">
+                      <div className="flex-shrink-0 w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-medium">
+                        {step.step_number}
                       </div>
-                    )}
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+                      <div className="flex-1">
+                        <h4 className="font-medium">{step.title}</h4>
+                        <p className="text-sm text-gray-600 mt-1">{step.description}</p>
+                        {step.image_urls.length > 0 && (
+                          <div className="flex gap-2 mt-2">
+                            {step.image_urls.slice(0, 3).map((url: string, imgIndex: number) => (
+                              <img
+                                key={imgIndex}
+                                src={url || "/placeholder.svg"}
+                                alt=""
+                                className="w-12 h-12 object-cover rounded border"
+                                onError={(e) => {
+                                  const target = e.target as HTMLImageElement
+                                  target.src = "/placeholder.svg"
+                                }}
+                              />
+                            ))}
+                            {step.image_urls.length > 3 && (
+                              <div className="w-12 h-12 bg-gray-100 rounded border flex items-center justify-center text-xs">
+                                +{step.image_urls.length - 3}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
           )}
 
-          {activeTab === "strategy" && (
-            <div className="space-y-4">
-              <h3 className="text-xl font-bold">{formData.section3_title || "プレイ方法"}</h3>
-              {playSteps.map((step, index) => (
-                <Card key={index}>
-                  <CardHeader>
-                    <CardTitle className="text-lg">
-                      STEP {step.step_number}: {step.title}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-gray-700 mb-4">{step.description}</p>
-                    {step.image_urls && step.image_urls.length > 0 && (
-                      <div className="flex gap-2 flex-wrap">
-                        {step.image_urls.map((url: string, imgIndex: number) => (
-                          <img
-                            key={imgIndex}
-                            src={url || "/placeholder.svg"}
-                            alt=""
-                            className="w-16 h-20 object-cover rounded border"
-                            onError={(e) => {
-                              const target = e.target as HTMLImageElement
-                              target.src = "/placeholder.svg"
-                            }}
-                          />
-                        ))}
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+          {/* ティア説明 */}
+          {formData.tier_descriptions.length > 0 && formData.tier_descriptions[0] && (
+            <Card>
+              <CardHeader>
+                <CardTitle>ティア説明</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-2">
+                  {formData.tier_descriptions
+                    .filter((desc: string) => desc.trim())
+                    .map((description: string, index: number) => (
+                      <li key={index} className="text-sm text-gray-600">
+                        • {description}
+                      </li>
+                    ))}
+                </ul>
+              </CardContent>
+            </Card>
           )}
         </div>
       </DialogContent>

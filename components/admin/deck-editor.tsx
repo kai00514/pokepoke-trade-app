@@ -354,12 +354,12 @@ export function DeckEditor({ deck, isEditing = false }: DeckEditorProps) {
 
     // 選択されたカードの画像URLを取得（実際のカード画像URLを使用）
     const imageUrls = selectedCards.map((card) => {
-      // カードの実際の画像URLを使用（プレースホルダーではなく）
+      // カードの実際の画像URLを使用（データベースから取得した値を優先）
       return (
         card.game8_image_url ||
         card.image_url ||
         card.thumb_url ||
-        "https://kidyrurtyvxqokhszgko.supabase.co/storage/v1/object/public/card-images/full/placeholder.webp"
+        `https://kidyrurtyvxqokhszgko.supabase.co/storage/v1/object/public/card-images/full/l${card.id}.webp`
       )
     })
 
@@ -400,6 +400,15 @@ export function DeckEditor({ deck, isEditing = false }: DeckEditorProps) {
     const newImageUrls = editingPlayStep.image_urls.filter((_: any, index: number) => index !== imageIndex)
     setEditingPlayStep({
       ...editingPlayStep,
+      image_urls: newImageUrls,
+    })
+  }
+
+  const removeStrengthWeaknessImage = (imageIndex: number) => {
+    if (!editingStrengthWeakness) return
+    const newImageUrls = editingStrengthWeakness.image_urls.filter((_: any, index: number) => index !== imageIndex)
+    setEditingStrengthWeakness({
+      ...editingStrengthWeakness,
       image_urls: newImageUrls,
     })
   }
@@ -489,6 +498,8 @@ export function DeckEditor({ deck, isEditing = false }: DeckEditorProps) {
                           <SelectItem value="悪">🌙 悪タイプ</SelectItem>
                           <SelectItem value="鋼">⚙️ 鋼タイプ</SelectItem>
                           <SelectItem value="無色">⚪ 無色タイプ</SelectItem>
+                          <SelectItem value="ドラゴン">🐉 ドラゴンタイプ</SelectItem>
+                          <SelectItem value="エスパー">🔮 エスパータイプ</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -1266,7 +1277,7 @@ export function DeckEditor({ deck, isEditing = false }: DeckEditorProps) {
                           variant="outline"
                           size="sm"
                           className="absolute -top-2 -right-2 h-6 w-6 p-0 bg-red-500 text-white hover:bg-red-600"
-                          onClick={() => removeImage(index)}
+                          onClick={() => removeStrengthWeaknessImage(index)}
                         >
                           ×
                         </Button>
