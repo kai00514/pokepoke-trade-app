@@ -1,40 +1,59 @@
 "use client"
 
-import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
-import { LayoutDashboard, FileText, Users, Settings, BarChart3, Layers } from "lucide-react"
+import Link from "next/link"
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarHeader,
+} from "@/components/ui/sidebar"
+import { LayoutDashboard, FileText, Users, BarChart3, Settings, PenTool, Layers, Plus } from "lucide-react"
 
-const sidebarItems = [
+const menuItems = [
   {
     title: "ダッシュボード",
-    href: "/admin",
+    url: "/admin",
     icon: LayoutDashboard,
   },
   {
     title: "記事管理",
-    href: "/admin/articles",
+    url: "/admin/articles",
     icon: FileText,
   },
   {
+    title: "記事作成",
+    url: "/admin/articles/create",
+    icon: PenTool,
+  },
+  {
     title: "デッキ管理",
-    href: "/admin/decks",
+    url: "/admin/decks",
     icon: Layers,
   },
   {
+    title: "デッキ作成",
+    url: "/admin/decks/create",
+    icon: Plus,
+  },
+  {
     title: "ユーザー管理",
-    href: "/admin/users",
+    url: "/admin/users",
     icon: Users,
   },
   {
     title: "分析",
-    href: "/admin/analytics",
+    url: "/admin/analytics",
     icon: BarChart3,
   },
   {
     title: "設定",
-    href: "/admin/settings",
+    url: "/admin/settings",
     icon: Settings,
   },
 ]
@@ -43,27 +62,31 @@ export function AdminSidebar() {
   const pathname = usePathname()
 
   return (
-    <div className="pb-12 w-64">
-      <div className="space-y-4 py-4">
-        <div className="px-3 py-2">
-          <h2 className="mb-2 px-4 text-lg font-semibold tracking-tight">管理画面</h2>
-          <div className="space-y-1">
-            {sidebarItems.map((item) => (
-              <Button
-                key={item.href}
-                variant={pathname === item.href ? "secondary" : "ghost"}
-                className={cn("w-full justify-start", pathname === item.href && "bg-muted font-medium")}
-                asChild
-              >
-                <Link href={item.href}>
-                  <item.icon className="mr-2 h-4 w-4" />
-                  {item.title}
-                </Link>
-              </Button>
-            ))}
-          </div>
+    <Sidebar>
+      <SidebarHeader>
+        <div className="px-4 py-2">
+          <h2 className="text-lg font-semibold">管理画面</h2>
         </div>
-      </div>
-    </div>
+      </SidebarHeader>
+      <SidebarContent>
+        <SidebarGroup>
+          <SidebarGroupLabel>メニュー</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {menuItems.map((item) => (
+                <SidebarMenuItem key={item.url}>
+                  <SidebarMenuButton asChild isActive={pathname === item.url}>
+                    <Link href={item.url}>
+                      <item.icon className="h-4 w-4" />
+                      <span>{item.title}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </SidebarContent>
+    </Sidebar>
   )
 }

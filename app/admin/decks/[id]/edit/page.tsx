@@ -1,6 +1,4 @@
-import { getDeckById } from "@/lib/actions/admin-decks"
 import { DeckEditor } from "@/components/admin/deck-editor"
-import { notFound } from "next/navigation"
 
 interface EditDeckPageProps {
   params: {
@@ -8,16 +6,9 @@ interface EditDeckPageProps {
   }
 }
 
-export default async function EditDeckPage({ params }: EditDeckPageProps) {
-  const result = await getDeckById(params.id)
+export default function EditDeckPage({ params }: EditDeckPageProps) {
+  // TODO: デッキデータを取得
+  const deckData = null // 後で実装
 
-  if (!result.success || !result.data) {
-    notFound()
-  }
-
-  return (
-    <div className="container mx-auto py-6">
-      <DeckEditor initialData={result.data} isEditing={true} deckId={params.id} />
-    </div>
-  )
+  return <DeckEditor deck={deckData} isEditing />
 }
