@@ -46,7 +46,7 @@ export function DeckCardsGrid({ deckName, energyType, energyImage, cards }: Deck
 
   return (
     <div>
-      <div className="bg-gray-50 p-4 rounded-lg mb-4">
+      <div className="bg-gray-50 px-4 rounded-lg mb-4">
         <div className="flex items-center gap-4 mb-2">
           <h4 className="font-medium text-lg">{deckName}</h4>
           <div className="flex items-center gap-2">
@@ -64,18 +64,18 @@ export function DeckCardsGrid({ deckName, energyType, energyImage, cards }: Deck
         </div>
       </div>
       <div className="overflow-x-auto">
-        <div className="grid grid-cols-10 gap-3 mb-4" style={{ minWidth: "1200px" }}>
+        <div className="grid grid-cols-10 gap-2 mb-4" style={{ minWidth: "1000px" }}>
           {gridCards.map((card, index) => (
             <div key={index} className="aspect-[7/10] relative">
               {card ? (
                 <div className="relative w-full h-full">
                   <Image
-                    src={card.image_url || "/placeholder.svg?height=210&width=150&query=カード"}
+                    src={card.image_url || "/placeholder.svg?height=180&width=130&query=カード"}
                     alt={card.name || "カード"}
                     fill
                     className="object-cover rounded-lg shadow-sm"
                     onError={(e) => {
-                      e.currentTarget.src = "/placeholder.svg?height=210&width=150"
+                      e.currentTarget.src = "/placeholder.svg?height=180&width=130"
                     }}
                   />
                 </div>

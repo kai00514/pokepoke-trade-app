@@ -27,13 +27,13 @@ export function StrengthsWeaknesses({ strengthsWeaknessesList, strengthsWeakness
             <div className="overflow-x-auto mb-4">
               <div className="flex gap-4 min-w-max">
                 {detail.image_urls.map((imageUrl, imgIndex) => (
-                  <div key={imgIndex} className="w-20 h-28 flex-shrink-0">
+                  <div key={imgIndex} className="w-16 h-22 flex-shrink-0">
                     {imageUrl ? (
                       <Image
                         src={imageUrl || "/placeholder.svg"}
                         alt={`${detail.title} 画像 ${imgIndex + 1}`}
-                        width={80}
-                        height={112}
+                        width={64}
+                        height={88}
                         className="w-full h-full object-cover rounded border"
                       />
                     ) : (

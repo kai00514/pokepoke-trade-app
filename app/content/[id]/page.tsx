@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { useParams } from "next/navigation"
 import Image from "next/image"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { MessageCircle, ChevronRight, ArrowLeft } from "lucide-react"
 import Link from "next/link"
@@ -25,9 +25,46 @@ import {
 } from "@/components/ui/dialog"
 import DeckComments from "@/components/DeckComments"
 
+interface DeckPageData {
+  id: string
+  title: string
+  lastUpdated: string
+  commentCount: number
+  thumbnailImage?: string
+  thumbnailAlt: string
+  deckBadge: string
+  section1Title: string
+  section2Title: string
+  section3Title: string
+  deckName: string
+  energyType: string
+  energyImage?: string
+  cards: any[]
+  deckDescription: string
+  evaluationTitle: string
+  tierInfo: {
+    rank: string
+    tier: string
+    descriptions: string[]
+  }
+  deckStats: {
+    accessibility: number
+    speed: number
+    power: number
+    durability: number
+    stability: number
+  }
+  strengthsWeaknessesList: any[]
+  strengthsWeaknessesDetails: any[]
+  howToPlayList: any[]
+  howToPlaySteps: any[]
+  evalValue: number
+  evalCount: number
+}
+
 export default function PokemonDeckPage() {
   const params = useParams()
-  const [deckData, setDeckData] = useState<any>(null)
+  const [deckData, setDeckData] = useState<DeckPageData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [userScore, setUserScore] = useState(5)
@@ -56,7 +93,7 @@ export default function PokemonDeckPage() {
         const data = result.data
         console.log("Raw data from getDeckPageById (after enrichment):", data)
 
-        const convertedData = {
+        const convertedData: DeckPageData = {
           id: data.id,
           title: data.title || "デッキタイトル",
           lastUpdated: new Date(data.updated_at).toLocaleDateString("ja-JP"),
@@ -109,7 +146,7 @@ export default function PokemonDeckPage() {
   }, [params.id])
 
   const handleScoreSubmit = async () => {
-    if (isSubmitting) return
+    if (isSubmitting || typeof window === "undefined") return
 
     console.log("\n🎯 === SCORE SUBMISSION START ===")
     setIsSubmitting(true)
@@ -120,7 +157,8 @@ export default function PokemonDeckPage() {
 
       if (!guestUserId) {
         console.log("🆕 Generating new guest user ID...")
-        guestUserId = crypto.randomUUID()
+        // Use Math.random for better SSR compatibility
+        guestUserId = Math.random().toString(36).substring(2) + Date.now().toString(36)
         sessionStorage.setItem("guestUserId", guestUserId)
         console.log("✅ New guest user ID created:", guestUserId)
       } else {
@@ -282,7 +320,7 @@ export default function PokemonDeckPage() {
               <span>{deckData.commentCount}</span>
             </div>
             <Button variant="outline" size="sm" className="text-blue-600 border-blue-200 bg-transparent">
-              みんなの最新コメントを読む
+              最新コメントを読む
               <ChevronRight className="w-4 h-4 ml-1" />
             </Button>
           </div>
@@ -301,10 +339,8 @@ export default function PokemonDeckPage() {
 
       <div className="max-w-4xl mx-auto px-4 py-4">
         <Card className="mb-4">
-          <CardHeader className="bg-blue-50 py-2">
-            <CardTitle className="text-blue-800 text-base">目次</CardTitle>
-          </CardHeader>
           <CardContent className="py-2 px-4">
+            <h3 className="text-lg font-semibold mb-4 text-blue-600 border-l-4 border-blue-500 pl-3">目次</h3>
             <nav className="space-y-1">
               {[
                 { title: deckData.section1Title, id: "deck-recipe" },
@@ -325,7 +361,7 @@ export default function PokemonDeckPage() {
                       })
                     }
                   }}
-                  className="flex items-center text-blue-600 hover:text-blue-800 transition-colors w-full text-left py-1"
+                  className="flex items-center text-blue-600 hover:text-blue-800 transition-colors w-full text-left py-0 leading-tight"
                 >
                   <ChevronRight className="w-4 h-4 mr-2" />
                   {item.title}
@@ -336,12 +372,11 @@ export default function PokemonDeckPage() {
         </Card>
 
         <Card className="mb-4" id="deck-recipe">
-          <CardHeader className="bg-blue-50 py-2">
-            <CardTitle className="text-blue-800 text-base">{deckData.section1Title}</CardTitle>
-          </CardHeader>
           <CardContent className="p-4">
+            <h3 className="text-lg font-semibold mb-4 text-blue-600 border-l-4 border-blue-500 pl-3">
+              {deckData.section1Title}
+            </h3>
             <div className="mb-4">
-              <h3 className="text-lg font-semibold mb-3 text-blue-600 border-l-4 border-blue-500 pl-3">デッキレシピ</h3>
               {deckData.cards && deckData.cards.length > 0 ? (
                 <DeckCardsGrid
                   deckName={deckData.deckName}
@@ -423,10 +458,10 @@ export default function PokemonDeckPage() {
         </Card>
 
         <Card className="mb-4" id="strengths-weaknesses">
-          <CardHeader className="bg-blue-50 py-2">
-            <CardTitle className="text-blue-800 text-base">{deckData.section2Title}</CardTitle>
-          </CardHeader>
           <CardContent className="p-4">
+            <h3 className="text-lg font-semibold mb-4 text-blue-600 border-l-4 border-blue-500 pl-3">
+              {deckData.section2Title}
+            </h3>
             <StrengthsWeaknesses
               strengthsWeaknessesList={deckData.strengthsWeaknessesList}
               strengthsWeaknessesDetails={deckData.strengthsWeaknessesDetails}
@@ -435,19 +470,19 @@ export default function PokemonDeckPage() {
         </Card>
 
         <Card className="mb-4" id="how-to-play">
-          <CardHeader className="bg-blue-50 py-2">
-            <CardTitle className="text-blue-800 text-base">{deckData.section3Title}</CardTitle>
-          </CardHeader>
           <CardContent className="p-4">
+            <h3 className="text-lg font-semibold mb-4 text-blue-600 border-l-4 border-blue-500 pl-3">
+              {deckData.section3Title}
+            </h3>
             <HowToPlay howToPlayList={deckData.howToPlayList} howToPlaySteps={deckData.howToPlaySteps} />
           </CardContent>
         </Card>
 
         <Card className="mb-4" id="meta-report">
-          <CardHeader className="bg-blue-50 py-2">
-            <CardTitle className="text-blue-800 text-base">海外大会メタレポートとカード採用率</CardTitle>
-          </CardHeader>
           <CardContent className="p-4">
+            <h3 className="text-lg font-semibold mb-4 text-blue-600 border-l-4 border-blue-500 pl-3">
+              海外大会メタレポートとカード採用率
+            </h3>
             <div className="text-center text-gray-500 py-6">メタレポートデータを読み込み中...</div>
           </CardContent>
         </Card>
