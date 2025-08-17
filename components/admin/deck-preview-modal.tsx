@@ -1,77 +1,21 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import Image from "next/image"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { Card, CardContent } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Heart, Bookmark, Eye, X, Star } from "lucide-react"
-import { cn } from "@/lib/utils"
-import { supabase } from "@/lib/supabase/client"
-
-interface DeckCard {
-  id: number
-  card_id: number
-  card_name: string
-  pack_name: string
-  card_count: number
-  display_order: number
-}
-
-interface StrengthWeakness {
-  id: number
-  title: string
-  description: string
-  image_urls: string[]
-  display_order: number
-}
-
-interface PlayStep {
-  id: number
-  step_number: number
-  title: string
-  description: string
-  image_urls: string[]
-}
+import { Heart, Bookmark, Star, X } from "lucide-react"
+import { fetchCardDetailsByIds, type CardData } from "@/lib/card-api"
 
 interface DeckPreviewModalProps {
   isOpen: boolean
-  onOpenChange: (isOpen: boolean) => void
-  formData: {
-    title: string
-    deck_name: string
-    deck_description: string
-    deck_badge: string
-    energy_type: string
-    evaluation_title: string
-    tier_rank: string
-    tier_name: string
-    tier_descriptions: string[]
-    section1_title: string
-    section2_title: string
-    section3_title: string
-    stats: {
-      accessibility: number
-      speed: number
-      power: number
-      durability: number
-      stability: number
-    }
-  }
-  deckCards: DeckCard[]
-  strengthsWeaknesses: StrengthWeakness[]
-  playSteps: PlayStep[]
-}
-
-interface CardData {
-  id: number
-  name: string
-  image_url: string
-  thumb_url?: string
-  type_code?: string
-  rarity_code?: string
+  onOpenChange: (open: boolean) => void
+  formData: any
+  deckCards: any[]
+  strengthsWeaknesses: any[]
+  playSteps: any[]
 }
 
 export function DeckPreviewModal({
@@ -82,400 +26,337 @@ export function DeckPreviewModal({
   strengthsWeaknesses,
   playSteps,
 }: DeckPreviewModalProps) {
-  const [cardData, setCardData] = useState<Record<number, CardData>>({})
-  const [loading, setLoading] = useState(false)
-  const [activeTab, setActiveTab] = useState("all")
+  const [cardDetails, setCardDetails] = useState<Map<number, CardData>>(new Map())
+  const [activeTab, setActiveTab] = useState("grid")
 
-  // エネルギータイプのアイコンマッピング
-  const energyTypeIcons: Record<string, string> = {
-    炎: "/images/types/炎.png",
-    水: "/images/types/水.png",
-    草: "/images/types/草.png",
-    電気: "/images/types/電気.png",
-    エスパー: "/images/types/念.png",
-    格闘: "/images/types/格闘.png",
-    悪: "/images/types/悪.png",
-    鋼: "/images/types/鋼.png",
-    無色: "/images/types/無色.png",
-    ドラゴン: "/images/types/龍.png",
-  }
-
-  // カードデータを取得
+  // カード詳細情報を取得
   useEffect(() => {
-    async function fetchCardData() {
-      if (!isOpen || deckCards.length === 0) return
+    const fetchCardDetails = async () => {
+      if (deckCards.length === 0) return
 
-      setLoading(true)
+      const cardIds = deckCards.map((card) => String(card.card_id))
       try {
-        const cardIds = deckCards.map((card) => card.card_id)
-        const { data, error } = await supabase
-          .from("cards")
-          .select("id, name, image_url, thumb_url, type_code, rarity_code")
-          .in("id", cardIds)
-
-        if (error) {
-          console.error("Error fetching card data:", error)
-        } else if (data) {
-          const cardMap: Record<number, CardData> = {}
-          data.forEach((card) => {
-            cardMap[card.id] = card
-          })
-          setCardData(cardMap)
-        }
+        const details = await fetchCardDetailsByIds(cardIds)
+        const detailsMap = new Map<number, CardData>()
+        details.forEach((detail) => {
+          detailsMap.set(detail.id, detail)
+        })
+        setCardDetails(detailsMap)
       } catch (error) {
-        console.error("Error fetching card data:", error)
-      } finally {
-        setLoading(false)
+        console.error("Failed to fetch card details:", error)
       }
     }
 
-    fetchCardData()
+    if (isOpen) {
+      fetchCardDetails()
+    }
   }, [isOpen, deckCards])
 
-  // デッキカードを20枚のグリッド用に変換
-  const createDeckGrid = () => {
-    const gridCards: (DeckCard & { cardData?: CardData })[] = []
+  // カードグリッド（10×2）を生成
+  const generateCardGrid = () => {
+    const grid = Array(20).fill(null)
+    let cardIndex = 0
 
-    // display_orderでソート
+    // display_orderでソートしてからグリッドに配置
     const sortedCards = [...deckCards].sort((a, b) => a.display_order - b.display_order)
 
-    sortedCards.forEach((card) => {
-      for (let i = 0; i < card.card_count; i++) {
-        if (gridCards.length < 20) {
-          gridCards.push({
-            ...card,
-            cardData: cardData[card.card_id],
-          })
+    for (const card of sortedCards) {
+      const detail = cardDetails.get(card.card_id)
+      for (let i = 0; i < card.card_count && cardIndex < 20; i++) {
+        grid[cardIndex] = {
+          ...card,
+          detail,
+          gridIndex: cardIndex,
         }
+        cardIndex++
       }
-    })
-
-    // 20枚に満たない場合は空のスロットで埋める
-    while (gridCards.length < 20) {
-      gridCards.push(null as any)
     }
 
-    return gridCards
+    return grid
   }
 
-  const gridCards = createDeckGrid()
+  const cardGrid = generateCardGrid()
   const totalCards = deckCards.reduce((sum, card) => sum + card.card_count, 0)
 
-  // ステータス表示用のラベル
-  const statLabels = {
-    accessibility: "アクセス性",
-    speed: "スピード",
-    power: "パワー",
-    durability: "耐久性",
-    stability: "安定性",
+  // ティアランクの色を取得
+  const getTierColor = (tier: string) => {
+    switch (tier) {
+      case "SS":
+        return "bg-purple-600 text-white"
+      case "S":
+        return "bg-red-500 text-white"
+      case "A":
+        return "bg-orange-500 text-white"
+      case "B":
+        return "bg-yellow-500 text-black"
+      case "C":
+        return "bg-gray-500 text-white"
+      default:
+        return "bg-gray-400 text-white"
+    }
+  }
+
+  // 星評価を生成
+  const renderStars = (rating: number) => {
+    return Array.from({ length: 5 }, (_, i) => (
+      <Star key={i} className={`h-4 w-4 ${i < rating ? "fill-yellow-400 text-yellow-400" : "text-gray-300"}`} />
+    ))
   }
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-6xl w-[95vw] h-[90vh] p-0 flex flex-col">
-        <DialogHeader className="p-6 border-b flex-shrink-0">
-          <div className="flex justify-between items-start">
-            <div className="flex-1">
-              <DialogTitle className="text-2xl font-bold mb-2">{formData.deck_name || "デッキ名未設定"}</DialogTitle>
-              <div className="flex items-center gap-4 text-sm text-gray-600 mb-3">
-                <span>作成者: プレビューユーザー</span>
-                <span>作成日: {new Date().toLocaleDateString("ja-JP")}</span>
-                <Badge variant="outline">{formData.energy_type}タイプ</Badge>
-                {formData.deck_badge && <Badge variant="secondary">{formData.deck_badge}</Badge>}
-              </div>
-              <p className="text-gray-700 leading-relaxed">
-                {formData.deck_description || "デッキの説明が入力されていません"}
-              </p>
-            </div>
-            <DialogClose className="rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2">
-              <X className="h-6 w-6" />
-              <span className="sr-only">閉じる</span>
-            </DialogClose>
-          </div>
-
-          {/* アクションボタン（プレビューでは無効化） */}
-          <div className="flex gap-2 mt-4">
-            <Button variant="outline" disabled className="flex items-center gap-2 bg-transparent">
-              <Heart className="h-4 w-4" />
-              いいね (0)
-            </Button>
-            <Button variant="outline" disabled className="flex items-center gap-2 bg-transparent">
-              <Bookmark className="h-4 w-4" />
-              お気に入り (0)
-            </Button>
-            <Button variant="outline" disabled className="flex items-center gap-2 bg-transparent">
-              <Eye className="h-4 w-4" />
-              閲覧数 (0)
+      <DialogContent className="max-w-[95vw] max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <div className="flex justify-between items-center">
+            <DialogTitle>デッキプレビュー</DialogTitle>
+            <Button variant="ghost" size="sm" onClick={() => onOpenChange(false)}>
+              <X className="h-4 w-4" />
             </Button>
           </div>
         </DialogHeader>
 
-        <div className="flex-1 overflow-y-auto">
-          <div className="p-6 space-y-8">
-            {/* デッキ構成セクション */}
-            <section>
+        <div className="space-y-6">
+          {/* ヘッダー部分 */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              {formData.deck_badge && <Badge variant="secondary">{formData.deck_badge}</Badge>}
+              <Badge className={getTierColor(formData.tier_rank)}>{formData.tier_rank}</Badge>
+              {formData.tier_name && <Badge variant="outline">{formData.tier_name}</Badge>}
+            </div>
+
+            <h1 className="text-2xl font-bold">{formData.deck_name || "デッキ名未設定"}</h1>
+
+            <div className="flex items-center gap-4 text-sm text-gray-600">
+              <span>作成者: 管理者</span>
+              <span>更新日: {new Date().toLocaleDateString("ja-JP")}</span>
+              <span>カード枚数: {totalCards}/20枚</span>
+            </div>
+
+            {formData.deck_description && <p className="text-gray-700 leading-relaxed">{formData.deck_description}</p>}
+
+            {/* アクションボタン（無効化状態） */}
+            <div className="flex gap-2">
+              <Button variant="outline" disabled className="flex items-center gap-2 bg-transparent">
+                <Heart className="h-4 w-4" />
+                いいね 0
+              </Button>
+              <Button variant="outline" disabled className="flex items-center gap-2 bg-transparent">
+                <Bookmark className="h-4 w-4" />
+                お気に入り 0
+              </Button>
+            </div>
+          </div>
+
+          {/* カード構成セクション */}
+          <Card>
+            <CardContent className="p-6">
               <h2 className="text-xl font-bold mb-4">
                 {formData.section1_title || `${formData.deck_name}のレシピと評価`}
               </h2>
 
-              {/* デッキカードグリッド */}
-              <div className="bg-gray-50 p-4 rounded-lg mb-6">
-                <div className="flex items-center gap-4 mb-4">
-                  <h3 className="font-medium text-lg">{formData.deck_name}</h3>
-                  <div className="flex items-center gap-2">
-                    {energyTypeIcons[formData.energy_type] && (
-                      <Image
-                        src={energyTypeIcons[formData.energy_type] || "/placeholder.svg"}
-                        alt={formData.energy_type}
-                        width={20}
-                        height={20}
-                        className="w-5 h-5"
-                      />
-                    )}
-                    <span className="text-sm text-gray-600">{formData.energy_type}タイプ</span>
-                  </div>
-                  <Badge variant="outline">{totalCards}/20枚</Badge>
-                </div>
+              <Tabs value={activeTab} onValueChange={setActiveTab}>
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="grid">カードグリッド</TabsTrigger>
+                  <TabsTrigger value="list">カードリスト</TabsTrigger>
+                </TabsList>
 
-                {loading ? (
-                  <div className="flex items-center justify-center py-8">
-                    <div className="text-gray-500">カード情報を読み込み中...</div>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-10 gap-2">
-                    {gridCards.map((card, index) => (
-                      <div key={index} className="aspect-[7/10] relative">
-                        {card && card.cardData ? (
-                          <div className="relative w-full h-full">
-                            <Image
-                              src={card.cardData.thumb_url || card.cardData.image_url || "/placeholder.svg"}
-                              alt={card.cardData.name}
-                              fill
-                              className="object-cover rounded-lg shadow-sm"
-                              onError={(e) => {
-                                e.currentTarget.src = "/placeholder.svg?height=140&width=100"
-                              }}
-                            />
-                          </div>
-                        ) : card ? (
-                          <div className="w-full h-full bg-gray-300 rounded-lg flex items-center justify-center">
-                            <span className="text-xs text-gray-600">読み込み中</span>
-                          </div>
+                <TabsContent value="grid" className="mt-4">
+                  <div className="grid grid-cols-10 gap-1 mb-4">
+                    {cardGrid.map((card, index) => (
+                      <div key={index} className="aspect-[7/10] bg-gray-100 rounded border">
+                        {card ? (
+                          <img
+                            src={
+                              card.detail?.thumb_url || card.detail?.image_url || "/placeholder.svg?height=100&width=70"
+                            }
+                            alt={card.detail?.name || card.card_name}
+                            className="w-full h-full object-cover rounded"
+                          />
                         ) : (
-                          <div className="w-full h-full bg-gray-200 rounded-lg border-2 border-dashed border-gray-300"></div>
+                          <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">空</div>
                         )}
                       </div>
                     ))}
                   </div>
-                )}
-              </div>
-
-              {/* カードリスト */}
-              <Tabs value={activeTab} onValueChange={setActiveTab}>
-                <TabsList>
-                  <TabsTrigger value="all">全てのカード</TabsTrigger>
-                  <TabsTrigger value={formData.energy_type}>{formData.energy_type}タイプ</TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="all" className="mt-4">
-                  <div className="space-y-2">
-                    {deckCards.map((card) => {
-                      const data = cardData[card.card_id]
-                      return (
-                        <div key={card.id} className="flex items-center gap-3 p-3 border rounded-lg">
-                          <div className="w-12 h-16 relative flex-shrink-0">
-                            {data ? (
-                              <Image
-                                src={data.thumb_url || data.image_url || "/placeholder.svg"}
-                                alt={data.name}
-                                fill
-                                className="object-cover rounded"
-                              />
-                            ) : (
-                              <div className="w-full h-full bg-gray-200 rounded flex items-center justify-center">
-                                <span className="text-xs">📷</span>
-                              </div>
-                            )}
-                          </div>
-                          <div className="flex-1">
-                            <div className="font-medium">{data?.name || card.card_name}</div>
-                            <div className="text-sm text-gray-600">{card.pack_name}</div>
-                          </div>
-                          <Badge variant="outline">×{card.card_count}</Badge>
-                        </div>
-                      )
-                    })}
-                  </div>
                 </TabsContent>
 
-                <TabsContent value={formData.energy_type} className="mt-4">
+                <TabsContent value="list" className="mt-4">
                   <div className="space-y-2">
+                    <div className="grid grid-cols-12 gap-2 p-2 bg-blue-50 rounded font-medium text-sm">
+                      <div className="col-span-1 text-center">ID</div>
+                      <div className="col-span-2 text-center">カード</div>
+                      <div className="col-span-6 text-center">説明</div>
+                      <div className="col-span-3 text-center">枚数</div>
+                    </div>
                     {deckCards
-                      .filter((card) => {
-                        const data = cardData[card.card_id]
-                        return data?.type_code === formData.energy_type
-                      })
+                      .sort((a, b) => a.display_order - b.display_order)
                       .map((card) => {
-                        const data = cardData[card.card_id]
+                        const detail = cardDetails.get(card.card_id)
                         return (
-                          <div key={card.id} className="flex items-center gap-3 p-3 border rounded-lg">
-                            <div className="w-12 h-16 relative flex-shrink-0">
-                              <Image
-                                src={data?.thumb_url || data?.image_url || "/placeholder.svg"}
-                                alt={data?.name || card.card_name}
-                                fill
-                                className="object-cover rounded"
+                          <div key={card.id} className="grid grid-cols-12 gap-2 p-2 border rounded items-center">
+                            <div className="col-span-1 text-center text-sm">{card.card_id}</div>
+                            <div className="col-span-2 flex flex-col items-center">
+                              <img
+                                src={detail?.thumb_url || detail?.image_url || "/placeholder.svg?height=60&width=42"}
+                                alt={detail?.name || card.card_name}
+                                className="w-10 h-14 object-cover rounded mb-1"
                               />
+                              <span className="text-xs text-center">{detail?.name || card.card_name}</span>
                             </div>
-                            <div className="flex-1">
-                              <div className="font-medium">{data?.name || card.card_name}</div>
-                              <div className="text-sm text-gray-600">{card.pack_name}</div>
-                            </div>
-                            <Badge variant="outline">×{card.card_count}</Badge>
+                            <div className="col-span-6 text-center text-sm">{detail?.name || card.card_name}の説明</div>
+                            <div className="col-span-3 text-center font-medium">{card.card_count}枚</div>
                           </div>
                         )
                       })}
                   </div>
                 </TabsContent>
               </Tabs>
-            </section>
+            </CardContent>
+          </Card>
 
-            {/* 評価セクション */}
-            {formData.evaluation_title && (
-              <section>
-                <h2 className="text-xl font-bold mb-4">{formData.evaluation_title}</h2>
+          {/* 評価セクション */}
+          <Card>
+            <CardContent className="p-6">
+              <h2 className="text-xl font-bold mb-4">{formData.evaluation_title || `${formData.deck_name}の評価`}</h2>
 
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <span
-                        className={cn(
-                          "px-3 py-1 rounded-full text-white font-bold text-lg",
-                          formData.tier_rank === "SS" && "bg-red-500",
-                          formData.tier_rank === "S" && "bg-orange-500",
-                          formData.tier_rank === "A" && "bg-yellow-500",
-                          formData.tier_rank === "B" && "bg-green-500",
-                          formData.tier_rank === "C" && "bg-blue-500",
-                        )}
-                      >
-                        {formData.tier_rank}
-                      </span>
-                      {formData.tier_name && <span>{formData.tier_name}</span>}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    {formData.tier_descriptions.length > 0 && (
-                      <div className="space-y-2 mb-6">
-                        {formData.tier_descriptions.map((desc, index) => (
-                          <p key={index} className="text-gray-700">
-                            {desc}
-                          </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <h3 className="font-semibold mb-2">ティア評価</h3>
+                  <div className="flex items-center gap-2 mb-2">
+                    <Badge className={getTierColor(formData.tier_rank)} size="lg">
+                      {formData.tier_rank}
+                    </Badge>
+                    {formData.tier_name && <span className="text-sm text-gray-600">{formData.tier_name}</span>}
+                  </div>
+                  {formData.tier_descriptions.length > 0 && (
+                    <ul className="text-sm text-gray-700 space-y-1">
+                      {formData.tier_descriptions
+                        .filter((desc: string) => desc.trim())
+                        .map((desc: string, index: number) => (
+                          <li key={index}>• {desc}</li>
                         ))}
-                      </div>
-                    )}
+                    </ul>
+                  )}
+                </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-                      {Object.entries(formData.stats).map(([key, value]) => (
-                        <div key={key} className="text-center">
-                          <div className="text-sm text-gray-600 mb-1">{statLabels[key as keyof typeof statLabels]}</div>
-                          <div className="flex justify-center gap-1">
-                            {[1, 2, 3, 4, 5].map((star) => (
-                              <Star
-                                key={star}
-                                className={cn(
-                                  "h-4 w-4",
-                                  star <= value ? "fill-yellow-400 text-yellow-400" : "text-gray-300",
-                                )}
-                              />
-                            ))}
+                <div>
+                  <h3 className="font-semibold mb-2">ステータス評価</h3>
+                  <div className="space-y-2">
+                    {Object.entries(formData.stats).map(([key, value]) => {
+                      const labels = {
+                        accessibility: "アクセス性",
+                        speed: "スピード",
+                        power: "パワー",
+                        durability: "耐久性",
+                        stability: "安定性",
+                      }
+                      return (
+                        <div key={key} className="flex justify-between items-center">
+                          <span className="text-sm">{labels[key as keyof typeof labels]}</span>
+                          <div className="flex items-center gap-1">
+                            {renderStars(value as number)}
+                            <span className="text-sm text-gray-600 ml-1">{value}/5</span>
                           </div>
-                          <div className="text-xs text-gray-500 mt-1">{value}/5</div>
                         </div>
-                      ))}
+                      )
+                    })}
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* 強み・弱みセクション */}
+          <Card>
+            <CardContent className="p-6">
+              <h2 className="text-xl font-bold mb-4">
+                {formData.section2_title || `${formData.deck_name}の強い点・弱い点`}
+              </h2>
+
+              <div className="space-y-4">
+                {strengthsWeaknesses
+                  .sort((a, b) => a.display_order - b.display_order)
+                  .map((item, index) => (
+                    <div key={item.id} className="border rounded-lg p-4">
+                      <h3 className="font-semibold mb-2">
+                        {index + 1}. {item.title}
+                      </h3>
+                      <p className="text-gray-700 mb-3">{item.description}</p>
+                      {item.image_urls.length > 0 && (
+                        <div className="flex gap-2 flex-wrap">
+                          {item.image_urls.map((url: string, imgIndex: number) => (
+                            <img
+                              key={imgIndex}
+                              src={url || "/placeholder.svg"}
+                              alt=""
+                              className="w-16 h-16 object-cover rounded border"
+                            />
+                          ))}
+                        </div>
+                      )}
                     </div>
-                  </CardContent>
-                </Card>
-              </section>
-            )}
+                  ))}
 
-            {/* 強み・弱みセクション */}
-            {strengthsWeaknesses.length > 0 && (
-              <section>
-                <h2 className="text-xl font-bold mb-4">
-                  {formData.section2_title || `${formData.deck_name}の強い点・弱い点`}
-                </h2>
+                {formData.strengths_weaknesses_list.some((item: string) => item.trim()) && (
+                  <div className="mt-4">
+                    <h3 className="font-semibold mb-2">要点まとめ</h3>
+                    <ul className="text-sm text-gray-700 space-y-1">
+                      {formData.strengths_weaknesses_list
+                        .filter((item: string) => item.trim())
+                        .map((item: string, index: number) => (
+                          <li key={index}>• {item}</li>
+                        ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
 
-                <div className="space-y-6">
-                  {strengthsWeaknesses
-                    .sort((a, b) => a.display_order - b.display_order)
-                    .map((item, index) => (
-                      <div key={item.id} className="bg-white border border-slate-200 rounded-lg p-6">
-                        <h3 className="font-semibold text-lg mb-3 flex items-center gap-2">
-                          <span className="bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm">
-                            {index + 1}
-                          </span>
-                          {item.title}
-                        </h3>
-                        <p className="text-gray-700 leading-relaxed mb-4">{item.description}</p>
+          {/* プレイ方法セクション */}
+          <Card>
+            <CardContent className="p-6">
+              <h2 className="text-xl font-bold mb-4">{formData.section3_title || `${formData.deck_name}の回し方`}</h2>
 
-                        {item.image_urls.length > 0 && (
-                          <div className="flex gap-2 flex-wrap">
-                            {item.image_urls.map((url, imgIndex) => (
-                              <div key={imgIndex} className="w-16 h-20 relative">
-                                <Image
-                                  src={url || "/placeholder.svg"}
-                                  alt=""
-                                  fill
-                                  className="object-cover rounded border"
-                                />
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                </div>
-              </section>
-            )}
+              <div className="space-y-4">
+                {playSteps
+                  .sort((a, b) => a.step_number - b.step_number)
+                  .map((step) => (
+                    <div key={step.id} className="border rounded-lg p-4">
+                      <h3 className="font-semibold mb-2">
+                        STEP {step.step_number}: {step.title}
+                      </h3>
+                      <p className="text-gray-700 mb-3">{step.description}</p>
+                      {step.image_urls.length > 0 && (
+                        <div className="flex gap-2 flex-wrap">
+                          {step.image_urls.map((url: string, imgIndex: number) => (
+                            <img
+                              key={imgIndex}
+                              src={url || "/placeholder.svg"}
+                              alt=""
+                              className="w-16 h-16 object-cover rounded border"
+                            />
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ))}
 
-            {/* プレイ方法セクション */}
-            {playSteps.length > 0 && (
-              <section>
-                <h2 className="text-xl font-bold mb-4">{formData.section3_title || `${formData.deck_name}の回し方`}</h2>
-
-                <div className="space-y-6">
-                  {playSteps
-                    .sort((a, b) => a.step_number - b.step_number)
-                    .map((step) => (
-                      <div key={step.id} className="bg-white border border-slate-200 rounded-lg p-6">
-                        <h3 className="font-semibold text-lg mb-3 flex items-center gap-2">
-                          <span className="bg-green-600 text-white rounded-full px-3 py-1 text-sm">
-                            STEP {step.step_number}
-                          </span>
-                          {step.title}
-                        </h3>
-                        <p className="text-gray-700 leading-relaxed mb-4">{step.description}</p>
-
-                        {step.image_urls.length > 0 && (
-                          <div className="flex gap-2 flex-wrap">
-                            {step.image_urls.map((url, imgIndex) => (
-                              <div key={imgIndex} className="w-16 h-20 relative">
-                                <Image
-                                  src={url || "/placeholder.svg"}
-                                  alt=""
-                                  fill
-                                  className="object-cover rounded border"
-                                />
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                </div>
-              </section>
-            )}
-          </div>
+                {formData.how_to_play_list.some((item: string) => item.trim()) && (
+                  <div className="mt-4">
+                    <h3 className="font-semibold mb-2">プレイ方法まとめ</h3>
+                    <ul className="text-sm text-gray-700 space-y-1">
+                      {formData.how_to_play_list
+                        .filter((item: string) => item.trim())
+                        .map((item: string, index: number) => (
+                          <li key={index}>• {item}</li>
+                        ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </DialogContent>
     </Dialog>

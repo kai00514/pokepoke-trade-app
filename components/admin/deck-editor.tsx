@@ -12,10 +12,12 @@ import { Badge } from "@/components/ui/badge"
 import { Slider } from "@/components/ui/slider"
 import { Switch } from "@/components/ui/switch"
 import { Separator } from "@/components/ui/separator"
-import { Save, Eye, Upload, Plus, Trash2, GripVertical, Search } from "lucide-react"
+import { Save, Eye, Upload, Plus, Trash2, GripVertical, Search, Loader2 } from "lucide-react"
+import { toast } from "sonner"
 import DetailedSearchModal from "@/components/detailed-search-modal"
 import DeckCardSelectionModal, { type DeckCard as DeckCardType } from "@/components/admin/deck-card-selection-modal"
 import { DeckPreviewModal } from "@/components/admin/deck-preview-modal"
+import { createDeckPage, updateDeckPage, type DeckPageData } from "@/lib/actions/admin-deck-pages"
 
 interface DeckEditorProps {
   deck?: any
@@ -27,6 +29,9 @@ export function DeckEditor({ deck, isEditing = false }: DeckEditorProps) {
   const [isCardSearchOpen, setIsCardSearchOpen] = useState(false)
   const [isDeckCardSelectionOpen, setIsDeckCardSelectionOpen] = useState(false)
   const [isPreviewOpen, setIsPreviewOpen] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
+  const [lastSaved, setLastSaved] = useState<Date | null>(null)
+
   const [formData, setFormData] = useState({
     title: deck?.title || "",
     deck_name: deck?.deck_name || "",
@@ -115,6 +120,121 @@ export function DeckEditor({ deck, isEditing = false }: DeckEditorProps) {
   const [currentImageTarget, setCurrentImageTarget] = useState<{ type: "strength" | "play"; id: number } | null>(null)
 
   const totalCards = deckCards.reduce((sum, card) => sum + card.card_count, 0)
+
+  // バリデーション関数
+  const validateForm = (): string[] => {
+    const errors: string[] = []
+
+    if (!formData.title.trim()) {
+      errors.push("デッキタイトルは必須です")
+    }
+
+    if (!formData.deck_name.trim()) {
+      errors.push("デッキ名は必須です")
+    }
+
+    if (!formData.energy_type) {
+      errors.push("エネルギータイプは必須です")
+    }
+
+    if (!formData.deck_description.trim()) {
+      errors.push("デッキ説明は必須です")
+    }
+
+    if (totalCards !== 20) {
+      errors.push(`デッキはちょうど20枚である必要があります（現在: ${totalCards}枚）`)
+    }
+
+    const invalidCards = deckCards.filter((card) => card.card_count < 1 || card.card_count > 2)
+    if (invalidCards.length > 0) {
+      errors.push("同じカードは1〜2枚までです")
+    }
+
+    return errors
+  }
+
+  // 保存処理
+  const handleSave = async (publishStatus: boolean) => {
+    const errors = validateForm()
+    if (errors.length > 0) {
+      toast.error("入力エラー", {
+        description: errors.join("\n"),
+      })
+      return
+    }
+
+    setIsSaving(true)
+
+    try {
+      const deckPageData: DeckPageData = {
+        title: formData.title,
+        deck_name: formData.deck_name,
+        deck_description: formData.deck_description,
+        deck_badge: formData.deck_badge,
+        thumbnail_alt: formData.thumbnail_alt,
+        section1_title: formData.section1_title,
+        section2_title: formData.section2_title,
+        section3_title: formData.section3_title,
+        category: formData.category,
+        energy_type: formData.energy_type,
+        evaluation_title: formData.evaluation_title,
+        tier_rank: formData.tier_rank,
+        tier_name: formData.tier_name,
+        tier_descriptions: formData.tier_descriptions,
+        is_published: publishStatus,
+        stats: formData.stats,
+        strengths_weaknesses_list: formData.strengths_weaknesses_list,
+        how_to_play_list: formData.how_to_play_list,
+        deck_cards: deckCards.map((card) => ({
+          card_id: card.card_id,
+          card_count: card.card_count,
+          display_order: card.display_order,
+        })),
+        strengths_weaknesses: strengthsWeaknesses.map((item) => ({
+          title: item.title,
+          description: item.description,
+          image_urls: item.image_urls,
+          display_order: item.display_order,
+        })),
+        play_steps: playSteps.map((step) => ({
+          step_number: step.step_number,
+          title: step.title,
+          description: step.description,
+          image_urls: step.image_urls,
+        })),
+      }
+
+      let result
+      if (isEditing && deck?.id) {
+        result = await updateDeckPage(deck.id, deckPageData)
+      } else {
+        result = await createDeckPage(deckPageData)
+      }
+
+      if (result.success) {
+        setLastSaved(new Date())
+        toast.success(publishStatus ? "デッキページを公開しました" : "デッキページを下書き保存しました", {
+          description: `${formData.deck_name}が正常に保存されました`,
+        })
+
+        // 公開した場合は、フォームの公開状態を更新
+        if (publishStatus) {
+          setFormData({ ...formData, is_published: true })
+        }
+      } else {
+        toast.error("保存に失敗しました", {
+          description: result.error || "不明なエラーが発生しました",
+        })
+      }
+    } catch (error) {
+      console.error("Save error:", error)
+      toast.error("保存に失敗しました", {
+        description: "予期しないエラーが発生しました",
+      })
+    } finally {
+      setIsSaving(false)
+    }
+  }
 
   const handleCardSelection = (selectedCards: any[]) => {
     if (selectedCards.length > 0) {
@@ -291,9 +411,13 @@ export function DeckEditor({ deck, isEditing = false }: DeckEditorProps) {
                 <Eye className="h-4 w-4 mr-2" />
                 プレビュー
               </Button>
-              <Button>
-                <Save className="h-4 w-4 mr-2" />
-                保存
+              <Button onClick={() => handleSave(false)} disabled={isSaving} variant="outline">
+                {isSaving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
+                下書き保存
+              </Button>
+              <Button onClick={() => handleSave(true)} disabled={isSaving}>
+                {isSaving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
+                公開
               </Button>
             </div>
           </div>
@@ -977,23 +1101,28 @@ export function DeckEditor({ deck, isEditing = false }: DeckEditorProps) {
             <div className="space-y-4">
               <Label>保存状況</Label>
               <div className="text-sm text-gray-600">
-                <div>最終保存: 未保存</div>
-                <div>自動保存: ON</div>
+                <div>最終保存: {lastSaved ? lastSaved.toLocaleString("ja-JP") : "未保存"}</div>
+                <div>自動保存: OFF</div>
               </div>
             </div>
 
             <Separator />
 
             <div className="space-y-2">
-              <Button className="w-full">
-                <Save className="h-4 w-4 mr-2" />
+              <Button className="w-full" onClick={() => handleSave(false)} disabled={isSaving}>
+                {isSaving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
                 下書き保存
               </Button>
-              <Button variant="outline" className="w-full bg-transparent">
+              <Button variant="outline" className="w-full bg-transparent" onClick={() => setIsPreviewOpen(true)}>
                 <Eye className="h-4 w-4 mr-2" />
                 プレビュー
               </Button>
-              <Button variant="outline" className="w-full bg-transparent">
+              <Button
+                variant="outline"
+                className="w-full bg-transparent"
+                onClick={() => handleSave(true)}
+                disabled={isSaving}
+              >
                 公開
               </Button>
             </div>
