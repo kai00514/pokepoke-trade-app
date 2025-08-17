@@ -87,28 +87,46 @@ export async function createDeckPage(deckData: DeckPageData) {
       throw new Error("同じカードは1〜2枚までです。")
     }
 
-    // deck_cardsをJSON形式に変換（スキーマに合わせて配列形式）
-    const deckCardsJson = deckData.deck_cards.map((card) => ({
-      card_id: card.card_id,
-      quantity: card.card_count,
-      display_order: card.display_order,
-    }))
+    // deck_cardsをJSON形式に変換（実際のDB構造に合わせて修正）
+    const deckCardsWithPackNames = await Promise.all(
+      deckData.deck_cards.map(async (card) => {
+        // カード情報からpack_nameを取得
+        const { data: cardInfo } = await supabase.from("cards").select("pack_id").eq("id", card.card_id).single()
 
-    // strengths_weaknesses_detailsをJSON形式に変換
-    const strengthsWeaknessesDetailsJson = deckData.strengths_weaknesses.map((item) => ({
-      title: item.title,
-      description: item.description,
-      image_urls: item.image_urls,
-      display_order: item.display_order,
-    }))
+        let packName = "不明なパック"
+        if (cardInfo?.pack_id) {
+          const { data: packInfo } = await supabase.from("packs").select("name").eq("id", cardInfo.pack_id).single()
+          packName = packInfo?.name || "不明なパック"
+        }
 
-    // how_to_play_stepsをJSON形式に変換
-    const howToPlayStepsJson = deckData.play_steps.map((step) => ({
-      step_number: step.step_number,
-      title: step.title,
-      description: step.description,
-      image_urls: step.image_urls,
-    }))
+        return {
+          card_id: card.card_id,
+          pack_name: packName,
+          card_count: card.card_count, // quantityではなくcard_count
+          display_order: card.display_order,
+        }
+      }),
+    )
+
+    // strengths_weaknesses_detailsをJSON文字列形式に変換（HTMLタグ対応）
+    const strengthsWeaknessesDetailsJson = JSON.stringify(
+      deckData.strengths_weaknesses.map((item) => ({
+        title: item.title,
+        description: item.description, // HTMLタグをそのまま保持
+        image_urls: item.image_urls,
+        display_order: item.display_order,
+      })),
+    )
+
+    // how_to_play_stepsをJSON文字列形式に変換（HTMLタグ対応）
+    const howToPlayStepsJson = JSON.stringify(
+      deckData.play_steps.map((step) => ({
+        title: step.title,
+        description: step.description, // HTMLタグをそのまま保持
+        image_urls: step.image_urls,
+        step_number: step.step_number,
+      })),
+    )
 
     // サムネイル画像URLを設定
     let thumbnailImageUrl = deckData.thumbnail_image_url || "/placeholder.svg?height=400&width=600"
@@ -117,7 +135,7 @@ export async function createDeckPage(deckData: DeckPageData) {
       thumbnailImageUrl = `/placeholder.svg?height=400&width=600&text=${encodeURIComponent(deckData.deck_name)}`
     }
 
-    // デッキページデータの準備（スキーマに合わせて修正）
+    // デッキページデータの準備（実際のDB構造に合わせて修正）
     const insertData = {
       title: deckData.title,
       deck_name: deckData.deck_name,
@@ -143,14 +161,14 @@ export async function createDeckPage(deckData: DeckPageData) {
       stat_stability: deckData.stats.stability,
       strengths_weaknesses_list: deckData.strengths_weaknesses_list.filter((item) => item.trim()),
       how_to_play_list: deckData.how_to_play_list.filter((item) => item.trim()),
-      deck_cards: deckCardsJson,
-      strengths_weaknesses_details: strengthsWeaknessesDetailsJson, // カラム名変更
-      how_to_play_steps: howToPlayStepsJson,
+      deck_cards: JSON.stringify(deckCardsWithPackNames), // JSON文字列として格納
+      strengths_weaknesses_details: strengthsWeaknessesDetailsJson, // JSON文字列として格納
+      how_to_play_steps: howToPlayStepsJson, // JSON文字列として格納
       view_count: 0,
       like_count: 0,
       comment_count: 0,
       favorite_count: 0,
-      eval_value: 0.0,
+      eval_value: "0.00", // 文字列として格納
       eval_count: 0,
     }
 
@@ -226,28 +244,46 @@ export async function updateDeckPage(id: string, deckData: DeckPageData) {
       throw new Error("同じカードは1〜2枚までです。")
     }
 
-    // deck_cardsをJSON形式に変換（スキーマに合わせて配列形式）
-    const deckCardsJson = deckData.deck_cards.map((card) => ({
-      card_id: card.card_id,
-      quantity: card.card_count,
-      display_order: card.display_order,
-    }))
+    // deck_cardsをJSON形式に変換（実際のDB構造に合わせて修正）
+    const deckCardsWithPackNames = await Promise.all(
+      deckData.deck_cards.map(async (card) => {
+        // カード情報からpack_nameを取得
+        const { data: cardInfo } = await supabase.from("cards").select("pack_id").eq("id", card.card_id).single()
 
-    // strengths_weaknesses_detailsをJSON形式に変換
-    const strengthsWeaknessesDetailsJson = deckData.strengths_weaknesses.map((item) => ({
-      title: item.title,
-      description: item.description,
-      image_urls: item.image_urls,
-      display_order: item.display_order,
-    }))
+        let packName = "不明なパック"
+        if (cardInfo?.pack_id) {
+          const { data: packInfo } = await supabase.from("packs").select("name").eq("id", cardInfo.pack_id).single()
+          packName = packInfo?.name || "不明なパック"
+        }
 
-    // how_to_play_stepsをJSON形式に変換
-    const howToPlayStepsJson = deckData.play_steps.map((step) => ({
-      step_number: step.step_number,
-      title: step.title,
-      description: step.description,
-      image_urls: step.image_urls,
-    }))
+        return {
+          card_id: card.card_id,
+          pack_name: packName,
+          card_count: card.card_count, // quantityではなくcard_count
+          display_order: card.display_order,
+        }
+      }),
+    )
+
+    // strengths_weaknesses_detailsをJSON文字列形式に変換（HTMLタグ対応）
+    const strengthsWeaknessesDetailsJson = JSON.stringify(
+      deckData.strengths_weaknesses.map((item) => ({
+        title: item.title,
+        description: item.description, // HTMLタグをそのまま保持
+        image_urls: item.image_urls,
+        display_order: item.display_order,
+      })),
+    )
+
+    // how_to_play_stepsをJSON文字列形式に変換（HTMLタグ対応）
+    const howToPlayStepsJson = JSON.stringify(
+      deckData.play_steps.map((step) => ({
+        title: step.title,
+        description: step.description, // HTMLタグをそのまま保持
+        image_urls: step.image_urls,
+        step_number: step.step_number,
+      })),
+    )
 
     // サムネイル画像URLを設定
     let thumbnailImageUrl = deckData.thumbnail_image_url || "/placeholder.svg?height=400&width=600"
@@ -255,7 +291,7 @@ export async function updateDeckPage(id: string, deckData: DeckPageData) {
       thumbnailImageUrl = `/placeholder.svg?height=400&width=600&text=${encodeURIComponent(deckData.deck_name)}`
     }
 
-    // 更新データの準備（スキーマに合わせて修正）
+    // 更新データの準備（実際のDB構造に合わせて修正）
     const updateData = {
       title: deckData.title,
       deck_name: deckData.deck_name,
@@ -280,9 +316,9 @@ export async function updateDeckPage(id: string, deckData: DeckPageData) {
       stat_stability: deckData.stats.stability,
       strengths_weaknesses_list: deckData.strengths_weaknesses_list.filter((item) => item.trim()),
       how_to_play_list: deckData.how_to_play_list.filter((item) => item.trim()),
-      deck_cards: deckCardsJson,
-      strengths_weaknesses_details: strengthsWeaknessesDetailsJson, // カラム名変更
-      how_to_play_steps: howToPlayStepsJson,
+      deck_cards: JSON.stringify(deckCardsWithPackNames), // JSON文字列として格納
+      strengths_weaknesses_details: strengthsWeaknessesDetailsJson, // JSON文字列として格納
+      how_to_play_steps: howToPlayStepsJson, // JSON文字列として格納
       // updated_atは自動更新されるため削除
     }
 
