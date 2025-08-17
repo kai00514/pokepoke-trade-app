@@ -25,6 +25,11 @@ export function DeckEditor({ deck, isEditing = false }: DeckEditorProps) {
     title: deck?.title || "",
     deck_name: deck?.deck_name || "",
     deck_description: deck?.deck_description || "",
+    deck_badge: deck?.deck_badge || "",
+    thumbnail_alt: deck?.thumbnail_alt || "",
+    section1_title: deck?.section1_title || "",
+    section2_title: deck?.section2_title || "",
+    section3_title: deck?.section3_title || "",
     category: deck?.category || "tier",
     energy_type: deck?.energy_type || "",
     evaluation_title: deck?.evaluation_title || "",
@@ -39,6 +44,8 @@ export function DeckEditor({ deck, isEditing = false }: DeckEditorProps) {
       durability: deck?.stat_durability || 3,
       stability: deck?.stat_stability || 3,
     },
+    strengths_weaknesses_list: deck?.strengths_weaknesses_list || [""],
+    how_to_play_list: deck?.how_to_play_list || [""],
   })
 
   const [deckCards, setDeckCards] = useState([
@@ -47,9 +54,17 @@ export function DeckEditor({ deck, isEditing = false }: DeckEditorProps) {
       card_id: 1533,
       card_name: "ピカチュウ",
       pack_name: "拡張パック「スカーレット&バイオレット」",
-      quantity: 4,
+      card_count: 4,
+      display_order: 0,
     },
-    { id: 2, card_id: 1532, card_name: "ライチュウ", pack_name: "拡張パック「クレイバースト」", quantity: 2 },
+    {
+      id: 2,
+      card_id: 1532,
+      card_name: "ライチュウ",
+      pack_name: "拡張パック「クレイバースト」",
+      card_count: 2,
+      display_order: 1,
+    },
   ])
 
   const [strengthsWeaknesses, setStrengthsWeaknesses] = useState([
@@ -57,13 +72,15 @@ export function DeckEditor({ deck, isEditing = false }: DeckEditorProps) {
       id: 1,
       title: "安定した試合展開ができる",
       description: "グラジオによりタイプ：ヌルとシルヴァディを手札に揃えやすくなっています。",
-      images: [],
+      image_urls: [],
+      display_order: 1,
     },
     {
       id: 2,
       title: "デッキの拡張性が高い",
       description: "シルヴァディは無色エネルギーでワザを使えるため、サブアタッカーに様々な選択肢を取ることができます。",
-      images: [],
+      image_urls: [],
+      display_order: 2,
     },
   ])
 
@@ -73,18 +90,18 @@ export function DeckEditor({ deck, isEditing = false }: DeckEditorProps) {
       step_number: 1,
       title: "序盤から積極的に攻撃",
       description: "序盤からシルヴァディで攻撃していきます。グラジオでシルヴァディをサーチして素早く進化させましょう。",
-      images: [],
+      image_urls: [],
     },
     {
       id: 2,
       step_number: 2,
       title: "サブアタッカーを育成",
       description: "シルヴァディで戦っている間にベンチでサブアタッカーを育成しましょう。",
-      images: [],
+      image_urls: [],
     },
   ])
 
-  const totalCards = deckCards.reduce((sum, card) => sum + card.quantity, 0)
+  const totalCards = deckCards.reduce((sum, card) => sum + card.card_count, 0)
 
   return (
     <div className="flex gap-6">
@@ -175,6 +192,27 @@ export function DeckEditor({ deck, isEditing = false }: DeckEditorProps) {
                     />
                   </div>
 
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="deck_badge">デッキバッジ</Label>
+                      <Input
+                        id="deck_badge"
+                        placeholder="デッキバッジ表示名"
+                        value={formData.deck_badge}
+                        onChange={(e) => setFormData({ ...formData, deck_badge: e.target.value })}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="thumbnail_alt">サムネイル代替テキスト</Label>
+                      <Input
+                        id="thumbnail_alt"
+                        placeholder="サムネイル画像の説明"
+                        value={formData.thumbnail_alt}
+                        onChange={(e) => setFormData({ ...formData, thumbnail_alt: e.target.value })}
+                      />
+                    </div>
+                  </div>
+
                   <div className="space-y-2">
                     <Label>サムネイル画像</Label>
                     <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
@@ -184,6 +222,41 @@ export function DeckEditor({ deck, isEditing = false }: DeckEditorProps) {
                         ファイルを選択
                       </Button>
                     </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>セクションタイトル設定</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="section1_title">セクション1タイトル</Label>
+                    <Input
+                      id="section1_title"
+                      placeholder="○○デッキのレシピと評価"
+                      value={formData.section1_title}
+                      onChange={(e) => setFormData({ ...formData, section1_title: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="section2_title">セクション2タイトル</Label>
+                    <Input
+                      id="section2_title"
+                      placeholder="○○デッキの強い点・弱い点"
+                      value={formData.section2_title}
+                      onChange={(e) => setFormData({ ...formData, section2_title: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="section3_title">セクション3タイトル</Label>
+                    <Input
+                      id="section3_title"
+                      placeholder="○○デッキの回し方"
+                      value={formData.section3_title}
+                      onChange={(e) => setFormData({ ...formData, section3_title: e.target.value })}
+                    />
                   </div>
                 </CardContent>
               </Card>
@@ -228,7 +301,11 @@ export function DeckEditor({ deck, isEditing = false }: DeckEditorProps) {
                         </div>
                         <div className="flex items-center gap-2">
                           <Label>枚数:</Label>
-                          <Input type="number" min="1" max="4" value={card.quantity} className="w-16" />
+                          <Input type="number" min="1" max="4" value={card.card_count} className="w-16" />
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Label>順序:</Label>
+                          <Input type="number" min="0" value={card.display_order} className="w-16" />
                         </div>
                         <Button variant="outline" size="sm">
                           編集
@@ -442,8 +519,58 @@ export function DeckEditor({ deck, isEditing = false }: DeckEditorProps) {
                         </div>
                         <p className="text-sm text-gray-600 mb-2">{item.description}</p>
                         <div className="text-xs text-gray-400">
-                          画像: {item.images.length > 0 ? `${item.images.length}枚` : "なし"}
+                          画像: {item.image_urls.length > 0 ? `${item.image_urls.length}枚` : "なし"} | 表示順序:{" "}
+                          {item.display_order}
                         </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex justify-between items-center">
+                    強み・弱み簡易リスト
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const newList = [...formData.strengths_weaknesses_list, ""]
+                        setFormData({ ...formData, strengths_weaknesses_list: newList })
+                      }}
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      項目を追加
+                    </Button>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    {formData.strengths_weaknesses_list.map((item, index) => (
+                      <div key={index} className="flex gap-2">
+                        <Input
+                          placeholder="強み・弱みの簡易説明"
+                          value={item}
+                          onChange={(e) => {
+                            const newList = [...formData.strengths_weaknesses_list]
+                            newList[index] = e.target.value
+                            setFormData({ ...formData, strengths_weaknesses_list: newList })
+                          }}
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            const newList = formData.strengths_weaknesses_list.filter((_, i) => i !== index)
+                            setFormData({ ...formData, strengths_weaknesses_list: newList })
+                          }}
+                          disabled={formData.strengths_weaknesses_list.length <= 1}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </div>
                     ))}
                   </div>
@@ -482,8 +609,57 @@ export function DeckEditor({ deck, isEditing = false }: DeckEditorProps) {
                         </div>
                         <p className="text-sm text-gray-600 mb-2">{step.description}</p>
                         <div className="text-xs text-gray-400">
-                          画像: {step.images.length > 0 ? `${step.images.length}枚` : "なし"}
+                          画像: {step.image_urls.length > 0 ? `${step.image_urls.length}枚` : "なし"}
                         </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex justify-between items-center">
+                    プレイ方法簡易リスト
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const newList = [...formData.how_to_play_list, ""]
+                        setFormData({ ...formData, how_to_play_list: newList })
+                      }}
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      項目を追加
+                    </Button>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    {formData.how_to_play_list.map((item, index) => (
+                      <div key={index} className="flex gap-2">
+                        <Input
+                          placeholder="プレイ方法の簡易説明"
+                          value={item}
+                          onChange={(e) => {
+                            const newList = [...formData.how_to_play_list]
+                            newList[index] = e.target.value
+                            setFormData({ ...formData, how_to_play_list: newList })
+                          }}
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            const newList = formData.how_to_play_list.filter((_, i) => i !== index)
+                            setFormData({ ...formData, how_to_play_list: newList })
+                          }}
+                          disabled={formData.how_to_play_list.length <= 1}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </div>
                     ))}
                   </div>
