@@ -191,9 +191,9 @@ function CardsTable({
   items: Array<{ id?: string; card_id: number; explanation?: string; quantity: number | string }>
   headers?: { id?: string; card?: string; explanation?: string; quantity?: string }
 }) {
-  const [cards, setCards] = React.useState<Array<{ id: number; name: string; image_url: string; thumb_url?: string }>>(
-    [],
-  )
+  const [cards, setCards] = React.useState<
+    Array<{ id: number; name: string; image_url: string; thumb_url?: string; game8_image_url?: string }>
+  >([])
   const [loading, setLoading] = React.useState(true)
   const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
 
@@ -201,7 +201,10 @@ function CardsTable({
     async function fetchCards() {
       try {
         const cardIds = items.map((item) => item.card_id)
-        const { data } = await supabase.from("cards").select("*").in("id", cardIds)
+        const { data } = await supabase
+          .from("cards")
+          .select("id, name, image_url, thumb_url, game8_image_url")
+          .in("id", cardIds)
         setCards(data || [])
       } catch (error) {
         console.error("Failed to fetch cards:", error)
@@ -216,6 +219,18 @@ function CardsTable({
       setLoading(false)
     }
   }, [items])
+
+  // カードの画像URLを取得する関数
+  const getCardImageUrl = (cardId: number, useThumb = false) => {
+    const card = cards.find((c) => c.id === cardId)
+    if (!card)
+      return "https://kidyrurtyvxqokhszgko.supabase.co/storage/v1/object/public/card-images/full/placeholder.webp"
+
+    if (useThumb && card.thumb_url) return card.thumb_url
+    if (card.game8_image_url) return card.game8_image_url
+    if (card.image_url) return card.image_url
+    return "https://kidyrurtyvxqokhszgko.supabase.co/storage/v1/object/public/card-images/full/placeholder.webp"
+  }
 
   if (loading) {
     return (
@@ -268,11 +283,16 @@ function CardsTable({
                   <div className="flex flex-col items-center justify-center gap-2">
                     <div className="flex-shrink-0">
                       <Image
-                        src={card?.thumb_url || card?.image_url || "/placeholder.svg"}
+                        src={getCardImageUrl(item.card_id, true) || "/placeholder.svg"}
                         alt={card?.name || `Card ${item.card_id}`}
                         width={50}
                         height={70}
                         className="rounded border border-slate-200 object-cover"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement
+                          target.src =
+                            "https://kidyrurtyvxqokhszgko.supabase.co/storage/v1/object/public/card-images/full/placeholder.webp"
+                        }}
                       />
                     </div>
                     <div className="text-center">
@@ -332,6 +352,10 @@ export default function RenderArticle({ blocks }: RenderArticleProps) {
                     height={400}
                     className="w-full h-auto object-cover"
                     style={{ aspectRatio: block.data.aspect }}
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement
+                      target.src = "/placeholder.svg"
+                    }}
                   />
                 </div>
                 {block.data.caption && <p className="text-sm text-slate-500 text-center mt-2">{block.data.caption}</p>}

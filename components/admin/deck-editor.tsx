@@ -19,6 +19,7 @@ import DeckCardSelectionModal, { type DeckCard as DeckCardType } from "@/compone
 import { DeckPreviewModal } from "@/components/admin/deck-preview-modal"
 import { createDeckPage, updateDeckPage, type DeckPageData } from "@/lib/actions/admin-deck-pages"
 import { ImageUpload } from "@/components/admin/image-upload"
+import CardDisplay from "@/components/card-display"
 
 interface DeckEditorProps {
   deck?: any
@@ -173,6 +174,7 @@ export function DeckEditor({ deck, isEditing = false }: DeckEditorProps) {
         deck_name: formData.deck_name,
         deck_description: formData.deck_description,
         deck_badge: formData.deck_badge,
+        thumbnail_image_url: formData.thumbnail_image_url,
         thumbnail_alt: formData.thumbnail_alt,
         section1_title: formData.section1_title,
         section2_title: formData.section2_title,
@@ -350,7 +352,16 @@ export function DeckEditor({ deck, isEditing = false }: DeckEditorProps) {
   const handleImageSelection = (selectedCards: any[]) => {
     if (!currentImageTarget) return
 
-    const imageUrls = selectedCards.map((card) => card.image_url || `/placeholder.svg?height=100&width=70`)
+    // 選択されたカードの画像URLを取得（実際のカード画像URLを使用）
+    const imageUrls = selectedCards.map((card) => {
+      // カードの実際の画像URLを使用（プレースホルダーではなく）
+      return (
+        card.game8_image_url ||
+        card.image_url ||
+        card.thumb_url ||
+        "https://kidyrurtyvxqokhszgko.supabase.co/storage/v1/object/public/card-images/full/placeholder.webp"
+      )
+    })
 
     if (currentImageTarget.type === "strength" && editingStrengthWeakness) {
       setEditingStrengthWeakness({
@@ -597,8 +608,8 @@ export function DeckEditor({ deck, isEditing = false }: DeckEditorProps) {
                     {deckCards.map((card) => (
                       <div key={card.id} className="flex items-center gap-4 p-3 border rounded-lg">
                         <GripVertical className="h-4 w-4 text-gray-400 cursor-move" />
-                        <div className="w-12 h-12 bg-gray-200 rounded flex items-center justify-center">
-                          <span className="text-xs">📷</span>
+                        <div className="w-12 h-16 bg-gray-200 rounded flex items-center justify-center overflow-hidden">
+                          <CardDisplay cardId={card.card_id} useThumb fill objectFit="cover" />
                         </div>
                         <div className="flex-1">
                           <div className="font-medium">{card.card_name}</div>
@@ -871,6 +882,10 @@ export function DeckEditor({ deck, isEditing = false }: DeckEditorProps) {
                                 src={url || "/placeholder.svg"}
                                 alt=""
                                 className="w-12 h-12 object-cover rounded border"
+                                onError={(e) => {
+                                  const target = e.target as HTMLImageElement
+                                  target.src = "/placeholder.svg"
+                                }}
                               />
                             ))}
                             {item.image_urls.length > 3 && (
@@ -984,6 +999,10 @@ export function DeckEditor({ deck, isEditing = false }: DeckEditorProps) {
                                 src={url || "/placeholder.svg"}
                                 alt=""
                                 className="w-12 h-12 object-cover rounded border"
+                                onError={(e) => {
+                                  const target = e.target as HTMLImageElement
+                                  target.src = "/placeholder.svg"
+                                }}
                               />
                             ))}
                             {step.image_urls.length > 3 && (
@@ -1238,6 +1257,10 @@ export function DeckEditor({ deck, isEditing = false }: DeckEditorProps) {
                           src={url || "/placeholder.svg"}
                           alt=""
                           className="w-full h-20 object-cover rounded border"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement
+                            target.src = "/placeholder.svg"
+                          }}
                         />
                         <Button
                           variant="outline"
@@ -1344,6 +1367,10 @@ export function DeckEditor({ deck, isEditing = false }: DeckEditorProps) {
                           src={url || "/placeholder.svg"}
                           alt=""
                           className="w-full h-20 object-cover rounded border"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement
+                            target.src = "/placeholder.svg"
+                          }}
                         />
                         <Button
                           variant="outline"
