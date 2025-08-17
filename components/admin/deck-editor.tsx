@@ -27,8 +27,10 @@ export function DeckEditor({ deck, isEditing = false }: DeckEditorProps) {
     deck_description: deck?.deck_description || "",
     category: deck?.category || "tier",
     energy_type: deck?.energy_type || "",
+    evaluation_title: deck?.evaluation_title || "",
     tier_rank: deck?.tier_rank || "A",
     tier_name: deck?.tier_name || "",
+    tier_descriptions: deck?.tier_descriptions || [""],
     is_published: deck?.is_published || false,
     stats: {
       accessibility: deck?.stat_accessibility || 3,
@@ -267,6 +269,23 @@ export function DeckEditor({ deck, isEditing = false }: DeckEditorProps) {
             <TabsContent value="evaluation" className="space-y-6">
               <Card>
                 <CardHeader>
+                  <CardTitle>評価セクション設定</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="evaluation_title">評価タイトル</Label>
+                    <Input
+                      id="evaluation_title"
+                      placeholder="○○デッキの評価"
+                      value={formData.evaluation_title}
+                      onChange={(e) => setFormData({ ...formData, evaluation_title: e.target.value })}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
                   <CardTitle>ティア設定</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -296,6 +315,51 @@ export function DeckEditor({ deck, isEditing = false }: DeckEditorProps) {
                         value={formData.tier_name}
                         onChange={(e) => setFormData({ ...formData, tier_name: e.target.value })}
                       />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <Label>ティア説明 (複数追加可能)</Label>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          const newDescriptions = [...formData.tier_descriptions, ""]
+                          setFormData({ ...formData, tier_descriptions: newDescriptions })
+                        }}
+                      >
+                        <Plus className="h-4 w-4 mr-2" />
+                        説明を追加
+                      </Button>
+                    </div>
+                    <div className="space-y-2">
+                      {formData.tier_descriptions.map((description, index) => (
+                        <div key={index} className="flex gap-2">
+                          <Input
+                            placeholder="ティアの特徴や説明を入力"
+                            value={description}
+                            onChange={(e) => {
+                              const newDescriptions = [...formData.tier_descriptions]
+                              newDescriptions[index] = e.target.value
+                              setFormData({ ...formData, tier_descriptions: newDescriptions })
+                            }}
+                          />
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              const newDescriptions = formData.tier_descriptions.filter((_, i) => i !== index)
+                              setFormData({ ...formData, tier_descriptions: newDescriptions })
+                            }}
+                            disabled={formData.tier_descriptions.length <= 1}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 </CardContent>
