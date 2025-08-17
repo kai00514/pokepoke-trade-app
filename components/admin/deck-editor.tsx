@@ -14,6 +14,7 @@ import { Switch } from "@/components/ui/switch"
 import { Separator } from "@/components/ui/separator"
 import { Save, Eye, Upload, Plus, Trash2, GripVertical, Search } from "lucide-react"
 import DetailedSearchModal from "@/components/detailed-search-modal"
+import DeckCardSelectionModal, { type DeckCard as DeckCardType } from "@/components/admin/deck-card-selection-modal"
 
 interface DeckEditorProps {
   deck?: any
@@ -23,6 +24,7 @@ interface DeckEditorProps {
 export function DeckEditor({ deck, isEditing = false }: DeckEditorProps) {
   const [activeTab, setActiveTab] = useState("basic")
   const [isCardSearchOpen, setIsCardSearchOpen] = useState(false)
+  const [isDeckCardSelectionOpen, setIsDeckCardSelectionOpen] = useState(false)
   const [formData, setFormData] = useState({
     title: deck?.title || "",
     deck_name: deck?.deck_name || "",
@@ -103,6 +105,13 @@ export function DeckEditor({ deck, isEditing = false }: DeckEditorProps) {
     },
   ])
 
+  const [editingStrengthWeakness, setEditingStrengthWeakness] = useState<any>(null)
+  const [isEditingStrengthWeakness, setIsEditingStrengthWeakness] = useState(false)
+  const [editingPlayStep, setEditingPlayStep] = useState<any>(null)
+  const [isEditingPlayStep, setIsEditingPlayStep] = useState(false)
+  const [isImageSelectionOpen, setIsImageSelectionOpen] = useState(false)
+  const [currentImageTarget, setCurrentImageTarget] = useState<{ type: "strength" | "play"; id: number } | null>(null)
+
   const totalCards = deckCards.reduce((sum, card) => sum + card.card_count, 0)
 
   const handleCardSelection = (selectedCards: any[]) => {
@@ -119,6 +128,19 @@ export function DeckEditor({ deck, isEditing = false }: DeckEditorProps) {
       setDeckCards([...deckCards, newDeckCard])
     }
     setIsCardSearchOpen(false)
+  }
+
+  const handleDeckCardSelection = (selectedCards: DeckCardType[]) => {
+    const newDeckCards = selectedCards.map((card, index) => ({
+      id: Date.now() + index, // 一時的なID
+      card_id: Number.parseInt(card.id),
+      card_name: card.name,
+      pack_name: "パック名", // 実際のパック名は後で取得
+      card_count: card.count,
+      display_order: index,
+    }))
+    setDeckCards(newDeckCards)
+    setIsDeckCardSelectionOpen(false)
   }
 
   const removeCard = (cardId: number) => {
@@ -138,6 +160,122 @@ export function DeckEditor({ deck, isEditing = false }: DeckEditorProps) {
       deckCards.map((card) => (card.id === cardId ? { ...card, display_order: Math.max(0, newOrder) } : card)),
     )
   }
+
+  const addStrengthWeakness = () => {
+    const newItem = {
+      id: Date.now(),
+      title: "",
+      description: "",
+      image_urls: [],
+      display_order: strengthsWeaknesses.length + 1,
+    }
+    setStrengthsWeaknesses([...strengthsWeaknesses, newItem])
+    setEditingStrengthWeakness(newItem)
+    setIsEditingStrengthWeakness(true)
+  }
+
+  const editStrengthWeakness = (item: any) => {
+    setEditingStrengthWeakness({ ...item })
+    setIsEditingStrengthWeakness(true)
+  }
+
+  const saveStrengthWeakness = () => {
+    if (!editingStrengthWeakness) return
+
+    setStrengthsWeaknesses(
+      strengthsWeaknesses.map((item) => (item.id === editingStrengthWeakness.id ? editingStrengthWeakness : item)),
+    )
+    setIsEditingStrengthWeakness(false)
+    setEditingStrengthWeakness(null)
+  }
+
+  const deleteStrengthWeakness = (id: number) => {
+    setStrengthsWeaknesses(strengthsWeaknesses.filter((item) => item.id !== id))
+  }
+
+  const addPlayStep = () => {
+    const newStep = {
+      id: Date.now(),
+      step_number: playSteps.length + 1,
+      title: "",
+      description: "",
+      image_urls: [],
+    }
+    setPlaySteps([...playSteps, newStep])
+    setEditingPlayStep(newStep)
+    setIsEditingPlayStep(true)
+  }
+
+  const editPlayStep = (step: any) => {
+    setEditingPlayStep({ ...step })
+    setIsEditingPlayStep(true)
+  }
+
+  const savePlayStep = () => {
+    if (!editingPlayStep) return
+
+    setPlaySteps(playSteps.map((step) => (step.id === editingPlayStep.id ? editingPlayStep : step)))
+    setIsEditingPlayStep(false)
+    setEditingPlayStep(null)
+  }
+
+  const deletePlayStep = (id: number) => {
+    setPlaySteps(playSteps.filter((step) => step.id !== id))
+  }
+
+  const handleImageSelection = (selectedCards: any[]) => {
+    if (!currentImageTarget) return
+
+    const imageUrls = selectedCards.map((card) => card.image_url || `/placeholder.svg?height=100&width=70`)
+
+    if (currentImageTarget.type === "strength" && editingStrengthWeakness) {
+      setEditingStrengthWeakness({
+        ...editingStrengthWeakness,
+        image_urls: [...editingStrengthWeakness.image_urls, ...imageUrls],
+      })
+    } else if (currentImageTarget.type === "play" && editingPlayStep) {
+      setEditingPlayStep({
+        ...editingPlayStep,
+        image_urls: [...editingPlayStep.image_urls, ...imageUrls],
+      })
+    }
+
+    setIsImageSelectionOpen(false)
+    setCurrentImageTarget(null)
+  }
+
+  const removeImage = (imageIndex: number) => {
+    if (currentImageTarget?.type === "strength" && editingStrengthWeakness) {
+      const newImageUrls = editingStrengthWeakness.image_urls.filter((_: any, index: number) => index !== imageIndex)
+      setEditingStrengthWeakness({
+        ...editingStrengthWeakness,
+        image_urls: newImageUrls,
+      })
+    } else if (currentImageTarget?.type === "play" && editingPlayStep) {
+      const newImageUrls = editingPlayStep.image_urls.filter((_: any, index: number) => index !== imageIndex)
+      setEditingPlayStep({
+        ...editingPlayStep,
+        image_urls: newImageUrls,
+      })
+    }
+  }
+
+  const removePlayStepImage = (imageIndex: number) => {
+    if (!editingPlayStep) return
+    const newImageUrls = editingPlayStep.image_urls.filter((_: any, index: number) => index !== imageIndex)
+    setEditingPlayStep({
+      ...editingPlayStep,
+      image_urls: newImageUrls,
+    })
+  }
+
+  // 現在のデッキカードをDeckCardType形式に変換
+  const currentDeckCardsForModal: DeckCardType[] = deckCards.map((card) => ({
+    id: String(card.card_id),
+    name: card.card_name,
+    imageUrl: "", // 実際の画像URLは後で取得
+    count: card.card_count,
+  }))
 
   return (
     <div className="flex gap-6">
@@ -306,20 +444,18 @@ export function DeckEditor({ deck, isEditing = false }: DeckEditorProps) {
                 </CardHeader>
                 <CardContent>
                   <div className="flex gap-2">
-                    <div className="flex-1 relative">
-                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                      <Input
-                        placeholder="カード名またはIDで検索..."
-                        className="pl-10"
-                        readOnly
-                        onClick={() => setIsCardSearchOpen(true)}
-                      />
-                    </div>
-                    <Button onClick={() => setIsCardSearchOpen(true)}>
+                    <Button onClick={() => setIsDeckCardSelectionOpen(true)} className="flex-1">
+                      <Search className="h-4 w-4 mr-2" />
+                      デッキ構成を編集
+                    </Button>
+                    <Button variant="outline" onClick={() => setIsCardSearchOpen(true)}>
                       <Plus className="h-4 w-4 mr-2" />
-                      カード検索
+                      1枚追加
                     </Button>
                   </div>
+                  <p className="text-sm text-gray-600 mt-2">
+                    「デッキ構成を編集」で一度に複数枚選択、「1枚追加」で個別にカードを追加できます
+                  </p>
                 </CardContent>
               </DeckCard>
 
@@ -348,7 +484,7 @@ export function DeckEditor({ deck, isEditing = false }: DeckEditorProps) {
                           <Input
                             type="number"
                             min="1"
-                            max="4"
+                            max="2"
                             value={card.card_count}
                             onChange={(e) => updateCardCount(card.id, Number.parseInt(e.target.value) || 1)}
                             className="w-16"
@@ -373,7 +509,7 @@ export function DeckEditor({ deck, isEditing = false }: DeckEditorProps) {
                     {deckCards.length === 0 && (
                       <div className="text-center py-8 text-gray-500">
                         <p>まだカードが追加されていません</p>
-                        <p className="text-sm">上の検索ボタンからカードを追加してください</p>
+                        <p className="text-sm">上のボタンからカードを追加してください</p>
                       </div>
                     )}
                   </div>
@@ -573,7 +709,7 @@ export function DeckEditor({ deck, isEditing = false }: DeckEditorProps) {
                 <CardHeader>
                   <CardTitle className="flex justify-between items-center">
                     強み・弱み項目
-                    <Button>
+                    <Button onClick={addStrengthWeakness}>
                       <Plus className="h-4 w-4 mr-2" />
                       項目を追加
                     </Button>
@@ -585,24 +721,48 @@ export function DeckEditor({ deck, isEditing = false }: DeckEditorProps) {
                       <div key={item.id} className="border rounded-lg p-4">
                         <div className="flex justify-between items-start mb-2">
                           <h4 className="font-medium">
-                            {index + 1}. {item.title}
+                            {index + 1}. {item.title || "新しい項目"}
                           </h4>
                           <div className="flex gap-2">
-                            <Button variant="outline" size="sm">
+                            <Button variant="outline" size="sm" onClick={() => editStrengthWeakness(item)}>
                               編集
                             </Button>
-                            <Button variant="outline" size="sm">
+                            <Button variant="outline" size="sm" onClick={() => deleteStrengthWeakness(item.id)}>
                               <Trash2 className="h-4 w-4" />
                             </Button>
                           </div>
                         </div>
-                        <p className="text-sm text-gray-600 mb-2">{item.description}</p>
+                        <p className="text-sm text-gray-600 mb-2">{item.description || "説明が入力されていません"}</p>
                         <div className="text-xs text-gray-400">
                           画像: {item.image_urls.length > 0 ? `${item.image_urls.length}枚` : "なし"} | 表示順序:{" "}
                           {item.display_order}
                         </div>
+                        {item.image_urls.length > 0 && (
+                          <div className="flex gap-2 mt-2">
+                            {item.image_urls.slice(0, 3).map((url: string, imgIndex: number) => (
+                              <img
+                                key={imgIndex}
+                                src={url || "/placeholder.svg"}
+                                alt=""
+                                className="w-12 h-12 object-cover rounded border"
+                              />
+                            ))}
+                            {item.image_urls.length > 3 && (
+                              <div className="w-12 h-12 bg-gray-100 rounded border flex items-center justify-center text-xs">
+                                +{item.image_urls.length - 3}
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
                     ))}
+
+                    {strengthsWeaknesses.length === 0 && (
+                      <div className="text-center py-8 text-gray-500">
+                        <p>まだ強み・弱み項目が追加されていません</p>
+                        <p className="text-sm">上のボタンから項目を追加してください</p>
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </DeckCard>
@@ -663,7 +823,7 @@ export function DeckEditor({ deck, isEditing = false }: DeckEditorProps) {
                 <CardHeader>
                   <CardTitle className="flex justify-between items-center">
                     プレイステップ
-                    <Button>
+                    <Button onClick={addPlayStep}>
                       <Plus className="h-4 w-4 mr-2" />
                       ステップを追加
                     </Button>
@@ -671,27 +831,51 @@ export function DeckEditor({ deck, isEditing = false }: DeckEditorProps) {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {playSteps.map((step) => (
+                    {playSteps.map((step, index) => (
                       <div key={step.id} className="border rounded-lg p-4">
                         <div className="flex justify-between items-start mb-2">
                           <h4 className="font-medium">
-                            STEP {step.step_number}: {step.title}
+                            STEP {step.step_number}: {step.title || "新しいステップ"}
                           </h4>
                           <div className="flex gap-2">
-                            <Button variant="outline" size="sm">
+                            <Button variant="outline" size="sm" onClick={() => editPlayStep(step)}>
                               編集
                             </Button>
-                            <Button variant="outline" size="sm">
+                            <Button variant="outline" size="sm" onClick={() => deletePlayStep(step.id)}>
                               <Trash2 className="h-4 w-4" />
                             </Button>
                           </div>
                         </div>
-                        <p className="text-sm text-gray-600 mb-2">{step.description}</p>
+                        <p className="text-sm text-gray-600 mb-2">{step.description || "説明が入力されていません"}</p>
                         <div className="text-xs text-gray-400">
                           画像: {step.image_urls.length > 0 ? `${step.image_urls.length}枚` : "なし"}
                         </div>
+                        {step.image_urls.length > 0 && (
+                          <div className="flex gap-2 mt-2">
+                            {step.image_urls.slice(0, 3).map((url: string, imgIndex: number) => (
+                              <img
+                                key={imgIndex}
+                                src={url || "/placeholder.svg"}
+                                alt=""
+                                className="w-12 h-12 object-cover rounded border"
+                              />
+                            ))}
+                            {step.image_urls.length > 3 && (
+                              <div className="w-12 h-12 bg-gray-100 rounded border flex items-center justify-center text-xs">
+                                +{step.image_urls.length - 3}
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
                     ))}
+
+                    {playSteps.length === 0 && (
+                      <div className="text-center py-8 text-gray-500">
+                        <p>まだプレイステップが追加されていません</p>
+                        <p className="text-sm">上のボタンからステップを追加してください</p>
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </DeckCard>
@@ -815,13 +999,243 @@ export function DeckEditor({ deck, isEditing = false }: DeckEditorProps) {
         </DeckCard>
       </div>
 
-      {/* カード検索モーダル */}
+      {/* 1枚追加用のカード検索モーダル */}
       <DetailedSearchModal
         isOpen={isCardSearchOpen}
         onOpenChange={setIsCardSearchOpen}
         onSelectionComplete={handleCardSelection}
         maxSelection={1}
         modalTitle="デッキに追加するカードを選択"
+      />
+
+      {/* デッキ構成用のカード選択モーダル */}
+      <DeckCardSelectionModal
+        isOpen={isDeckCardSelectionOpen}
+        onOpenChange={setIsDeckCardSelectionOpen}
+        onSelectionComplete={handleDeckCardSelection}
+        initialSelectedCards={currentDeckCardsForModal}
+        modalTitle="デッキ構成を編集（最大20枚）"
+      />
+
+      {/* 強み・弱み編集モーダル */}
+      {isEditingStrengthWeakness && editingStrengthWeakness && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">強み・弱み項目を編集</h3>
+              <Button variant="outline" size="sm" onClick={() => setIsEditingStrengthWeakness(false)}>
+                ×
+              </Button>
+            </div>
+
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label>タイトル *</Label>
+                <Input
+                  placeholder="例: 安定した試合展開ができる"
+                  value={editingStrengthWeakness.title}
+                  onChange={(e) =>
+                    setEditingStrengthWeakness({
+                      ...editingStrengthWeakness,
+                      title: e.target.value,
+                    })
+                  }
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>説明 *</Label>
+                <Textarea
+                  placeholder="詳細な説明を入力してください"
+                  rows={4}
+                  value={editingStrengthWeakness.description}
+                  onChange={(e) =>
+                    setEditingStrengthWeakness({
+                      ...editingStrengthWeakness,
+                      description: e.target.value,
+                    })
+                  }
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>表示順序</Label>
+                <Input
+                  type="number"
+                  min="1"
+                  value={editingStrengthWeakness.display_order}
+                  onChange={(e) =>
+                    setEditingStrengthWeakness({
+                      ...editingStrengthWeakness,
+                      display_order: Number.parseInt(e.target.value) || 1,
+                    })
+                  }
+                />
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <Label>関連画像</Label>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setCurrentImageTarget({ type: "strength", id: editingStrengthWeakness.id })
+                      setIsImageSelectionOpen(true)
+                    }}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    画像を追加
+                  </Button>
+                </div>
+
+                {editingStrengthWeakness.image_urls.length > 0 && (
+                  <div className="grid grid-cols-4 gap-2">
+                    {editingStrengthWeakness.image_urls.map((url: string, index: number) => (
+                      <div key={index} className="relative">
+                        <img
+                          src={url || "/placeholder.svg"}
+                          alt=""
+                          className="w-full h-20 object-cover rounded border"
+                        />
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="absolute -top-2 -right-2 h-6 w-6 p-0 bg-red-500 text-white hover:bg-red-600"
+                          onClick={() => removeImage(index)}
+                        >
+                          ×
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 mt-6">
+              <Button variant="outline" onClick={() => setIsEditingStrengthWeakness(false)}>
+                キャンセル
+              </Button>
+              <Button onClick={saveStrengthWeakness}>保存</Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* プレイステップ編集モーダル */}
+      {isEditingPlayStep && editingPlayStep && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">プレイステップを編集</h3>
+              <Button variant="outline" size="sm" onClick={() => setIsEditingPlayStep(false)}>
+                ×
+              </Button>
+            </div>
+
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label>ステップ番号</Label>
+                <Input
+                  type="number"
+                  min="1"
+                  value={editingPlayStep.step_number}
+                  onChange={(e) =>
+                    setEditingPlayStep({
+                      ...editingPlayStep,
+                      step_number: Number.parseInt(e.target.value) || 1,
+                    })
+                  }
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>タイトル *</Label>
+                <Input
+                  placeholder="例: 序盤から積極的に攻撃"
+                  value={editingPlayStep.title}
+                  onChange={(e) =>
+                    setEditingPlayStep({
+                      ...editingPlayStep,
+                      title: e.target.value,
+                    })
+                  }
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>説明 *</Label>
+                <Textarea
+                  placeholder="詳細な説明を入力してください"
+                  rows={4}
+                  value={editingPlayStep.description}
+                  onChange={(e) =>
+                    setEditingPlayStep({
+                      ...editingPlayStep,
+                      description: e.target.value,
+                    })
+                  }
+                />
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <Label>関連画像</Label>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setCurrentImageTarget({ type: "play", id: editingPlayStep.id })
+                      setIsImageSelectionOpen(true)
+                    }}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    画像を追加
+                  </Button>
+                </div>
+
+                {editingPlayStep.image_urls.length > 0 && (
+                  <div className="grid grid-cols-4 gap-2">
+                    {editingPlayStep.image_urls.map((url: string, index: number) => (
+                      <div key={index} className="relative">
+                        <img
+                          src={url || "/placeholder.svg"}
+                          alt=""
+                          className="w-full h-20 object-cover rounded border"
+                        />
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="absolute -top-2 -right-2 h-6 w-6 p-0 bg-red-500 text-white hover:bg-red-600"
+                          onClick={() => removePlayStepImage(index)}
+                        >
+                          ×
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 mt-6">
+              <Button variant="outline" onClick={() => setIsEditingPlayStep(false)}>
+                キャンセル
+              </Button>
+              <Button onClick={savePlayStep}>保存</Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 画像選択用のカード検索モーダル */}
+      <DetailedSearchModal
+        isOpen={isImageSelectionOpen}
+        onOpenChange={setIsImageSelectionOpen}
+        onSelectionComplete={handleImageSelection}
+        maxSelection={5}
+        modalTitle="関連画像として使用するカードを選択"
       />
     </div>
   )
