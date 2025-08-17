@@ -352,15 +352,24 @@ export function DeckEditor({ deck, isEditing = false }: DeckEditorProps) {
   const handleImageSelection = (selectedCards: any[]) => {
     if (!currentImageTarget) return
 
-    // 選択されたカードの画像URLを取得（実際のカード画像URLを使用）
+    // 選択されたカードから画像URLを取得（既に表示されている画像のURLを使用）
     const imageUrls = selectedCards.map((card) => {
-      // カードの実際の画像URLを使用（データベースから取得した値を優先）
-      return (
-        card.game8_image_url ||
-        card.image_url ||
-        card.thumb_url ||
-        `https://kidyrurtyvxqokhszgko.supabase.co/storage/v1/object/public/card-images/full/l${card.id}.webp`
-      )
+      // カードオブジェクトから画像URLを取得
+      // DetailedSearchModalから返されるカードオブジェクトの構造に応じて調整
+      if (card.imageUrl) {
+        return card.imageUrl
+      }
+      if (card.image_url) {
+        return card.image_url
+      }
+      if (card.game8_image_url) {
+        return card.game8_image_url
+      }
+      if (card.thumb_url) {
+        return card.thumb_url
+      }
+      // フォールバック: カードIDから画像URLを構築
+      return `https://kidyrurtyvxqokhszgko.supabase.co/storage/v1/object/public/card-images/full/l${card.id}.webp`
     })
 
     if (currentImageTarget.type === "strength" && editingStrengthWeakness) {

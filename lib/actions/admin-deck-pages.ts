@@ -89,18 +89,6 @@ function getEnergyImageUrl(energyType: string): string | null {
   return energyImageMap[energyType] || null
 }
 
-// 選択されたカードIDから実際の画像URLを取得する関数
-async function getSelectedCardImageUrls(supabase: any, selectedCardIds: number[]): Promise<string[]> {
-  const imageUrls: string[] = []
-
-  for (const cardId of selectedCardIds) {
-    const imageUrl = await getCardImageUrl(supabase, cardId)
-    imageUrls.push(imageUrl)
-  }
-
-  return imageUrls
-}
-
 export async function createDeckPage(deckData: DeckPageData) {
   console.log("[SERVER] === DEBUG: createDeckPage function started ===")
   console.log("[SERVER] Input deck data:", JSON.stringify(deckData, null, 2))
@@ -161,93 +149,25 @@ export async function createDeckPage(deckData: DeckPageData) {
       }),
     )
 
-    // strengths_weaknesses_detailsをJSONB形式に変換（実際のカード画像URLを使用）
-    const strengthsWeaknessesDetails = await Promise.all(
-      deckData.strengths_weaknesses.map(async (item) => {
-        // 画像URLが実際のカードIDを含んでいるかチェック
-        const actualImageUrls: string[] = []
+    // strengths_weaknesses_detailsをJSONB形式に変換（画像URLはそのまま使用）
+    const strengthsWeaknessesDetails = deckData.strengths_weaknesses.map((item) => {
+      return {
+        title: item.title,
+        description: `<p>${item.description}</p>`, // HTMLタグで囲む
+        image_urls: item.image_urls, // 既存の画像URLをそのまま使用
+        display_order: item.display_order,
+      }
+    })
 
-        for (const url of item.image_urls) {
-          if (url.includes("/placeholder.svg") || url.includes("placeholder.webp")) {
-            // プレースホルダーの場合は、デッキ内のカードから適切な画像を選択
-            if (deckData.deck_cards.length > 0) {
-              const randomIndex = Math.floor(Math.random() * deckData.deck_cards.length)
-              const cardId = deckData.deck_cards[randomIndex].card_id
-              const actualCardUrl = await getCardImageUrl(supabase, cardId)
-              actualImageUrls.push(actualCardUrl)
-            } else {
-              actualImageUrls.push(
-                "https://kidyrurtyvxqokhszgko.supabase.co/storage/v1/object/public/card-images/full/placeholder.webp",
-              )
-            }
-          } else if (url.includes("card-images/full/l") && url.includes(".webp")) {
-            // 既に正しい形式のカード画像URLの場合はそのまま使用
-            actualImageUrls.push(url)
-          } else {
-            // その他の場合は、URLからカードIDを抽出して正しいURLを生成
-            const cardIdMatch = url.match(/l(\d+)\.webp/)
-            if (cardIdMatch) {
-              const cardId = Number.parseInt(cardIdMatch[1])
-              const actualCardUrl = await getCardImageUrl(supabase, cardId)
-              actualImageUrls.push(actualCardUrl)
-            } else {
-              actualImageUrls.push(url)
-            }
-          }
-        }
-
-        return {
-          title: item.title,
-          description: `<p>${item.description}</p>`, // HTMLタグで囲む
-          image_urls: actualImageUrls,
-          display_order: item.display_order,
-        }
-      }),
-    )
-
-    // how_to_play_stepsをJSONB形式に変換（実際のカード画像URLを使用）
-    const howToPlaySteps = await Promise.all(
-      deckData.play_steps.map(async (step) => {
-        // 画像URLが実際のカードIDを含んでいるかチェック
-        const actualImageUrls: string[] = []
-
-        for (const url of step.image_urls) {
-          if (url.includes("/placeholder.svg") || url.includes("placeholder.webp")) {
-            // プレースホルダーの場合は、デッキ内のカードから適切な画像を選択
-            if (deckData.deck_cards.length > 0) {
-              const randomIndex = Math.floor(Math.random() * deckData.deck_cards.length)
-              const cardId = deckData.deck_cards[randomIndex].card_id
-              const actualCardUrl = await getCardImageUrl(supabase, cardId)
-              actualImageUrls.push(actualCardUrl)
-            } else {
-              actualImageUrls.push(
-                "https://kidyrurtyvxqokhszgko.supabase.co/storage/v1/object/public/card-images/full/placeholder.webp",
-              )
-            }
-          } else if (url.includes("card-images/full/l") && url.includes(".webp")) {
-            // 既に正しい形式のカード画像URLの場合はそのまま使用
-            actualImageUrls.push(url)
-          } else {
-            // その他の場合は、URLからカードIDを抽出して正しいURLを生成
-            const cardIdMatch = url.match(/l(\d+)\.webp/)
-            if (cardIdMatch) {
-              const cardId = Number.parseInt(cardIdMatch[1])
-              const actualCardUrl = await getCardImageUrl(supabase, cardId)
-              actualImageUrls.push(actualCardUrl)
-            } else {
-              actualImageUrls.push(url)
-            }
-          }
-        }
-
-        return {
-          title: step.title,
-          description: `<p>${step.description}</p>`, // HTMLタグで囲む
-          image_urls: actualImageUrls,
-          step_number: step.step_number,
-        }
-      }),
-    )
+    // how_to_play_stepsをJSONB形式に変換（画像URLはそのまま使用）
+    const howToPlaySteps = deckData.play_steps.map((step) => {
+      return {
+        title: step.title,
+        description: `<p>${step.description}</p>`, // HTMLタグで囲む
+        image_urls: step.image_urls, // 既存の画像URLをそのまま使用
+        step_number: step.step_number,
+      }
+    })
 
     // サムネイル画像URLを設定（Supabaseの実際のURLを使用）
     let thumbnailImageUrl = deckData.thumbnail_image_url
@@ -390,93 +310,25 @@ export async function updateDeckPage(id: string, deckData: DeckPageData) {
       }),
     )
 
-    // strengths_weaknesses_detailsをJSONB形式に変換（実際のカード画像URLを使用）
-    const strengthsWeaknessesDetails = await Promise.all(
-      deckData.strengths_weaknesses.map(async (item) => {
-        // 画像URLが実際のカードIDを含んでいるかチェック
-        const actualImageUrls: string[] = []
+    // strengths_weaknesses_detailsをJSONB形式に変換（画像URLはそのまま使用）
+    const strengthsWeaknessesDetails = deckData.strengths_weaknesses.map((item) => {
+      return {
+        title: item.title,
+        description: `<p>${item.description}</p>`, // HTMLタグで囲む
+        image_urls: item.image_urls, // 既存の画像URLをそのまま使用
+        display_order: item.display_order,
+      }
+    })
 
-        for (const url of item.image_urls) {
-          if (url.includes("/placeholder.svg") || url.includes("placeholder.webp")) {
-            // プレースホルダーの場合は、デッキ内のカードから適切な画像を選択
-            if (deckData.deck_cards.length > 0) {
-              const randomIndex = Math.floor(Math.random() * deckData.deck_cards.length)
-              const cardId = deckData.deck_cards[randomIndex].card_id
-              const actualCardUrl = await getCardImageUrl(supabase, cardId)
-              actualImageUrls.push(actualCardUrl)
-            } else {
-              actualImageUrls.push(
-                "https://kidyrurtyvxqokhszgko.supabase.co/storage/v1/object/public/card-images/full/placeholder.webp",
-              )
-            }
-          } else if (url.includes("card-images/full/l") && url.includes(".webp")) {
-            // 既に正しい形式のカード画像URLの場合はそのまま使用
-            actualImageUrls.push(url)
-          } else {
-            // その他の場合は、URLからカードIDを抽出して正しいURLを生成
-            const cardIdMatch = url.match(/l(\d+)\.webp/)
-            if (cardIdMatch) {
-              const cardId = Number.parseInt(cardIdMatch[1])
-              const actualCardUrl = await getCardImageUrl(supabase, cardId)
-              actualImageUrls.push(actualCardUrl)
-            } else {
-              actualImageUrls.push(url)
-            }
-          }
-        }
-
-        return {
-          title: item.title,
-          description: `<p>${item.description}</p>`, // HTMLタグで囲む
-          image_urls: actualImageUrls,
-          display_order: item.display_order,
-        }
-      }),
-    )
-
-    // how_to_play_stepsをJSONB形式に変換（実際のカード画像URLを使用）
-    const howToPlaySteps = await Promise.all(
-      deckData.play_steps.map(async (step) => {
-        // 画像URLが実際のカードIDを含んでいるかチェック
-        const actualImageUrls: string[] = []
-
-        for (const url of step.image_urls) {
-          if (url.includes("/placeholder.svg") || url.includes("placeholder.webp")) {
-            // プレースホルダーの場合は、デッキ内のカードから適切な画像を選択
-            if (deckData.deck_cards.length > 0) {
-              const randomIndex = Math.floor(Math.random() * deckData.deck_cards.length)
-              const cardId = deckData.deck_cards[randomIndex].card_id
-              const actualCardUrl = await getCardImageUrl(supabase, cardId)
-              actualImageUrls.push(actualCardUrl)
-            } else {
-              actualImageUrls.push(
-                "https://kidyrurtyvxqokhszgko.supabase.co/storage/v1/object/public/card-images/full/placeholder.webp",
-              )
-            }
-          } else if (url.includes("card-images/full/l") && url.includes(".webp")) {
-            // 既に正しい形式のカード画像URLの場合はそのまま使用
-            actualImageUrls.push(url)
-          } else {
-            // その他の場合は、URLからカードIDを抽出して正しいURLを生成
-            const cardIdMatch = url.match(/l(\d+)\.webp/)
-            if (cardIdMatch) {
-              const cardId = Number.parseInt(cardIdMatch[1])
-              const actualCardUrl = await getCardImageUrl(supabase, cardId)
-              actualImageUrls.push(actualCardUrl)
-            } else {
-              actualImageUrls.push(url)
-            }
-          }
-        }
-
-        return {
-          title: step.title,
-          description: `<p>${step.description}</p>`, // HTMLタグで囲む
-          image_urls: actualImageUrls,
-          step_number: step.step_number,
-        }
-      }),
-    )
+    // how_to_play_stepsをJSONB形式に変換（画像URLはそのまま使用）
+    const howToPlaySteps = deckData.play_steps.map((step) => {
+      return {
+        title: step.title,
+        description: `<p>${step.description}</p>`, // HTMLタグで囲む
+        image_urls: step.image_urls, // 既存の画像URLをそのまま使用
+        step_number: step.step_number,
+      }
+    })
 
     // サムネイル画像URLを設定（Supabaseの実際のURLを使用）
     let thumbnailImageUrl = deckData.thumbnail_image_url
