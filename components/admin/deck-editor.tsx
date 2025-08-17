@@ -15,6 +15,7 @@ import { Separator } from "@/components/ui/separator"
 import { Save, Eye, Upload, Plus, Trash2, GripVertical, Search } from "lucide-react"
 import DetailedSearchModal from "@/components/detailed-search-modal"
 import DeckCardSelectionModal, { type DeckCard as DeckCardType } from "@/components/admin/deck-card-selection-modal"
+import { DeckPreviewModal } from "@/components/admin/deck-preview-modal"
 
 interface DeckEditorProps {
   deck?: any
@@ -25,6 +26,7 @@ export function DeckEditor({ deck, isEditing = false }: DeckEditorProps) {
   const [activeTab, setActiveTab] = useState("basic")
   const [isCardSearchOpen, setIsCardSearchOpen] = useState(false)
   const [isDeckCardSelectionOpen, setIsDeckCardSelectionOpen] = useState(false)
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false)
   const [formData, setFormData] = useState({
     title: deck?.title || "",
     deck_name: deck?.deck_name || "",
@@ -285,7 +287,7 @@ export function DeckEditor({ deck, isEditing = false }: DeckEditorProps) {
           <div className="flex justify-between items-center">
             <h1 className="text-3xl font-bold">{isEditing ? "デッキ編集" : "デッキ作成"}</h1>
             <div className="flex gap-2">
-              <Button variant="outline">
+              <Button variant="outline" onClick={() => setIsPreviewOpen(true)}>
                 <Eye className="h-4 w-4 mr-2" />
                 プレビュー
               </Button>
@@ -998,6 +1000,16 @@ export function DeckEditor({ deck, isEditing = false }: DeckEditorProps) {
           </CardContent>
         </DeckCard>
       </div>
+
+      {/* プレビューモーダル */}
+      <DeckPreviewModal
+        isOpen={isPreviewOpen}
+        onOpenChange={setIsPreviewOpen}
+        formData={formData}
+        deckCards={deckCards}
+        strengthsWeaknesses={strengthsWeaknesses}
+        playSteps={playSteps}
+      />
 
       {/* 1枚追加用のカード検索モーダル */}
       <DetailedSearchModal
