@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS deck_pages (
     how_to_play_list JSONB DEFAULT '[]'::jsonb,
     deck_cards JSONB DEFAULT '{}'::jsonb,
     strengths_weaknesses JSONB DEFAULT '[]'::jsonb,
-    how_to_play JSONB DEFAULT '[]'::jsonb,
+    how_to_play_steps JSONB DEFAULT '[]'::jsonb,
     view_count INTEGER DEFAULT 0,
     like_count INTEGER DEFAULT 0,
     comment_count INTEGER DEFAULT 0,

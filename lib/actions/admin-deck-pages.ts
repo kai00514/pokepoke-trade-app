@@ -103,7 +103,7 @@ export async function createDeckPage(deckData: DeckPageData) {
       display_order: item.display_order,
     }))
 
-    // play_stepsをJSON形式に変換
+    // play_stepsをJSON形式に変換（how_to_play_stepsカラム用）
     const playStepsJson = deckData.play_steps.map((step) => ({
       step_number: step.step_number,
       title: step.title,
@@ -118,7 +118,7 @@ export async function createDeckPage(deckData: DeckPageData) {
       thumbnailImageUrl = `/placeholder.svg?height=400&width=600&text=${encodeURIComponent(deckData.deck_name)}`
     }
 
-    // デッキページデータの準備（author_idを含めない）
+    // デッキページデータの準備（how_to_play → how_to_play_stepsに変更）
     const insertData = {
       title: deckData.title,
       deck_name: deckData.deck_name,
@@ -145,7 +145,7 @@ export async function createDeckPage(deckData: DeckPageData) {
       how_to_play_list: deckData.how_to_play_list.filter((item) => item.trim()),
       deck_cards: deckCardsJson,
       strengths_weaknesses: strengthsWeaknessesJson,
-      how_to_play: playStepsJson,
+      how_to_play_steps: playStepsJson, // how_to_play → how_to_play_stepsに変更
       view_count: 0,
       like_count: 0,
       comment_count: 0,
@@ -240,7 +240,7 @@ export async function updateDeckPage(id: string, deckData: DeckPageData) {
       display_order: item.display_order,
     }))
 
-    // play_stepsをJSON形式に変換
+    // play_stepsをJSON形式に変換（how_to_play_stepsカラム用）
     const playStepsJson = deckData.play_steps.map((step) => ({
       step_number: step.step_number,
       title: step.title,
@@ -254,7 +254,7 @@ export async function updateDeckPage(id: string, deckData: DeckPageData) {
       thumbnailImageUrl = `/placeholder.svg?height=400&width=600&text=${encodeURIComponent(deckData.deck_name)}`
     }
 
-    // 更新データの準備（author_idを含めない）
+    // 更新データの準備（how_to_play → how_to_play_stepsに変更）
     const updateData = {
       title: deckData.title,
       deck_name: deckData.deck_name,
@@ -281,7 +281,7 @@ export async function updateDeckPage(id: string, deckData: DeckPageData) {
       how_to_play_list: deckData.how_to_play_list.filter((item) => item.trim()),
       deck_cards: deckCardsJson,
       strengths_weaknesses: strengthsWeaknessesJson,
-      how_to_play: playStepsJson,
+      how_to_play_steps: playStepsJson, // how_to_play → how_to_play_stepsに変更
       updated_at: new Date().toISOString(),
     }
 
