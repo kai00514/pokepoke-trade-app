@@ -112,7 +112,8 @@ export async function getDeckPagesList(options?: {
         comment_count,
         updated_at,
         is_published,
-        category
+        category,
+        deck_cards
       `,
         { count: "exact" },
       )
@@ -151,12 +152,82 @@ export async function getDeckPagesList(options?: {
       }
     }
 
+    // Step 1: deck_cardsからカードIDを抽出してカード詳細を取得
+    const enrichedData = await Promise.all(
+      (data || []).map(async (deckPage) => {
+        try {
+          let cardsData: any[] = []
+
+          // deck_cardsの処理
+          if (deckPage.deck_cards) {
+            if (typeof deckPage.deck_cards === "string") {
+              try {
+                cardsData = JSON.parse(deckPage.deck_cards)
+              } catch (parseError) {
+                console.error("Failed to parse deck_cards as JSON:", parseError)
+                cardsData = []
+              }
+            } else if (Array.isArray(deckPage.deck_cards)) {
+              cardsData = deckPage.deck_cards
+            } else if (typeof deckPage.deck_cards === "object") {
+              cardsData = Object.values(deckPage.deck_cards).filter((item) => item && typeof item === "object")
+            }
+          }
+
+          // カードIDを抽出
+          const cardIds = cardsData.map((card: any) => card.card_id?.toString()).filter(Boolean)
+
+          // カード詳細を取得
+          let cardDetails: CardData[] = []
+          if (cardIds.length > 0) {
+            try {
+              cardDetails = await fetchCardDetailsByIds(cardIds)
+            } catch (fetchError) {
+              console.error("Failed to fetch card details:", fetchError)
+              cardDetails = []
+            }
+          }
+
+          // カード詳細をマップに変換
+          const cardDetailsMap = new Map<number, CardData>()
+          cardDetails.forEach((detail) => {
+            cardDetailsMap.set(detail.id, detail)
+          })
+
+          // カードデータを詳細情報で拡張
+          const enrichedCards = cardsData.map((card: any) => {
+            const detail = cardDetailsMap.get(card.card_id)
+            return {
+              card_id: card.card_id,
+              quantity: card.card_count || card.quantity || 1,
+              name: detail?.name || "不明なカード",
+              image_url: detail?.image_url || "/placeholder.svg?height=100&width=70",
+              thumb_url: detail?.thumb_url || detail?.image_url || "/placeholder.svg?height=100&width=70",
+              pack_name: card.pack_name || "不明なパック",
+              display_order: card.display_order || 0,
+            }
+          })
+
+          return {
+            ...deckPage,
+            deck_cards: enrichedCards,
+          }
+        } catch (error) {
+          console.error(`Error processing deck page ${deckPage.id}:`, error)
+          return {
+            ...deckPage,
+            deck_cards: [],
+          }
+        }
+      }),
+    )
+
     const total = count || 0
     const hasMore = offset + limit < total
 
     return {
       success: true,
-      data: data || [],
+      data: enrichedData,
       total,
       hasMore,
       error: undefined,

@@ -30,7 +30,7 @@ const categories: CategoryInfo[] = [
 
 interface DeckPageData extends Deck {
   is_deck_page?: boolean
-  // optional: selected_card_ids?: number[]
+  deck_cards?: any[]
 }
 
 export default function DecksPage() {
@@ -66,7 +66,7 @@ export default function DecksPage() {
     }
   }, [toast])
 
-  // deck_pages 取得
+  // deck_pages 取得 (Step 2: データマッピング処理)
   const fetchDeckPages = useCallback(
     async (category: "tier" | "newpack" | "featured") => {
       setIsLoading(true)
@@ -79,6 +79,7 @@ export default function DecksPage() {
 
         const result = await getDeckPagesList({ category, sortBy, limit: 50 })
         if ((result as any).success && (result as any).data) {
+          // Step 2: DeckHorizontalRowが期待する形式に変換
           const formatted: DeckPageData[] = (result as any).data.map((deckPage: any) => ({
             id: deckPage.id.toString(),
             name: deckPage.title || deckPage.deck_name || "無題のデッキ",
@@ -90,9 +91,8 @@ export default function DecksPage() {
             views: deckPage.view_count || 0,
             comments: deckPage.comment_count || 0,
             is_deck_page: true,
-            // selected_card_ids が来れば DeckHorizontalRow が最優先で使用
-            selected_card_ids: deckPage.selected_card_ids || deckPage.curated_card_ids || undefined,
-            deck_cards: deckPage.deck_cards || undefined,
+            // Step 2: カード詳細を含むdeck_cardsを設定
+            deck_cards: deckPage.deck_cards || [],
           }))
           setDecks(formatted)
         } else {
@@ -100,7 +100,9 @@ export default function DecksPage() {
           setError(msg)
           toast({ title: "エラー", description: msg, variant: "destructive" })
         }
-      } catch {
+      } catch (fetchError) {
+        // Step 3: エラーハンドリング
+        console.error("Error fetching deck pages:", fetchError)
         const msg = "デッキの取得中にエラーが発生しました"
         setError(msg)
         toast({ title: "エラー", description: msg, variant: "destructive" })
