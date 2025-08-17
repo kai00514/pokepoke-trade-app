@@ -5,7 +5,6 @@ import { useParams } from "next/navigation"
 import Image from "next/image"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import { MessageCircle, ChevronRight, ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import Header from "@/components/layout/header"
@@ -265,8 +264,8 @@ export default function PokemonDeckPage() {
       <Header />
 
       <div className="bg-white shadow-sm">
-        <div className="max-w-4xl mx-auto px-4 py-6">
-          <div className="flex items-center gap-4 mb-4">
+        <div className="max-w-4xl mx-auto px-4 py-4">
+          <div className="flex items-center gap-4 mb-3">
             <Button asChild variant="outline">
               <Link href="/decks">
                 <ArrowLeft className="mr-2 h-4 w-4" />
@@ -276,7 +275,7 @@ export default function PokemonDeckPage() {
           </div>
 
           <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">{deckData.title}</h1>
-          <div className="flex items-center gap-4 text-sm text-gray-600 mb-4">
+          <div className="flex items-center gap-4 text-sm text-gray-600 mb-3">
             <span>最終更新：{deckData.lastUpdated}</span>
             <div className="flex items-center gap-1 bg-blue-100 text-blue-700 px-2 py-1 rounded">
               <MessageCircle className="w-4 h-4" />
@@ -296,20 +295,17 @@ export default function PokemonDeckPage() {
               height={400}
               className="w-full h-64 md:h-80 object-cover"
             />
-            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2">
-              <Badge className="bg-blue-500 text-white px-6 py-2 text-lg rounded-full">{deckData.deckBadge}</Badge>
-            </div>
           </div>
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto px-4 py-8">
-        <Card className="mb-8">
-          <CardHeader className="bg-blue-50">
-            <CardTitle className="text-blue-800">目次</CardTitle>
+      <div className="max-w-4xl mx-auto px-4 py-4">
+        <Card className="mb-4">
+          <CardHeader className="bg-blue-50 py-2">
+            <CardTitle className="text-blue-800 text-base">目次</CardTitle>
           </CardHeader>
-          <CardContent className="p-6">
-            <nav className="space-y-2">
+          <CardContent className="py-2 px-4">
+            <nav className="space-y-1">
               {[
                 { title: deckData.section1Title, id: "deck-recipe" },
                 { title: deckData.section2Title, id: "strengths-weaknesses" },
@@ -329,7 +325,7 @@ export default function PokemonDeckPage() {
                       })
                     }
                   }}
-                  className="flex items-center text-blue-600 hover:text-blue-800 transition-colors w-full text-left"
+                  className="flex items-center text-blue-600 hover:text-blue-800 transition-colors w-full text-left py-1"
                 >
                   <ChevronRight className="w-4 h-4 mr-2" />
                   {item.title}
@@ -339,13 +335,13 @@ export default function PokemonDeckPage() {
           </CardContent>
         </Card>
 
-        <Card className="mb-8" id="deck-recipe">
-          <CardHeader className="bg-blue-50">
-            <CardTitle className="text-blue-800">{deckData.section1Title}</CardTitle>
+        <Card className="mb-4" id="deck-recipe">
+          <CardHeader className="bg-blue-50 py-2">
+            <CardTitle className="text-blue-800 text-base">{deckData.section1Title}</CardTitle>
           </CardHeader>
-          <CardContent className="p-6">
-            <div className="mb-6">
-              <h3 className="text-lg font-semibold mb-4 text-blue-600 border-l-4 border-blue-500 pl-3">デッキレシピ</h3>
+          <CardContent className="p-4">
+            <div className="mb-4">
+              <h3 className="text-lg font-semibold mb-3 text-blue-600 border-l-4 border-blue-500 pl-3">デッキレシピ</h3>
               {deckData.cards && deckData.cards.length > 0 ? (
                 <DeckCardsGrid
                   deckName={deckData.deckName}
@@ -354,15 +350,15 @@ export default function PokemonDeckPage() {
                   cards={deckData.cards}
                 />
               ) : (
-                <div className="text-center text-gray-500 py-8">デッキレシピ情報がありません。</div>
+                <div className="text-center text-gray-500 py-6">デッキレシピ情報がありません。</div>
               )}
-              {deckData.deckDescription && <p className="text-sm text-gray-600 mt-4">{deckData.deckDescription}</p>}
+              {deckData.deckDescription && <p className="text-sm text-gray-600 mt-3">{deckData.deckDescription}</p>}
             </div>
           </CardContent>
         </Card>
 
-        <Card className="mb-8">
-          <CardContent className="p-6">
+        <Card className="mb-4">
+          <CardContent className="p-4">
             <DeckEvaluation
               evaluationTitle={deckData.evaluationTitle}
               tierInfo={deckData.tierInfo}
@@ -370,7 +366,7 @@ export default function PokemonDeckPage() {
             />
 
             <div>
-              <h4 className="font-medium mb-4 text-blue-600 border-l-4 border-blue-500 pl-3">みんなの評価</h4>
+              <h4 className="font-medium mb-3 text-blue-600 border-l-4 border-blue-500 pl-3">みんなの評価</h4>
               <div className="bg-gray-50 p-4 rounded-lg">
                 <div className="flex justify-between items-center mb-4">
                   <span className="text-lg font-medium">スコア平均</span>
@@ -420,15 +416,17 @@ export default function PokemonDeckPage() {
               </div>
             </div>
 
-            <Button className="w-full bg-blue-500 hover:bg-blue-600 text-white mb-6">▶ 環境最強デッキランキング</Button>
+            <Button className="w-full bg-blue-500 hover:bg-blue-600 text-white mb-4 mt-4">
+              ▶ 環境最強デッキランキング
+            </Button>
           </CardContent>
         </Card>
 
-        <Card className="mb-8" id="strengths-weaknesses">
-          <CardHeader className="bg-blue-50">
-            <CardTitle className="text-blue-800">{deckData.section2Title}</CardTitle>
+        <Card className="mb-4" id="strengths-weaknesses">
+          <CardHeader className="bg-blue-50 py-2">
+            <CardTitle className="text-blue-800 text-base">{deckData.section2Title}</CardTitle>
           </CardHeader>
-          <CardContent className="p-6">
+          <CardContent className="p-4">
             <StrengthsWeaknesses
               strengthsWeaknessesList={deckData.strengthsWeaknessesList}
               strengthsWeaknessesDetails={deckData.strengthsWeaknessesDetails}
@@ -436,25 +434,25 @@ export default function PokemonDeckPage() {
           </CardContent>
         </Card>
 
-        <Card className="mb-8" id="how-to-play">
-          <CardHeader className="bg-blue-50">
-            <CardTitle className="text-blue-800">{deckData.section3Title}</CardTitle>
+        <Card className="mb-4" id="how-to-play">
+          <CardHeader className="bg-blue-50 py-2">
+            <CardTitle className="text-blue-800 text-base">{deckData.section3Title}</CardTitle>
           </CardHeader>
-          <CardContent className="p-6">
+          <CardContent className="p-4">
             <HowToPlay howToPlayList={deckData.howToPlayList} howToPlaySteps={deckData.howToPlaySteps} />
           </CardContent>
         </Card>
 
-        <Card className="mb-8" id="meta-report">
-          <CardHeader className="bg-blue-50">
-            <CardTitle className="text-blue-800">海外大会メタレポートとカード採用率</CardTitle>
+        <Card className="mb-4" id="meta-report">
+          <CardHeader className="bg-blue-50 py-2">
+            <CardTitle className="text-blue-800 text-base">海外大会メタレポートとカード採用率</CardTitle>
           </CardHeader>
-          <CardContent className="p-6">
-            <div className="text-center text-gray-500 py-8">メタレポートデータを読み込み中...</div>
+          <CardContent className="p-4">
+            <div className="text-center text-gray-500 py-6">メタレポートデータを読み込み中...</div>
           </CardContent>
         </Card>
 
-        <Card className="mb-8" id="comments">
+        <Card className="mb-4" id="comments">
           <DeckComments deckId={deckData.id} deckTitle={deckData.title} commentType="deck_page" />
         </Card>
       </div>
