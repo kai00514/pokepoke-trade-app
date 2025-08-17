@@ -100,14 +100,11 @@ export default function TradeBoardPage() {
       >
         <main className="container mx-auto px-3 sm:px-4 py-8 sm:py-10">
           <section className="text-center mb-8 sm:mb-10">
-            <div className="inline-flex items-center rounded-full bg-[#E8F2FF] text-[#1D4ED8] px-3 py-1 text-xs font-medium mb-3">
-              PokeLink トレード掲示板
+            <div className="inline-flex items-center rounded-full bg-gradient-to-r from-[#3B82F6] via-[#1D4ED8] to-[#6366F1] text-white px-8 py-3 text-2xl sm:text-3xl font-bold mb-3 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 border-2 border-white/20 backdrop-blur-sm animate-float">
+              <span className="relative z-10">PokeLink トレード掲示板</span>
             </div>
-            <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-[#111827]">
-              カードの交換相手を見つけよう
-            </h1>
             <p className="mt-2 text-sm sm:text-base text-[#6B7280]">
-              親しみやすい＆シンプルなUIで、欲しいカードや譲れるカードをスムーズに共有できます。
+              欲しいカードと譲れるカードをスムーズに交換しましょう！
             </p>
           </section>
 

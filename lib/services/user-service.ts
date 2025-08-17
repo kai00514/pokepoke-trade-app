@@ -124,7 +124,7 @@ async function fetchUserProfileWithRetry(userId: string, maxRetries = 2): Promis
         return data
       }
 
-      console.log("ℹ️ No user profile found in database")
+      console.log("���️ No user profile found in database")
       return null
     } catch (error) {
       lastError = error as Error
