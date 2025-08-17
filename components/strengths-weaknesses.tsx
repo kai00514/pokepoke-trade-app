@@ -1,89 +1,52 @@
-"use client"
-
-import { useState } from "react"
 import Image from "next/image"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-
-interface StrengthWeaknessDetail {
-  title: string
-  description: string
-  image_urls: string[]
-}
+import type { StrengthWeakness } from "../types/deck"
 
 interface StrengthsWeaknessesProps {
-  strengths: StrengthWeaknessDetail[]
-  weaknesses: StrengthWeaknessDetail[]
+  strengthsWeaknessesList: string[]
+  strengthsWeaknessesDetails: StrengthWeakness[]
 }
 
-export function StrengthsWeaknesses({ strengths, weaknesses }: StrengthsWeaknessesProps) {
-  const [selectedImage, setSelectedImage] = useState<string | null>(null)
-
-  const renderSection = (items: StrengthWeaknessDetail[], title: string, bgColor: string) => (
-    <Card className="mb-4">
-      <CardHeader className="py-2">
-        <CardTitle className={`text-base ${bgColor} text-white p-2 rounded`}>{title}</CardTitle>
-      </CardHeader>
-      <CardContent className="p-4">
-        {items.map((item, index) => (
-          <div key={index} className="mb-4 last:mb-0">
-            <h4 className="font-semibold text-sm mb-2">{item.title}</h4>
-            <p className="text-sm text-gray-600 mb-3" dangerouslySetInnerHTML={{ __html: item.description }} />
-            {item.image_urls && item.image_urls.length > 0 && (
-              <div className="overflow-x-auto">
-                <div className="flex gap-2" style={{ minWidth: "max-content" }}>
-                  {item.image_urls.map((imageUrl, imgIndex) => (
-                    <div key={imgIndex} className="flex-shrink-0">
-                      <Image
-                        src={imageUrl || "/placeholder.svg?height=112&width=80&query=カード"}
-                        alt={`${item.title} カード ${imgIndex + 1}`}
-                        width={80}
-                        height={112}
-                        className="w-20 h-28 object-cover rounded border cursor-pointer hover:opacity-80 transition-opacity"
-                        onClick={() => setSelectedImage(imageUrl)}
-                        onError={(e) => {
-                          e.currentTarget.src = "/placeholder.svg?height=112&width=80"
-                        }}
-                      />
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        ))}
-      </CardContent>
-    </Card>
-  )
-
+export function StrengthsWeaknesses({ strengthsWeaknessesList, strengthsWeaknessesDetails }: StrengthsWeaknessesProps) {
   return (
     <div>
-      {strengths && strengths.length > 0 && renderSection(strengths, "強み", "bg-green-600")}
-      {weaknesses && weaknesses.length > 0 && renderSection(weaknesses, "弱み", "bg-red-600")}
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+        <ul className="space-y-2">
+          {strengthsWeaknessesList.map((item, index) => (
+            <li key={index} className="flex items-center">
+              <div className="w-2 h-2 bg-blue-500 rounded-full mr-3"></div>
+              {item}
+            </li>
+          ))}
+        </ul>
+      </div>
 
-      {/* 画像プレビューオーバーレイ */}
-      {selectedImage && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4"
-          onClick={() => setSelectedImage(null)}
-        >
-          <div className="relative max-w-2xl max-h-full">
-            <Image
-              src={selectedImage || "/placeholder.svg"}
-              alt="カード拡大表示"
-              width={400}
-              height={560}
-              className="rounded-lg shadow-2xl max-w-full max-h-full object-contain"
-              onClick={(e) => e.stopPropagation()}
-            />
-            <button
-              onClick={() => setSelectedImage(null)}
-              className="absolute -top-4 -right-4 bg-white rounded-full w-8 h-8 flex items-center justify-center shadow-lg hover:bg-gray-100 transition-colors"
-            >
-              ×
-            </button>
-          </div>
+      {strengthsWeaknessesDetails.map((detail, index) => (
+        <div key={index} className={index < strengthsWeaknessesDetails.length - 1 ? "mb-8" : ""}>
+          <h4 className="font-medium mb-4 text-blue-600 border-l-4 border-blue-500 pl-3">{detail.title}</h4>
+          {detail.image_urls && detail.image_urls.length > 0 && (
+            <div className="overflow-x-auto mb-4">
+              <div className="flex gap-4 min-w-max">
+                {detail.image_urls.map((imageUrl, imgIndex) => (
+                  <div key={imgIndex} className="w-20 h-28 flex-shrink-0">
+                    {imageUrl ? (
+                      <Image
+                        src={imageUrl || "/placeholder.svg"}
+                        alt={`${detail.title} 画像 ${imgIndex + 1}`}
+                        width={80}
+                        height={112}
+                        className="w-full h-full object-cover rounded border"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-purple-100 to-blue-100 rounded border"></div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          <p className="text-sm text-gray-700" dangerouslySetInnerHTML={{ __html: detail.description }} />
         </div>
-      )}
+      ))}
     </div>
   )
 }
