@@ -168,43 +168,57 @@ export async function getTradePostsWithCards(limit = 10, offset = 0) {
     const authenticatedPosts = posts.filter((post) => post.is_authenticated && post.owner_id)
     const userIds = authenticatedPosts.map((post) => post.owner_id)
 
-    const userProfilesMap = new Map()
-    if (userIds.length > 0) {
-      const { data: userProfiles, error: usersError } = await supabase
-        .from("users")
-        .select("id, name, display_name, email, avatar_url")
-        .in("id", userIds)
-
-      if (!usersError && userProfiles) {
-        userProfiles.forEach((profile) => {
-          const { username, avatarUrl } = getUserDisplayInfo(profile)
-          userProfilesMap.set(profile.id, { username, avatarUrl })
-        })
-      }
-    }
-
     const postIds = posts.map((post) => post.id)
 
-    // Get wanted cards relations
-    const { data: wantedRelations, error: wantedError } = await supabase
-      .from("trade_post_wanted_cards")
-      .select("post_id, card_id, is_primary")
-      .in("post_id", postIds)
+    // 並列クエリ実行で大幅な速度向上
+    const [userProfilesResult, wantedRelationsResult, offeredRelationsResult, allCommentsResult] = await Promise.all([
+      // ユーザープロフィール取得
+      userIds.length > 0
+        ? supabase.from("users").select("id, name, display_name, avatar_url").in("id", userIds)
+        : Promise.resolve({ data: [], error: null }),
+
+      // 求めるカード関連取得
+      supabase
+        .from("trade_post_wanted_cards")
+        .select("post_id, card_id, is_primary")
+        .in("post_id", postIds),
+
+      // 譲れるカード関連取得
+      supabase
+        .from("trade_post_offered_cards")
+        .select("post_id, card_id")
+        .in("post_id", postIds),
+
+      // コメント数取得
+      supabase
+        .from("trade_comments")
+        .select("post_id")
+        .in("post_id", postIds)
+        .eq("is_deleted", false),
+    ])
+
+    const { data: userProfiles, error: usersError } = userProfilesResult
+    const { data: wantedRelations, error: wantedError } = wantedRelationsResult
+    const { data: offeredRelations, error: offeredError } = offeredRelationsResult
+    const { data: allCommentsForPosts, error: commentFetchError } = allCommentsResult
 
     if (wantedError) {
       console.error("Error fetching wanted card relations:", wantedError)
       return { success: false, error: `求めるカード関連の取得に失敗: ${wantedError.message}`, posts: [] }
     }
 
-    // Get offered cards relations
-    const { data: offeredRelations, error: offeredError } = await supabase
-      .from("trade_post_offered_cards")
-      .select("post_id, card_id")
-      .in("post_id", postIds)
-
     if (offeredError) {
       console.error("Error fetching offered card relations:", offeredError)
       return { success: false, error: `譲れるカード関連の取得に失敗: ${offeredError.message}`, posts: [] }
+    }
+
+    // ユーザープロフィールをマップ化
+    const userProfilesMap = new Map()
+    if (!usersError && userProfiles) {
+      userProfiles.forEach((profile) => {
+        const { username, avatarUrl } = getUserDisplayInfo(profile)
+        userProfilesMap.set(profile.id, { username, avatarUrl })
+      })
     }
 
     // Get all card IDs and fetch card details
@@ -228,20 +242,10 @@ export async function getTradePostsWithCards(limit = 10, offset = 0) {
 
     // Get comment counts
     const commentCountsMap = new Map<string, number>()
-    try {
-      const { data: allCommentsForPosts, error: commentFetchError } = await supabase
-        .from("trade_comments")
-        .select("post_id")
-        .in("post_id", postIds)
-        .eq("is_deleted", false)
-
-      if (!commentFetchError && allCommentsForPosts) {
-        allCommentsForPosts.forEach((comment) => {
-          commentCountsMap.set(comment.post_id, (commentCountsMap.get(comment.post_id) || 0) + 1)
-        })
-      }
-    } catch (e) {
-      console.warn("Error fetching comment counts:", e)
+    if (!commentFetchError && allCommentsForPosts) {
+      allCommentsForPosts.forEach((comment) => {
+        commentCountsMap.set(comment.post_id, (commentCountsMap.get(comment.post_id) || 0) + 1)
+      })
     }
 
     // Build posts with card data and user info
@@ -727,7 +731,7 @@ export async function getMyTradePosts(userId: string) {
         displayStatus = "open"
       }
 
-      // ���ライマリカードを取得
+      // プライマリカードを取得
       const primaryWantedCard = wantedRelations
         ?.filter((r) => r.post_id === post.id && r.is_primary)
         .map((r) => {
