@@ -12,12 +12,13 @@ import { Badge } from "@/components/ui/badge"
 import { Slider } from "@/components/ui/slider"
 import { Switch } from "@/components/ui/switch"
 import { Separator } from "@/components/ui/separator"
-import { Save, Eye, Upload, Plus, Trash2, GripVertical, Search, Loader2 } from "lucide-react"
+import { Save, Eye, Plus, Trash2, GripVertical, Search, Loader2 } from "lucide-react"
 import { toast } from "sonner"
 import DetailedSearchModal from "@/components/detailed-search-modal"
 import DeckCardSelectionModal, { type DeckCard as DeckCardType } from "@/components/admin/deck-card-selection-modal"
 import { DeckPreviewModal } from "@/components/admin/deck-preview-modal"
 import { createDeckPage, updateDeckPage, type DeckPageData } from "@/lib/actions/admin-deck-pages"
+import { ImageUpload } from "@/components/admin/image-upload"
 
 interface DeckEditorProps {
   deck?: any
@@ -37,6 +38,7 @@ export function DeckEditor({ deck, isEditing = false }: DeckEditorProps) {
     deck_name: deck?.deck_name || "",
     deck_description: deck?.deck_description || "",
     deck_badge: deck?.deck_badge || "",
+    thumbnail_image_url: deck?.thumbnail_image_url || "",
     thumbnail_alt: deck?.thumbnail_alt || "",
     section1_title: deck?.section1_title || "",
     section2_title: deck?.section2_title || "",
@@ -515,13 +517,11 @@ export function DeckEditor({ deck, isEditing = false }: DeckEditorProps) {
 
                   <div className="space-y-2">
                     <Label>サムネイル画像</Label>
-                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-                      <Upload className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-                      <p className="text-gray-600">画像をドラッグ&ドロップまたはクリックしてアップロード</p>
-                      <Button variant="outline" className="mt-2 bg-transparent">
-                        ファイルを選択
-                      </Button>
-                    </div>
+                    <ImageUpload
+                      value={formData.thumbnail_image_url}
+                      onChange={(url) => setFormData({ ...formData, thumbnail_image_url: url })}
+                      onRemove={() => setFormData({ ...formData, thumbnail_image_url: "" })}
+                    />
                   </div>
                 </CardContent>
               </DeckCard>

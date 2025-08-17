@@ -8,6 +8,7 @@ export interface DeckPageData {
   deck_name: string
   deck_description?: string
   deck_badge?: string
+  thumbnail_image_url?: string
   thumbnail_alt?: string
   section1_title?: string
   section2_title?: string
@@ -54,7 +55,7 @@ export async function createDeckPage(deckData: DeckPageData) {
   try {
     const supabase = await createClient()
 
-    // 現在のユーザーを取得
+    // 現在のユーザーを取得（認証確認のため）
     const {
       data: { user },
       error: userError,
@@ -110,14 +111,14 @@ export async function createDeckPage(deckData: DeckPageData) {
       image_urls: step.image_urls,
     }))
 
-    // サムネイル画像URLを設定（最初のカードの画像を使用）
-    let thumbnailImageUrl = "/placeholder.svg?height=400&width=600"
-    if (deckData.deck_cards.length > 0) {
-      // 実際の実装では、card_idから画像URLを取得する必要があります
-      thumbnailImageUrl = `/placeholder.svg?height=400&width=600&text=${deckData.deck_name}`
+    // サムネイル画像URLを設定
+    let thumbnailImageUrl = deckData.thumbnail_image_url || "/placeholder.svg?height=400&width=600"
+    if (!deckData.thumbnail_image_url && deckData.deck_cards.length > 0) {
+      // デフォルト画像を設定
+      thumbnailImageUrl = `/placeholder.svg?height=400&width=600&text=${encodeURIComponent(deckData.deck_name)}`
     }
 
-    // デッキページデータの準備
+    // デッキページデータの準備（author_idを含めない）
     const insertData = {
       title: deckData.title,
       deck_name: deckData.deck_name,
@@ -145,7 +146,6 @@ export async function createDeckPage(deckData: DeckPageData) {
       deck_cards: deckCardsJson,
       strengths_weaknesses: strengthsWeaknessesJson,
       how_to_play: playStepsJson,
-      author_id: user.id,
       view_count: 0,
       like_count: 0,
       comment_count: 0,
@@ -249,12 +249,12 @@ export async function updateDeckPage(id: string, deckData: DeckPageData) {
     }))
 
     // サムネイル画像URLを設定
-    let thumbnailImageUrl = "/placeholder.svg?height=400&width=600"
-    if (deckData.deck_cards.length > 0) {
-      thumbnailImageUrl = `/placeholder.svg?height=400&width=600&text=${deckData.deck_name}`
+    let thumbnailImageUrl = deckData.thumbnail_image_url || "/placeholder.svg?height=400&width=600"
+    if (!deckData.thumbnail_image_url && deckData.deck_cards.length > 0) {
+      thumbnailImageUrl = `/placeholder.svg?height=400&width=600&text=${encodeURIComponent(deckData.deck_name)}`
     }
 
-    // 更新データの準備
+    // 更新データの準備（author_idを含めない）
     const updateData = {
       title: deckData.title,
       deck_name: deckData.deck_name,
