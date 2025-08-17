@@ -1,78 +1,67 @@
-"use client"
-
 import Image from "next/image"
-import { Card, CardContent } from "@/components/ui/card"
+import type { HowToPlayStep } from "../types/deck"
 
 interface HowToPlayProps {
   howToPlayList: string[]
-  howToPlaySteps: Array<{
-    step: number
-    title: string
-    description: string
-    image_urls?: string[]
-  }>
+  howToPlaySteps: HowToPlayStep[]
 }
 
 export function HowToPlay({ howToPlayList, howToPlaySteps }: HowToPlayProps) {
   return (
-    <div className="space-y-6">
-      {/* 概要リスト */}
-      {howToPlayList && howToPlayList.length > 0 && (
-        <div>
-          <h4 className="font-semibold mb-3 text-blue-600 border-l-4 border-blue-500 pl-3">基本戦略</h4>
-          <ul className="space-y-2">
-            {howToPlayList.map((item, index) => (
-              <li key={index} className="flex items-start gap-2">
-                <span className="text-blue-500 mt-1">•</span>
-                <span className="text-gray-700">{item}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-
-      {/* ステップ詳細 */}
-      {howToPlaySteps && howToPlaySteps.length > 0 && (
-        <div className="space-y-4">
-          <h4 className="font-semibold mb-3 text-blue-600 border-l-4 border-blue-500 pl-3">詳細手順</h4>
-          {howToPlaySteps.map((step, index) => (
-            <Card key={index} className="border border-gray-200">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="bg-blue-500 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold">
-                    {step.step}
-                  </div>
-                  <h5 className="font-medium text-gray-900">{step.title}</h5>
-                </div>
-                <p className="text-gray-700 mb-4 leading-relaxed">{step.description}</p>
-
-                {/* 画像がある場合の横スクロール表示 */}
-                {step.image_urls && step.image_urls.length > 0 && (
-                  <div className="overflow-x-auto">
-                    <div className="flex gap-3 pb-2" style={{ minWidth: "max-content" }}>
-                      {step.image_urls.map((imageUrl, imgIndex) => (
-                        <div key={imgIndex} className="flex-shrink-0">
-                          <Image
-                            src={imageUrl || "/placeholder.svg?height=200&width=140&query=ポケモンカード"}
-                            alt={`${step.title} 関連カード ${imgIndex + 1}`}
-                            width={140}
-                            height={200}
-                            className="rounded border border-gray-200 object-cover shadow-sm"
-                            onError={(e) => {
-                              const target = e.target as HTMLImageElement
-                              target.src = "/placeholder.svg?height=200&width=140"
-                            }}
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+    <div>
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+        <div className="space-y-3">
+          {howToPlayList.map((item, index) => (
+            <div key={index} className="flex items-center">
+              <div className="bg-blue-500 text-white w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold mr-3">
+                {index + 1}
+              </div>
+              {item}
+            </div>
           ))}
         </div>
-      )}
+      </div>
+
+      {howToPlaySteps.map((step, index) => (
+        <div key={index} className={index < howToPlaySteps.length - 1 ? "mb-8" : ""}>
+          <div className="bg-blue-500 text-white px-4 py-2 rounded-t-lg">
+            <div className="flex items-center">
+              <div className="bg-white text-blue-500 w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold mr-3">
+                {index + 1}
+              </div>
+              {step.title}
+            </div>
+          </div>
+          <div className="bg-blue-50 p-4 rounded-b-lg">
+            {step.image_urls &&
+              step.image_urls.length > 0 && ( // ここを修正
+                <div className="flex gap-4 mb-4">
+                  {step.image_urls.map(
+                    (
+                      imageUrl,
+                      imgIndex, // ここを修正
+                    ) => (
+                      <div key={imgIndex} className="w-32 h-44">
+                        {imageUrl ? (
+                          <Image
+                            src={imageUrl || "/placeholder.svg"} // ここを修正
+                            alt={`${step.title} 画像 ${imgIndex + 1}`}
+                            width={128}
+                            height={176}
+                            className="w-full h-full object-cover rounded border"
+                          />
+                        ) : (
+                          <div className="w-full h-full bg-gradient-to-br from-green-100 to-blue-100 rounded border"></div>
+                        )}
+                      </div>
+                    ),
+                  )}
+                </div>
+              )}
+            <p className="text-sm text-gray-700" dangerouslySetInnerHTML={{ __html: step.description }} />
+          </div>
+        </div>
+      ))}
     </div>
   )
 }
