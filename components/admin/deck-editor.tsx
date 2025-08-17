@@ -6,13 +6,14 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card as DeckCard, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { Slider } from "@/components/ui/slider"
 import { Switch } from "@/components/ui/switch"
 import { Separator } from "@/components/ui/separator"
 import { Save, Eye, Upload, Plus, Trash2, GripVertical, Search } from "lucide-react"
+import DetailedSearchModal from "@/components/detailed-search-modal"
 
 interface DeckEditorProps {
   deck?: any
@@ -21,6 +22,7 @@ interface DeckEditorProps {
 
 export function DeckEditor({ deck, isEditing = false }: DeckEditorProps) {
   const [activeTab, setActiveTab] = useState("basic")
+  const [isCardSearchOpen, setIsCardSearchOpen] = useState(false)
   const [formData, setFormData] = useState({
     title: deck?.title || "",
     deck_name: deck?.deck_name || "",
@@ -103,6 +105,40 @@ export function DeckEditor({ deck, isEditing = false }: DeckEditorProps) {
 
   const totalCards = deckCards.reduce((sum, card) => sum + card.card_count, 0)
 
+  const handleCardSelection = (selectedCards: any[]) => {
+    if (selectedCards.length > 0) {
+      const newCard = selectedCards[0]
+      const newDeckCard = {
+        id: Date.now(), // 一時的なID
+        card_id: Number.parseInt(newCard.id),
+        card_name: newCard.name,
+        pack_name: "パック名", // 実際のパック名は後で取得
+        card_count: 1,
+        display_order: deckCards.length,
+      }
+      setDeckCards([...deckCards, newDeckCard])
+    }
+    setIsCardSearchOpen(false)
+  }
+
+  const removeCard = (cardId: number) => {
+    setDeckCards(deckCards.filter((card) => card.id !== cardId))
+  }
+
+  const updateCardCount = (cardId: number, newCount: number) => {
+    setDeckCards(
+      deckCards.map((card) =>
+        card.id === cardId ? { ...card, card_count: Math.max(1, Math.min(2, newCount)) } : card,
+      ),
+    )
+  }
+
+  const updateDisplayOrder = (cardId: number, newOrder: number) => {
+    setDeckCards(
+      deckCards.map((card) => (card.id === cardId ? { ...card, display_order: Math.max(0, newOrder) } : card)),
+    )
+  }
+
   return (
     <div className="flex gap-6">
       {/* メインコンテンツ */}
@@ -133,7 +169,7 @@ export function DeckEditor({ deck, isEditing = false }: DeckEditorProps) {
 
             {/* 基本情報タブ */}
             <TabsContent value="basic" className="space-y-6">
-              <Card>
+              <DeckCard>
                 <CardHeader>
                   <CardTitle>基本情報</CardTitle>
                 </CardHeader>
@@ -224,9 +260,9 @@ export function DeckEditor({ deck, isEditing = false }: DeckEditorProps) {
                     </div>
                   </div>
                 </CardContent>
-              </Card>
+              </DeckCard>
 
-              <Card>
+              <DeckCard>
                 <CardHeader>
                   <CardTitle>セクションタイトル設定</CardTitle>
                 </CardHeader>
@@ -259,12 +295,12 @@ export function DeckEditor({ deck, isEditing = false }: DeckEditorProps) {
                     />
                   </div>
                 </CardContent>
-              </Card>
+              </DeckCard>
             </TabsContent>
 
             {/* カード構成タブ */}
             <TabsContent value="cards" className="space-y-6">
-              <Card>
+              <DeckCard>
                 <CardHeader>
                   <CardTitle>カード検索・追加</CardTitle>
                 </CardHeader>
@@ -272,21 +308,26 @@ export function DeckEditor({ deck, isEditing = false }: DeckEditorProps) {
                   <div className="flex gap-2">
                     <div className="flex-1 relative">
                       <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                      <Input placeholder="カード名またはIDで検索..." className="pl-10" />
+                      <Input
+                        placeholder="カード名またはIDで検索..."
+                        className="pl-10"
+                        readOnly
+                        onClick={() => setIsCardSearchOpen(true)}
+                      />
                     </div>
-                    <Button>
+                    <Button onClick={() => setIsCardSearchOpen(true)}>
                       <Plus className="h-4 w-4 mr-2" />
-                      追加
+                      カード検索
                     </Button>
                   </div>
                 </CardContent>
-              </Card>
+              </DeckCard>
 
-              <Card>
+              <DeckCard>
                 <CardHeader>
                   <CardTitle className="flex justify-between items-center">
                     現在のデッキ構成
-                    <Badge variant="outline">{totalCards}/60枚</Badge>
+                    <Badge variant={totalCards > 20 ? "destructive" : "outline"}>{totalCards}/20枚</Badge>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -294,57 +335,95 @@ export function DeckEditor({ deck, isEditing = false }: DeckEditorProps) {
                     {deckCards.map((card) => (
                       <div key={card.id} className="flex items-center gap-4 p-3 border rounded-lg">
                         <GripVertical className="h-4 w-4 text-gray-400 cursor-move" />
-                        <div className="w-12 h-12 bg-gray-200 rounded flex items-center justify-center">📷</div>
+                        <div className="w-12 h-12 bg-gray-200 rounded flex items-center justify-center">
+                          <span className="text-xs">📷</span>
+                        </div>
                         <div className="flex-1">
                           <div className="font-medium">{card.card_name}</div>
                           <div className="text-sm text-gray-600">{card.pack_name}</div>
+                          <div className="text-xs text-gray-500">ID: {card.card_id}</div>
                         </div>
                         <div className="flex items-center gap-2">
-                          <Label>枚数:</Label>
-                          <Input type="number" min="1" max="4" value={card.card_count} className="w-16" />
+                          <Label className="text-sm">枚数:</Label>
+                          <Input
+                            type="number"
+                            min="1"
+                            max="4"
+                            value={card.card_count}
+                            onChange={(e) => updateCardCount(card.id, Number.parseInt(e.target.value) || 1)}
+                            className="w-16"
+                          />
                         </div>
                         <div className="flex items-center gap-2">
-                          <Label>順序:</Label>
-                          <Input type="number" min="0" value={card.display_order} className="w-16" />
+                          <Label className="text-sm">順序:</Label>
+                          <Input
+                            type="number"
+                            min="0"
+                            value={card.display_order}
+                            onChange={(e) => updateDisplayOrder(card.id, Number.parseInt(e.target.value) || 0)}
+                            className="w-16"
+                          />
                         </div>
-                        <Button variant="outline" size="sm">
-                          編集
-                        </Button>
-                        <Button variant="outline" size="sm">
+                        <Button variant="outline" size="sm" onClick={() => removeCard(card.id)}>
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
                     ))}
+
+                    {deckCards.length === 0 && (
+                      <div className="text-center py-8 text-gray-500">
+                        <p>まだカードが追加されていません</p>
+                        <p className="text-sm">上の検索ボタンからカードを追加してください</p>
+                      </div>
+                    )}
                   </div>
                 </CardContent>
-              </Card>
+              </DeckCard>
 
-              <Card>
+              <DeckCard>
                 <CardHeader>
                   <CardTitle>デッキ統計</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-3 gap-4 text-center">
+                  <div className="grid grid-cols-4 gap-4 text-center">
                     <div>
-                      <div className="text-2xl font-bold">{totalCards}/60</div>
+                      <div className={`text-2xl font-bold ${totalCards > 20 ? "text-red-500" : "text-blue-600"}`}>
+                        {totalCards}/20
+                      </div>
                       <div className="text-sm text-gray-600">総枚数</div>
                     </div>
                     <div>
-                      <div className="text-2xl font-bold">15</div>
+                      <div className="text-2xl font-bold">
+                        {deckCards.filter((card) => card.card_name.includes("ポケモン") || card.card_id < 2000).length}
+                      </div>
                       <div className="text-sm text-gray-600">ポケモン</div>
                     </div>
                     <div>
-                      <div className="text-2xl font-bold">5</div>
+                      <div className="text-2xl font-bold">
+                        {deckCards.filter((card) => card.card_name.includes("トレーナー")).length}
+                      </div>
                       <div className="text-sm text-gray-600">トレーナー</div>
                     </div>
+                    <div>
+                      <div className="text-2xl font-bold">{deckCards.length}</div>
+                      <div className="text-sm text-gray-600">種類数</div>
+                    </div>
                   </div>
+
+                  {totalCards > 20 && (
+                    <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                      <p className="text-sm text-red-600">
+                        ⚠️ デッキの枚数が20枚を超えています。枚数を調整してください。
+                      </p>
+                    </div>
+                  )}
                 </CardContent>
-              </Card>
+              </DeckCard>
             </TabsContent>
 
             {/* 評価設定タブ */}
             <TabsContent value="evaluation" className="space-y-6">
-              <Card>
+              <DeckCard>
                 <CardHeader>
                   <CardTitle>評価セクション設定</CardTitle>
                 </CardHeader>
@@ -359,9 +438,9 @@ export function DeckEditor({ deck, isEditing = false }: DeckEditorProps) {
                     />
                   </div>
                 </CardContent>
-              </Card>
+              </DeckCard>
 
-              <Card>
+              <DeckCard>
                 <CardHeader>
                   <CardTitle>ティア設定</CardTitle>
                 </CardHeader>
@@ -440,9 +519,9 @@ export function DeckEditor({ deck, isEditing = false }: DeckEditorProps) {
                     </div>
                   </div>
                 </CardContent>
-              </Card>
+              </DeckCard>
 
-              <Card>
+              <DeckCard>
                 <CardHeader>
                   <CardTitle>ステータス評価</CardTitle>
                 </CardHeader>
@@ -485,12 +564,12 @@ export function DeckEditor({ deck, isEditing = false }: DeckEditorProps) {
                     )
                   })}
                 </CardContent>
-              </Card>
+              </DeckCard>
             </TabsContent>
 
             {/* 強み・弱みタブ */}
             <TabsContent value="strengths" className="space-y-6">
-              <Card>
+              <DeckCard>
                 <CardHeader>
                   <CardTitle className="flex justify-between items-center">
                     強み・弱み項目
@@ -526,9 +605,9 @@ export function DeckEditor({ deck, isEditing = false }: DeckEditorProps) {
                     ))}
                   </div>
                 </CardContent>
-              </Card>
+              </DeckCard>
 
-              <Card>
+              <DeckCard>
                 <CardHeader>
                   <CardTitle className="flex justify-between items-center">
                     強み・弱み簡易リスト
@@ -575,12 +654,12 @@ export function DeckEditor({ deck, isEditing = false }: DeckEditorProps) {
                     ))}
                   </div>
                 </CardContent>
-              </Card>
+              </DeckCard>
             </TabsContent>
 
             {/* プレイ方法タブ */}
             <TabsContent value="strategy" className="space-y-6">
-              <Card>
+              <DeckCard>
                 <CardHeader>
                   <CardTitle className="flex justify-between items-center">
                     プレイステップ
@@ -615,9 +694,9 @@ export function DeckEditor({ deck, isEditing = false }: DeckEditorProps) {
                     ))}
                   </div>
                 </CardContent>
-              </Card>
+              </DeckCard>
 
-              <Card>
+              <DeckCard>
                 <CardHeader>
                   <CardTitle className="flex justify-between items-center">
                     プレイ方法簡易リスト
@@ -664,7 +743,7 @@ export function DeckEditor({ deck, isEditing = false }: DeckEditorProps) {
                     ))}
                   </div>
                 </CardContent>
-              </Card>
+              </DeckCard>
             </TabsContent>
           </Tabs>
         </div>
@@ -672,7 +751,7 @@ export function DeckEditor({ deck, isEditing = false }: DeckEditorProps) {
 
       {/* サイドバー */}
       <div className="w-80">
-        <Card className="sticky top-6">
+        <DeckCard className="sticky top-6">
           <CardHeader>
             <CardTitle>設定</CardTitle>
           </CardHeader>
@@ -733,8 +812,17 @@ export function DeckEditor({ deck, isEditing = false }: DeckEditorProps) {
               </Button>
             </div>
           </CardContent>
-        </Card>
+        </DeckCard>
       </div>
+
+      {/* カード検索モーダル */}
+      <DetailedSearchModal
+        isOpen={isCardSearchOpen}
+        onOpenChange={setIsCardSearchOpen}
+        onSelectionComplete={handleCardSelection}
+        maxSelection={1}
+        modalTitle="デッキに追加するカードを選択"
+      />
     </div>
   )
 }
