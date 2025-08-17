@@ -24,7 +24,7 @@ import {
   DialogFooter,
   DialogClose,
 } from "@/components/ui/dialog"
-import DeckComments from "@/components/DeckComments" // DeckCommentsをインポート
+import DeckComments from "@/components/DeckComments"
 
 export default function PokemonDeckPage() {
   const params = useParams()
@@ -55,9 +55,8 @@ export default function PokemonDeckPage() {
         }
 
         const data = result.data
-        console.log("Raw data from getDeckPageById (after enrichment):", data) // デバッグ用
+        console.log("Raw data from getDeckPageById (after enrichment):", data)
 
-        // データベースのデータを安全に変換
         const convertedData = {
           id: data.id,
           title: data.title || "デッキタイトル",
@@ -72,11 +71,9 @@ export default function PokemonDeckPage() {
           deckName: data.deck_name || "デッキ",
           energyType: data.energy_type || "無色",
           energyImage: data.energy_image_url,
-          // cards_dataはサーバーアクションで既に整形されているため、直接使用
           cards: data.cards_data || [],
           deckDescription: data.deck_description || "",
           evaluationTitle: "デッキ評価",
-          // JSONBカラムは直接オブジェクトとしてアクセス
           tierInfo: data.tier_info || {
             rank: data.tier_rank || "",
             tier: data.tier_name || "",
@@ -97,7 +94,7 @@ export default function PokemonDeckPage() {
           evalCount: data.eval_count || 0,
         }
 
-        console.log("Converted data for UI:", convertedData) // デバッグ用
+        console.log("Converted data for UI:", convertedData)
         setDeckData(convertedData)
         setEvalValue(convertedData.evalValue)
         setEvalCount(convertedData.evalCount)
@@ -119,7 +116,6 @@ export default function PokemonDeckPage() {
     setIsSubmitting(true)
 
     try {
-      // ゲストユーザー用のランダムID生成（セッションベース）
       console.log("🔍 Checking for existing guest user ID...")
       let guestUserId = sessionStorage.getItem("guestUserId")
 
@@ -164,7 +160,6 @@ export default function PokemonDeckPage() {
       console.log("   - Content-Type:", response.headers.get("content-type"))
       console.log("   - OK:", response.ok)
 
-      // レスポンスを一度だけ読み込む
       console.log("📖 Reading response text...")
       const responseText = await response.text()
       console.log("📄 Raw response text:")
@@ -200,7 +195,6 @@ export default function PokemonDeckPage() {
       setHasEvaluated(true)
 
       console.log("✅ UI state updated successfully")
-      // alert("評価を送信しました！") // この行を削除またはコメントアウト
       setShowSuccessModal(true)
     } catch (error: any) {
       console.error("\n💥 === SCORE SUBMISSION ERROR ===")
@@ -220,11 +214,11 @@ export default function PokemonDeckPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-purple-100">
+      <div className="min-h-screen bg-gray-50">
         <Header />
         <div className="flex justify-center items-center py-20">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
             <p className="text-slate-500">デッキを読み込み中...</p>
           </div>
         </div>
@@ -235,7 +229,7 @@ export default function PokemonDeckPage() {
 
   if (error || !deckData) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-purple-100">
+      <div className="min-h-screen bg-gray-50">
         <Header />
         <div className="text-center py-20">
           <p className="text-red-500 mb-4">{error}</p>
@@ -252,8 +246,7 @@ export default function PokemonDeckPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-purple-100">
-      {/* 成功モーダル */}
+    <div className="min-h-screen bg-gray-50">
       <Dialog open={showSuccessModal} onOpenChange={setShowSuccessModal}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
@@ -271,7 +264,6 @@ export default function PokemonDeckPage() {
       </Dialog>
       <Header />
 
-      {/* Header */}
       <div className="bg-white shadow-sm">
         <div className="max-w-4xl mx-auto px-4 py-6">
           <div className="flex items-center gap-4 mb-4">
@@ -286,11 +278,11 @@ export default function PokemonDeckPage() {
           <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">{deckData.title}</h1>
           <div className="flex items-center gap-4 text-sm text-gray-600 mb-4">
             <span>最終更新：{deckData.lastUpdated}</span>
-            <div className="flex items-center gap-1 bg-green-100 text-green-700 px-2 py-1 rounded">
+            <div className="flex items-center gap-1 bg-blue-100 text-blue-700 px-2 py-1 rounded">
               <MessageCircle className="w-4 h-4" />
               <span>{deckData.commentCount}</span>
             </div>
-            <Button variant="outline" size="sm" className="text-green-600 border-green-200">
+            <Button variant="outline" size="sm" className="text-blue-600 border-blue-200 bg-transparent">
               みんなの最新コメントを読む
               <ChevronRight className="w-4 h-4 ml-1" />
             </Button>
@@ -312,12 +304,11 @@ export default function PokemonDeckPage() {
       </div>
 
       <div className="max-w-4xl mx-auto px-4 py-8">
-        {/* Table of Contents */}
         <Card className="mb-8">
-          <CardHeader>
-            <CardTitle>目次</CardTitle>
+          <CardHeader className="bg-blue-50">
+            <CardTitle className="text-blue-800">目次</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-6">
             <nav className="space-y-2">
               {[
                 { title: deckData.section1Title, id: "deck-recipe" },
@@ -348,10 +339,9 @@ export default function PokemonDeckPage() {
           </CardContent>
         </Card>
 
-        {/* Deck Recipe Section */}
         <Card className="mb-8" id="deck-recipe">
-          <CardHeader className="bg-gray-700 text-white">
-            <CardTitle>{deckData.section1Title}</CardTitle>
+          <CardHeader className="bg-blue-50">
+            <CardTitle className="text-blue-800">{deckData.section1Title}</CardTitle>
           </CardHeader>
           <CardContent className="p-6">
             <div className="mb-6">
@@ -371,7 +361,6 @@ export default function PokemonDeckPage() {
           </CardContent>
         </Card>
 
-        {/* Deck Evaluation */}
         <Card className="mb-8">
           <CardContent className="p-6">
             <DeckEvaluation
@@ -380,7 +369,6 @@ export default function PokemonDeckPage() {
               deckStats={deckData.deckStats}
             />
 
-            {/* User Rating */}
             <div>
               <h4 className="font-medium mb-4 text-blue-600 border-l-4 border-blue-500 pl-3">みんなの評価</h4>
               <div className="bg-gray-50 p-4 rounded-lg">
@@ -408,14 +396,14 @@ export default function PokemonDeckPage() {
                     }}
                   >
                     <div
-                      className="bg-green-500 h-4 rounded-full transition-all duration-200"
+                      className="bg-blue-500 h-4 rounded-full transition-all duration-200"
                       style={{ width: `${((userScore - 1) / 9) * 100}%` }}
                     ></div>
                     <div
                       className="absolute top-0 transform -translate-x-1/2 -translate-y-1"
                       style={{ left: `${((userScore - 1) / 9) * 100}%` }}
                     >
-                      <div className="bg-green-500 text-white px-2 py-1 rounded text-xs">{userScore}</div>
+                      <div className="bg-blue-500 text-white px-2 py-1 rounded text-xs">{userScore}</div>
                     </div>
                   </div>
                 </div>
@@ -423,7 +411,7 @@ export default function PokemonDeckPage() {
                 <div className="text-center text-sm text-gray-600 mb-4">＼採点してスコアグラフを見てみよう／</div>
 
                 <Button
-                  className="w-full bg-green-500 hover:bg-green-600 text-white"
+                  className="w-full bg-blue-500 hover:bg-blue-600 text-white"
                   onClick={handleScoreSubmit}
                   disabled={isSubmitting || hasEvaluated}
                 >
@@ -432,16 +420,13 @@ export default function PokemonDeckPage() {
               </div>
             </div>
 
-            <Button className="w-full bg-green-500 hover:bg-green-600 text-white mb-6">
-              ▶ 環境最強デッキランキング
-            </Button>
+            <Button className="w-full bg-blue-500 hover:bg-blue-600 text-white mb-6">▶ 環境最強デッキランキング</Button>
           </CardContent>
         </Card>
 
-        {/* Strengths and Weaknesses */}
         <Card className="mb-8" id="strengths-weaknesses">
-          <CardHeader className="bg-gray-700 text-white">
-            <CardTitle>{deckData.section2Title}</CardTitle>
+          <CardHeader className="bg-blue-50">
+            <CardTitle className="text-blue-800">{deckData.section2Title}</CardTitle>
           </CardHeader>
           <CardContent className="p-6">
             <StrengthsWeaknesses
@@ -451,27 +436,24 @@ export default function PokemonDeckPage() {
           </CardContent>
         </Card>
 
-        {/* How to Play */}
         <Card className="mb-8" id="how-to-play">
-          <CardHeader className="bg-gray-700 text-white">
-            <CardTitle>{deckData.section3Title}</CardTitle>
+          <CardHeader className="bg-blue-50">
+            <CardTitle className="text-blue-800">{deckData.section3Title}</CardTitle>
           </CardHeader>
           <CardContent className="p-6">
             <HowToPlay howToPlayList={deckData.howToPlayList} howToPlaySteps={deckData.howToPlaySteps} />
           </CardContent>
         </Card>
 
-        {/* Meta Report - keeping existing structure */}
         <Card className="mb-8" id="meta-report">
-          <CardHeader className="bg-gray-700 text-white">
-            <CardTitle>海外大会メタレポートとカード採用率</CardTitle>
+          <CardHeader className="bg-blue-50">
+            <CardTitle className="text-blue-800">海外大会メタレポートとカード採用率</CardTitle>
           </CardHeader>
           <CardContent className="p-6">
             <div className="text-center text-gray-500 py-8">メタレポートデータを読み込み中...</div>
           </CardContent>
         </Card>
 
-        {/* Comments Section - DeckCommentsコンポーネントに置き換え */}
         <Card className="mb-8" id="comments">
           <DeckComments deckId={deckData.id} deckTitle={deckData.title} commentType="deck_page" />
         </Card>
