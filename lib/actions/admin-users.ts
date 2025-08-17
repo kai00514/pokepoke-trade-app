@@ -18,6 +18,21 @@ export interface UserData {
   email_confirmed_at?: string
   created_at: string
   last_sign_in_at?: string
+  updated_at?: string
+  phone?: string
+  phone_confirmed_at?: string
+  confirmation_sent_at?: string
+  recovery_sent_at?: string
+  email_change_sent_at?: string
+  new_email?: string
+  invited_at?: string
+  action_link?: string
+  email_change?: string
+  email_change_confirm_status?: number
+  banned_until?: string
+  reauthentication_sent_at?: string
+  is_sso_user?: boolean
+  deleted_at?: string
 }
 
 export async function getUsersStats(): Promise<UserStats> {
@@ -64,17 +79,7 @@ export async function getUsersList(limit = 50): Promise<UserData[]> {
   try {
     const { data, error } = await supabase
       .from("users")
-      .select(`
-        id,
-        email,
-        display_name,
-        name,
-        pokepoke_id,
-        avatar_url,
-        email_confirmed_at,
-        created_at,
-        last_sign_in_at
-      `)
+      .select("*")
       .order("created_at", { ascending: false })
       .limit(limit)
 
