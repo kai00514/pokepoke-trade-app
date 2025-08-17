@@ -18,14 +18,13 @@ interface CategoryInfo {
   id: TabId
   title: string
   icon: React.ComponentType<{ className?: string }>
-  description?: string
 }
 
 const categories: CategoryInfo[] = [
-  { id: "tier", title: "Tierランキング", icon: ListChecks, description: "デッキの強さランキング" },
-  { id: "featured", title: "注目ランキング", icon: BarChartBig, description: "話題のデッキランキング" },
-  { id: "newpack", title: "新パックデッキランキング", icon: Zap, description: "最新パックを使ったデッキ" },
-  { id: "posted", title: "みんなのデッキを見る", icon: Users, description: "投稿されたデッキを閲覧" },
+  { id: "tier", title: "Tierランキング", icon: ListChecks },
+  { id: "featured", title: "注目ランキング", icon: BarChartBig },
+  { id: "newpack", title: "新パックデッキランキング", icon: Zap },
+  { id: "posted", title: "みんなのデッキを見る", icon: Users },
 ]
 
 interface DeckPageData extends Deck {
@@ -185,30 +184,30 @@ export default function DecksPage() {
       >
         <main className="flex-grow container mx-auto px-4 pb-8">
           {/* 上部ボタン */}
-          <div className="my-6 flex flex-col sm:flex-row justify-center items-center gap-4 max-w-sm mx-auto">
+          <div className="my-4 flex justify-center items-center gap-3 max-w-lg mx-auto">
             <Button
               asChild
-              className="bg-emerald-500 hover:bg-emerald-600 text-white text-base font-semibold py-3 px-8 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 ease-in-out transform hover:-translate-y-0.5"
+              className="flex-1 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white text-sm font-bold py-2.5 px-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 ease-in-out transform hover:-translate-y-0.5 border-0"
             >
               <Link href="/decks/create">
-                <PlusCircle className="mr-2 h-5 w-5" />
-                デッキを投稿する
+                <PlusCircle className="mr-1.5 h-4 w-4" />
+                デッキを投稿
               </Link>
             </Button>
 
             <Button
               asChild
-              className="bg-yellow-500 hover:bg-yellow-600 text-white text-base font-semibold py-3 px-8 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 ease-in-out transform hover:-translate-y-0.5"
+              className="flex-1 bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-white text-sm font-bold py-2.5 px-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 ease-in-out transform hover:-translate-y-0.5 border-0"
             >
               <Link href="/favorites">
-                <Star className="mr-2 h-5 w-5" />
+                <Star className="mr-1.5 h-4 w-4" />
                 お気に入り
               </Link>
             </Button>
           </div>
 
           {/* カテゴリ */}
-          <div className="grid grid-cols-2 gap-4 max-w-2xl mx-auto mb-8">
+          <div className="grid grid-cols-2 gap-4 max-w-2xl mx-auto mb-6">
             {categories.map((category) => {
               const IconComponent = category.icon
               const isActive = selectedCategory === category.id
@@ -216,13 +215,13 @@ export default function DecksPage() {
                 <button
                   key={category.id}
                   onClick={() => handleCategoryClick(category.id)}
-                  className={`group rounded-xl p-6 shadow-lg transition-all duration-300 transform hover:-translate-y-1 border ${
+                  className={`group rounded-xl p-4 shadow-lg transition-all duration-300 transform hover:-translate-y-1 border ${
                     isActive
                       ? "bg-blue-100 border-blue-300 shadow-xl"
                       : "bg-white border-blue-100 hover:border-blue-200 hover:shadow-xl"
                   }`}
                 >
-                  <div className="flex flex-col items-center text-center space-y-3">
+                  <div className="flex flex-col items-center text-center space-y-2">
                     <div
                       className={`p-3 rounded-full transition-colors duration-300 ${
                         isActive ? "bg-blue-200" : "bg-blue-100 group-hover:bg-blue-200"
@@ -231,12 +230,9 @@ export default function DecksPage() {
                       <IconComponent className="h-6 w-6 text-blue-600" />
                     </div>
                     <div>
-                      <h3 className={`text-sm font-semibold mb-1 ${isActive ? "text-blue-800" : "text-slate-800"}`}>
+                      <h3 className={`text-sm font-semibold ${isActive ? "text-blue-800" : "text-slate-800"}`}>
                         {category.title}
                       </h3>
-                      {category.description && (
-                        <p className="text-xs text-slate-500 leading-tight">{category.description}</p>
-                      )}
                     </div>
                   </div>
                 </button>
