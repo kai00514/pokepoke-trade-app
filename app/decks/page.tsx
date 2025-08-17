@@ -21,9 +21,9 @@ interface CategoryInfo {
 }
 
 const categories: CategoryInfo[] = [
-  { id: "tier", title: "Tierランキング", icon: ListChecks },
-  { id: "featured", title: "注目ランキング", icon: BarChartBig },
-  { id: "newpack", title: "新パックデッキランキング", icon: Zap },
+  { id: "tier", title: "Tierデッキ", icon: ListChecks },
+  { id: "featured", title: "注目デッキ", icon: BarChartBig },
+  { id: "newpack", title: "新パックデッキ", icon: Zap },
   { id: "posted", title: "みんなのデッキを見る", icon: Users },
 ]
 

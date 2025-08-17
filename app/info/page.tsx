@@ -2,6 +2,7 @@ import Header from "@/components/layout/header"
 import Footer from "@/components/footer"
 import InfoSection from "@/components/info-section"
 import LatestInfoSection from "@/components/info/latest-info-section"
+import TournamentCalendar from "@/components/tournament-calendar"
 import { Trophy, CalendarDays, ScrollText, BookMarked, GraduationCap } from "lucide-react"
 
 export default function InformationPage() {
@@ -23,16 +24,15 @@ export default function InformationPage() {
             {/* 最新情報 */}
             <LatestInfoSection />
 
+            {/* 大会カレンダー */}
+            <InfoSection icon={CalendarDays} title="大会カレンダー" viewAllLink="/info/calendar">
+              <TournamentCalendar />
+            </InfoSection>
+
             {/* 以前のセクションを維持 */}
             <InfoSection icon={Trophy} title="公式トーナメント" viewAllLink="/info/tournaments">
               <div className="bg-white p-6 rounded-lg shadow text-center text-slate-500">
                 公式トーナメント情報がここに表示されます。
-              </div>
-            </InfoSection>
-
-            <InfoSection icon={CalendarDays} title="大会カレンダー" viewAllLink="/info/calendar">
-              <div className="bg-white p-6 rounded-lg shadow text-center text-slate-500">
-                大会カレンダー情報がここに表示されます。
               </div>
             </InfoSection>
 

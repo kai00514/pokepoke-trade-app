@@ -57,7 +57,7 @@ export async function isNotificationTypeEnabled(userId: string, type: Notificati
     }
   } catch (error) {
     console.error("通知設定確認エラー:", error)
-    return true // エラーの場合はデフォルトで有効
+    return true // エラーの場���はデフォルトで有効
   }
 }
 
