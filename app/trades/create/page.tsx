@@ -18,7 +18,6 @@ import { createTradePost } from "@/lib/actions/trade-actions"
 import { supabase } from "@/lib/supabase/client"
 import LoginPromptModal from "@/components/ui/login-prompt-modal"
 import { checkTimeSync, formatTimeSkew, type TimeSync } from "@/lib/utils/time-sync"
-import { useAuth } from "@/contexts/auth-context"
 
 type SelectionContextType = "wanted" | "offered" | null
 
@@ -29,7 +28,7 @@ export default function CreateTradePage() {
   const [appId, setAppId] = useState("")
   const [comment, setComment] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null)
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false)
   const [formErrors, setFormErrors] = useState<{ [key: string]: string }>({})
   const [showLoginPrompt, setShowLoginPrompt] = useState(false)
   const [timeSync, setTimeSync] = useState<TimeSync | null>(null)
@@ -39,46 +38,59 @@ export default function CreateTradePage() {
   const [modalMaxSelection, setModalMaxSelection] = useState<number | undefined>(undefined)
   const [currentModalTitle, setCurrentModalTitle] = useState("カードを選択")
   const [modalInitialCards, setModalInitialCards] = useState<SelectedCardType[]>([])
+  const [isLoading, setIsLoading] = useState(false)
   const { toast } = useToast()
   const router = useRouter()
-  const { user, userProfile, isLoading: authLoading } = useAuth()
 
   useEffect(() => {
     const checkTime = async () => {
-      const syncResult = await checkTimeSync()
-      setTimeSync(syncResult)
-      if (syncResult.isSkewed)
-        console.warn("⏰ Time sync issue detected:", {
-          deviceTime: new Date(syncResult.deviceTime).toISOString(),
-          serverTime: new Date(syncResult.serverTime).toISOString(),
-          skew: formatTimeSkew(syncResult.skew),
-        })
+      try {
+        const syncResult = await checkTimeSync()
+        setTimeSync(syncResult)
+        if (syncResult.isSkewed)
+          console.warn("⏰ Time sync issue detected:", {
+            deviceTime: new Date(syncResult.deviceTime).toISOString(),
+            serverTime: new Date(syncResult.serverTime).toISOString(),
+            skew: formatTimeSkew(syncResult.skew),
+          })
+      } catch (error) {
+        console.error("Time sync check failed:", error)
+      }
     }
     checkTime()
   }, [])
 
   useEffect(() => {
     const checkAuth = async () => {
-      const { data } = await supabase.auth.getSession()
-      const isAuth = !!data.session
-      const userId = data.session?.user?.id || null
-      setIsAuthenticated(isAuth)
-      setCurrentUserId(userId)
+      try {
+        setIsLoading(true)
+        const { data } = await supabase.auth.getSession()
+        const isAuth = !!data.session
+        const userId = data.session?.user?.id || null
+        setIsAuthenticated(isAuth)
+        setCurrentUserId(userId)
+      } catch (error) {
+        console.error("Auth check failed:", error)
+        setIsAuthenticated(false)
+        setCurrentUserId(null)
+      } finally {
+        setIsLoading(false)
+      }
     }
+
     checkAuth()
+
     const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
       const isAuth = !!session
       const userId = session?.user?.id || null
       setIsAuthenticated(isAuth)
       setCurrentUserId(userId)
     })
-  }, [toast])
 
-  useEffect(() => {
-    if (user && userProfile && userProfile.pokepoke_id && !appId) {
-      setAppId(userProfile.pokepoke_id)
+    return () => {
+      authListener.subscription.unsubscribe()
     }
-  }, [user, userProfile, appId])
+  }, [])
 
   const validateForm = () => {
     const errors: { [key: string]: string } = {}
@@ -204,9 +216,9 @@ export default function CreateTradePage() {
       )
     }
     return (
-      <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-1">
+      <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">
         {cards.map((card) => (
-          <div key={card.id} className="relative group border rounded-md p-0 bg-slate-50">
+          <div key={card.id} className="relative group border rounded-md p-1 bg-slate-50">
             <Image
               src={card.imageUrl || "/placeholder.svg"}
               alt={card.name}
@@ -231,7 +243,7 @@ export default function CreateTradePage() {
     )
   }
 
-  if (isAuthenticated === null || authLoading) {
+  if (isLoading) {
     return (
       <div className="flex flex-col min-h-screen bg-gradient-to-b from-blue-50 via-blue-100 to-white">
         <Header />
@@ -339,9 +351,7 @@ export default function CreateTradePage() {
               />
               <p className="text-xs text-slate-500 mt-1">
                 {isAuthenticated
-                  ? userProfile?.pokepoke_id
-                    ? "登録済みのポケポケIDが自動入力されています。"
-                    : "ログイン中です。ポケポケIDは任意です。"
+                  ? "ログイン中です。ポケポケIDは任意です。"
                   : "ゲストユーザーとして投稿します。ポケポケIDは任意です。"}
               </p>
             </div>
