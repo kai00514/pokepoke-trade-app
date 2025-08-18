@@ -216,9 +216,9 @@ export default function CreateTradePage() {
       )
     }
     return (
-      <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">
+      <div className="mt-3 flex flex-wrap gap-0">
         {cards.map((card) => (
-          <div key={card.id} className="relative group border rounded-md p-1 bg-slate-50">
+          <div key={card.id} className="relative group border rounded-md p-0 bg-slate-50 mx-0">
             <Image
               src={card.imageUrl || "/placeholder.svg"}
               alt={card.name}
@@ -230,12 +230,12 @@ export default function CreateTradePage() {
             <Button
               variant="ghost"
               size="icon"
-              className="absolute top-0 right-0 h-6 w-6 bg-red-500 text-white opacity-0 group-hover:opacity-100 hover:bg-red-600 transition-opacity"
+              className="absolute top-0 right-0 h-2 w-2 bg-red-500 text-white opacity-0 group-hover:opacity-100 hover:bg-red-600 transition-opacity"
               onClick={() => removeCard(card.id, context)}
               aria-label={`Remove ${card.name}`}
               disabled={isSubmitting}
             >
-              <Trash2 className="h-3 w-3" />
+              <Trash2 className="h-1 w-1" />
             </Button>
           </div>
         ))}

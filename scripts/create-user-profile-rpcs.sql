@@ -18,7 +18,7 @@ AS $$
 BEGIN
   -- まず、ユーザーが存在するかチェック
   IF NOT EXISTS (SELECT 1 FROM users WHERE id = target_user_id) THEN
-    -- ユーザーが存在しない場合は作成
+    -- ユーザーが存在し���い場合は作成
     INSERT INTO users (
       id,
       pokepoke_id,
