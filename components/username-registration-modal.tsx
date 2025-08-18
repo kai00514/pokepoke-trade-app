@@ -41,8 +41,8 @@ export function UsernameRegistrationModal({
       return
     }
 
-    if (username.length < 2 || username.length > 30) {
-      setError("ユーザー名は2文字以上30文字以下で入力してください")
+    if (username.length < 1 || username.length > 30) {
+      setError("ユーザー名は1文字以上30文字以下で入力してください")
       return
     }
 
