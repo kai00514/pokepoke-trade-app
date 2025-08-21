@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js"
+import { executeGame8CommentPost } from "../utils/game8-integration"
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -55,6 +56,16 @@ export async function addComment(
       console.error("[addComment] Update error:", updateError)
       // コメント数の更新に失敗してもコメント自体は成功とする
     }
+
+    // Game8連携処理（非同期で実行、エラーが発生してもメイン処理には影響しない）
+    setImmediate(async () => {
+      try {
+        await executeGame8CommentPost(postId, content, userName || "ゲスト")
+      } catch (error) {
+        console.error("[addComment] Game8 integration failed:", error)
+        // エラーログのみ記録、メイン処理には影響させない
+      }
+    })
 
     return { success: true, comment }
   } catch (error) {

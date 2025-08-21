@@ -2,8 +2,8 @@ import { notFound } from "next/navigation"
 import Header from "@/components/layout/header"
 import Footer from "@/components/footer"
 import { getInfoDetailById } from "@/lib/actions/info-articles"
-import { getInfoPageById } from "@/lib/actions/admin-deck-pages"
-import { RenderArticle } from "@/components/info/render-article"
+import { getInfoPageById } from "@/lib/actions/info-pages"
+import RenderArticle from "@/components/info/render-article"
 
 interface InfoDetailPageProps {
   params: Promise<{ id: string }>
@@ -34,7 +34,7 @@ export default async function InfoDetailPage({ params }: InfoDetailPageProps) {
           }}
         >
           <main className="flex-grow container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-            <RenderArticle article={article} deckPageData={deckPageData} />
+            <RenderArticle blocks={article.blocks} />
           </main>
         </div>
         <Footer />
