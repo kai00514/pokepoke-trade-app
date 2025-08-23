@@ -1,82 +1,60 @@
+"use server"
+
 import { createClient } from "@supabase/supabase-js"
-import { syncCommentToGame8 } from "../services/game8-sync"
+import { revalidatePath } from "next/cache"
+import { syncCommentToGame8 } from "@/lib/services/game8-sync"
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
+const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
-// クライアントサイド用のSupabaseクライアント
-const supabase = createClient(supabaseUrl, supabaseAnonKey)
-
-export async function addComment(
-  postId: string,
-  content: string,
-  userId?: string,
-  userName?: string,
-  isGuest?: boolean,
-  guestId?: string,
-) {
+export async function addComment(postId: string, content: string, userName?: string) {
   try {
-    console.log("[addComment] Starting with params:", { postId, content, userId, userName, isGuest })
-    console.log("[addComment] Debug: userId received:", userId, " (type:", typeof userId, ")") // ここを追加
-    console.log("[addComment] Debug: isGuest received:", isGuest, " (type:", typeof isGuest, ")") // ここを追加
+    console.log(`[TradeComments] Adding comment to post: ${postId}`)
 
-    const commentData = {
-      trade_id: postId,
-      content,
-      user_id: userId || null, // userIdがundefinedや空文字列の場合にnullにする
-      user_name: userName || "ゲスト",
-      is_guest: isGuest || false,
-      guest_id: guestId || null,
-      created_at: new Date().toISOString(),
-    }
-
-    console.log("[addComment] Inserting comment data:", commentData)
-
-    const { data: comment, error: insertError } = await supabase
+    const { data: comment, error } = await supabase
       .from("trade_comments")
-      .insert(commentData)
+      .insert({
+        trade_id: postId,
+        content,
+        user_name: userName || "ゲスト",
+        created_at: new Date().toISOString(),
+      })
       .select()
       .single()
 
-    if (insertError) {
-      console.error("[addComment] Insert error:", insertError)
-      console.error("[addComment] Insert error details:", insertError.details)
-      console.error("[addComment] Insert error hint:", insertError.hint)
-      console.error("[addComment] Insert error code:", insertError.code)
-      return { success: false, error: insertError.message }
+    if (error) {
+      console.error(`[TradeComments] Failed to add comment:`, error)
+      throw error
     }
-    console.log("[addComment] Comment inserted successfully. Data:", comment)
 
-    // コメント数を更新
-    const { error: updateError } = await supabase.rpc("increment_trade_comment_count", {
-      trade_id: postId,
+    console.log(`[TradeComments] Comment added successfully`, {
+      commentId: comment.id,
+      postId,
+      contentLength: content.length,
     })
 
-    if (updateError) {
-      console.error("[addComment] Update error:", updateError)
-      // コメント数の更新に失敗してもコメント自体は成功とする
-    }
+    // Game8連携を非同期で実行
+    Promise.resolve()
+      .then(async () => {
+        console.log(`[TradeComments] Starting Game8 sync for comment: ${comment.id}`)
+        await syncCommentToGame8(comment.id, postId)
+      })
+      .catch((error) => {
+        console.error(`[TradeComments] Game8 sync failed for comment: ${comment.id}`, error)
+      })
 
-    // Game8連携を非同期で実行（エラーが発生してもコメント投稿は成功扱い）
-    if (comment) {
-      Promise.resolve()
-        .then(() => syncCommentToGame8(comment.id, postId))
-        .catch((error) => {
-          console.error("[Game8Sync] Background sync failed:", error)
-        })
-    }
+    revalidatePath(`/trades/${postId}`)
 
     return { success: true, comment }
   } catch (error) {
-    console.error("[addComment] Unexpected error:", error)
-    return { success: false, error: "コメントの投稿に失敗しました" }
+    console.error(`[TradeComments] Error in addComment:`, error)
+    return { success: false, error: error instanceof Error ? error.message : "Unknown error" }
   }
 }
 
 export async function getComments(postId: string) {
   try {
-    console.log("[getComments] Fetching comments for postId:", postId)
-
     const { data: comments, error } = await supabase
       .from("trade_comments")
       .select("*")
@@ -84,14 +62,12 @@ export async function getComments(postId: string) {
       .order("created_at", { ascending: true })
 
     if (error) {
-      console.error("[getComments] Error:", error)
-      return { success: false, error: error.message }
+      throw error
     }
 
-    console.log("[getComments] Comments fetched successfully:", comments?.length)
-    return { success: true, comments: comments || [] }
+    return { success: true, comments }
   } catch (error) {
-    console.error("[getComments] Unexpected error:", error)
-    return { success: false, error: "コメントの取得に失敗しました" }
+    console.error("Error fetching comments:", error)
+    return { success: false, error: error instanceof Error ? error.message : "Unknown error" }
   }
 }
