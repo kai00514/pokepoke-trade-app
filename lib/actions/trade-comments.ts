@@ -20,7 +20,7 @@ export async function addComment(
     console.log("[addComment] Debug: isGuest received:", isGuest, " (type:", typeof isGuest, ")") // ここを追加
 
     const commentData = {
-      post_id: postId,
+      trade_id: postId,
       content,
       user_id: userId || null, // userIdがundefinedや空文字列の場合にnullにする
       user_name: userName || "ゲスト",
@@ -48,7 +48,7 @@ export async function addComment(
 
     // コメント数を更新
     const { error: updateError } = await supabase.rpc("increment_trade_comment_count", {
-      post_id: postId,
+      trade_id: postId,
     })
 
     if (updateError) {
@@ -70,7 +70,7 @@ export async function getComments(postId: string) {
     const { data: comments, error } = await supabase
       .from("trade_comments")
       .select("*")
-      .eq("post_id", postId)
+      .eq("trade_id", postId)
       .order("created_at", { ascending: true })
 
     if (error) {
