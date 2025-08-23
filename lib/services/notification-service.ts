@@ -336,7 +336,7 @@ export async function createNotification(options: {
         message = "あなたのマッチングに応答がありました。承認してチャットを開始しましょう。"
         break
       case "match_approved":
-        message = "���ッチングが承認されました。チャットルームが作成されました。"
+        message = "マッチングが承認されました。チャットルームが作成されました。"
         break
       case "match_approval_pending":
         message = "相手がマッチングを承認しました。あなたの承認が必要です。"

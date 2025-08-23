@@ -299,7 +299,7 @@ export function ArticleEditor({ article, isEditing = false }: ArticleEditorProps
                       id="title"
                       value={formData.title}
                       onChange={(e) => handleInputChange("title", e.target.value)}
-                      placeholder="記事��タイトルを入力"
+                      placeholder="記事のタイトルを入力"
                     />
                   </div>
 
