@@ -144,7 +144,7 @@ export async function addCommentToTradePost(
     }
 
     console.log("[addCommentToTradePost] Insert data:", commentData)
-    console.log("comment_data")
+    console.log("[addCommentToTradePost] Insert data2:", commentData)
 
     const { data: comment, error: insertError } = await supabase
       .from("trade_comments")
