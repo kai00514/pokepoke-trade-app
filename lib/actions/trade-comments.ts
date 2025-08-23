@@ -16,26 +16,26 @@ export async function addComment(
 ) {
   try {
     console.log("[addComment] Starting with params:", { postId, content, userId, userName, isGuest })
-    console.log("[addComment] Debug: userId received:", userId, " (type:", typeof userId, ")") // ここを追加
-    console.log("[addComment] Debug: isGuest received:", isGuest, " (type:", typeof isGuest, ")") // ここを追加
 
-    // 同じtrade_idの最大thread_comment_numberを取得
-    const { data: maxThreadData, error: maxError } = await supabase
+    // === 次の thread_comment_number を計算 ===
+    const { count, error: countError } = await supabase
       .from("trade_comments")
-      .select("thread_comment_number")
+      .select("*", { count: "exact", head: true })
       .eq("trade_id", postId)
-      .order("thread_comment_number", { ascending: false })
-      .limit(1)
-      .single()
 
-    const nextThreadNumber = maxError || !maxThreadData ? 1 : (maxThreadData.thread_comment_number || 0) + 1
+    if (countError) {
+      console.error("[addComment] Count error:", countError)
+      return { success: false, error: "thread_comment_number の計算に失敗しました" }
+    }
 
+    const nextThreadNumber = (count ?? 0) + 1
     console.log("[addComment] Next thread number:", nextThreadNumber)
 
+    // === コメントデータ作成 ===
     const commentData = {
       trade_id: postId,
       content,
-      user_id: userId || null, // userIdがundefinedや空文字列の場合にnullにする
+      user_id: userId || null,
       user_name: userName || "ゲスト",
       is_guest: isGuest || false,
       guest_id: guestId || null,
@@ -53,11 +53,9 @@ export async function addComment(
 
     if (insertError) {
       console.error("[addComment] Insert error:", insertError)
-      console.error("[addComment] Insert error details:", insertError.details)
-      console.error("[addComment] Insert error hint:", insertError.hint)
-      console.error("[addComment] Insert error code:", insertError.code)
       return { success: false, error: insertError.message }
     }
+
     console.log("[addComment] Comment inserted successfully. Data:", comment)
 
     // コメント数を更新

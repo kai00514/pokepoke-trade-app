@@ -218,7 +218,7 @@ export function DeckEditor({ deck, isEditing = false }: DeckEditorProps) {
       if (result.success) {
         setLastSaved(new Date())
         toast.success(publishStatus ? "デッキページを公開しました" : "デッキページを下書き保存しました", {
-          description: `${formData.deck_name}が正常に保存されました`,
+          description: `${formData.deck_name}が正常に保存��れました`,
         })
 
         // 公開した場合は、フォームの公開状態を更新
