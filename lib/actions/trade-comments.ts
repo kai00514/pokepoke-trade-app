@@ -19,6 +19,19 @@ export async function addComment(
     console.log("[addComment] Debug: userId received:", userId, " (type:", typeof userId, ")") // ここを追加
     console.log("[addComment] Debug: isGuest received:", isGuest, " (type:", typeof isGuest, ")") // ここを追加
 
+    // 同じtrade_idの最大thread_comment_numberを取得
+    const { data: maxThreadNumber, error: maxError } = await supabase
+      .from("trade_comments")
+      .select("thread_comment_number")
+      .eq("trade_id", postId)
+      .order("thread_comment_number", { ascending: false })
+      .limit(1)
+      .single()
+
+    const nextThreadNumber = maxError || !maxThreadNumber ? 1 : (maxThreadNumber.thread_comment_number || 0) + 1
+
+    console.log("[addComment] Next thread number:", nextThreadNumber)
+
     const commentData = {
       trade_id: postId,
       content,
@@ -26,6 +39,7 @@ export async function addComment(
       user_name: userName || "ゲスト",
       is_guest: isGuest || false,
       guest_id: guestId || null,
+      thread_comment_number: nextThreadNumber,
       created_at: new Date().toISOString(),
     }
 
