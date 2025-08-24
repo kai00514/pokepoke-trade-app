@@ -148,9 +148,9 @@ export default function TradeBoardPage() {
           </div>
 
           {/* Search */}
-          <div className="mb-8 rounded-xl border border-[#E5E7EB] bg-white/90 shadow-sm backdrop-blur-sm">
-            <div className="p-4">
-              <div className="flex gap-2">
+          <div className="mb-1 rounded-xl border border-[#4169e1] bg-white/90 shadow-sm backdrop-blur-sm">
+            <div className="p-2">
+              <div className="flex gap-1">
                 <Input
                   type="text"
                   placeholder="キーワードで検索"
