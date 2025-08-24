@@ -170,7 +170,7 @@ export default function ListsPage() {
               <ArrowLeft className="h-4 w-4 mr-2" />
               戻る
             </Button>
-            <h1 className="text-2xl font-bold text-[#111827]">譲れるカードリスト管理</h1>
+            <h1 className="text-2xl font-bold text-[#111827]">カードリスト管理</h1>
           </div>
 
           {/* Create Button */}

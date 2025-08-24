@@ -108,7 +108,7 @@ export default function TradeBoardPage() {
               <span className="relative z-10">PokeLink トレード掲示板</span>
             </div>
             <p className="mt-2 text-sm sm:text-base text-[#6B7280]">
-              欲しいカードと譲れるカードをスムーズに交換しましょう！
+              欲しいカードと譲れるカードをスムーズに交換しよう！
             </p>
           </section>
 
