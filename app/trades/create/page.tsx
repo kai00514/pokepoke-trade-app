@@ -19,7 +19,6 @@ import { createTradePost } from "@/lib/actions/trade-actions"
 import { supabase } from "@/lib/supabase/client"
 import LoginPromptModal from "@/components/ui/login-prompt-modal"
 import { checkTimeSync, formatTimeSkew, type TimeSync } from "@/lib/utils/time-sync"
-import { useAuth } from "@/contexts/auth-context"
 
 type SelectionContextType = "wanted" | "offered" | null
 
@@ -44,7 +43,6 @@ export default function CreateTradePage() {
   const [showListSelector, setShowListSelector] = useState(false)
   const { toast } = useToast()
   const router = useRouter()
-  const { user, userProfile } = useAuth()
 
   useEffect(() => {
     const checkTime = async () => {
@@ -73,6 +71,15 @@ export default function CreateTradePage() {
         const userId = data.session?.user?.id || null
         setIsAuthenticated(isAuth)
         setCurrentUserId(userId)
+
+        if (isAuth && userId) {
+          // ユーザープロファイルからポケポケIDを取得
+          const { data: profile } = await supabase.from("users").select("pokepoke_id").eq("id", userId).single()
+
+          if (profile?.pokepoke_id) {
+            setAppId(profile.pokepoke_id)
+          }
+        }
       } catch (error) {
         console.error("Auth check failed:", error)
         setIsAuthenticated(false)
@@ -84,24 +91,26 @@ export default function CreateTradePage() {
 
     checkAuth()
 
-    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
       const isAuth = !!session
       const userId = session?.user?.id || null
       setIsAuthenticated(isAuth)
       setCurrentUserId(userId)
+
+      if (isAuth && userId) {
+        // ユーザープロファイルからポケポケIDを取得
+        const { data: profile } = await supabase.from("users").select("pokepoke_id").eq("id", userId).single()
+
+        if (profile?.pokepoke_id) {
+          setAppId(profile.pokepoke_id)
+        }
+      }
     })
 
     return () => {
       authListener.subscription.unsubscribe()
     }
   }, [])
-
-  // ポケポケIDの自動入力
-  useEffect(() => {
-    if (userProfile?.pokepoke_id) {
-      setAppId(userProfile.pokepoke_id)
-    }
-  }, [userProfile])
 
   const validateForm = () => {
     const errors: { [key: string]: string } = {}
@@ -254,8 +263,6 @@ export default function CreateTradePage() {
     )
   }
 
-  const isPokepokeIdReadonly = !!userProfile?.pokepoke_id
-
   if (isLoading) {
     return (
       <div className="flex flex-col min-h-screen bg-gradient-to-b from-blue-50 via-blue-100 to-white">
@@ -377,13 +384,12 @@ export default function CreateTradePage() {
                 value={appId}
                 onChange={(e) => setAppId(e.target.value)}
                 placeholder="ポケポケアプリのID (任意)"
-                disabled={isSubmitting || isPokepokeIdReadonly}
-                readOnly={isPokepokeIdReadonly}
-                className={isPokepokeIdReadonly ? "bg-gray-100 cursor-not-allowed" : ""}
+                disabled={isSubmitting || (isAuthenticated && appId.trim() !== "")}
+                readOnly={isAuthenticated && appId.trim() !== ""}
               />
               <p className="text-xs text-slate-500 mt-1">
                 {isAuthenticated
-                  ? isPokepokeIdReadonly
+                  ? appId.trim() !== ""
                     ? "登録済みのポケポケIDが自動入力されています。"
                     : "ログイン中です。ポケポケIDは任意です。"
                   : "ゲストユーザーとして投稿します。ポケポケIDは任意です。"}
