@@ -6,7 +6,7 @@ import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Copy, MessageSquare, UserCircle } from 'lucide-react'
+import { Copy, MessageSquare, UserCircle } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
 
 type CardInfo = {
@@ -71,9 +71,7 @@ export default function TradePostCard({ post }: TradePostCardProps) {
         <CardHeader className="pb-2">
           <div className="flex items-start gap-3">
             <div className="flex-1 min-w-0">
-              <CardTitle className="text-xl font-semibold text-[#111827]">
-                {post.title}
-              </CardTitle>
+              <CardTitle className="text-xl font-semibold text-[#111827]">{post.title}</CardTitle>
               <div className="mt-1 flex items-center text-[#6B7280]">
                 {post.avatarUrl ? (
                   <Image
@@ -106,13 +104,13 @@ export default function TradePostCard({ post }: TradePostCardProps) {
                   wantedCards.map((card: any) => (
                     <div key={card.id} className="flex-shrink-0 flex flex-col items-center">
                       <Image
-                        src={card.imageUrl || "/placeholder.svg?width=100&height=140&query=pokemon-card"}
+                        src={card.imageUrl || "/placeholder.svg?width=80&height=112&query=pokemon-card"}
                         alt={card.name}
-                        width={100}
-                        height={140}
+                        width={80}
+                        height={112}
                         className="rounded-md object-contain border border-[#E5E7EB] bg-white mb-1"
                       />
-                      <p className="text-xs font-semibold text-[#374151] text-center max-w-[100px] truncate">
+                      <p className="text-xs font-semibold text-[#374151] text-center max-w-[80px] truncate">
                         {card.name}
                       </p>
                     </div>
@@ -133,13 +131,13 @@ export default function TradePostCard({ post }: TradePostCardProps) {
                   offeredCards.map((card: any) => (
                     <div key={card.id} className="flex-shrink-0 flex flex-col items-center">
                       <Image
-                        src={card.imageUrl || "/placeholder.svg?width=100&height=140&query=pokemon-card"}
+                        src={card.imageUrl || "/placeholder.svg?width=80&height=112&query=pokemon-card"}
                         alt={card.name}
-                        width={100}
-                        height={140}
+                        width={80}
+                        height={112}
                         className="rounded-md object-contain border border-[#E5E7EB] bg-white mb-1"
                       />
-                      <p className="text-xs font-semibold text-[#374151] text-center max-w-[100px] truncate">
+                      <p className="text-xs font-semibold text-[#374151] text-center max-w-[80px] truncate">
                         {card.name}
                       </p>
                     </div>

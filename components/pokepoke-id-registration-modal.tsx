@@ -55,7 +55,7 @@ export function PokepokeIdRegistrationModal({
       setPokepokeId("")
     } catch (error) {
       console.error("ポケポケID保存エラー:", error)
-      setError("ポケポケIDの保存に失敗しました。もう一度お試しください。")
+      setError("ポケポケIDの保存に失��しました。もう一度お試しください。")
     } finally {
       setIsLoading(false)
     }

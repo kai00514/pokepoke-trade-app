@@ -19,6 +19,7 @@ import { createTradePost } from "@/lib/actions/trade-actions"
 import { supabase } from "@/lib/supabase/client"
 import LoginPromptModal from "@/components/ui/login-prompt-modal"
 import { checkTimeSync, formatTimeSkew, type TimeSync } from "@/lib/utils/time-sync"
+import { useAuth } from "@/contexts/auth-context"
 
 type SelectionContextType = "wanted" | "offered" | null
 
@@ -43,6 +44,7 @@ export default function CreateTradePage() {
   const [showListSelector, setShowListSelector] = useState(false)
   const { toast } = useToast()
   const router = useRouter()
+  const { user, userProfile } = useAuth()
 
   useEffect(() => {
     const checkTime = async () => {
@@ -93,6 +95,13 @@ export default function CreateTradePage() {
       authListener.subscription.unsubscribe()
     }
   }, [])
+
+  // ポケポケIDの自動入力
+  useEffect(() => {
+    if (userProfile?.pokepoke_id) {
+      setAppId(userProfile.pokepoke_id)
+    }
+  }, [userProfile])
 
   const validateForm = () => {
     const errors: { [key: string]: string } = {}
@@ -245,6 +254,8 @@ export default function CreateTradePage() {
     )
   }
 
+  const isPokepokeIdReadonly = !!userProfile?.pokepoke_id
+
   if (isLoading) {
     return (
       <div className="flex flex-col min-h-screen bg-gradient-to-b from-blue-50 via-blue-100 to-white">
@@ -366,11 +377,15 @@ export default function CreateTradePage() {
                 value={appId}
                 onChange={(e) => setAppId(e.target.value)}
                 placeholder="ポケポケアプリのID (任意)"
-                disabled={isSubmitting}
+                disabled={isSubmitting || isPokepokeIdReadonly}
+                readOnly={isPokepokeIdReadonly}
+                className={isPokepokeIdReadonly ? "bg-gray-100 cursor-not-allowed" : ""}
               />
               <p className="text-xs text-slate-500 mt-1">
                 {isAuthenticated
-                  ? "ログイン中です。ポケポケIDは任意です。"
+                  ? isPokepokeIdReadonly
+                    ? "登録済みのポケポケIDが自動入力されています。"
+                    : "ログイン中です。ポケポケIDは任意です。"
                   : "ゲストユーザーとして投稿します。ポケポケIDは任意です。"}
               </p>
             </div>
