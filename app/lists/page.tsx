@@ -1,47 +1,69 @@
-import type React from "react"
-import type { List } from "@prisma/client"
-import { prisma } from "@/lib/prisma"
-import type { GetServerSideProps } from "next"
+import { createClient } from "@/lib/supabase/server"
+import { redirect } from "next/navigation"
 
-interface ListsPageProps {
-  lists: List[]
+interface List {
+  id: string
+  name: string
+  updated_at: string
+  user_id: string
 }
 
-const ListsPage: React.FC<ListsPageProps> = ({ lists }) => {
+export default async function ListsPage() {
+  const supabase = await createClient()
+
+  // Check if user is authenticated
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser()
+
+  if (authError || !user) {
+    redirect("/auth/login")
+  }
+
+  // Fetch user's lists
+  const { data: lists, error } = await supabase
+    .from("trade_owned_lists")
+    .select("*")
+    .eq("user_id", user.id)
+    .order("updated_at", { ascending: false })
+
+  if (error) {
+    console.error("Error fetching lists:", error)
+    return (
+      <div className="container mx-auto p-4">
+        <h1 className="text-2xl font-bold mb-4">Lists</h1>
+        <p className="text-red-500">Error loading lists. Please try again.</p>
+      </div>
+    )
+  }
+
   return (
     <div className="container mx-auto p-4">
       <h1 className="text-2xl font-bold mb-4">Lists</h1>
-      <ul className="space-y-4">
-        {lists.map((list) => (
-          <li key={list.id} className="bg-white p-4 rounded shadow">
-            <h2 className="text-xl font-semibold">{list.name}</h2>
-            <p className="text-sm text-gray-500">
-              {new Date(list.updated_at)
-                .toLocaleDateString("ja-JP", {
-                  year: "numeric",
-                  month: "2-digit",
-                  day: "2-digit",
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })
-                .replace(/\//g, "/")
-                .replace(",", "")}
-            </p>
-            {/* Additional list item details can be added here */}
-          </li>
-        ))}
-      </ul>
+      {lists && lists.length > 0 ? (
+        <ul className="space-y-4">
+          {lists.map((list: List) => (
+            <li key={list.id} className="bg-white p-4 rounded shadow">
+              <h2 className="text-xl font-semibold">{list.name}</h2>
+              <p className="text-sm text-gray-500">
+                {new Date(list.updated_at)
+                  .toLocaleDateString("ja-JP", {
+                    year: "numeric",
+                    month: "2-digit",
+                    day: "2-digit",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })
+                  .replace(/\//g, "/")
+                  .replace(",", "")}
+              </p>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="text-gray-500">No lists found.</p>
+      )}
     </div>
   )
 }
-
-export const getServerSideProps: GetServerSideProps<ListsPageProps> = async () => {
-  const lists = await prisma.list.findMany()
-  return {
-    props: {
-      lists,
-    },
-  }
-}
-
-export default ListsPage
