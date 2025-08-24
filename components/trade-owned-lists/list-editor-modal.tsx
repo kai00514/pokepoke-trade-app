@@ -9,6 +9,8 @@ import { X, Plus } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
 import DetailedSearchModal from "@/components/detailed-search-modal"
 import type { Card as SelectedCardType } from "@/components/detailed-search-modal"
+// 必要なimportを追加
+import { getCardsByIds } from "@/lib/card-api"
 
 interface TradeOwnedList {
   id: number
@@ -36,17 +38,38 @@ export default function ListEditorModal({ isOpen, onOpenChange, list, onSave }: 
   const [isCardSearchOpen, setIsCardSearchOpen] = useState(false)
   const { toast } = useToast()
 
-  // モックカードデータ（実際の実装時はAPIから取得）
+  // old: モックカードデータ（実際の実装時はAPIから取得）
+  // useEffect内を以下に置き換え
   useEffect(() => {
     if (isOpen) {
       setListName(list.list_name)
-      // 実際の実装時はlist.card_idsからカード情報を取得
-      const mockCards: CardInfo[] = list.card_ids.map((id) => ({
-        id,
-        name: `カード${id}`,
-        image_url: `/placeholder.svg?height=100&width=70&text=Card${id}`,
-      }))
-      setCards(mockCards)
+      
+      // 実際のカード情報を取得
+      if (list.card_ids.length > 0) {
+        const fetchCards = async () => {
+          try {
+            const cardData = await getCardsByIds(list.card_ids)
+            const cardInfos: CardInfo[] = cardData.map((card) => ({
+              id: card.id,
+              name: card.name,
+              image_url: card.image_url || card.game8_image_url || `/placeholder.svg?height=100&width=70&text=${card.name}`,
+            }))
+            setCards(cardInfos)
+          } catch (error) {
+            console.error('カード情報の取得に失敗しました:', error)
+            // エラー時はプレースホルダーを使用
+            const fallbackCards: CardInfo[] = list.card_ids.map((id) => ({
+              id,
+              name: `カード${id}`,
+              image_url: `/placeholder.svg?height=100&width=70&text=Card${id}`,
+            }))
+            setCards(fallbackCards)
+          }
+        }
+        fetchCards()
+      } else {
+        setCards([])
+      }
     }
   }, [isOpen, list])
 
@@ -140,7 +163,7 @@ export default function ListEditorModal({ isOpen, onOpenChange, list, onSave }: 
 
             {/* Cards Grid */}
             {cards.length > 0 ? (
-              <div className="grid grid-cols-5 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-3">
+              <div className="grid grid-cols-5 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-2">
                 {cards.map((card, index) => (
                   <div key={card.id} className="relative group">
                     <div className="aspect-[7/10] bg-gray-100 rounded-md overflow-hidden border">
