@@ -331,8 +331,8 @@ export default function CreateTradePage() {
                 譲れるカード <span className="text-red-500">*</span>
               </label>
               {/* リスト選択UI */}
-              <div className="mb-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                <div className="flex items-center justify-between mb-2">
+              <div className="mb-1 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                <div className="flex items-center justify-between mb-1">
                   <span className="text-sm font-medium text-blue-700">保存済みリストから選択</span>
                   <Button
                     type="button"
