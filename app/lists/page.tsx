@@ -184,7 +184,7 @@ export default function ListsPage() {
               よく使うカードをリスト保存し、トレード作成や参加時に譲渡・希望カードを選べます。
               <br />
               <span className="text-sm text-[#6B7280]">
-                ※最大10リスト作成可能
+                <br />※最大10リスト作成可能<br />
               </span>
               <span className="text-sm text-[#6B7280]">
                 ※1リスト最大35枚まで登録可能
