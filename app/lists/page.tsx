@@ -23,6 +23,8 @@ import {
 import { PlusCircle, Edit, Trash2, ArrowLeft, Loader2 } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
 import ListEditorModal from "@/components/trade-owned-lists/list-editor-modal"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Info } from "lucide-react"
 
 const notoSansJP = Noto_Sans_JP({
   subsets: ["latin"],
@@ -172,6 +174,20 @@ export default function ListsPage() {
             </Button>
             <h1 className="text-2xl font-bold text-[#111827]">カードリスト管理</h1>
           </div>
+
+          {/* Callout */}
+          <Alert className="mb-6 border-[#3B82F6] bg-[#EFF6FF]">
+            <Info className="h-4 w-4 text-[#3B82F6]" />
+            <AlertDescription className="text-[#1E40AF]">
+              <strong>スムーズなトレード体験</strong>
+              <br />
+              よく使うカードをリスト保存し、トレード作成や参加時に譲渡・希望カードを選べます。
+              <br />
+              <span className="text-sm text-[#6B7280]">
+                ※最大10リスト作成可能 / 1リスト最大35枚まで登録可能
+              </span>
+            </AlertDescription>
+          </Alert>
 
           {/* Create Button */}
           <div className="mb-6">
