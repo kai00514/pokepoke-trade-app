@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import { Noto_Sans_JP } from "next/font/google"
 import Header from "@/components/layout/header"
@@ -36,15 +36,19 @@ export default function TradeBoardPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { user } = useAuth()
+  const isInitialMount = useRef(true)
+  const abortControllerRef = useRef<AbortController | null>(null)
 
   // URLパラメータからページ番号を取得
   useEffect(() => {
     const pageParam = searchParams.get("page")
     if (pageParam) {
       const page = Number.parseInt(pageParam, 10)
-      if (page > 0) {
+      if (page > 0 && page !== currentPage) {
         setCurrentPage(page)
       }
+    } else if (currentPage !== 1) {
+      setCurrentPage(1)
     }
   }, [searchParams])
 
@@ -59,11 +63,26 @@ export default function TradeBoardPage() {
   }, [searchParams])
 
   const fetchTradePosts = useCallback(
-    async (page = 1) => {
+    async (page: number) => {
+      // 既存のリクエストをキャンセル
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort()
+      }
+
+      // 新しいAbortControllerを作成
+      abortControllerRef.current = new AbortController()
+      const signal = abortControllerRef.current.signal
+
       setIsLoading(true)
       try {
         const offset = (page - 1) * POSTS_PER_PAGE
         const result = await getTradePostsWithCards(POSTS_PER_PAGE, offset)
+
+        // リクエストがキャンセルされていないかチェック
+        if (signal.aborted) {
+          return
+        }
+
         if (result.success) {
           setTradePosts(result.posts)
           setTotalCount(result.totalCount || 0)
@@ -76,7 +95,12 @@ export default function TradeBoardPage() {
           setTradePosts([])
           setTotalCount(0)
         }
-      } catch {
+      } catch (error: any) {
+        // AbortErrorは無視
+        if (error.name === "AbortError" || signal.aborted) {
+          return
+        }
+
         toast({
           title: "エラー",
           description: "予期しないエラーが発生しました。",
@@ -85,15 +109,29 @@ export default function TradeBoardPage() {
         setTradePosts([])
         setTotalCount(0)
       } finally {
-        setIsLoading(false)
+        if (!signal.aborted) {
+          setIsLoading(false)
+        }
       }
     },
     [toast],
   )
 
+  // データ取得のuseEffect
   useEffect(() => {
-    fetchTradePosts(currentPage)
-  }, [fetchTradePosts, currentPage])
+    // 初回マウント時またはページが変更された時のみ実行
+    if (isInitialMount.current || currentPage) {
+      isInitialMount.current = false
+      fetchTradePosts(currentPage)
+    }
+
+    // クリーンアップ関数
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort()
+      }
+    }
+  }, [currentPage, fetchTradePosts])
 
   const handleDetailedSearchSelectionComplete = (selectedCards: SelectedCardType[]) => {
     // ここで選択カードを使った検索やフィルタに接続可能
@@ -124,7 +162,8 @@ export default function TradeBoardPage() {
   const totalPages = Math.ceil(totalCount / POSTS_PER_PAGE)
 
   const handlePageChange = (page: number) => {
-    if (page < 1 || page > totalPages) return
+    if (page < 1 || page > totalPages || page === currentPage) return
+
     setCurrentPage(page)
 
     // URLを更新
@@ -143,7 +182,6 @@ export default function TradeBoardPage() {
   const renderPagination = () => {
     if (totalPages <= 1) return null
 
-    const pages = []
     const maxVisiblePages = 5
     let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2))
     const endPage = Math.min(totalPages, startPage + maxVisiblePages - 1)
@@ -158,7 +196,7 @@ export default function TradeBoardPage() {
           variant="outline"
           size="sm"
           onClick={() => handlePageChange(currentPage - 1)}
-          disabled={currentPage === 1}
+          disabled={currentPage === 1 || isLoading}
           className="border-[#CBD5E1] text-[#111827] bg-white hover:bg-[#F8FAFC]"
         >
           <ChevronLeft className="h-4 w-4" />
@@ -170,6 +208,7 @@ export default function TradeBoardPage() {
               variant="outline"
               size="sm"
               onClick={() => handlePageChange(1)}
+              disabled={isLoading}
               className="border-[#CBD5E1] text-[#111827] bg-white hover:bg-[#F8FAFC]"
             >
               1
@@ -186,6 +225,7 @@ export default function TradeBoardPage() {
               variant={currentPage === page ? "default" : "outline"}
               size="sm"
               onClick={() => handlePageChange(page)}
+              disabled={isLoading}
               className={
                 currentPage === page
                   ? "bg-[#3B82F6] hover:bg-[#2563EB] text-white"
@@ -204,6 +244,7 @@ export default function TradeBoardPage() {
               variant="outline"
               size="sm"
               onClick={() => handlePageChange(totalPages)}
+              disabled={isLoading}
               className="border-[#CBD5E1] text-[#111827] bg-white hover:bg-[#F8FAFC]"
             >
               {totalPages}
@@ -215,7 +256,7 @@ export default function TradeBoardPage() {
           variant="outline"
           size="sm"
           onClick={() => handlePageChange(currentPage + 1)}
-          disabled={currentPage === totalPages}
+          disabled={currentPage === totalPages || isLoading}
           className="border-[#CBD5E1] text-[#111827] bg-white hover:bg-[#F8FAFC]"
         >
           <ChevronRight className="h-4 w-4" />
