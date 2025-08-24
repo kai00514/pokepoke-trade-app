@@ -9,7 +9,7 @@ import TradePostCard from "@/components/trade-post-card"
 import AdPlaceholder from "@/components/ad-placeholder"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { PlusCircle, Search, Loader2, List } from "lucide-react"
+import { PlusCircle, Search, Loader2, List, ChevronLeft, ChevronRight } from "lucide-react"
 import DetailedSearchModal from "@/components/detailed-search-modal"
 import LoginPromptModal from "@/components/ui/login-prompt-modal"
 import { useAuth } from "@/contexts/auth-context"
@@ -22,16 +22,31 @@ const notoSansJP = Noto_Sans_JP({
   weight: ["400", "500", "700"],
 })
 
+const POSTS_PER_PAGE = 50
+
 export default function TradeBoardPage() {
   const [isDetailedSearchOpen, setIsDetailedSearchOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [tradePosts, setTradePosts] = useState<any[]>([])
   const [searchKeyword, setSearchKeyword] = useState("")
   const [showLoginPrompt, setShowLoginPrompt] = useState(false)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalCount, setTotalCount] = useState(0)
   const { toast } = useToast()
   const router = useRouter()
   const searchParams = useSearchParams()
   const { user } = useAuth()
+
+  // URLパラメータからページ番号を取得
+  useEffect(() => {
+    const pageParam = searchParams.get("page")
+    if (pageParam) {
+      const page = Number.parseInt(pageParam, 10)
+      if (page > 0) {
+        setCurrentPage(page)
+      }
+    }
+  }, [searchParams])
 
   // URLパラメータのクリーンアップ
   useEffect(() => {
@@ -43,35 +58,42 @@ export default function TradeBoardPage() {
     }
   }, [searchParams])
 
-  const fetchTradePosts = useCallback(async () => {
-    setIsLoading(true)
-    try {
-      const result = await getTradePostsWithCards(20, 0)
-      if (result.success) {
-        setTradePosts(result.posts)
-      } else {
+  const fetchTradePosts = useCallback(
+    async (page = 1) => {
+      setIsLoading(true)
+      try {
+        const offset = (page - 1) * POSTS_PER_PAGE
+        const result = await getTradePostsWithCards(POSTS_PER_PAGE, offset)
+        if (result.success) {
+          setTradePosts(result.posts)
+          setTotalCount(result.totalCount || 0)
+        } else {
+          toast({
+            title: "データ取得エラー",
+            description: result.error || "投稿の取得に失敗しました。",
+            variant: "destructive",
+          })
+          setTradePosts([])
+          setTotalCount(0)
+        }
+      } catch {
         toast({
-          title: "データ取得エラー",
-          description: result.error || "投稿の取得に失敗しました。",
+          title: "エラー",
+          description: "予期しないエラーが発生しました。",
           variant: "destructive",
         })
         setTradePosts([])
+        setTotalCount(0)
+      } finally {
+        setIsLoading(false)
       }
-    } catch {
-      toast({
-        title: "エラー",
-        description: "予期しないエラーが発生しました。",
-        variant: "destructive",
-      })
-      setTradePosts([])
-    } finally {
-      setIsLoading(false)
-    }
-  }, [toast])
+    },
+    [toast],
+  )
 
   useEffect(() => {
-    fetchTradePosts()
-  }, [fetchTradePosts])
+    fetchTradePosts(currentPage)
+  }, [fetchTradePosts, currentPage])
 
   const handleDetailedSearchSelectionComplete = (selectedCards: SelectedCardType[]) => {
     // ここで選択カードを使った検索やフィルタに接続可能
@@ -97,6 +119,109 @@ export default function TradeBoardPage() {
 
   const handleCreatePostClick = () => {
     router.push("/trades/create")
+  }
+
+  const totalPages = Math.ceil(totalCount / POSTS_PER_PAGE)
+
+  const handlePageChange = (page: number) => {
+    if (page < 1 || page > totalPages) return
+    setCurrentPage(page)
+
+    // URLを更新
+    const url = new URL(window.location.href)
+    if (page === 1) {
+      url.searchParams.delete("page")
+    } else {
+      url.searchParams.set("page", page.toString())
+    }
+    window.history.pushState({}, "", url.toString())
+
+    // ページトップにスクロール
+    window.scrollTo({ top: 0, behavior: "smooth" })
+  }
+
+  const renderPagination = () => {
+    if (totalPages <= 1) return null
+
+    const pages = []
+    const maxVisiblePages = 5
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2))
+    const endPage = Math.min(totalPages, startPage + maxVisiblePages - 1)
+
+    if (endPage - startPage + 1 < maxVisiblePages) {
+      startPage = Math.max(1, endPage - maxVisiblePages + 1)
+    }
+
+    return (
+      <div className="flex items-center justify-center gap-2 mt-8">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => handlePageChange(currentPage - 1)}
+          disabled={currentPage === 1}
+          className="border-[#CBD5E1] text-[#111827] bg-white hover:bg-[#F8FAFC]"
+        >
+          <ChevronLeft className="h-4 w-4" />
+        </Button>
+
+        {startPage > 1 && (
+          <>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handlePageChange(1)}
+              className="border-[#CBD5E1] text-[#111827] bg-white hover:bg-[#F8FAFC]"
+            >
+              1
+            </Button>
+            {startPage > 2 && <span className="text-[#6B7280]">...</span>}
+          </>
+        )}
+
+        {Array.from({ length: endPage - startPage + 1 }, (_, i) => {
+          const page = startPage + i
+          return (
+            <Button
+              key={page}
+              variant={currentPage === page ? "default" : "outline"}
+              size="sm"
+              onClick={() => handlePageChange(page)}
+              className={
+                currentPage === page
+                  ? "bg-[#3B82F6] hover:bg-[#2563EB] text-white"
+                  : "border-[#CBD5E1] text-[#111827] bg-white hover:bg-[#F8FAFC]"
+              }
+            >
+              {page}
+            </Button>
+          )
+        })}
+
+        {endPage < totalPages && (
+          <>
+            {endPage < totalPages - 1 && <span className="text-[#6B7280]">...</span>}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handlePageChange(totalPages)}
+              className="border-[#CBD5E1] text-[#111827] bg-white hover:bg-[#F8FAFC]"
+            >
+              {totalPages}
+            </Button>
+          </>
+        )}
+
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => handlePageChange(currentPage + 1)}
+          disabled={currentPage === totalPages}
+          className="border-[#CBD5E1] text-[#111827] bg-white hover:bg-[#F8FAFC]"
+        >
+          <ChevronRight className="h-4 w-4" />
+        </Button>
+      </div>
+    )
   }
 
   return (
@@ -175,6 +300,21 @@ export default function TradeBoardPage() {
             </div>
           </div>
 
+          {/* Results Info */}
+          {!isLoading && (
+            <div className="mb-4 text-center text-sm text-[#6B7280]">
+              {totalCount > 0 ? (
+                <>
+                  全{totalCount}件中 {(currentPage - 1) * POSTS_PER_PAGE + 1}〜
+                  {Math.min(currentPage * POSTS_PER_PAGE, totalCount)}件を表示
+                  {searchKeyword && ` (「${searchKeyword}」で検索)`}
+                </>
+              ) : (
+                "投稿がありません"
+              )}
+            </div>
+          )}
+
           {/* Content Grid */}
           <div className="flex flex-col lg:flex-row gap-6">
             {/* Left Ads */}
@@ -190,11 +330,14 @@ export default function TradeBoardPage() {
                   <Loader2 className="h-5 w-10 animate-spin text-[#3B82F6]" />
                 </div>
               ) : filteredPosts.length > 0 ? (
-                <div className="space-y-6">
-                  {filteredPosts.map((post) => (
-                    <TradePostCard key={post.id} post={post} />
-                  ))}
-                </div>
+                <>
+                  <div className="space-y-6">
+                    {filteredPosts.map((post) => (
+                      <TradePostCard key={post.id} post={post} />
+                    ))}
+                  </div>
+                  {renderPagination()}
+                </>
               ) : (
                 <div className="text-center py-20 text-[#6B7280]">該当する投稿が見つかりませんでした。</div>
               )}

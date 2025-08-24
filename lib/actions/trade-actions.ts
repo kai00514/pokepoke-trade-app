@@ -241,6 +241,15 @@ export async function getTradePostsWithCards(limit = 10, offset = 0) {
   try {
     const supabase = await createServerClient()
 
+    // Get total count for pagination
+    const { count: totalCount, error: countError } = await supabase
+      .from("trade_posts")
+      .select("*", { count: "exact", head: true })
+
+    if (countError) {
+      console.error("Error fetching total count:", countError)
+    }
+
     // Get posts with basic information first
     const { data: posts, error: postsError } = await supabase
       .from("trade_posts")
@@ -260,11 +269,11 @@ export async function getTradePostsWithCards(limit = 10, offset = 0) {
 
     if (postsError) {
       console.error("Error fetching trade posts:", postsError)
-      return { success: false, error: `投稿の取得に失敗しました: ${postsError.message}`, posts: [] }
+      return { success: false, error: `投稿の取得に失敗しました: ${postsError.message}`, posts: [], totalCount: 0 }
     }
 
     if (!posts || posts.length === 0) {
-      return { success: true, posts: [] }
+      return { success: true, posts: [], totalCount: 0 }
     }
 
     // Get user profiles for authenticated posts
@@ -307,12 +316,17 @@ export async function getTradePostsWithCards(limit = 10, offset = 0) {
 
     if (wantedError) {
       console.error("Error fetching wanted card relations:", wantedError)
-      return { success: false, error: `求めるカード関連の取得に失敗: ${wantedError.message}`, posts: [] }
+      return { success: false, error: `求めるカード関連の取得に失敗: ${wantedError.message}`, posts: [], totalCount: 0 }
     }
 
     if (offeredError) {
       console.error("Error fetching offered card relations:", offeredError)
-      return { success: false, error: `譲れるカード関連の取得に失敗: ${offeredError.message}`, posts: [] }
+      return {
+        success: false,
+        error: `譲れるカード関連の取得に失敗: ${offeredError.message}`,
+        posts: [],
+        totalCount: 0,
+      }
     }
 
     // ユーザープロフィールをマップ化
@@ -463,11 +477,11 @@ export async function getTradePostsWithCards(limit = 10, offset = 0) {
       }
     })
 
-    return { success: true, posts: postsWithCards }
+    return { success: true, posts: postsWithCards, totalCount: totalCount || 0 }
   } catch (error) {
     console.error("Unexpected error fetching trade posts:", error)
     const errorMessage = error instanceof Error ? error.message : "予期しないエラーが発生しました。"
-    return { success: false, error: errorMessage, posts: [] }
+    return { success: false, error: errorMessage, posts: [], totalCount: 0 }
   }
 }
 
