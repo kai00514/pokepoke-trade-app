@@ -11,6 +11,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { PlusCircle, Search, Loader2, List } from "lucide-react"
 import DetailedSearchModal from "@/components/detailed-search-modal"
+import LoginPromptModal from "@/components/ui/login-prompt-modal"
+import { useAuth } from "@/contexts/auth-context"
 import type { Card as SelectedCardType } from "@/components/detailed-search-modal"
 import { getTradePostsWithCards } from "@/lib/actions/trade-actions"
 import { useToast } from "@/components/ui/use-toast"
@@ -25,9 +27,11 @@ export default function TradeBoardPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [tradePosts, setTradePosts] = useState<any[]>([])
   const [searchKeyword, setSearchKeyword] = useState("")
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false)
   const { toast } = useToast()
   const router = useRouter()
   const searchParams = useSearchParams()
+  const { user } = useAuth()
 
   // URLパラメータのクリーンアップ
   useEffect(() => {
@@ -74,6 +78,14 @@ export default function TradeBoardPage() {
     setIsDetailedSearchOpen(false)
   }
 
+  const handleManageListsClick = () => {
+    if (!user) {
+      setShowLoginPrompt(true)
+    } else {
+      router.push("/lists")
+    }
+  }
+
   const filteredPosts = tradePosts.filter((post) => {
     if (!searchKeyword.trim()) return true
     const keyword = searchKeyword.toLowerCase()
@@ -85,10 +97,6 @@ export default function TradeBoardPage() {
 
   const handleCreatePostClick = () => {
     router.push("/trades/create")
-  }
-
-  const handleManageListsClick = () => {
-    router.push("/lists")
   }
 
   return (
@@ -208,6 +216,12 @@ export default function TradeBoardPage() {
         onSelectionComplete={handleDetailedSearchSelectionComplete}
         modalTitle="カード詳細検索"
       />
+      {showLoginPrompt && (
+        <LoginPromptModal
+          onClose={() => setShowLoginPrompt(false)}
+          onContinueAsGuest={() => setShowLoginPrompt(false)}
+        />
+      )}
     </div>
   )
 }
