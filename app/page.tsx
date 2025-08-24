@@ -112,16 +112,16 @@ export default function TradeBoardPage() {
       >
         <main className="container mx-auto px-3 sm:px-4 py-8 sm:py-10">
           <section className="text-center mb-8 sm:mb-10">
-            <div className="inline-flex items-center rounded-full bg-gradient-to-r from-[#3B82F6] via-[#1D4ED8] to-[#6366F1] text-white px-8 py-3 text-2xl sm:text-3xl font-bold mb-3 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 border-2 border-white/20 backdrop-blur-sm animate-float">
+            <div className="inline-flex items-center rounded-full bg-gradient-to-r from-[#3B82F6] via-[#1D4ED8] to-[#6366F1] text-white px-8 py-2 text-2xl sm:text-3xl font-bold mb-2 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 border-2 border-white/20 backdrop-blur-sm animate-float">
               <span className="relative z-10">PokeLink トレード掲示板</span>
             </div>
-            <p className="mt-2 text-sm sm:text-base text-[#6B7280]">
+            <p className="mt-1 text-sm sm:text-base text-[#6B7280]">
               欲しいカードと譲れるカードをスムーズに交換しよう！
             </p>
           </section>
 
           {/* Action Bar */}
-          <div className="mb-8 flex flex-col items-center gap-3">
+          <div className="mb-5 flex flex-col items-center gap-3">
             <Button
               variant="default"
               className="bg-[#3B82F6] hover:bg-[#2563EB] text-white rounded-md shadow-sm"
@@ -186,8 +186,8 @@ export default function TradeBoardPage() {
             {/* Posts */}
             <section className="w-full lg:flex-grow">
               {isLoading ? (
-                <div className="flex justify-center items-center py-20">
-                  <Loader2 className="h-10 w-10 animate-spin text-[#3B82F6]" />
+                <div className="flex justify-center items-center py-5">
+                  <Loader2 className="h-5 w-10 animate-spin text-[#3B82F6]" />
                 </div>
               ) : filteredPosts.length > 0 ? (
                 <div className="space-y-6">
