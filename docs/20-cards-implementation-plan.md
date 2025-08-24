@@ -103,7 +103,7 @@ C. ローディング/エラー時の UX
    - getCardsByIds(ids: number[]) をページ単位で一括呼び出し可能に
 
 2) ページ側の前処理
-   - 一覧取得後、ページ内すべての `selected_card_ids` をユニーク化して `getCardsByIds` を1回だけ実行
+   - ���覧取得後、ページ内すべての `selected_card_ids` をユニーク化して `getCardsByIds` を1回だけ実行
    - 結果を `Map<number, Card>` に格納
 
 3) 各デッキ行のレンダリング

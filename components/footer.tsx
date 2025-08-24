@@ -16,7 +16,7 @@ export default function Footer() {
   const pathname = usePathname()
 
   return (
-    <footer className="bg-blue-600 shadow-lg sticky bottom-0 z-50">
+    <footer className="bg-blue-600 shadow-lg fixed bottom-0 left-0 right-0 z-50">
       <nav className="container mx-auto px-2 py-1.5">
         <ul className="flex justify-around items-center">
           {navItems.map((item) => (
