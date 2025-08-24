@@ -116,7 +116,16 @@ export default function TradePostCard({ post }: TradePostCardProps) {
                     </div>
                   ))
                 ) : (
-                  <p className="text-xs text-[#6B7280]">該当なし</p>
+                  <div className="flex-shrink-0 flex flex-col items-center">
+                    <Image
+                      src="/placeholder.svg"
+                      alt="要相談"
+                      width={80}
+                      height={112}
+                      className="rounded-md object-contain border border-[#E5E7EB] bg-white mb-1"
+                    />
+                    <p className="text-xs font-semibold text-[#374151] text-center max-w-[80px] truncate">要相談</p>
+                  </div>
                 )}
               </div>
             </div>
@@ -143,7 +152,16 @@ export default function TradePostCard({ post }: TradePostCardProps) {
                     </div>
                   ))
                 ) : (
-                  <p className="text-xs text-[#6B7280]">該当なし</p>
+                  <div className="flex-shrink-0 flex flex-col items-center">
+                    <Image
+                      src="/placeholder.svg"
+                      alt="要相談"
+                      width={80}
+                      height={112}
+                      className="rounded-md object-contain border border-[#E5E7EB] bg-white mb-1"
+                    />
+                    <p className="text-xs font-semibold text-[#374151] text-center max-w-[80px] truncate">要相談</p>
+                  </div>
                 )}
               </div>
             </div>
