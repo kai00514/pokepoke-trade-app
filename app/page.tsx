@@ -9,7 +9,7 @@ import TradePostCard from "@/components/trade-post-card"
 import AdPlaceholder from "@/components/ad-placeholder"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { PlusCircle, Search, Loader2 } from "lucide-react"
+import { PlusCircle, Search, Loader2, List } from "lucide-react"
 import DetailedSearchModal from "@/components/detailed-search-modal"
 import type { Card as SelectedCardType } from "@/components/detailed-search-modal"
 import { getTradePostsWithCards } from "@/lib/actions/trade-actions"
@@ -87,6 +87,10 @@ export default function TradeBoardPage() {
     router.push("/trades/create")
   }
 
+  const handleManageListsClick = () => {
+    router.push("/lists")
+  }
+
   return (
     <div className={`flex min-h-screen flex-col ${notoSansJP.className}`}>
       <Header />
@@ -109,7 +113,7 @@ export default function TradeBoardPage() {
           </section>
 
           {/* Action Bar */}
-          <div className="mb-8 flex justify-center">
+          <div className="mb-8 flex flex-col items-center gap-3">
             <Button
               variant="default"
               className="bg-[#3B82F6] hover:bg-[#2563EB] text-white rounded-md shadow-sm"
@@ -119,6 +123,18 @@ export default function TradeBoardPage() {
               <div className="flex items-center justify-center">
                 <PlusCircle className="h-5 w-5 mr-2" />
                 <span className="text-sm font-medium">トレード希望投稿を作成</span>
+              </div>
+            </Button>
+
+            <Button
+              variant="outline"
+              className="border-[#3B82F6] text-[#3B82F6] hover:bg-[#3B82F6] hover:text-white rounded-md shadow-sm bg-transparent"
+              style={{ padding: "0.5rem 1rem" }}
+              onClick={handleManageListsClick}
+            >
+              <div className="flex items-center justify-center">
+                <List className="h-4 w-4 mr-2" />
+                <span className="text-sm font-medium">譲れるカードのリストを作成/編集</span>
               </div>
             </Button>
           </div>
@@ -143,9 +159,9 @@ export default function TradeBoardPage() {
                 </Button>
                 <Button
                   variant="default"
-                  className="bg-[#3B82F6] hover:bg-[#2563EB] text-white whitespace-nowrap flex-shrink-0 rounded-lg px-2" // px-2 に変更
+                  className="bg-[#3B82F6] hover:bg-[#2563EB] text-white whitespace-nowrap flex-shrink-0 rounded-lg px-2"
                 >
-                  <Search className="mr-1 h-4 w-4" /> 検索 {/* mr-1 に変更 */}
+                  <Search className="mr-1 h-4 w-4" /> 検索
                 </Button>
               </div>
             </div>
