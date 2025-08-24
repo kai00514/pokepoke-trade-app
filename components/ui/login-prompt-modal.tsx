@@ -6,10 +6,15 @@ import { LogIn, UserPlus } from "lucide-react"
 
 type LoginPromptModalProps = {
   onClose: () => void
-  onContinueAsGuest: () => void
+  onContinueAsGuest?: () => void
+  showGuestButton?: boolean
 }
 
-export default function LoginPromptModal({ onClose, onContinueAsGuest }: LoginPromptModalProps) {
+export default function LoginPromptModal({
+  onClose,
+  onContinueAsGuest,
+  showGuestButton = true,
+}: LoginPromptModalProps) {
   const router = useRouter()
   const modalRef = useRef<HTMLDivElement>(null)
 
@@ -27,11 +32,11 @@ export default function LoginPromptModal({ onClose, onContinueAsGuest }: LoginPr
   }, [onClose])
 
   const handleLogin = () => {
-    router.push("/login")
+    router.push("/auth/login")
   }
 
   const handleRegister = () => {
-    router.push("/register")
+    router.push("/auth/signup")
   }
 
   return (
@@ -65,14 +70,16 @@ export default function LoginPromptModal({ onClose, onContinueAsGuest }: LoginPr
             新規登録
           </button>
         </div>
-        <div className="text-center">
-          <button
-            onClick={onContinueAsGuest}
-            className="text-sm text-gray-500 hover:text-gray-700 underline transition-colors"
-          >
-            ゲストとして続ける
-          </button>
-        </div>
+        {showGuestButton && onContinueAsGuest && (
+          <div className="text-center">
+            <button
+              onClick={onContinueAsGuest}
+              className="text-sm text-gray-500 hover:text-gray-700 underline transition-colors"
+            >
+              ゲストとして続ける
+            </button>
+          </div>
+        )}
       </div>
     </div>
   )

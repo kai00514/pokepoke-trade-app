@@ -7,6 +7,8 @@ import Footer from "@/components/footer"
 import { Button } from "@/components/ui/button"
 import { PlusCircle, Users, ListChecks, BarChartBig, Zap, Star } from "lucide-react"
 import Link from "next/link"
+import LoginPromptModal from "@/components/ui/login-prompt-modal"
+import { useAuth } from "@/contexts/auth-context"
 import type { Deck } from "@/components/deck-card"
 import DeckHorizontalRow from "@/components/deck-horizontal-row"
 import { getDecksList, getDeckPagesList } from "@/lib/actions/deck-posts"
@@ -37,7 +39,9 @@ export default function DecksPage() {
   const [decks, setDecks] = useState<DeckPageData[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false)
   const { toast } = useToast()
+  const { user } = useAuth()
 
   // 投稿デッキ取得
   const fetchPostedDecks = useCallback(async () => {
@@ -125,6 +129,15 @@ export default function DecksPage() {
     else if (categoryId === "newpack") fetchDeckPages("newpack")
   }
 
+  const handleFavoritesClick = () => {
+    if (!user) {
+      setShowLoginPrompt(true)
+    } else {
+      // お気に入りページに遷移
+      window.location.href = "/favorites"
+    }
+  }
+
   const renderDeckList = () => {
     if (isLoading) {
       return (
@@ -196,13 +209,11 @@ export default function DecksPage() {
             </Button>
 
             <Button
-              asChild
+              onClick={handleFavoritesClick}
               className="flex-1 bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-white text-sm font-bold py-2.5 px-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 ease-in-out transform hover:-translate-y-0.5 border-0"
             >
-              <Link href="/favorites">
-                <Star className="mr-1.5 h-4 w-4" />
-                お気に入り
-              </Link>
+              <Star className="mr-1.5 h-4 w-4" />
+              お気に入り
             </Button>
           </div>
 
@@ -252,6 +263,7 @@ export default function DecksPage() {
         </main>
       </div>
       <Footer />
+      {showLoginPrompt && <LoginPromptModal onClose={() => setShowLoginPrompt(false)} showGuestButton={false} />}
     </div>
   )
 }

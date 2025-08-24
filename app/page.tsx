@@ -216,12 +216,7 @@ export default function TradeBoardPage() {
         onSelectionComplete={handleDetailedSearchSelectionComplete}
         modalTitle="カード詳細検索"
       />
-      {showLoginPrompt && (
-        <LoginPromptModal
-          onClose={() => setShowLoginPrompt(false)}
-          onContinueAsGuest={() => setShowLoginPrompt(false)}
-        />
-      )}
+      {showLoginPrompt && <LoginPromptModal onClose={() => setShowLoginPrompt(false)} showGuestButton={false} />}
     </div>
   )
 }

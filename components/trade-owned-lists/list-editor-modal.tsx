@@ -5,24 +5,18 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { X, Plus } from "lucide-react"
+import { X, Plus, Loader2 } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
 import DetailedSearchModal from "@/components/detailed-search-modal"
 import type { Card as SelectedCardType } from "@/components/detailed-search-modal"
-// 必要なimportを追加
 import { getCardsByIds } from "@/lib/card-api"
-
-interface TradeOwnedList {
-  id: number
-  list_name: string
-  card_ids: number[]
-  updated_at: string
-}
+import { updateTradeOwnedList, type TradeOwnedList } from "@/lib/actions/trade-owned-lists"
 
 interface ListEditorModalProps {
   isOpen: boolean
   onOpenChange: (open: boolean) => void
   list: TradeOwnedList
+  userId: string
   onSave: (updatedList: TradeOwnedList) => void
 }
 
@@ -32,31 +26,33 @@ interface CardInfo {
   image_url: string
 }
 
-export default function ListEditorModal({ isOpen, onOpenChange, list, onSave }: ListEditorModalProps) {
+export default function ListEditorModal({ isOpen, onOpenChange, list, userId, onSave }: ListEditorModalProps) {
   const [listName, setListName] = useState(list.list_name)
   const [cards, setCards] = useState<CardInfo[]>([])
   const [isCardSearchOpen, setIsCardSearchOpen] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
   const { toast } = useToast()
 
-  // old: モックカードデータ（実際の実装時はAPIから取得）
-  // useEffect内を以下に置き換え
+  // カード情報を取得
   useEffect(() => {
     if (isOpen) {
       setListName(list.list_name)
-      
-      // 実際のカード情報を取得
+
       if (list.card_ids.length > 0) {
+        setIsLoading(true)
         const fetchCards = async () => {
           try {
             const cardData = await getCardsByIds(list.card_ids)
             const cardInfos: CardInfo[] = cardData.map((card) => ({
               id: card.id,
               name: card.name,
-              image_url: card.image_url || card.game8_image_url || `/placeholder.svg?height=100&width=70&text=${card.name}`,
+              image_url:
+                card.image_url || card.game8_image_url || `/placeholder.svg?height=100&width=70&text=${card.name}`,
             }))
             setCards(cardInfos)
           } catch (error) {
-            console.error('カード情報の取得に失敗しました:', error)
+            console.error("カード情報の取得に失敗しました:", error)
             // エラー時はプレースホルダーを使用
             const fallbackCards: CardInfo[] = list.card_ids.map((id) => ({
               id,
@@ -64,11 +60,14 @@ export default function ListEditorModal({ isOpen, onOpenChange, list, onSave }: 
               image_url: `/placeholder.svg?height=100&width=70&text=Card${id}`,
             }))
             setCards(fallbackCards)
+          } finally {
+            setIsLoading(false)
           }
         }
         fetchCards()
       } else {
         setCards([])
+        setIsLoading(false)
       }
     }
   }, [isOpen, list])
@@ -78,9 +77,9 @@ export default function ListEditorModal({ isOpen, onOpenChange, list, onSave }: 
     const existingIds = new Set(cards.map((card) => card.id))
 
     const newCards = selectedCards
-      .filter((card) => !existingIds.has(card.id))
+      .filter((card) => !existingIds.has(Number.parseInt(card.id)))
       .map((card) => ({
-        id: card.id,
+        id: Number.parseInt(card.id),
         name: card.name,
         image_url: card.imageUrl || `/placeholder.svg?height=100&width=70&text=${card.name}`,
       }))
@@ -110,7 +109,7 @@ export default function ListEditorModal({ isOpen, onOpenChange, list, onSave }: 
     setCards((prev) => prev.filter((card) => card.id !== cardId))
   }
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!listName.trim()) {
       toast({
         title: "エラー",
@@ -120,14 +119,24 @@ export default function ListEditorModal({ isOpen, onOpenChange, list, onSave }: 
       return
     }
 
-    const updatedList: TradeOwnedList = {
-      ...list,
-      list_name: listName.trim(),
-      card_ids: cards.map((card) => card.id),
-      updated_at: new Date().toISOString(),
-    }
+    setIsSaving(true)
+    const result = await updateTradeOwnedList(
+      list.id,
+      userId,
+      listName.trim(),
+      cards.map((card) => card.id),
+    )
 
-    onSave(updatedList)
+    if (result.success) {
+      onSave(result.list)
+    } else {
+      toast({
+        title: "エラー",
+        description: result.error,
+        variant: "destructive",
+      })
+    }
+    setIsSaving(false)
   }
 
   return (
@@ -147,6 +156,7 @@ export default function ListEditorModal({ isOpen, onOpenChange, list, onSave }: 
                 onChange={(e) => setListName(e.target.value)}
                 placeholder="リスト名を入力"
                 className="mt-1"
+                disabled={isSaving}
               />
             </div>
 
@@ -156,15 +166,23 @@ export default function ListEditorModal({ isOpen, onOpenChange, list, onSave }: 
                 <span className="text-sm font-medium text-[#374151]">登録カード</span>
                 <Badge variant="secondary">{cards.length}/35枚</Badge>
               </div>
-              <Button variant="outline" onClick={() => setIsCardSearchOpen(true)} disabled={cards.length >= 35}>
+              <Button
+                variant="outline"
+                onClick={() => setIsCardSearchOpen(true)}
+                disabled={cards.length >= 35 || isSaving}
+              >
                 <Plus className="h-4 w-4 mr-2" />
                 カードを追加
               </Button>
             </div>
 
             {/* Cards Grid */}
-            {cards.length > 0 ? (
-              <div className="grid grid-cols-5 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-2">
+            {isLoading ? (
+              <div className="flex justify-center items-center py-12">
+                <Loader2 className="h-8 w-8 animate-spin text-[#3B82F6]" />
+              </div>
+            ) : cards.length > 0 ? (
+              <div className="grid grid-cols-5 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-12 gap-2">
                 {cards.map((card, index) => (
                   <div key={card.id} className="relative group">
                     <div className="aspect-[7/10] bg-gray-100 rounded-md overflow-hidden border">
@@ -177,6 +195,7 @@ export default function ListEditorModal({ isOpen, onOpenChange, list, onSave }: 
                     <button
                       onClick={() => handleRemoveCard(card.id)}
                       className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                      disabled={isSaving}
                     >
                       <X className="h-3 w-3" />
                     </button>
@@ -193,10 +212,19 @@ export default function ListEditorModal({ isOpen, onOpenChange, list, onSave }: 
 
             {/* Actions */}
             <div className="flex justify-end gap-2 pt-4 border-t">
-              <Button variant="outline" onClick={() => onOpenChange(false)}>
+              <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isSaving}>
                 キャンセル
               </Button>
-              <Button onClick={handleSave}>保存</Button>
+              <Button onClick={handleSave} disabled={isSaving}>
+                {isSaving ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    保存中...
+                  </>
+                ) : (
+                  "保存"
+                )}
+              </Button>
             </div>
           </div>
         </DialogContent>

@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { InfoIcon, ArrowLeft, Trash2, Loader2, Clock, AlertTriangle } from "lucide-react"
 import DetailedSearchModal from "@/components/detailed-search-modal"
+import ListSelectorModal from "@/components/trade-owned-lists/list-selector-modal"
 import type { Card as SelectedCardType } from "@/components/detailed-search-modal"
 import { useToast } from "@/components/ui/use-toast"
 import { createTradePost } from "@/lib/actions/trade-actions"
@@ -39,6 +40,7 @@ export default function CreateTradePage() {
   const [currentModalTitle, setCurrentModalTitle] = useState("カードを選択")
   const [modalInitialCards, setModalInitialCards] = useState<SelectedCardType[]>([])
   const [isLoading, setIsLoading] = useState(false)
+  const [showListSelector, setShowListSelector] = useState(false)
   const { toast } = useToast()
   const router = useRouter()
 
@@ -328,6 +330,24 @@ export default function CreateTradePage() {
               <label className="block text-sm font-medium text-slate-700 mb-1">
                 譲れるカード <span className="text-red-500">*</span>
               </label>
+              {/* リスト選択UI */}
+              <div className="mb-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-medium text-blue-700">保存済みリストから選択</span>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowListSelector(true)}
+                    className="text-blue-600 border-blue-300 hover:bg-blue-100"
+                    disabled={isSubmitting}
+                  >
+                    リストを選択
+                  </Button>
+                </div>
+                <p className="text-xs text-blue-600">事前に作成したカードリストから一括で選択できます</p>
+              </div>
+
               <Button
                 type="button"
                 onClick={() => openModal("offered", 20, "譲れるカードを選択")}
@@ -398,6 +418,17 @@ export default function CreateTradePage() {
         maxSelection={modalMaxSelection}
         initialSelectedCards={modalInitialCards}
         modalTitle={currentModalTitle}
+      />
+      <ListSelectorModal
+        isOpen={showListSelector}
+        onClose={() => setShowListSelector(false)}
+        onListSelect={(selectedCards) => {
+          // 重複を除去して追加
+          const existingIds = new Set(offeredCards.map((card) => card.id))
+          const newCards = selectedCards.filter((card) => !existingIds.has(card.id))
+          setOfferedCards((prev) => [...prev, ...newCards])
+          setShowListSelector(false)
+        }}
       />
       {showLoginPrompt && (
         <LoginPromptModal onClose={() => setShowLoginPrompt(false)} onContinueAsGuest={handleContinueAsGuest} />

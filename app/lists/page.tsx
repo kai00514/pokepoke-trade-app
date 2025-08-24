@@ -25,18 +25,18 @@ import { useToast } from "@/components/ui/use-toast"
 import ListEditorModal from "@/components/trade-owned-lists/list-editor-modal"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Info } from "lucide-react"
+import { useAuth } from "@/contexts/auth-context"
+import {
+  getTradeOwnedLists,
+  createTradeOwnedList,
+  deleteTradeOwnedList,
+  type TradeOwnedList,
+} from "@/lib/actions/trade-owned-lists"
 
 const notoSansJP = Noto_Sans_JP({
   subsets: ["latin"],
   weight: ["400", "500", "700"],
 })
-
-interface TradeOwnedList {
-  id: number
-  list_name: string
-  card_ids: number[]
-  updated_at: string
-}
 
 export default function ListsPage() {
   const [lists, setLists] = useState<TradeOwnedList[]>([])
@@ -46,33 +46,40 @@ export default function ListsPage() {
   const [editingList, setEditingList] = useState<TradeOwnedList | null>(null)
   const [newListName, setNewListName] = useState("")
   const [duplicateWarning, setDuplicateWarning] = useState<string | null>(null)
+  const [isCreating, setIsCreating] = useState(false)
   const { toast } = useToast()
   const router = useRouter()
+  const { user } = useAuth()
 
-  // モックデータ（実際の実装時はAPIから取得）
+  // リスト取得
   useEffect(() => {
-    const mockLists: TradeOwnedList[] = [
-      {
-        id: 1,
-        list_name: "♢3用カード",
-        card_ids: [1, 2, 3, 4, 5],
-        updated_at: "2024-01-15T10:30:00Z",
-      },
-      {
-        id: 2,
-        list_name: "トレーナー用",
-        card_ids: [6, 7, 8],
-        updated_at: "2024-01-14T15:20:00Z",
-      },
-    ]
+    const fetchLists = async () => {
+      if (!user?.id) {
+        router.push("/")
+        return
+      }
 
-    setTimeout(() => {
-      setLists(mockLists)
+      setIsLoading(true)
+      const result = await getTradeOwnedLists(user.id)
+
+      if (result.success) {
+        setLists(result.lists)
+      } else {
+        toast({
+          title: "エラー",
+          description: result.error,
+          variant: "destructive",
+        })
+      }
       setIsLoading(false)
-    }, 500)
-  }, [])
+    }
 
-  const handleCreateList = () => {
+    fetchLists()
+  }, [user, router, toast])
+
+  const handleCreateList = async () => {
+    if (!user?.id) return
+
     if (!newListName.trim()) {
       toast({
         title: "エラー",
@@ -99,41 +106,50 @@ export default function ListsPage() {
       return
     }
 
-    // 実際の実装時はAPIを呼び出し
-    const newList: TradeOwnedList = {
-      id: Date.now(),
-      list_name: newListName.trim(),
-      card_ids: [],
-      updated_at: new Date().toISOString(),
-    }
+    setIsCreating(true)
+    const result = await createTradeOwnedList(user.id, newListName.trim())
 
-    setLists((prev) => [newList, ...prev])
-    setNewListName("")
-    setIsCreateModalOpen(false)
-    toast({
-      title: "成功",
-      description: "リストを作成しました。",
-    })
+    if (result.success) {
+      setLists((prev) => [result.list, ...prev])
+      setNewListName("")
+      setIsCreateModalOpen(false)
+      toast({
+        title: "成功",
+        description: "リストを作成しました。",
+      })
+    } else {
+      toast({
+        title: "エラー",
+        description: result.error,
+        variant: "destructive",
+      })
+    }
+    setIsCreating(false)
   }
 
-  const handleCreateWithDuplicate = () => {
-    if (!duplicateWarning) return
+  const handleCreateWithDuplicate = async () => {
+    if (!duplicateWarning || !user?.id) return
 
-    const newList: TradeOwnedList = {
-      id: Date.now(),
-      list_name: duplicateWarning,
-      card_ids: [],
-      updated_at: new Date().toISOString(),
+    setIsCreating(true)
+    const result = await createTradeOwnedList(user.id, duplicateWarning)
+
+    if (result.success) {
+      setLists((prev) => [result.list, ...prev])
+      setNewListName("")
+      setDuplicateWarning(null)
+      setIsCreateModalOpen(false)
+      toast({
+        title: "成功",
+        description: "リストを作成しました。",
+      })
+    } else {
+      toast({
+        title: "エラー",
+        description: result.error,
+        variant: "destructive",
+      })
     }
-
-    setLists((prev) => [newList, ...prev])
-    setNewListName("")
-    setDuplicateWarning(null)
-    setIsCreateModalOpen(false)
-    toast({
-      title: "成功",
-      description: "リストを作成しました。",
-    })
+    setIsCreating(false)
   }
 
   const handleEditList = (list: TradeOwnedList) => {
@@ -141,12 +157,24 @@ export default function ListsPage() {
     setIsEditModalOpen(true)
   }
 
-  const handleDeleteList = (listId: number) => {
-    setLists((prev) => prev.filter((list) => list.id !== listId))
-    toast({
-      title: "成功",
-      description: "リストを削除しました。",
-    })
+  const handleDeleteList = async (listId: number) => {
+    if (!user?.id) return
+
+    const result = await deleteTradeOwnedList(listId, user.id)
+
+    if (result.success) {
+      setLists((prev) => prev.filter((list) => list.id !== listId))
+      toast({
+        title: "成功",
+        description: "リストを削除しました。",
+      })
+    } else {
+      toast({
+        title: "エラー",
+        description: result.error,
+        variant: "destructive",
+      })
+    }
   }
 
   const formatDate = (dateString: string) => {
@@ -158,6 +186,24 @@ export default function ListsPage() {
       hour: "2-digit",
       minute: "2-digit",
     })
+  }
+
+  // 認証チェック
+  if (!user) {
+    return (
+      <div className={`min-h-screen flex flex-col ${notoSansJP.className}`}>
+        <Header />
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <p className="text-lg text-[#6B7280] mb-4">ログインが必要です</p>
+            <Button onClick={() => router.push("/")} className="bg-[#3B82F6] hover:bg-[#2563EB] text-white">
+              ホームに戻る
+            </Button>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    )
   }
 
   return (
@@ -184,11 +230,11 @@ export default function ListsPage() {
               よく使うカードをリスト保存し、トレード作成や参加時に譲渡・希望カードを選べます。
               <br />
               <span className="text-sm text-[#6B7280]">
-                <br />※最大10リスト作成可能<br />
+                <br />
+                ※最大10リスト作成可能
+                <br />
               </span>
-              <span className="text-sm text-[#6B7280]">
-                ※1リスト最大35枚まで登録可能
-              </span>
+              <span className="text-sm text-[#6B7280]">※1リスト最大35枚まで登録可能</span>
             </AlertDescription>
           </Alert>
 
@@ -227,10 +273,20 @@ export default function ListsPage() {
                         setNewListName("")
                         setDuplicateWarning(null)
                       }}
+                      disabled={isCreating}
                     >
                       キャンセル
                     </Button>
-                    <Button onClick={handleCreateList}>作成</Button>
+                    <Button onClick={handleCreateList} disabled={isCreating}>
+                      {isCreating ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          作成中...
+                        </>
+                      ) : (
+                        "作成"
+                      )}
+                    </Button>
                   </div>
                 </div>
               </DialogContent>
@@ -328,11 +384,12 @@ export default function ListsPage() {
       <Footer />
 
       {/* Edit Modal */}
-      {editingList && (
+      {editingList && user && (
         <ListEditorModal
           isOpen={isEditModalOpen}
           onOpenChange={setIsEditModalOpen}
           list={editingList}
+          userId={user.id}
           onSave={(updatedList) => {
             setLists((prev) => prev.map((list) => (list.id === updatedList.id ? updatedList : list)))
             setIsEditModalOpen(false)
