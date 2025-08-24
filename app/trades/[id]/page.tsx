@@ -11,7 +11,12 @@ import { Badge } from "@/components/ui/badge"
 import { ArrowLeft, Copy, Send, UserCircle } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
 import type { Card as CardInfo } from "@/components/detailed-search-modal"
-import { getTradePostDetailsById, addCommentToTradePost, updateTradePostStatus } from "@/lib/actions/trade-actions"
+import {
+  getTradePostDetailsById,
+  addCommentToTradePost,
+  updateTradePostStatus,
+  getTradePostCommentsOnly,
+} from "@/lib/actions/trade-actions"
 import { supabase } from "@/lib/supabase/client"
 import LoginPromptModal from "@/components/ui/login-prompt-modal"
 import { useAuth } from "@/contexts/auth-context"
@@ -111,6 +116,7 @@ export default function TradeDetailPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null)
   const [showLoginPrompt, setShowLoginPrompt] = useState(false)
+  const [loadingSource, setLoadingSource] = useState<"cache" | "fallback" | null>(null)
   const postId = params.id as string
 
   const handleCopyToClipboard = useCallback(() => {
@@ -206,13 +212,63 @@ export default function TradeDetailPage() {
     }
   }, [postId, router])
 
+  // sessionStorageからの復元とfallback処理
   const fetchPostDetails = useCallback(async () => {
     if (!postId || postId === "create") return
     setIsLoading(true)
+
     try {
+      // Step 1: sessionStorageからの復元を試行
+      const cacheKey = `trade-post-${postId}`
+      const cachedDataStr = sessionStorage.getItem(cacheKey)
+
+      if (cachedDataStr) {
+        try {
+          const cachedData = JSON.parse(cachedDataStr)
+          const cacheAge = Date.now() - (cachedData.cachedAt || 0)
+
+          // キャッシュが5分以内なら使用
+          if (cacheAge < 5 * 60 * 1000) {
+            console.log(`[TradeDetailPage] Using cached data for post ${postId}`)
+            setLoadingSource("cache")
+
+            // キャッシュデータから投稿情報を復元（コメントは空で初期化）
+            const restoredPost: TradePostDetails = {
+              ...cachedData,
+              comments: [], // コメントは後で取得
+            }
+
+            setPost(restoredPost)
+            setIsLoading(false)
+
+            // Step 2: コメントのみ非同期で取得
+            const commentsResult = await getTradePostCommentsOnly(postId)
+            if (commentsResult.success) {
+              setPost((prev) => (prev ? { ...prev, comments: commentsResult.comments } : null))
+              console.log(`[TradeDetailPage] Comments loaded for post ${postId}`)
+            } else {
+              console.error("Failed to load comments:", commentsResult.error)
+            }
+
+            return
+          } else {
+            console.log(`[TradeDetailPage] Cache expired for post ${postId}`)
+            sessionStorage.removeItem(cacheKey)
+          }
+        } catch (error) {
+          console.error("[TradeDetailPage] Failed to parse cached data:", error)
+          sessionStorage.removeItem(cacheKey)
+        }
+      }
+
+      // Step 3: fallback - 従来の完全取得
+      console.log(`[TradeDetailPage] Using fallback for post ${postId}`)
+      setLoadingSource("fallback")
+
       const result = await getTradePostDetailsById(postId)
-      if (result.success && result.post) setPost(result.post as TradePostDetails)
-      else {
+      if (result.success && result.post) {
+        setPost(result.post as TradePostDetails)
+      } else {
         setPost(null)
         toast({
           title: "エラー",
@@ -239,7 +295,12 @@ export default function TradeDetailPage() {
       <div className="flex flex-col min-h-screen bg-gradient-to-b from-blue-50 via-blue-100 to-white">
         <Header />
         <main className="flex-grow container mx-auto px-4 py-8 flex justify-center items-center">
-          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-sm text-slate-600">
+              {loadingSource === "cache" ? "キャッシュから復元中..." : "データを読み込み中..."}
+            </p>
+          </div>
         </main>
         <Footer />
       </div>

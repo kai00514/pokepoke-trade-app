@@ -22,6 +22,108 @@ export interface TradeFormData {
   userId?: string
 }
 
+// 新しい軽量コメント取得関数
+export async function getTradePostCommentsOnly(postId: string) {
+  try {
+    if (!postId || postId === "create" || postId.length < 8) {
+      return {
+        success: false,
+        error: "無効な投稿IDです。",
+        comments: [],
+      }
+    }
+
+    const supabase = await createServerClient()
+
+    // コメントデータのみ取得
+    const { data: commentsData, error: commentsError } = await supabase
+      .from("trade_comments")
+      .select(`
+        id, 
+        user_id, 
+        user_name, 
+        guest_name,
+        content, 
+        created_at,
+        is_guest
+      `)
+      .eq("post_id", postId)
+      .eq("is_deleted", false)
+      .order("created_at", { ascending: true })
+
+    if (commentsError) {
+      console.error(`Error fetching comments for post ${postId}:`, commentsError)
+      return {
+        success: false,
+        error: `コメントの取得に失敗しました: ${commentsError.message}`,
+        comments: [],
+      }
+    }
+
+    if (!commentsData || commentsData.length === 0) {
+      return { success: true, comments: [] }
+    }
+
+    // 認証済みコメント投稿者のユーザーIDを収集
+    const commentUserIds = new Set<string>()
+    const authenticatedComments = commentsData.filter((comment) => !comment.is_guest && comment.user_id) || []
+    authenticatedComments.forEach((comment) => commentUserIds.add(comment.user_id))
+
+    // ユーザープロフィール取得
+    const { data: userProfiles, error: usersError } =
+      commentUserIds.size > 0
+        ? await supabase
+            .from("users")
+            .select("id, name, display_name, email, avatar_url")
+            .in("id", Array.from(commentUserIds))
+        : { data: [], error: null }
+
+    if (usersError) {
+      console.error(`Error fetching user profiles for post ${postId}:`, usersError)
+    }
+
+    // コメントを整形
+    const comments = commentsData.map((comment: any) => {
+      const createdAt = new Date(comment.created_at)
+      const diffSeconds = Math.floor((Date.now() - createdAt.getTime()) / 1000)
+      let timestamp = `${createdAt.toLocaleDateString()}`
+      if (diffSeconds < 60) timestamp = `${diffSeconds}秒前`
+      else if (diffSeconds < 3600) timestamp = `${Math.floor(diffSeconds / 60)}分前`
+      else if (diffSeconds < 86400) timestamp = `${Math.floor(diffSeconds / 3600)}時間前`
+      else if (diffSeconds < 2592000) timestamp = `${Math.floor(diffSeconds / 86400)}日前`
+
+      let commentAuthor: string
+      let commentAvatar: string | null = null
+
+      if (!comment.is_guest && comment.user_id) {
+        const userProfile = userProfiles?.find((profile) => profile.id === comment.user_id)
+        if (userProfile) {
+          commentAuthor = userProfile.name || userProfile.display_name || "ユーザー"
+          commentAvatar = userProfile.avatar_url || null
+        } else {
+          commentAuthor = comment.user_name || "ユーザー"
+        }
+      } else {
+        commentAuthor = comment.guest_name || comment.user_name || "ゲスト"
+      }
+
+      return {
+        id: comment.id,
+        author: commentAuthor,
+        avatar: commentAvatar,
+        text: comment.content,
+        timestamp: timestamp,
+      }
+    })
+
+    return { success: true, comments }
+  } catch (error) {
+    console.error(`Unexpected error fetching comments for ${postId}:`, error)
+    const errorMessage = error instanceof Error ? error.message : "予期しないエラーが発生しました。"
+    return { success: false, error: errorMessage, comments: [] }
+  }
+}
+
 export async function createTradePost(formData: TradeFormData) {
   try {
     console.log("[createTradePost] 🚀 Starting trade post creation...")
@@ -150,7 +252,8 @@ export async function getTradePostsWithCards(limit = 10, offset = 0) {
         custom_id, 
         status, 
         created_at,
-        is_authenticated
+        is_authenticated,
+        comment
       `)
       .order("created_at", { ascending: false })
       .range(offset, offset + limit - 1)
@@ -327,9 +430,35 @@ export async function getTradePostsWithCards(limit = 10, offset = 0) {
         postId: post.custom_id || post.id.substring(0, 8),
         username,
         avatarUrl,
+        authorComment: post.comment || null,
         rawData: {
           wantedCards: currentWantedCards,
           offeredCards: currentOfferedCards,
+          // 詳細画面用の追加データ
+          fullPostData: {
+            id: post.id,
+            title: post.title,
+            status:
+              post.status === "OPEN"
+                ? "募集中"
+                : post.status === "MATCHED"
+                  ? "進行中"
+                  : post.status === "COMPLETED"
+                    ? "完了"
+                    : "キャンセル",
+            description: post.comment || "",
+            authorNotes: post.comment || "",
+            originalPostId: post.custom_id || post.id.substring(0, 8),
+            author: {
+              username,
+              avatarUrl,
+              userId: post.owner_id,
+              isOwner: post.is_authenticated && post.owner_id,
+            },
+            createdAt: formattedDate,
+            wantedCards: currentWantedCards,
+            offeredCards: currentOfferedCards,
+          },
         },
       }
     })
@@ -558,7 +687,11 @@ export async function getTradePostDetailsById(postId: string) {
       authorNotes: postData.comment || "",
       originalPostId: postData.custom_id || postData.id.substring(0, 8),
       comments,
-      author: authorInfo,
+      author: {
+        ...authorInfo,
+        userId: postData.owner_id,
+        isOwner: postData.is_authenticated && postData.owner_id,
+      },
       createdAt: new Date(postData.created_at).toLocaleDateString(),
     }
 
@@ -675,7 +808,8 @@ export async function getMyTradePosts(userId: string) {
         custom_id, 
         status, 
         created_at,
-        is_authenticated
+        is_authenticated,
+        comment
       `)
       .eq("owner_id", userId)
       .eq("is_authenticated", true)
@@ -768,6 +902,7 @@ export async function getMyTradePosts(userId: string) {
         postedDateRelative,
         status: displayStatus,
         commentCount,
+        authorComment: post.comment || null,
         postUrl: `/trades/${post.id}`,
       }
     })
@@ -812,7 +947,8 @@ export async function getCommentedTradePosts(userId: string) {
         custom_id, 
         status, 
         created_at,
-        is_authenticated
+        is_authenticated,
+        comment
       `)
       .in("id", commentedPostIds)
       .or(`owner_id.is.null,owner_id.neq.${userId}`) // 自分の投稿は除外、ゲスト投稿は含める
@@ -905,6 +1041,7 @@ export async function getCommentedTradePosts(userId: string) {
         postedDateRelative,
         status: displayStatus,
         commentCount,
+        authorComment: post.comment || null,
         postUrl: `/trades/${post.id}`,
       }
     })

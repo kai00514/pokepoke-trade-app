@@ -1,7 +1,8 @@
 "use client"
 import Link from "next/link"
-import { Home, Users, Layers, History, Info } from 'lucide-react'
+import { Home, Users, Layers, History, Info } from "lucide-react"
 import { usePathname } from "next/navigation"
+import { useEffect } from "react"
 import { cn } from "@/lib/utils"
 
 const navItems = [
@@ -14,6 +15,13 @@ const navItems = [
 
 export default function Footer() {
   const pathname = usePathname()
+
+  useEffect(() => {
+    document.body.classList.add("pb-16") // フッターの高さ分の余白
+    return () => {
+      document.body.classList.remove("pb-16")
+    }
+  }, [])
 
   return (
     <footer className="bg-blue-600 shadow-lg fixed bottom-0 left-0 right-0 z-50">
