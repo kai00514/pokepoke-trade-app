@@ -148,7 +148,7 @@ export default function TradeBoardPage() {
           </div>
 
           {/* Search */}
-          <div className="mb-2 rounded-xl border border-[#4169e1] bg-white/90 shadow-sm backdrop-blur-sm">
+          <div className="mb-2 rounded-xl border border-[#3d496e] bg-white/90 shadow-sm backdrop-blur-sm">
             <div className="p-1">
               <div className="flex gap-1">
                 <Input

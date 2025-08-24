@@ -59,7 +59,7 @@ export default function TradePostCard({ post }: TradePostCardProps) {
           : "bg-gray-100 text-gray-700 border-gray-200"
 
   return (
-    <Card className="relative w-full border border-[#E5E7EB] bg-white shadow-sm hover:shadow-md transition-shadow duration-200 rounded-xl">
+    <Card className="relative w-full border border-[#3d496e] bg-white shadow-sm hover:shadow-md transition-shadow duration-200 rounded-xl">
       {/* Status Badge in the top-right */}
       <div className="absolute right-3 top-3 z-10">
         <Badge variant="outline" className={`rounded-full px-2.5 py-1 text-xs font-semibold ${statusStyles}`}>
@@ -68,8 +68,8 @@ export default function TradePostCard({ post }: TradePostCardProps) {
       </div>
 
       <Link href={`/trades/${post.id}`} className="block">
-        <CardHeader className="pb-2">
-          <div className="flex items-start gap-3">
+        <CardHeader className>
+          <div className="flex items-start">
             <div className="flex-1 min-w-0">
               <CardTitle className="text-xl font-semibold text-[#111827]">{post.title}</CardTitle>
               <div className="mt-1 flex items-center text-[#6B7280]">
@@ -92,14 +92,14 @@ export default function TradePostCard({ post }: TradePostCardProps) {
           </div>
         </CardHeader>
 
-        <CardContent className="pt-2 pb-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-4">
+        <CardContent className="pt-1 pb-2">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-3 mb-2">
             {/* Wanted Cards */}
             <div className="space-y-2 md:pr-3">
               <div className="flex items-center justify-between">
                 <h3 className="text-sm font-medium text-[#1D4ED8]">求めるカード</h3>
               </div>
-              <div className="rounded-lg border border-[#E5E7EB] bg-[#F8FBFF] pt-2 pb-2 pl-2 pr-2 flex flex-nowrap overflow-x-auto gap-2 items-center scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-slate-100">
+              <div className="rounded-lg border border-[#3d496e] bg-[#F8FBFF] pt-2 pb-2 pl-2 pr-2 flex flex-nowrap overflow-x-auto gap-2 items-center scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-slate-100">
                 {wantedCards.length > 0 ? (
                   wantedCards.map((card: any) => (
                     <div key={card.id} className="flex-shrink-0 flex flex-col items-center">
@@ -122,11 +122,11 @@ export default function TradePostCard({ post }: TradePostCardProps) {
             </div>
 
             {/* Offered Cards */}
-            <div className="space-y-2 md:pl-3 md:border-l md:border-[#E5E7EB]">
+            <div className="space-y-2 md:pl-3 md:border-l">
               <div className="flex items-center justify-between">
                 <h3 className="text-sm font-medium text-[#0EA5E9]">譲れるカード</h3>
               </div>
-              <div className="rounded-lg border border-[#E5E7EB] bg-[#F7FAFF] pt-2 pb-2 pl-2 pr-2 flex flex-nowrap overflow-x-auto gap-2 items-center scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-slate-100">
+              <div className="rounded-lg border border-[#3d496e] bg-[#F7FAFF] pt-2 pb-2 pl-2 pr-2 flex flex-nowrap overflow-x-auto gap-2 items-center scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-slate-100">
                 {offeredCards.length > 0 ? (
                   offeredCards.map((card: any) => (
                     <div key={card.id} className="flex-shrink-0 flex flex-col items-center">
@@ -148,14 +148,10 @@ export default function TradePostCard({ post }: TradePostCardProps) {
               </div>
             </div>
           </div>
-
-          <div className="bg-[#F9FAFB] p-2 rounded-md text-sm text-[#6B7280] mb-3 border border-[#E5E7EB]">
-            {post.comments > 0 ? `コメント: ${post.comments}件` : "コメントはありません"}
-          </div>
         </CardContent>
       </Link>
 
-      <CardFooter className="bg-[#F8FAFC] px-4 py-3 flex flex-col sm:flex-row justify-between items-center gap-2 sm:gap-4 rounded-b-xl border-t border-[#E5E7EB]">
+      <CardFooter className="bg-[#F8FAFC] px-4 py-3 flex flex-col sm:flex-row justify-between items-center gap-2 sm:gap-4 rounded-b-xl border-t border-[#3d496e] mx-1">
         <div className="flex items-center gap-2">
           <p className="text-xs text-[#6B7280]">ID: {post.postId}</p>
           <Button
