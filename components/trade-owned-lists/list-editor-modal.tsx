@@ -140,10 +140,10 @@ export default function ListEditorModal({ isOpen, onOpenChange, list, onSave }: 
 
             {/* Cards Grid */}
             {cards.length > 0 ? (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3">
                 {cards.map((card, index) => (
                   <div key={card.id} className="relative group">
-                    <div className="aspect-[7/10] bg-gray-100 rounded-lg overflow-hidden border">
+                    <div className="aspect-[7/10] bg-gray-100 rounded-md overflow-hidden border">
                       <img
                         src={card.image_url || "/placeholder.svg"}
                         alt={card.name}
@@ -156,7 +156,7 @@ export default function ListEditorModal({ isOpen, onOpenChange, list, onSave }: 
                     >
                       <X className="h-3 w-3" />
                     </button>
-                    <p className="text-xs text-center mt-1 truncate">{card.name}</p>
+                    <p className="text-xs text-center mt-1 truncate text-[#6B7280]">{card.name}</p>
                   </div>
                 ))}
               </div>

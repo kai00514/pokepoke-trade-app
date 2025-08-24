@@ -159,10 +159,10 @@ export default function ListsPage() {
   }
 
   return (
-    <div className={`flex min-h-screen flex-col ${notoSansJP.className}`}>
+    <div className={`min-h-screen flex flex-col ${notoSansJP.className}`}>
       <Header />
 
-      <div className="w-full bg-gradient-to-b from-[#DBEAFE] to-white">
+      <div className="flex-1 w-full bg-gradient-to-b from-[#DBEAFE] to-white">
         <main className="container mx-auto px-3 sm:px-4 py-8 sm:py-10">
           {/* Header */}
           <div className="flex items-center gap-4 mb-8">
