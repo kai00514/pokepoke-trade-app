@@ -22,15 +22,19 @@ export default function ListSelectorModal({ isOpen, onOpenChange, userId, onList
 
   useEffect(() => {
     if (isOpen && userId) {
-      setIsLoading(true)
       const fetchLists = async () => {
+        setIsLoading(true)
         try {
           const result = await getTradeOwnedLists(userId)
           if (result.success) {
             setLists(result.lists)
+          } else {
+            console.error("Failed to fetch lists:", result.error)
+            setLists([])
           }
         } catch (error) {
           console.error("Error fetching lists:", error)
+          setLists([])
         } finally {
           setIsLoading(false)
         }
@@ -77,7 +81,7 @@ export default function ListSelectorModal({ isOpen, onOpenChange, userId, onList
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[70vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[70vh] overflow-y-auto" onOpenChange={onOpenChange}>
         <DialogHeader>
           <DialogTitle>保存済みリストから選択</DialogTitle>
         </DialogHeader>
