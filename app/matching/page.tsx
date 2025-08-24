@@ -24,7 +24,7 @@ export default function MatchingPage() {
               <div className="space-y-2">
                 <h2 className="text-2xl font-bold text-slate-900">Coming Soon</h2>
                 <p className="text-slate-600 text-sm leading-relaxed">
-                  マッチング機能は現在開発中です。
+                  マッチング機能���現在開発中です。
                   <br />
                   より良い体験をご提供するために準備を進めています。
                 </p>

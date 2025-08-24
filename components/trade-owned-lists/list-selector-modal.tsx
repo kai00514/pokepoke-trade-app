@@ -12,7 +12,7 @@ import type { Card as SelectedCardType } from "@/components/detailed-search-moda
 interface ListSelectorModalProps {
   isOpen: boolean
   onOpenChange: (open: boolean) => void
-  userId: string
+  userId: string | null
   onListSelect: (cards: SelectedCardType[]) => void
 }
 
@@ -40,6 +40,9 @@ export default function ListSelectorModal({ isOpen, onOpenChange, userId, onList
         }
       }
       fetchLists()
+    } else if (isOpen && !userId) {
+      setLists([])
+      setIsLoading(false)
     }
   }, [isOpen, userId])
 

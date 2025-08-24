@@ -345,7 +345,6 @@ export default function CreateTradePage() {
                     リストを選択
                   </Button>
                 </div>
-                <p className="text-xs text-blue-600">事前に作成したカードリストから一括で選択できます</p>
               </div>
 
               <Button
@@ -421,7 +420,8 @@ export default function CreateTradePage() {
       />
       <ListSelectorModal
         isOpen={showListSelector}
-        onClose={() => setShowListSelector(false)}
+        onOpenChange={(open) => setShowListSelector(open)}
+        userId={currentUserId || ""}
         onListSelect={(selectedCards) => {
           // 重複を除去して追加
           const existingIds = new Set(offeredCards.map((card) => card.id))

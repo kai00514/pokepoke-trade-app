@@ -361,7 +361,7 @@ export default function DeckCardSelectionModal({
                 <div className="p-4 space-y-4 border-b">
                   <Input
                     type="text"
-                    placeholder="キーワード"
+                    placeholder="キーワー��"
                     value={keyword}
                     onChange={(e) => setKeyword(e.target.value)}
                     className="flex-grow"
