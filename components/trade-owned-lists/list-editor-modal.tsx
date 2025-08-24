@@ -76,12 +76,13 @@ export default function ListEditorModal({ isOpen, onOpenChange, list, onSave }: 
   const handleAddCards = (selectedCards: SelectedCardType[]) => {
     // 重複除去
     const existingIds = new Set(cards.map((card) => card.id))
+
     const newCards = selectedCards
       .filter((card) => !existingIds.has(card.id))
       .map((card) => ({
         id: card.id,
         name: card.name,
-        image_url: card.image_url || `/placeholder.svg?height=100&width=70&text=${card.name}`,
+        image_url: card.imageUrl || `/placeholder.svg?height=100&width=70&text=${card.name}`,
       }))
 
     const totalCards = cards.length + newCards.length
