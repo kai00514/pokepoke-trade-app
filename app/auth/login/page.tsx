@@ -119,14 +119,21 @@ export default function LoginPage() {
     setErrorMessage(null)
 
     try {
+      const options: any = {
+        redirectTo: `${window.location.origin}/auth/callback`,
+        queryParams: {
+          prompt: "consent",
+        },
+      }
+
+      // X (Twitter) の場合、メールアドレス取得のためのスコープを追加
+      if (provider === "twitter") {
+        options.scopes = "tweet.read users.read offline.access"
+      }
+
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider,
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
-          queryParams: {
-            prompt: "consent",
-          },
-        },
+        options,
       })
 
       if (error) {
