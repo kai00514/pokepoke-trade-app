@@ -1,15 +1,15 @@
-import { createClient } from "@/lib/supabase/server"
+import { createServerClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
 
 interface List {
-  id: string
+  id: number
   name: string
   updated_at: string
   user_id: string
 }
 
 export default async function ListsPage() {
-  const supabase = await createClient()
+  const supabase = await createServerClient()
 
   // Check if user is authenticated
   const {
@@ -23,7 +23,7 @@ export default async function ListsPage() {
 
   // Fetch user's lists
   const { data: lists, error } = await supabase
-    .from("trade_owned_lists")
+    .from("trade_owned_list")
     .select("*")
     .eq("user_id", user.id)
     .order("updated_at", { ascending: false })
