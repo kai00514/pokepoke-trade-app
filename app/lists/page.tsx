@@ -14,22 +14,24 @@ import { supabase } from "@/lib/supabase/client"
 import ListEditorModal from "@/components/trade-owned-lists/list-editor-modal"
 import { deleteTradeOwnedList } from "@/lib/actions/trade-owned-lists"
 
-interface List {
+interface TradeOwnedList {
   id: number
-  name: string
-  updated_at: string
+  list_name: string
+  card_ids: number[]
   user_id: string
+  created_at: string
+  updated_at: string
 }
 
 export default function ListsPage() {
   const { user, loading } = useAuth()
   const router = useRouter()
   const { toast } = useToast()
-  const [lists, setLists] = useState<List[]>([])
+  const [lists, setLists] = useState<TradeOwnedList[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isEditorOpen, setIsEditorOpen] = useState(false)
-  const [editingList, setEditingList] = useState<List | null>(null)
+  const [editingList, setEditingList] = useState<TradeOwnedList | null>(null)
 
   useEffect(() => {
     if (loading) return
@@ -57,14 +59,14 @@ export default function ListsPage() {
 
       if (error) {
         console.error("Error fetching lists:", error)
-        setError("Error loading lists. Please try again.")
+        setError("リストの読み込みに失敗しました。再試行してください。")
         return
       }
 
       setLists(lists || [])
     } catch (err) {
       console.error("Unexpected error:", err)
-      setError("An unexpected error occurred.")
+      setError("予期しないエラーが発生しました。")
     } finally {
       setIsLoading(false)
     }
@@ -75,7 +77,7 @@ export default function ListsPage() {
     setIsEditorOpen(true)
   }
 
-  const handleEditList = (list: List) => {
+  const handleEditList = (list: TradeOwnedList) => {
     setEditingList(list)
     setIsEditorOpen(true)
   }
@@ -86,7 +88,10 @@ export default function ListsPage() {
     try {
       const result = await deleteTradeOwnedList(listId)
       if (result.success) {
-        toast({ title: "削除完了", description: "リストを削除しました。" })
+        toast({
+          title: "削除完了",
+          description: "リストを削除しました。",
+        })
         fetchLists()
       } else {
         toast({
@@ -108,6 +113,15 @@ export default function ListsPage() {
     setIsEditorOpen(false)
     setEditingList(null)
     fetchLists()
+  }
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString)
+    return date.toLocaleDateString("ja-JP", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    })
   }
 
   if (loading || isLoading) {
@@ -175,7 +189,7 @@ export default function ListsPage() {
                 <Card key={list.id} className="hover:shadow-lg transition-shadow">
                   <CardHeader className="pb-3">
                     <div className="flex justify-between items-start">
-                      <CardTitle className="text-lg font-semibold text-slate-800 truncate">{list.name}</CardTitle>
+                      <CardTitle className="text-lg font-semibold text-slate-800 truncate">{list.list_name}</CardTitle>
                       <div className="flex gap-1 ml-2">
                         <Button variant="ghost" size="sm" onClick={() => handleEditList(list)} className="h-8 w-8 p-0">
                           <Edit className="h-4 w-4" />
@@ -195,9 +209,9 @@ export default function ListsPage() {
                     <div className="flex items-center justify-between text-sm text-slate-600">
                       <div className="flex items-center">
                         <Calendar className="h-4 w-4 mr-1" />
-                        {new Date(list.updated_at).toLocaleDateString()}
+                        {formatDate(list.updated_at)}
                       </div>
-                      <Badge variant="secondary">リスト</Badge>
+                      <Badge variant="secondary">{list.card_ids ? list.card_ids.length : 0}枚</Badge>
                     </div>
                   </CardContent>
                 </Card>
@@ -214,6 +228,7 @@ export default function ListsPage() {
           onClose={() => setIsEditorOpen(false)}
           onSave={handleListSaved}
           editingList={editingList}
+          userId={user.id}
         />
       )}
     </div>

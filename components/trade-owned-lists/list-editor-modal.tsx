@@ -12,16 +12,21 @@ import type { Card as SelectedCardType } from "@/components/detailed-search-moda
 import { getCardsByIds } from "@/lib/card-api"
 import { createTradeOwnedList, updateTradeOwnedList } from "@/lib/actions/trade-owned-lists"
 
+interface TradeOwnedList {
+  id: number
+  list_name: string
+  card_ids: number[]
+  user_id: string
+  created_at: string
+  updated_at: string
+}
+
 interface ListEditorModalProps {
   isOpen: boolean
   onClose: () => void
   onSave: () => void
-  editingList?: {
-    id: number
-    name: string
-    card_ids: number[]
-    user_id: string
-  } | null
+  editingList?: TradeOwnedList | null
+  userId: string
 }
 
 interface CardInfo {
@@ -30,7 +35,7 @@ interface CardInfo {
   image_url: string
 }
 
-export default function ListEditorModal({ isOpen, onClose, onSave, editingList }: ListEditorModalProps) {
+export default function ListEditorModal({ isOpen, onClose, onSave, editingList, userId }: ListEditorModalProps) {
   const [listName, setListName] = useState("")
   const [cards, setCards] = useState<CardInfo[]>([])
   const [isCardSearchOpen, setIsCardSearchOpen] = useState(false)
@@ -46,7 +51,7 @@ export default function ListEditorModal({ isOpen, onClose, onSave, editingList }
     if (isOpen) {
       if (isEditMode && editingList) {
         // 編集モード
-        setListName(editingList.name)
+        setListName(editingList.list_name)
         if (editingList.card_ids && editingList.card_ids.length > 0) {
           loadCards(editingList.card_ids)
         } else {
@@ -141,13 +146,14 @@ export default function ListEditorModal({ isOpen, onClose, onSave, editingList }
         // 更新
         result = await updateTradeOwnedList(
           editingList.id,
-          editingList.user_id,
+          userId,
           listName.trim(),
           cards.map((card) => card.id),
         )
       } else {
         // 新規作成
         result = await createTradeOwnedList(
+          userId,
           listName.trim(),
           cards.map((card) => card.id),
         )

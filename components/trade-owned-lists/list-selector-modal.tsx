@@ -3,16 +3,17 @@
 import { useState, useEffect } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Calendar, Package, Loader2 } from "lucide-react"
-import { useAuth } from "@/contexts/auth-context"
+import { useToast } from "@/components/ui/use-toast"
 import { supabase } from "@/lib/supabase/client"
 
 interface TradeOwnedList {
   id: number
-  name: string
+  list_name: string
   card_ids: number[]
+  user_id: string
+  created_at: string
   updated_at: string
 }
 
@@ -20,68 +21,81 @@ interface ListSelectorModalProps {
   isOpen: boolean
   onClose: () => void
   onSelect: (cardIds: number[]) => void
+  userId: string
 }
 
-export default function ListSelectorModal({ isOpen, onClose, onSelect }: ListSelectorModalProps) {
-  const { user } = useAuth()
+export default function ListSelectorModal({ isOpen, onClose, onSelect, userId }: ListSelectorModalProps) {
   const [lists, setLists] = useState<TradeOwnedList[]>([])
-  const [isLoading, setIsLoading] = useState(false)
   const [selectedListId, setSelectedListId] = useState<number | null>(null)
+  const [isLoading, setIsLoading] = useState(false)
+  const { toast } = useToast()
 
   useEffect(() => {
-    if (isOpen && user) {
+    if (isOpen) {
       fetchLists()
     }
-  }, [isOpen, user])
+  }, [isOpen, userId])
 
   const fetchLists = async () => {
-    if (!user) return
-
     setIsLoading(true)
     try {
       const { data, error } = await supabase
         .from("trade_owned_list")
         .select("*")
-        .eq("user_id", user.id)
+        .eq("user_id", userId)
         .order("updated_at", { ascending: false })
 
       if (error) {
         console.error("Error fetching lists:", error)
+        toast({
+          title: "エラー",
+          description: "リストの取得に失敗しました。",
+          variant: "destructive",
+        })
         return
       }
 
       setLists(data || [])
     } catch (error) {
       console.error("Unexpected error:", error)
+      toast({
+        title: "エラー",
+        description: "予期しないエラーが発生しました。",
+        variant: "destructive",
+      })
     } finally {
       setIsLoading(false)
     }
   }
 
-  const handleSelectList = (list: TradeOwnedList) => {
-    setSelectedListId(list.id)
-  }
+  const handleSelect = () => {
+    if (selectedListId === null) {
+      toast({
+        title: "エラー",
+        description: "リストを選択してください。",
+        variant: "destructive",
+      })
+      return
+    }
 
-  const handleConfirm = () => {
     const selectedList = lists.find((list) => list.id === selectedListId)
     if (selectedList) {
-      onSelect(selectedList.card_ids)
+      onSelect(selectedList.card_ids || [])
     }
   }
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
     return date.toLocaleDateString("ja-JP", {
+      year: "numeric",
       month: "short",
       day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
     })
   }
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[70vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>リストから選択</DialogTitle>
         </DialogHeader>
@@ -91,43 +105,46 @@ export default function ListSelectorModal({ isOpen, onClose, onSelect }: ListSel
             <div className="flex justify-center items-center py-12">
               <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
             </div>
-          ) : lists.length > 0 ? (
+          ) : lists.length === 0 ? (
+            <div className="text-center py-12">
+              <Package className="h-12 w-12 text-slate-400 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-slate-700 mb-2">リストがありません</h3>
+              <p className="text-slate-500 mb-4">まずは「譲れるカードリスト」ページでリストを作成してください。</p>
+              <Button variant="outline" onClick={onClose}>
+                閉じる
+              </Button>
+            </div>
+          ) : (
             <>
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {lists.map((list) => (
-                  <Card
+                  <div
                     key={list.id}
-                    className={`cursor-pointer transition-all hover:shadow-md ${
-                      selectedListId === list.id ? "ring-2 ring-blue-500 bg-blue-50" : "hover:bg-slate-50"
+                    className={`p-4 border rounded-lg cursor-pointer transition-colors ${
+                      selectedListId === list.id
+                        ? "border-blue-500 bg-blue-50"
+                        : "border-slate-200 hover:border-slate-300 hover:bg-slate-50"
                     }`}
-                    onClick={() => handleSelectList(list)}
+                    onClick={() => setSelectedListId(list.id)}
                   >
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex-1">
-                          <h3 className="font-medium text-slate-800">{list.name}</h3>
-                          <div className="flex items-center gap-4 mt-2 text-sm text-slate-600">
-                            <div className="flex items-center gap-1">
-                              <Package className="h-4 w-4" />
-                              {list.card_ids.length}枚
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <Calendar className="h-4 w-4" />
-                              {formatDate(list.updated_at)}
-                            </div>
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-slate-800">{list.list_name}</h3>
+                        <div className="flex items-center gap-4 mt-2 text-sm text-slate-600">
+                          <div className="flex items-center">
+                            <Calendar className="h-4 w-4 mr-1" />
+                            {formatDate(list.updated_at)}
                           </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Badge variant="secondary">リスト</Badge>
-                          {selectedListId === list.id && (
-                            <div className="w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center">
-                              <div className="w-2 h-2 bg-white rounded-full"></div>
-                            </div>
-                          )}
+                          <Badge variant="secondary">{list.card_ids ? list.card_ids.length : 0}枚</Badge>
                         </div>
                       </div>
-                    </CardContent>
-                  </Card>
+                      {selectedListId === list.id && (
+                        <div className="w-4 h-4 bg-blue-600 rounded-full flex items-center justify-center">
+                          <div className="w-2 h-2 bg-white rounded-full"></div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 ))}
               </div>
 
@@ -135,20 +152,11 @@ export default function ListSelectorModal({ isOpen, onClose, onSelect }: ListSel
                 <Button variant="outline" onClick={onClose}>
                   キャンセル
                 </Button>
-                <Button onClick={handleConfirm} disabled={!selectedListId} className="bg-blue-600 hover:bg-blue-700">
+                <Button onClick={handleSelect} className="bg-blue-600 hover:bg-blue-700">
                   選択したリストを追加
                 </Button>
               </div>
             </>
-          ) : (
-            <div className="text-center py-12">
-              <Package className="h-12 w-12 text-slate-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-slate-700 mb-2">リストがありません</h3>
-              <p className="text-slate-500 mb-4">まずは「譲れるカードリスト」ページでリストを作成してください。</p>
-              <Button variant="outline" onClick={onClose}>
-                閉じる
-              </Button>
-            </div>
           )}
         </div>
       </DialogContent>

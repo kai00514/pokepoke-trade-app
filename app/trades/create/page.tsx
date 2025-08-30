@@ -10,8 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
-import { Plus, X, List, Package } from "lucide-react"
+import { Plus, X, List, Loader2 } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
 import DetailedSearchModal from "@/components/detailed-search-modal"
 import ListSelectorModal from "@/components/trade-owned-lists/list-selector-modal"
@@ -30,19 +29,15 @@ export default function CreateTradePage() {
   const router = useRouter()
   const { toast } = useToast()
 
-  // Form state
   const [title, setTitle] = useState("")
   const [description, setDescription] = useState("")
   const [offeredCards, setOfferedCards] = useState<CardInfo[]>([])
   const [wantedCards, setWantedCards] = useState<CardInfo[]>([])
-
-  // Modal states
   const [isOfferedSearchOpen, setIsOfferedSearchOpen] = useState(false)
   const [isWantedSearchOpen, setIsWantedSearchOpen] = useState(false)
   const [isListSelectorOpen, setIsListSelectorOpen] = useState(false)
-
-  // Loading states
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isLoadingCards, setIsLoadingCards] = useState(false)
 
   useEffect(() => {
     if (loading) return
@@ -115,18 +110,24 @@ export default function CreateTradePage() {
     }
   }
 
-  const handleSelectFromList = async (cardIds: number[]) => {
+  const handleListSelected = async (cardIds: number[]) => {
+    if (cardIds.length === 0) {
+      setIsListSelectorOpen(false)
+      return
+    }
+
+    setIsLoadingCards(true)
     try {
       const cardData = await getCardsByIds(cardIds)
-      const existingIds = new Set(offeredCards.map((card) => card.id))
+      const cardInfos: CardInfo[] = cardData.map((card) => ({
+        id: card.id,
+        name: card.name,
+        image_url: card.image_url || card.game8_image_url || `/placeholder.svg?height=100&width=70&text=${card.name}`,
+      }))
 
-      const newCards = cardData
-        .filter((card) => !existingIds.has(card.id))
-        .map((card) => ({
-          id: card.id,
-          name: card.name,
-          image_url: card.image_url || card.game8_image_url || `/placeholder.svg?height=100&width=70&text=${card.name}`,
-        }))
+      // 重複除去
+      const existingIds = new Set(offeredCards.map((card) => card.id))
+      const newCards = cardInfos.filter((card) => !existingIds.has(card.id))
 
       const totalCards = offeredCards.length + newCards.length
       if (totalCards > 20) {
@@ -135,30 +136,25 @@ export default function CreateTradePage() {
           description: `譲れるカードは最大20枚まで登録できます。（現在: ${offeredCards.length}枚）`,
           variant: "destructive",
         })
+        setIsListSelectorOpen(false)
         return
       }
 
       setOfferedCards((prev) => [...prev, ...newCards])
-      setIsListSelectorOpen(false)
-
-      if (newCards.length > 0) {
-        toast({
-          title: "成功",
-          description: `リストから${newCards.length}枚のカードを追加しました。`,
-        })
-      } else {
-        toast({
-          title: "情報",
-          description: "追加できる新しいカードがありませんでした。",
-        })
-      }
+      toast({
+        title: "成功",
+        description: `${newCards.length}枚のカードを追加しました。`,
+      })
     } catch (error) {
-      console.error("Error loading cards from list:", error)
+      console.error("カード情報の取得に失敗しました:", error)
       toast({
         title: "エラー",
-        description: "リストからカードを読み込めませんでした。",
+        description: "カード情報の取得に失敗しました。",
         variant: "destructive",
       })
+    } finally {
+      setIsLoadingCards(false)
+      setIsListSelectorOpen(false)
     }
   }
 
@@ -217,7 +213,7 @@ export default function CreateTradePage() {
       } else {
         toast({
           title: "エラー",
-          description: result.error || "投稿の作成に失敗しました。",
+          description: result.error || "トレード投稿の作成に失敗しました。",
           variant: "destructive",
         })
       }
@@ -254,34 +250,31 @@ export default function CreateTradePage() {
       <Header />
       <main className="flex-grow container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
-          <div className="mb-6">
-            <h1 className="text-2xl font-bold text-slate-800 mb-2">トレード投稿を作成</h1>
-            <p className="text-slate-600">カードのトレード投稿を作成して、他のユーザーとカード交換をしましょう。</p>
-          </div>
+          <h1 className="text-2xl font-bold text-slate-800 mb-6">トレード投稿を作成</h1>
 
           <div className="space-y-6">
-            {/* Basic Information */}
+            {/* Basic Info */}
             <Card>
               <CardHeader>
                 <CardTitle>基本情報</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <label className="text-sm font-medium text-slate-700">タイトル *</label>
+                  <label className="text-sm font-medium text-slate-700">タイトル</label>
                   <Input
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
-                    placeholder="例: ピカチュウVMAXとリザードンVを交換希望"
+                    placeholder="トレードのタイトルを入力"
                     className="mt-1"
                     disabled={isSubmitting}
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-slate-700">説明</label>
+                  <label className="text-sm font-medium text-slate-700">説明（任意）</label>
                   <Textarea
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
-                    placeholder="トレードの詳細や条件があれば記入してください"
+                    placeholder="トレードの詳細や条件を入力"
                     className="mt-1"
                     rows={3}
                     disabled={isSubmitting}
@@ -293,12 +286,9 @@ export default function CreateTradePage() {
             {/* Offered Cards */}
             <Card>
               <CardHeader>
-                <div className="flex items-center justify-between">
+                <div className="flex justify-between items-center">
                   <div>
-                    <CardTitle className="flex items-center gap-2">
-                      <Package className="h-5 w-5" />
-                      譲れるカード
-                    </CardTitle>
+                    <CardTitle className="text-blue-600">譲れるカード</CardTitle>
                     <p className="text-sm text-slate-600 mt-1">あなたが譲ることができるカードを選択してください</p>
                   </div>
                   <Badge variant="secondary">{offeredCards.length}/20枚</Badge>
@@ -309,25 +299,29 @@ export default function CreateTradePage() {
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h3 className="font-medium text-blue-900 flex items-center gap-2">
-                        <List className="h-4 w-4" />
-                        リストから選択
-                      </h3>
-                      <p className="text-sm text-blue-700 mt-1">事前に作成したカードリストから一括で追加できます</p>
+                      <h3 className="font-medium text-blue-800">リストから選択</h3>
+                      <p className="text-sm text-blue-600">事前に作成したリストからカードを一括で追加できます</p>
                     </div>
                     <Button
                       variant="outline"
                       onClick={() => setIsListSelectorOpen(true)}
-                      disabled={offeredCards.length >= 20 || isSubmitting}
+                      disabled={offeredCards.length >= 20 || isSubmitting || isLoadingCards}
                       className="border-blue-300 text-blue-700 hover:bg-blue-100"
                     >
-                      <List className="h-4 w-4 mr-2" />
-                      リストから選択
+                      {isLoadingCards ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          読み込み中...
+                        </>
+                      ) : (
+                        <>
+                          <List className="h-4 w-4 mr-2" />
+                          リストから選択
+                        </>
+                      )}
                     </Button>
                   </div>
                 </div>
-
-                <Separator className="my-4" />
 
                 <div className="flex justify-between items-center mb-4">
                   <span className="text-sm font-medium text-slate-700">個別にカードを追加</span>
@@ -337,12 +331,12 @@ export default function CreateTradePage() {
                     disabled={offeredCards.length >= 20 || isSubmitting}
                   >
                     <Plus className="h-4 w-4 mr-2" />
-                    カードを検索
+                    カードを追加
                   </Button>
                 </div>
 
                 {offeredCards.length > 0 ? (
-                  <div className="grid grid-cols-5 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-2">
+                  <div className="grid grid-cols-5 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-12 gap-2">
                     {offeredCards.map((card) => (
                       <div key={card.id} className="relative group">
                         <div className="aspect-[7/10] bg-gray-100 rounded-md overflow-hidden border">
@@ -368,10 +362,9 @@ export default function CreateTradePage() {
                     ))}
                   </div>
                 ) : (
-                  <div className="text-center py-8 text-slate-500 border-2 border-dashed border-slate-200 rounded-lg">
-                    <Package className="h-8 w-8 mx-auto mb-2 text-slate-400" />
+                  <div className="text-center py-12 text-slate-500 border-2 border-dashed border-slate-200 rounded-lg">
                     <p>譲れるカードが選択されていません</p>
-                    <p className="text-sm mt-1">上のボタンからカードを追加してください</p>
+                    <p className="text-sm mt-1">上記のボタンからカードを追加してください</p>
                   </div>
                 )}
               </CardContent>
@@ -380,10 +373,10 @@ export default function CreateTradePage() {
             {/* Wanted Cards */}
             <Card>
               <CardHeader>
-                <div className="flex items-center justify-between">
+                <div className="flex justify-between items-center">
                   <div>
                     <CardTitle>欲しいカード</CardTitle>
-                    <p className="text-sm text-slate-600 mt-1">交換で欲しいカードを選択してください</p>
+                    <p className="text-sm text-slate-600 mt-1">あなたが欲しいカードを選択してください</p>
                   </div>
                   <Badge variant="secondary">{wantedCards.length}/20枚</Badge>
                 </div>
@@ -397,12 +390,12 @@ export default function CreateTradePage() {
                     disabled={wantedCards.length >= 20 || isSubmitting}
                   >
                     <Plus className="h-4 w-4 mr-2" />
-                    カードを検索
+                    カードを追加
                   </Button>
                 </div>
 
                 {wantedCards.length > 0 ? (
-                  <div className="grid grid-cols-5 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-2">
+                  <div className="grid grid-cols-5 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-12 gap-2">
                     {wantedCards.map((card) => (
                       <div key={card.id} className="relative group">
                         <div className="aspect-[7/10] bg-gray-100 rounded-md overflow-hidden border">
@@ -428,22 +421,25 @@ export default function CreateTradePage() {
                     ))}
                   </div>
                 ) : (
-                  <div className="text-center py-8 text-slate-500 border-2 border-dashed border-slate-200 rounded-lg">
-                    <Package className="h-8 w-8 mx-auto mb-2 text-slate-400" />
+                  <div className="text-center py-12 text-slate-500 border-2 border-dashed border-slate-200 rounded-lg">
                     <p>欲しいカードが選択されていません</p>
-                    <p className="text-sm mt-1">上のボタンからカードを追加してください</p>
+                    <p className="text-sm mt-1">「カードを追加」ボタンから追加してください</p>
                   </div>
                 )}
               </CardContent>
             </Card>
 
             {/* Submit Button */}
-            <div className="flex justify-end gap-4">
-              <Button variant="outline" onClick={() => router.back()} disabled={isSubmitting}>
-                キャンセル
-              </Button>
-              <Button onClick={handleSubmit} disabled={isSubmitting} className="bg-blue-600 hover:bg-blue-700">
-                {isSubmitting ? "投稿中..." : "投稿する"}
+            <div className="flex justify-end">
+              <Button onClick={handleSubmit} disabled={isSubmitting} className="bg-blue-600 hover:bg-blue-700 px-8">
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    作成中...
+                  </>
+                ) : (
+                  "トレード投稿を作成"
+                )}
               </Button>
             </div>
           </div>
@@ -471,7 +467,8 @@ export default function CreateTradePage() {
       <ListSelectorModal
         isOpen={isListSelectorOpen}
         onClose={() => setIsListSelectorOpen(false)}
-        onSelect={handleSelectFromList}
+        onSelect={handleListSelected}
+        userId={user.id}
       />
     </div>
   )
