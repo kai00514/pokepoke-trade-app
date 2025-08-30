@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { InfoIcon, ArrowLeft, Trash2, Loader2, Clock, AlertTriangle } from "lucide-react"
+import { InfoIcon, ArrowLeft, Trash2, Loader2, Clock, AlertTriangle, List, Plus } from "lucide-react"
 import DetailedSearchModal from "@/components/detailed-search-modal"
 import ListSelectorModal from "@/components/trade-owned-lists/list-selector-modal"
 import type { Card as SelectedCardType } from "@/components/detailed-search-modal"
@@ -222,6 +222,46 @@ export default function CreateTradePage() {
     }
   }
 
+  const handleListSelect = (selectedCards: SelectedCardType[]) => {
+    // 重複を除去して追加
+    const existingIds = new Set(offeredCards.map((card) => card.id))
+    const newCards = selectedCards.filter((card) => !existingIds.has(card.id))
+
+    // 最大20枚の制限をチェック
+    const totalCards = offeredCards.length + newCards.length
+    if (totalCards > 20) {
+      const availableSlots = 20 - offeredCards.length
+      const cardsToAdd = newCards.slice(0, availableSlots)
+      setOfferedCards((prev) => [...prev, ...cardsToAdd])
+
+      if (availableSlots > 0) {
+        toast({
+          title: "一部のカードを追加",
+          description: `${cardsToAdd.length}枚のカードを追加しました。（制限: 20枚）`,
+        })
+      } else {
+        toast({
+          title: "制限に達しています",
+          description: "譲れるカードは最大20枚まで選択できます。",
+          variant: "destructive",
+        })
+      }
+    } else {
+      setOfferedCards((prev) => [...prev, ...newCards])
+      if (newCards.length > 0) {
+        toast({
+          title: "カードを追加",
+          description: `${newCards.length}枚のカードを追加しました。`,
+        })
+      }
+    }
+
+    if (formErrors.offeredCards) {
+      setFormErrors((prev) => ({ ...prev, offeredCards: "" }))
+    }
+    setShowListSelector(false)
+  }
+
   const renderSelectedCards = (cards: SelectedCardType[], context: "wanted" | "offered") => {
     if (cards.length === 0) {
       return (
@@ -236,27 +276,29 @@ export default function CreateTradePage() {
       )
     }
     return (
-      <div className="mt-3 flex flex-wrap gap-0">
+      <div className="mt-3 grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2">
         {cards.map((card) => (
-          <div key={card.id} className="relative group border rounded-md p-0 bg-slate-50 mx-0">
-            <Image
-              src={card.imageUrl || "/placeholder.svg"}
-              alt={card.name}
-              width={80}
-              height={112}
-              className="rounded object-contain aspect-[5/7] mx-auto"
-            />
-            <p className="text-xs text-center mt-1 truncate">{card.name}</p>
+          <div key={card.id} className="relative group">
+            <div className="aspect-[7/10] bg-slate-50 rounded-md overflow-hidden border">
+              <Image
+                src={card.imageUrl || "/placeholder.svg"}
+                alt={card.name}
+                width={80}
+                height={112}
+                className="w-full h-full object-cover"
+              />
+            </div>
             <Button
               variant="ghost"
               size="icon"
-              className="absolute top-0 right-0 h-2 w-2 bg-red-500 text-white opacity-0 group-hover:opacity-100 hover:bg-red-600 transition-opacity"
+              className="absolute -top-2 -right-2 h-6 w-6 bg-red-500 text-white opacity-0 group-hover:opacity-100 hover:bg-red-600 transition-opacity rounded-full"
               onClick={() => removeCard(card.id, context)}
               aria-label={`Remove ${card.name}`}
               disabled={isSubmitting}
             >
-              <Trash2 className="h-1 w-1" />
+              <Trash2 className="h-3 w-3" />
             </Button>
+            <p className="text-xs text-center mt-1 truncate text-slate-600">{card.name}</p>
           </div>
         ))}
       </div>
@@ -340,6 +382,7 @@ export default function CreateTradePage() {
                 className="w-full bg-blue-600 hover:bg-blue-700 text-white"
                 disabled={isSubmitting}
               >
+                <Plus className="h-4 w-4 mr-2" />
                 カードを選択 (最大20枚)
               </Button>
               {renderSelectedCards(wantedCards, "wanted")}
@@ -348,18 +391,26 @@ export default function CreateTradePage() {
               <label className="block text-sm font-medium text-slate-700 mb-1">
                 譲れるカード <span className="text-red-500">*</span>
               </label>
-              {/* リスト選択UI */}
-              <div className="mb-1 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-sm font-medium text-blue-700">保存済みリストから選択</span>
+
+              {/* リスト選択エリア */}
+              <div className="mb-3 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <List className="h-4 w-4 text-blue-600" />
+                      <span className="text-sm font-medium text-blue-700">保存済みリストから選択</span>
+                    </div>
+                    <p className="text-xs text-blue-600">事前に作成したカードリストから一括で選択できます</p>
+                  </div>
                   <Button
                     type="button"
                     variant="outline"
                     size="sm"
                     onClick={() => setShowListSelector(true)}
-                    className="text-blue-600 border-blue-300 hover:bg-blue-100"
+                    className="text-blue-600 border-blue-300 hover:bg-blue-100 whitespace-nowrap"
                     disabled={isSubmitting}
                   >
+                    <List className="h-4 w-4 mr-1" />
                     リストを選択
                   </Button>
                 </div>
@@ -371,7 +422,8 @@ export default function CreateTradePage() {
                 className="w-full bg-blue-600 hover:bg-blue-700 text-white"
                 disabled={isSubmitting}
               >
-                カードを選択 (最大20枚)
+                <Plus className="h-4 w-4 mr-2" />
+                個別にカードを選択 (最大20枚)
               </Button>
               {renderSelectedCards(offeredCards, "offered")}
             </div>
@@ -443,13 +495,7 @@ export default function CreateTradePage() {
         isOpen={showListSelector}
         onOpenChange={(open) => setShowListSelector(open)}
         userId={currentUserId || ""}
-        onListSelect={(selectedCards) => {
-          // 重複を除去して追加
-          const existingIds = new Set(offeredCards.map((card) => card.id))
-          const newCards = selectedCards.filter((card) => !existingIds.has(card.id))
-          setOfferedCards((prev) => [...prev, ...newCards])
-          setShowListSelector(false)
-        }}
+        onListSelect={handleListSelect}
       />
       {showLoginPrompt && (
         <LoginPromptModal onClose={() => setShowLoginPrompt(false)} onContinueAsGuest={handleContinueAsGuest} />
