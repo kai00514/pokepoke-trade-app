@@ -141,6 +141,13 @@ export default function ListEditorModal({ isOpen, onClose, onSave, editingList, 
     setIsSaving(true)
 
     try {
+      console.log("Saving list:", {
+        isEditMode,
+        userId,
+        listName: listName.trim(),
+        cardIds: cards.map((card) => card.id),
+      })
+
       let result
       if (isEditMode && editingList) {
         // 更新
@@ -159,6 +166,8 @@ export default function ListEditorModal({ isOpen, onClose, onSave, editingList, 
         )
       }
 
+      console.log("Save result:", result)
+
       if (result.success) {
         toast({
           title: "成功",
@@ -166,6 +175,7 @@ export default function ListEditorModal({ isOpen, onClose, onSave, editingList, 
         })
         onSave()
       } else {
+        console.error("Save failed:", result)
         toast({
           title: "エラー",
           description: result.error || "操作に失敗しました。",

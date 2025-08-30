@@ -51,6 +51,8 @@ export default function ListsPage() {
     setError(null)
 
     try {
+      console.log("Fetching lists for user:", user.id)
+
       const { data: lists, error } = await supabase
         .from("trade_owned_list")
         .select("*")
@@ -63,6 +65,7 @@ export default function ListsPage() {
         return
       }
 
+      console.log("Fetched lists:", lists)
       setLists(lists || [])
     } catch (err) {
       console.error("Unexpected error:", err)
@@ -73,11 +76,13 @@ export default function ListsPage() {
   }
 
   const handleCreateList = () => {
+    console.log("Creating new list")
     setEditingList(null)
     setIsEditorOpen(true)
   }
 
   const handleEditList = (list: TradeOwnedList) => {
+    console.log("Editing list:", list)
     setEditingList(list)
     setIsEditorOpen(true)
   }
@@ -101,6 +106,7 @@ export default function ListsPage() {
         })
       }
     } catch (error) {
+      console.error("Delete error:", error)
       toast({
         title: "エラー",
         description: "予期しないエラーが発生しました。",
@@ -110,6 +116,7 @@ export default function ListsPage() {
   }
 
   const handleListSaved = () => {
+    console.log("List saved, refreshing...")
     setIsEditorOpen(false)
     setEditingList(null)
     fetchLists()

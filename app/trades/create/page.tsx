@@ -29,13 +29,18 @@ export default function CreateTradePage() {
   const router = useRouter()
   const { toast } = useToast()
 
+  // Form state
   const [title, setTitle] = useState("")
   const [description, setDescription] = useState("")
   const [offeredCards, setOfferedCards] = useState<CardInfo[]>([])
   const [wantedCards, setWantedCards] = useState<CardInfo[]>([])
+
+  // Modal states
   const [isOfferedSearchOpen, setIsOfferedSearchOpen] = useState(false)
   const [isWantedSearchOpen, setIsWantedSearchOpen] = useState(false)
   const [isListSelectorOpen, setIsListSelectorOpen] = useState(false)
+
+  // Loading states
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isLoadingCards, setIsLoadingCards] = useState(false)
 
@@ -50,6 +55,7 @@ export default function CreateTradePage() {
 
   const handleAddOfferedCards = (selectedCards: SelectedCardType[]) => {
     const existingIds = new Set(offeredCards.map((card) => card.id))
+
     const newCards = selectedCards
       .filter((card) => !existingIds.has(Number.parseInt(card.id)))
       .map((card) => ({
@@ -81,6 +87,7 @@ export default function CreateTradePage() {
 
   const handleAddWantedCards = (selectedCards: SelectedCardType[]) => {
     const existingIds = new Set(wantedCards.map((card) => card.id))
+
     const newCards = selectedCards
       .filter((card) => !existingIds.has(Number.parseInt(card.id)))
       .map((card) => ({
@@ -119,15 +126,15 @@ export default function CreateTradePage() {
     setIsLoadingCards(true)
     try {
       const cardData = await getCardsByIds(cardIds)
-      const cardInfos: CardInfo[] = cardData.map((card) => ({
-        id: card.id,
-        name: card.name,
-        image_url: card.image_url || card.game8_image_url || `/placeholder.svg?height=100&width=70&text=${card.name}`,
-      }))
-
-      // 重複除去
       const existingIds = new Set(offeredCards.map((card) => card.id))
-      const newCards = cardInfos.filter((card) => !existingIds.has(card.id))
+
+      const newCards = cardData
+        .filter((card) => !existingIds.has(card.id))
+        .map((card) => ({
+          id: card.id,
+          name: card.name,
+          image_url: card.image_url || card.game8_image_url || `/placeholder.svg?height=100&width=70&text=${card.name}`,
+        }))
 
       const totalCards = offeredCards.length + newCards.length
       if (totalCards > 20) {
@@ -141,20 +148,28 @@ export default function CreateTradePage() {
       }
 
       setOfferedCards((prev) => [...prev, ...newCards])
-      toast({
-        title: "成功",
-        description: `${newCards.length}枚のカードを追加しました。`,
-      })
+      setIsListSelectorOpen(false)
+
+      if (newCards.length > 0) {
+        toast({
+          title: "成功",
+          description: `リストから${newCards.length}枚のカードを追加しました。`,
+        })
+      } else {
+        toast({
+          title: "情報",
+          description: "すべてのカードが既に追加されています。",
+        })
+      }
     } catch (error) {
-      console.error("カード情報の取得に失敗しました:", error)
+      console.error("Error loading cards from list:", error)
       toast({
         title: "エラー",
-        description: "カード情報の取得に失敗しました。",
+        description: "カード情報の読み込みに失敗しました。",
         variant: "destructive",
       })
     } finally {
       setIsLoadingCards(false)
-      setIsListSelectorOpen(false)
     }
   }
 
@@ -288,22 +303,23 @@ export default function CreateTradePage() {
               <CardHeader>
                 <div className="flex justify-between items-center">
                   <div>
-                    <CardTitle className="text-blue-600">譲れるカード</CardTitle>
+                    <CardTitle className="text-blue-700">譲れるカード</CardTitle>
                     <p className="text-sm text-slate-600 mt-1">あなたが譲ることができるカードを選択してください</p>
                   </div>
                   <Badge variant="secondary">{offeredCards.length}/20枚</Badge>
                 </div>
               </CardHeader>
               <CardContent>
-                {/* List Selection Area */}
+                {/* List Selection Section */}
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="font-medium text-blue-800">リストから選択</h3>
-                      <p className="text-sm text-blue-600">事前に作成したリストからカードを一括で追加できます</p>
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <List className="h-5 w-5 text-blue-600" />
+                      <span className="font-medium text-blue-800">リストから選択</span>
                     </div>
                     <Button
                       variant="outline"
+                      size="sm"
                       onClick={() => setIsListSelectorOpen(true)}
                       disabled={offeredCards.length >= 20 || isSubmitting || isLoadingCards}
                       className="border-blue-300 text-blue-700 hover:bg-blue-100"
@@ -321,6 +337,9 @@ export default function CreateTradePage() {
                       )}
                     </Button>
                   </div>
+                  <p className="text-sm text-blue-600">
+                    事前に作成したカードリストから一括でカードを追加できます。重複は自動的に除去されます。
+                  </p>
                 </div>
 
                 <div className="flex justify-between items-center mb-4">
@@ -375,7 +394,7 @@ export default function CreateTradePage() {
               <CardHeader>
                 <div className="flex justify-between items-center">
                   <div>
-                    <CardTitle>欲しいカード</CardTitle>
+                    <CardTitle className="text-green-700">欲しいカード</CardTitle>
                     <p className="text-sm text-slate-600 mt-1">あなたが欲しいカードを選択してください</p>
                   </div>
                   <Badge variant="secondary">{wantedCards.length}/20枚</Badge>
@@ -431,7 +450,11 @@ export default function CreateTradePage() {
 
             {/* Submit Button */}
             <div className="flex justify-end">
-              <Button onClick={handleSubmit} disabled={isSubmitting} className="bg-blue-600 hover:bg-blue-700 px-8">
+              <Button
+                onClick={handleSubmit}
+                disabled={isSubmitting || offeredCards.length === 0 || wantedCards.length === 0}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
                 {isSubmitting ? (
                   <>
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />

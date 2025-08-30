@@ -15,28 +15,51 @@ export interface TradeOwnedList {
 
 export async function createTradeOwnedList(userId: string, listName: string, cardIds: number[]) {
   try {
+    console.log("Creating trade owned list with:", [userId, listName, cardIds])
+
     const cookieStore = cookies()
     const supabase = createServerClient(cookieStore)
+
+    // 認証確認
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+
+    if (!user) {
+      console.error("No authenticated user found")
+      return { success: false, error: "認証が必要です。" }
+    }
+
+    if (user.id !== userId) {
+      console.error("User ID mismatch:", { authUserId: user.id, providedUserId: userId })
+      return { success: false, error: "認証エラーが発生しました。" }
+    }
 
     if (!listName.trim()) {
       return { success: false, error: "リスト名を入力してください。" }
     }
 
-    const { data, error } = await supabase
-      .from("trade_owned_list")
-      .insert({
-        list_name: listName.trim(),
-        card_ids: cardIds,
-        user_id: userId,
-      })
-      .select()
-      .single()
-
-    if (error) {
-      console.error("Error creating trade owned list:", error)
-      return { success: false, error: `リストの作成に失敗しました: ${error.message}` }
+    // データベースに挿入
+    const insertData = {
+      list_name: listName.trim(),
+      card_ids: cardIds || [],
+      user_id: userId,
     }
 
+    console.log("Inserting data:", insertData)
+
+    const { data, error } = await supabase.from("trade_owned_list").insert(insertData).select().single()
+
+    if (error) {
+      console.error("Database error creating trade owned list:", error)
+      return {
+        success: false,
+        error: `リストの作成に失敗しました: ${error.message}`,
+        details: error,
+      }
+    }
+
+    console.log("Successfully created list:", data)
     revalidatePath("/lists")
     return { success: true, list: data }
   } catch (error) {
@@ -47,8 +70,19 @@ export async function createTradeOwnedList(userId: string, listName: string, car
 
 export async function updateTradeOwnedList(listId: number, userId: string, listName: string, cardIds: number[]) {
   try {
+    console.log("Updating trade owned list:", { listId, userId, listName, cardIds })
+
     const cookieStore = cookies()
     const supabase = createServerClient(cookieStore)
+
+    // 認証確認
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+
+    if (!user || user.id !== userId) {
+      return { success: false, error: "認証が必要です。" }
+    }
 
     if (!listName.trim()) {
       return { success: false, error: "リスト名を入力してください。" }
@@ -62,6 +96,7 @@ export async function updateTradeOwnedList(listId: number, userId: string, listN
       .single()
 
     if (checkError || !existingList) {
+      console.error("List not found:", checkError)
       return { success: false, error: "リストが見つかりません。" }
     }
 
@@ -69,21 +104,27 @@ export async function updateTradeOwnedList(listId: number, userId: string, listN
       return { success: false, error: "このリストを編集する権限がありません。" }
     }
 
+    const updateData = {
+      list_name: listName.trim(),
+      card_ids: cardIds || [],
+      updated_at: new Date().toISOString(),
+    }
+
+    console.log("Updating with data:", updateData)
+
     const { data, error } = await supabase
       .from("trade_owned_list")
-      .update({
-        list_name: listName.trim(),
-        card_ids: cardIds,
-      })
+      .update(updateData)
       .eq("id", listId)
       .select()
       .single()
 
     if (error) {
-      console.error("Error updating trade owned list:", error)
+      console.error("Database error updating trade owned list:", error)
       return { success: false, error: `リストの更新に失敗しました: ${error.message}` }
     }
 
+    console.log("Successfully updated list:", data)
     revalidatePath("/lists")
     return { success: true, list: data }
   } catch (error) {
@@ -94,6 +135,8 @@ export async function updateTradeOwnedList(listId: number, userId: string, listN
 
 export async function deleteTradeOwnedList(listId: number) {
   try {
+    console.log("Deleting trade owned list:", listId)
+
     const cookieStore = cookies()
     const supabase = createServerClient(cookieStore)
 
@@ -113,6 +156,7 @@ export async function deleteTradeOwnedList(listId: number) {
       .single()
 
     if (checkError || !existingList) {
+      console.error("List not found for deletion:", checkError)
       return { success: false, error: "リストが見つかりません。" }
     }
 
@@ -123,10 +167,11 @@ export async function deleteTradeOwnedList(listId: number) {
     const { error } = await supabase.from("trade_owned_list").delete().eq("id", listId)
 
     if (error) {
-      console.error("Error deleting trade owned list:", error)
+      console.error("Database error deleting trade owned list:", error)
       return { success: false, error: `リストの削除に失敗しました: ${error.message}` }
     }
 
+    console.log("Successfully deleted list:", listId)
     revalidatePath("/lists")
     return { success: true }
   } catch (error) {
@@ -137,6 +182,8 @@ export async function deleteTradeOwnedList(listId: number) {
 
 export async function getTradeOwnedLists(userId: string) {
   try {
+    console.log("Fetching trade owned lists for user:", userId)
+
     const cookieStore = cookies()
     const supabase = createServerClient(cookieStore)
 
@@ -147,10 +194,11 @@ export async function getTradeOwnedLists(userId: string) {
       .order("updated_at", { ascending: false })
 
     if (error) {
-      console.error("Error fetching trade owned lists:", error)
+      console.error("Database error fetching trade owned lists:", error)
       return { success: false, error: "リストの取得に失敗しました", lists: [] }
     }
 
+    console.log("Successfully fetched lists:", data)
     return { success: true, lists: data || [] }
   } catch (error) {
     console.error("Unexpected error fetching trade owned lists:", error)
