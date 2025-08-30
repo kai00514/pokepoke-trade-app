@@ -10,14 +10,18 @@ import { useToast } from "@/components/ui/use-toast"
 import DetailedSearchModal from "@/components/detailed-search-modal"
 import type { Card as SelectedCardType } from "@/components/detailed-search-modal"
 import { getCardsByIds } from "@/lib/card-api"
-import { updateTradeOwnedList, type TradeOwnedList } from "@/lib/actions/trade-owned-lists"
+import { createTradeOwnedList, updateTradeOwnedList } from "@/lib/actions/trade-owned-lists"
 
 interface ListEditorModalProps {
   isOpen: boolean
-  onOpenChange: (open: boolean) => void
-  list: TradeOwnedList
-  userId: string
-  onSave: (updatedList: TradeOwnedList) => void
+  onClose: () => void
+  onSave: () => void
+  editingList?: {
+    id: number
+    name: string
+    card_ids: number[]
+    user_id: string
+  } | null
 }
 
 interface CardInfo {
@@ -26,51 +30,61 @@ interface CardInfo {
   image_url: string
 }
 
-export default function ListEditorModal({ isOpen, onOpenChange, list, userId, onSave }: ListEditorModalProps) {
-  const [listName, setListName] = useState(list.list_name)
+export default function ListEditorModal({ isOpen, onClose, onSave, editingList }: ListEditorModalProps) {
+  const [listName, setListName] = useState("")
   const [cards, setCards] = useState<CardInfo[]>([])
   const [isCardSearchOpen, setIsCardSearchOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const { toast } = useToast()
 
-  // カード情報を取得
+  // 編集モードかどうかを判定
+  const isEditMode = editingList !== null && editingList !== undefined
+
+  // モーダルが開かれた時の初期化
   useEffect(() => {
     if (isOpen) {
-      setListName(list.list_name)
-
-      if (list.card_ids.length > 0) {
-        setIsLoading(true)
-        const fetchCards = async () => {
-          try {
-            const cardData = await getCardsByIds(list.card_ids)
-            const cardInfos: CardInfo[] = cardData.map((card) => ({
-              id: card.id,
-              name: card.name,
-              image_url:
-                card.image_url || card.game8_image_url || `/placeholder.svg?height=100&width=70&text=${card.name}`,
-            }))
-            setCards(cardInfos)
-          } catch (error) {
-            console.error("カード情報の取得に失敗しました:", error)
-            // エラー時はプレースホルダーを使用
-            const fallbackCards: CardInfo[] = list.card_ids.map((id) => ({
-              id,
-              name: `カード${id}`,
-              image_url: `/placeholder.svg?height=100&width=70&text=Card${id}`,
-            }))
-            setCards(fallbackCards)
-          } finally {
-            setIsLoading(false)
-          }
+      if (isEditMode && editingList) {
+        // 編集モード
+        setListName(editingList.name)
+        if (editingList.card_ids && editingList.card_ids.length > 0) {
+          loadCards(editingList.card_ids)
+        } else {
+          setCards([])
+          setIsLoading(false)
         }
-        fetchCards()
       } else {
+        // 新規作成モード
+        setListName("")
         setCards([])
         setIsLoading(false)
       }
     }
-  }, [isOpen, list])
+  }, [isOpen, editingList, isEditMode])
+
+  const loadCards = async (cardIds: number[]) => {
+    setIsLoading(true)
+    try {
+      const cardData = await getCardsByIds(cardIds)
+      const cardInfos: CardInfo[] = cardData.map((card) => ({
+        id: card.id,
+        name: card.name,
+        image_url: card.image_url || card.game8_image_url || `/placeholder.svg?height=100&width=70&text=${card.name}`,
+      }))
+      setCards(cardInfos)
+    } catch (error) {
+      console.error("カード情報の取得に失敗しました:", error)
+      // エラー時はプレースホルダーを使用
+      const fallbackCards: CardInfo[] = cardIds.map((id) => ({
+        id,
+        name: `カード${id}`,
+        image_url: `/placeholder.svg?height=100&width=70&text=Card${id}`,
+      }))
+      setCards(fallbackCards)
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   const handleAddCards = (selectedCards: SelectedCardType[]) => {
     // 重複除去
@@ -120,37 +134,68 @@ export default function ListEditorModal({ isOpen, onOpenChange, list, userId, on
     }
 
     setIsSaving(true)
-    const result = await updateTradeOwnedList(
-      list.id,
-      userId,
-      listName.trim(),
-      cards.map((card) => card.id),
-    )
 
-    if (result.success) {
-      onSave(result.list)
-    } else {
+    try {
+      let result
+      if (isEditMode && editingList) {
+        // 更新
+        result = await updateTradeOwnedList(
+          editingList.id,
+          editingList.user_id,
+          listName.trim(),
+          cards.map((card) => card.id),
+        )
+      } else {
+        // 新規作成
+        result = await createTradeOwnedList(
+          listName.trim(),
+          cards.map((card) => card.id),
+        )
+      }
+
+      if (result.success) {
+        toast({
+          title: "成功",
+          description: isEditMode ? "リストを更新しました。" : "リストを作成しました。",
+        })
+        onSave()
+      } else {
+        toast({
+          title: "エラー",
+          description: result.error || "操作に失敗しました。",
+          variant: "destructive",
+        })
+      }
+    } catch (error) {
+      console.error("Save error:", error)
       toast({
         title: "エラー",
-        description: result.error,
+        description: "予期しないエラーが発生しました。",
         variant: "destructive",
       })
+    } finally {
+      setIsSaving(false)
     }
-    setIsSaving(false)
+  }
+
+  const handleClose = () => {
+    if (!isSaving) {
+      onClose()
+    }
   }
 
   return (
     <>
-      <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      <Dialog open={isOpen} onOpenChange={handleClose}>
         <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>リストを編集</DialogTitle>
+            <DialogTitle>{isEditMode ? "リストを編集" : "新しいリストを作成"}</DialogTitle>
           </DialogHeader>
 
           <div className="space-y-6">
             {/* List Name */}
             <div>
-              <label className="text-sm font-medium text-[#374151]">リスト名</label>
+              <label className="text-sm font-medium text-slate-700">リスト名</label>
               <Input
                 value={listName}
                 onChange={(e) => setListName(e.target.value)}
@@ -163,7 +208,7 @@ export default function ListEditorModal({ isOpen, onOpenChange, list, userId, on
             {/* Card Count */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-[#374151]">登録カード</span>
+                <span className="text-sm font-medium text-slate-700">登録カード</span>
                 <Badge variant="secondary">{cards.length}/35枚</Badge>
               </div>
               <Button
@@ -179,17 +224,21 @@ export default function ListEditorModal({ isOpen, onOpenChange, list, userId, on
             {/* Cards Grid */}
             {isLoading ? (
               <div className="flex justify-center items-center py-12">
-                <Loader2 className="h-8 w-8 animate-spin text-[#3B82F6]" />
+                <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
               </div>
             ) : cards.length > 0 ? (
               <div className="grid grid-cols-5 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-12 gap-2">
-                {cards.map((card, index) => (
+                {cards.map((card) => (
                   <div key={card.id} className="relative group">
                     <div className="aspect-[7/10] bg-gray-100 rounded-md overflow-hidden border">
                       <img
                         src={card.image_url || "/placeholder.svg"}
                         alt={card.name}
                         className="w-full h-full object-cover"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement
+                          target.src = "/placeholder.svg"
+                        }}
                       />
                     </div>
                     <button
@@ -199,12 +248,12 @@ export default function ListEditorModal({ isOpen, onOpenChange, list, userId, on
                     >
                       <X className="h-3 w-3" />
                     </button>
-                    <p className="text-xs text-center mt-1 truncate text-[#6B7280]">{card.name}</p>
+                    <p className="text-xs text-center mt-1 truncate text-slate-600">{card.name}</p>
                   </div>
                 ))}
               </div>
             ) : (
-              <div className="text-center py-12 text-[#6B7280] border-2 border-dashed border-[#E5E7EB] rounded-lg">
+              <div className="text-center py-12 text-slate-500 border-2 border-dashed border-slate-200 rounded-lg">
                 <p>カードが登録されていません</p>
                 <p className="text-sm mt-1">「カードを追加」ボタンから追加してください</p>
               </div>
@@ -212,17 +261,19 @@ export default function ListEditorModal({ isOpen, onOpenChange, list, userId, on
 
             {/* Actions */}
             <div className="flex justify-end gap-2 pt-4 border-t">
-              <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isSaving}>
+              <Button variant="outline" onClick={handleClose} disabled={isSaving}>
                 キャンセル
               </Button>
-              <Button onClick={handleSave} disabled={isSaving}>
+              <Button onClick={handleSave} disabled={isSaving} className="bg-blue-600 hover:bg-blue-700">
                 {isSaving ? (
                   <>
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    保存中...
+                    {isEditMode ? "更新中..." : "作成中..."}
                   </>
+                ) : isEditMode ? (
+                  "更新"
                 ) : (
-                  "保存"
+                  "作成"
                 )}
               </Button>
             </div>

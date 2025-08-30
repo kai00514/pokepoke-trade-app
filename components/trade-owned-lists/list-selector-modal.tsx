@@ -1,38 +1,32 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useAuth } from "@/contexts/auth-context"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Calendar, Package, ExternalLink, Loader2 } from "lucide-react"
-import { useToast } from "@/components/ui/use-toast"
+import { Calendar, Package, Loader2 } from "lucide-react"
+import { useAuth } from "@/contexts/auth-context"
 import { supabase } from "@/lib/supabase/client"
-import { getTradeOwnedListCards } from "@/lib/actions/trade-owned-lists"
-import type { Card as SelectedCardType } from "@/components/detailed-search-modal"
-import Link from "next/link"
 
-interface List {
+interface TradeOwnedList {
   id: number
   name: string
+  card_ids: number[]
   updated_at: string
-  user_id: string
 }
 
 interface ListSelectorModalProps {
   isOpen: boolean
   onClose: () => void
-  onSelectList: (cards: SelectedCardType[]) => void
+  onSelect: (cardIds: number[]) => void
 }
 
-export default function ListSelectorModal({ isOpen, onClose, onSelectList }: ListSelectorModalProps) {
+export default function ListSelectorModal({ isOpen, onClose, onSelect }: ListSelectorModalProps) {
   const { user } = useAuth()
-  const { toast } = useToast()
-  const [lists, setLists] = useState<List[]>([])
+  const [lists, setLists] = useState<TradeOwnedList[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [selectedListId, setSelectedListId] = useState<number | null>(null)
-  const [isLoadingCards, setIsLoadingCards] = useState(false)
 
   useEffect(() => {
     if (isOpen && user) {
@@ -45,7 +39,7 @@ export default function ListSelectorModal({ isOpen, onClose, onSelectList }: Lis
 
     setIsLoading(true)
     try {
-      const { data: lists, error } = await supabase
+      const { data, error } = await supabase
         .from("trade_owned_list")
         .select("*")
         .eq("user_id", user.id)
@@ -53,127 +47,109 @@ export default function ListSelectorModal({ isOpen, onClose, onSelectList }: Lis
 
       if (error) {
         console.error("Error fetching lists:", error)
-        toast({
-          title: "エラー",
-          description: "リストの取得に失敗しました。",
-          variant: "destructive",
-        })
         return
       }
 
-      setLists(lists || [])
+      setLists(data || [])
     } catch (error) {
       console.error("Unexpected error:", error)
-      toast({
-        title: "エラー",
-        description: "予期しないエラーが発生しました。",
-        variant: "destructive",
-      })
     } finally {
       setIsLoading(false)
     }
   }
 
-  const handleSelectList = async (listId: number) => {
-    setSelectedListId(listId)
-    setIsLoadingCards(true)
+  const handleSelectList = (list: TradeOwnedList) => {
+    setSelectedListId(list.id)
+  }
 
-    try {
-      const result = await getTradeOwnedListCards(listId)
-
-      if (result.success) {
-        const cards: SelectedCardType[] = result.cards.map((card) => ({
-          id: card.card_id.toString(),
-          name: card.card_name,
-          imageUrl: card.card_image_url || "/placeholder.svg?width=120&height=160",
-        }))
-
-        onSelectList(cards)
-        onClose()
-      } else {
-        toast({
-          title: "エラー",
-          description: result.error || "カードの取得に失敗しました。",
-          variant: "destructive",
-        })
-      }
-    } catch (error) {
-      console.error("Error loading list cards:", error)
-      toast({
-        title: "エラー",
-        description: "予期しないエラーが発生しました。",
-        variant: "destructive",
-      })
-    } finally {
-      setIsLoadingCards(false)
-      setSelectedListId(null)
+  const handleConfirm = () => {
+    const selectedList = lists.find((list) => list.id === selectedListId)
+    if (selectedList) {
+      onSelect(selectedList.card_ids)
     }
+  }
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString)
+    return date.toLocaleDateString("ja-JP", {
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    })
   }
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[70vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>リストを選択</DialogTitle>
+          <DialogTitle>リストから選択</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4">
           {isLoading ? (
-            <div className="flex justify-center items-center py-8">
-              <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
+            <div className="flex justify-center items-center py-12">
+              <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
             </div>
-          ) : lists.length === 0 ? (
-            <div className="text-center py-8">
-              <Package className="h-12 w-12 text-slate-400 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-slate-700 mb-2">リストがありません</h3>
-              <p className="text-slate-500 mb-4">まずは譲れるカードのリストを作成しましょう。</p>
-              <Link href="/lists">
-                <Button className="bg-blue-600 hover:bg-blue-700">
-                  <ExternalLink className="h-4 w-4 mr-2" />
-                  リスト管理画面へ
-                </Button>
-              </Link>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {lists.map((list) => (
-                <Card
-                  key={list.id}
-                  className={`cursor-pointer transition-all hover:shadow-md ${
-                    selectedListId === list.id ? "ring-2 ring-blue-500" : ""
-                  }`}
-                  onClick={() => handleSelectList(list.id)}
-                >
-                  <CardContent className="p-4">
-                    <div className="space-y-3">
-                      <div className="flex justify-between items-start">
-                        <h3 className="font-semibold text-slate-800 truncate flex-1 mr-2">{list.name}</h3>
-                        <Badge variant="secondary">リスト</Badge>
-                      </div>
-
-                      <div className="flex items-center text-sm text-slate-600">
-                        <Calendar className="h-4 w-4 mr-1" />
-                        {new Date(list.updated_at).toLocaleDateString()}
-                      </div>
-
-                      {selectedListId === list.id && isLoadingCards && (
-                        <div className="flex items-center justify-center py-2">
-                          <Loader2 className="h-4 w-4 animate-spin text-blue-600 mr-2" />
-                          <span className="text-sm text-blue-600">読み込み中...</span>
+          ) : lists.length > 0 ? (
+            <>
+              <div className="space-y-3">
+                {lists.map((list) => (
+                  <Card
+                    key={list.id}
+                    className={`cursor-pointer transition-all hover:shadow-md ${
+                      selectedListId === list.id ? "ring-2 ring-blue-500 bg-blue-50" : "hover:bg-slate-50"
+                    }`}
+                    onClick={() => handleSelectList(list)}
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                          <h3 className="font-medium text-slate-800">{list.name}</h3>
+                          <div className="flex items-center gap-4 mt-2 text-sm text-slate-600">
+                            <div className="flex items-center gap-1">
+                              <Package className="h-4 w-4" />
+                              {list.card_ids.length}枚
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Calendar className="h-4 w-4" />
+                              {formatDate(list.updated_at)}
+                            </div>
+                          </div>
                         </div>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                        <div className="flex items-center gap-2">
+                          <Badge variant="secondary">リスト</Badge>
+                          {selectedListId === list.id && (
+                            <div className="w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center">
+                              <div className="w-2 h-2 bg-white rounded-full"></div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+
+              <div className="flex justify-end gap-2 pt-4 border-t">
+                <Button variant="outline" onClick={onClose}>
+                  キャンセル
+                </Button>
+                <Button onClick={handleConfirm} disabled={!selectedListId} className="bg-blue-600 hover:bg-blue-700">
+                  選択したリストを追加
+                </Button>
+              </div>
+            </>
+          ) : (
+            <div className="text-center py-12">
+              <Package className="h-12 w-12 text-slate-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-slate-700 mb-2">リストがありません</h3>
+              <p className="text-slate-500 mb-4">まずは「譲れるカードリスト」ページでリストを作成してください。</p>
+              <Button variant="outline" onClick={onClose}>
+                閉じる
+              </Button>
             </div>
           )}
-
-          <div className="flex justify-end gap-2 pt-4 border-t">
-            <Button variant="outline" onClick={onClose}>
-              キャンセル
-            </Button>
-          </div>
         </div>
       </DialogContent>
     </Dialog>
