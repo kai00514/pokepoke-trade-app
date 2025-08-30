@@ -64,9 +64,13 @@ export async function getTradePostCommentsOnly(postId: string) {
       return { success: true, comments: [] }
     }
 
-    // 認証済みコメント投稿者のユーザーIDを収集
+    // 認証済みコメント投稿者のユーザーIDを収集（UUIDのみ）
     const commentUserIds = new Set<string>()
-    const authenticatedComments = commentsData.filter((comment) => !comment.is_guest && comment.user_id) || []
+    const authenticatedComments =
+      commentsData.filter(
+        (comment) =>
+          !comment.is_guest && comment.user_id && typeof comment.user_id === "string" && comment.user_id.length === 36, // UUID length check
+      ) || []
     authenticatedComments.forEach((comment) => commentUserIds.add(comment.user_id))
 
     // ユーザープロフィール取得
@@ -148,6 +152,10 @@ export async function createTradePost(formData: TradeFormData) {
       guestName: isAuthenticated ? null : guestName,
     })
 
+    // 最初のカードのみを使用（1対1関係）
+    const wantedCardId = formData.wantedCards[0]?.id ? Number.parseInt(formData.wantedCards[0].id) : null
+    const offeredCardId = formData.offeredCards[0]?.id ? Number.parseInt(formData.offeredCards[0].id) : null
+
     // 投稿データの準備
     const postId = uuidv4()
     const insertData = {
@@ -157,7 +165,9 @@ export async function createTradePost(formData: TradeFormData) {
       guest_name: isAuthenticated ? null : guestName,
       custom_id: formData.appId?.trim() || null,
       comment: formData.comment?.trim() || null,
-      want_card_id: formData.wantedCards[0]?.id ? Number.parseInt(formData.wantedCards[0].id) : null,
+      want_card_id: wantedCardId, // 既存カラム（後で削除予定）
+      wanted_card_id: wantedCardId, // 新しいカラム
+      offered_card_id: offeredCardId, // 新しいカラム
       status: "OPEN",
       is_authenticated: isAuthenticated,
     }
@@ -177,48 +187,6 @@ export async function createTradePost(formData: TradeFormData) {
     }
 
     console.log("[createTradePost] ✅ Trade post inserted successfully!")
-
-    // 求めるカードを挿入
-    if (formData.wantedCards.length > 0) {
-      const wantedCardsData = formData.wantedCards.map((card, index) => ({
-        post_id: postId,
-        card_id: Number.parseInt(card.id),
-        is_primary: index === 0,
-      }))
-
-      const { error: wantedCardsError } = await supabase.from("trade_post_wanted_cards").insert(wantedCardsData)
-
-      if (wantedCardsError) {
-        console.error("[createTradePost] Wanted cards error:", wantedCardsError)
-        await supabase.from("trade_posts").delete().eq("id", postId)
-        return {
-          success: false,
-          error: `求めるカードの保存に失敗しました: ${wantedCardsError.message}`,
-          details: wantedCardsError,
-        }
-      }
-    }
-
-    // 譲れるカードを挿入
-    if (formData.offeredCards.length > 0) {
-      const offeredCardsData = formData.offeredCards.map((card) => ({
-        post_id: postId,
-        card_id: Number.parseInt(card.id),
-      }))
-
-      const { error: offeredCardsError } = await supabase.from("trade_post_offered_cards").insert(offeredCardsData)
-
-      if (offeredCardsError) {
-        console.error("[createTradePost] Offered cards error:", offeredCardsError)
-        await supabase.from("trade_post_wanted_cards").delete().eq("post_id", postId)
-        await supabase.from("trade_posts").delete().eq("id", postId)
-        return {
-          success: false,
-          error: `譲れるカードの保存に失敗しました: ${offeredCardsError.message}`,
-          details: offeredCardsError,
-        }
-      }
-    }
 
     revalidatePath("/")
 
@@ -250,7 +218,7 @@ export async function getTradePostsWithCards(limit = 10, offset = 0) {
       console.error("Error fetching total count:", countError)
     }
 
-    // Get posts with basic information first
+    // Get posts with card information in a single query
     const { data: posts, error: postsError } = await supabase
       .from("trade_posts")
       .select(`
@@ -262,7 +230,11 @@ export async function getTradePostsWithCards(limit = 10, offset = 0) {
         status, 
         created_at,
         is_authenticated,
-        comment
+        comment,
+        wanted_card_id,
+        offered_card_id,
+        wanted_card:wanted_card_id(id, name, image_url),
+        offered_card:offered_card_id(id, name, image_url)
       `)
       .order("created_at", { ascending: false })
       .range(offset, offset + limit - 1)
@@ -279,27 +251,14 @@ export async function getTradePostsWithCards(limit = 10, offset = 0) {
     // Get user profiles for authenticated posts
     const authenticatedPosts = posts.filter((post) => post.is_authenticated && post.owner_id)
     const userIds = authenticatedPosts.map((post) => post.owner_id)
-
     const postIds = posts.map((post) => post.id)
 
     // 並列クエリ実行で大幅な速度向上
-    const [userProfilesResult, wantedRelationsResult, offeredRelationsResult, allCommentsResult] = await Promise.all([
+    const [userProfilesResult, allCommentsResult] = await Promise.all([
       // ユーザープロフィール取得
       userIds.length > 0
         ? supabase.from("users").select("id, name, display_name, avatar_url").in("id", userIds)
         : Promise.resolve({ data: [], error: null }),
-
-      // 求めるカード関連取得
-      supabase
-        .from("trade_post_wanted_cards")
-        .select("post_id, card_id, is_primary")
-        .in("post_id", postIds),
-
-      // 譲れるカード関連取得
-      supabase
-        .from("trade_post_offered_cards")
-        .select("post_id, card_id")
-        .in("post_id", postIds),
 
       // コメント数取得
       supabase
@@ -310,24 +269,7 @@ export async function getTradePostsWithCards(limit = 10, offset = 0) {
     ])
 
     const { data: userProfiles, error: usersError } = userProfilesResult
-    const { data: wantedRelations, error: wantedError } = wantedRelationsResult
-    const { data: offeredRelations, error: offeredError } = offeredRelationsResult
     const { data: allCommentsForPosts, error: commentFetchError } = allCommentsResult
-
-    if (wantedError) {
-      console.error("Error fetching wanted card relations:", wantedError)
-      return { success: false, error: `求めるカード関連の取得に失敗: ${wantedError.message}`, posts: [], totalCount: 0 }
-    }
-
-    if (offeredError) {
-      console.error("Error fetching offered card relations:", offeredError)
-      return {
-        success: false,
-        error: `譲れるカード関連の取得に失敗: ${offeredError.message}`,
-        posts: [],
-        totalCount: 0,
-      }
-    }
 
     // ユーザープロフィールをマップ化
     const userProfilesMap = new Map()
@@ -336,25 +278,6 @@ export async function getTradePostsWithCards(limit = 10, offset = 0) {
         const { username, avatarUrl } = getUserDisplayInfo(profile)
         userProfilesMap.set(profile.id, { username, avatarUrl })
       })
-    }
-
-    // Get all card IDs and fetch card details
-    const allCardIds = new Set<number>()
-    wantedRelations?.forEach((r) => allCardIds.add(r.card_id))
-    offeredRelations?.forEach((r) => allCardIds.add(r.card_id))
-
-    const cardsMap = new Map<number, { id: string; name: string; image_url: string }>()
-    if (allCardIds.size > 0) {
-      const { data: cardDetails, error: cardsError } = await supabase
-        .from("cards")
-        .select("id, name, image_url")
-        .in("id", Array.from(allCardIds))
-
-      if (cardsError) {
-        console.error("Error fetching card details:", cardsError)
-      } else {
-        cardDetails?.forEach((c) => cardsMap.set(c.id, { ...c, id: c.id.toString() }))
-      }
     }
 
     // Get comment counts
@@ -392,33 +315,19 @@ export async function getTradePostsWithCards(limit = 10, offset = 0) {
         username = post.guest_name || "ゲスト"
       }
 
-      const currentWantedCards =
-        wantedRelations
-          ?.filter((r) => r.post_id === post.id)
-          .map((r) => {
-            const card = cardsMap.get(r.card_id)
-            return {
-              id: card?.id || r.card_id.toString(),
-              name: card?.name || "不明",
-              imageUrl: card?.image_url || "/placeholder.svg?width=80&height=112",
-              isPrimary: r.is_primary,
-            }
-          }) || []
+      // カード情報を整形（1対1関係）
+      const wantedCard = {
+        id: post.wanted_card?.id?.toString() || post.wanted_card_id?.toString() || "unknown",
+        name: post.wanted_card?.name || "不明",
+        imageUrl: post.wanted_card?.image_url || "/placeholder.svg?width=80&height=112",
+        isPrimary: true, // 1つしかないので常にprimary
+      }
 
-      const currentOfferedCards =
-        offeredRelations
-          ?.filter((r) => r.post_id === post.id)
-          .map((r) => {
-            const card = cardsMap.get(r.card_id)
-            return {
-              id: card?.id || r.card_id.toString(),
-              name: card?.name || "不明",
-              imageUrl: card?.image_url || "/placeholder.svg?width=80&height=112",
-            }
-          }) || []
-
-      const primaryWantedCard = currentWantedCards.find((c) => c.isPrimary) || currentWantedCards[0]
-      const primaryOfferedCard = currentOfferedCards[0]
+      const offeredCard = {
+        id: post.offered_card?.id?.toString() || post.offered_card_id?.toString() || "unknown",
+        name: post.offered_card?.name || "不明",
+        imageUrl: post.offered_card?.image_url || "/placeholder.svg?width=80&height=112",
+      }
 
       return {
         id: post.id,
@@ -433,12 +342,12 @@ export async function getTradePostsWithCards(limit = 10, offset = 0) {
                 ? "完了"
                 : "キャンセル",
         wantedCard: {
-          name: primaryWantedCard?.name || "不明",
-          image: primaryWantedCard?.imageUrl || "/placeholder.svg?width=100&height=140",
+          name: wantedCard.name,
+          image: wantedCard.imageUrl,
         },
         offeredCard: {
-          name: primaryOfferedCard?.name || "不明",
-          image: primaryOfferedCard?.imageUrl || "/placeholder.svg?width=100&height=140",
+          name: offeredCard.name,
+          image: offeredCard.imageUrl,
         },
         comments: commentCountsMap.get(post.id) || 0,
         postId: post.custom_id || post.id.substring(0, 8),
@@ -446,8 +355,8 @@ export async function getTradePostsWithCards(limit = 10, offset = 0) {
         avatarUrl,
         authorComment: post.comment || null,
         rawData: {
-          wantedCards: currentWantedCards,
-          offeredCards: currentOfferedCards,
+          wantedCards: [wantedCard], // 配列形式を維持（フロントエンド互換性のため）
+          offeredCards: [offeredCard], // 配列形式を維持（フロントエンド互換性のため）
           // 詳細画面用の追加データ
           fullPostData: {
             id: post.id,
@@ -470,8 +379,8 @@ export async function getTradePostsWithCards(limit = 10, offset = 0) {
               isOwner: post.is_authenticated && post.owner_id,
             },
             createdAt: formattedDate,
-            wantedCards: currentWantedCards,
-            offeredCards: currentOfferedCards,
+            wantedCards: [wantedCard], // 配列形式を維持
+            offeredCards: [offeredCard], // 配列形式を維持
           },
         },
       }
@@ -498,10 +407,14 @@ export async function getTradePostDetailsById(postId: string) {
 
     const supabase = await createServerClient()
 
-    // First, get the main post data
+    // Get the main post data with card information in a single query
     const { data: postData, error: postError } = await supabase
       .from("trade_posts")
-      .select("*")
+      .select(`
+        *,
+        wanted_card:wanted_card_id(id, name, image_url),
+        offered_card:offered_card_id(id, name, image_url)
+      `)
       .eq("id", postId)
       .single()
 
@@ -538,116 +451,56 @@ export async function getTradePostDetailsById(postId: string) {
       }
     }
 
-    // Get all card IDs
-    const allCardIds = new Set<number>()
-
-    // Get user IDs for authenticated commenters
-    const commentUserIds = new Set<string>()
-
-    // 並列でデータを取得
-    const [wantedRelationsResult, offeredRelationsResult, commentsDataResult] = await Promise.all([
-      // Get wanted cards relationships
-      supabase
-        .from("trade_post_wanted_cards")
-        .select("card_id, is_primary")
-        .eq("post_id", postId),
-
-      // Get offered cards relationships
-      supabase
-        .from("trade_post_offered_cards")
-        .select("card_id")
-        .eq("post_id", postId),
-
-      // Get comments
-      supabase
-        .from("trade_comments")
-        .select(`
-          id, 
-          user_id, 
-          user_name, 
-          guest_name,
-          content, 
-          created_at,
-          is_guest
-        `)
-        .eq("post_id", postId)
-        .eq("is_deleted", false)
-        .order("created_at", { ascending: true }),
-    ])
-
-    const { data: wantedRelations, error: wantedError } = wantedRelationsResult
-    const { data: offeredRelations, error: offeredError } = offeredRelationsResult
-    const { data: commentsData, error: commentsError } = commentsDataResult
-
-    if (wantedError) {
-      console.error(`Error fetching wanted cards for post ${postId}:`, wantedError)
-    }
-
-    if (offeredError) {
-      console.error(`Error fetching offered cards for post ${postId}:`, offeredError)
-    }
+    // Get comments
+    const { data: commentsData, error: commentsError } = await supabase
+      .from("trade_comments")
+      .select(`
+        id, 
+        user_id, 
+        user_name, 
+        guest_name,
+        content, 
+        created_at,
+        is_guest
+      `)
+      .eq("post_id", postId)
+      .eq("is_deleted", false)
+      .order("created_at", { ascending: true })
 
     if (commentsError) {
       console.error(`Error fetching comments for post ${postId}:`, commentsError)
     }
 
-    // Collect card IDs from wanted and offered relations
-    wantedRelations?.forEach((wc) => allCardIds.add(wc.card_id))
-    offeredRelations?.forEach((oc) => allCardIds.add(oc.card_id))
+    // Get user profiles for authenticated commenters
+    const authenticatedComments =
+      commentsData?.filter(
+        (comment) =>
+          !comment.is_guest && comment.user_id && typeof comment.user_id === "string" && comment.user_id.length === 36, // UUID length check
+      ) || []
+    const commentUserIds = authenticatedComments.map((comment) => comment.user_id)
 
-    // Collect user IDs from authenticated comments
-    const authenticatedComments = commentsData?.filter((comment) => !comment.is_guest && comment.user_id) || []
-    authenticatedComments.forEach((comment) => commentUserIds.add(comment.user_id))
-
-    // カード詳細とコメントユーザープロフィールを並列取得
-    const [cardDetailsResult, userProfilesResult] = await Promise.all([
-      // Get card details
-      allCardIds.size > 0
-        ? supabase.from("cards").select("id, name, image_url").in("id", Array.from(allCardIds))
-        : Promise.resolve({ data: [], error: null }),
-
-      // Get user profiles for authenticated commenters
-      commentUserIds.size > 0
-        ? supabase
-            .from("users")
-            .select("id, name, display_name, email, avatar_url")
-            .in("id", Array.from(commentUserIds))
-        : Promise.resolve({ data: [], error: null }),
-    ])
-
-    const { data: cardDetails, error: cardsError } = cardDetailsResult
-    const { data: userProfiles, error: usersError } = userProfilesResult
-
-    if (cardsError) {
-      console.error(`Error fetching card details for post ${postId}:`, cardsError)
-    }
+    const { data: userProfiles, error: usersError } =
+      commentUserIds.length > 0
+        ? await supabase.from("users").select("id, name, display_name, email, avatar_url").in("id", commentUserIds)
+        : { data: [], error: null }
 
     if (usersError) {
       console.error(`Error fetching user profiles for post ${postId}:`, usersError)
     }
 
-    // Map wanted cards
-    const wantedCards =
-      wantedRelations?.map((wc) => {
-        const card = cardDetails?.find((c) => c.id === wc.card_id)
-        return {
-          id: card?.id.toString() || wc.card_id.toString(),
-          name: card?.name || "不明",
-          imageUrl: card?.image_url || "/placeholder.svg?width=100&height=140",
-          isPrimary: wc.is_primary,
-        }
-      }) || []
+    // カード情報を整形（1対1関係）
+    const wantedCard = {
+      id: postData.wanted_card?.id?.toString() || postData.wanted_card_id?.toString() || "unknown",
+      name: postData.wanted_card?.name || "不明",
+      imageUrl: postData.wanted_card?.image_url || "/placeholder.svg?width=100&height=140",
+      isPrimary: true, // 1つしかないので常にprimary
+    }
 
-    // Map offered cards
-    const offeredCards =
-      offeredRelations?.map((oc) => {
-        const card = cardDetails?.find((c) => c.id === oc.card_id)
-        return {
-          id: card?.id.toString() || oc.card_id.toString(),
-          name: card?.name || "不明",
-          imageUrl: card?.image_url || "/placeholder.svg?width=100&height=140",
-        }
-      }) || []
+    const offeredCard = {
+      id: postData.offered_card?.id?.toString() || postData.offered_card_id?.toString() || "unknown",
+      name: postData.offered_card?.name || "不明",
+      imageUrl: postData.offered_card?.image_url || "/placeholder.svg?width=100&height=140",
+    }
 
     // Map comments with author info
     const comments =
@@ -695,8 +548,8 @@ export async function getTradePostDetailsById(postId: string) {
             : postData.status === "COMPLETED"
               ? "完了"
               : "キャンセル",
-      wantedCards,
-      offeredCards,
+      wantedCards: [wantedCard], // 配列形式を維持（フロントエンド互換性のため）
+      offeredCards: [offeredCard], // 配列形式を維持（フロントエンド互換性のため）
       description: postData.comment || "",
       authorNotes: postData.comment || "",
       originalPostId: postData.custom_id || postData.id.substring(0, 8),
@@ -823,7 +676,9 @@ export async function getMyTradePosts(userId: string) {
         status, 
         created_at,
         is_authenticated,
-        comment
+        comment,
+        wanted_card_id,
+        wanted_card:wanted_card_id(id, name, image_url)
       `)
       .eq("owner_id", userId)
       .eq("is_authenticated", true)
@@ -854,28 +709,6 @@ export async function getMyTradePosts(userId: string) {
       })
     }
 
-    // 求めるカードを取得
-    const { data: wantedRelations, error: wantedError } = await supabase
-      .from("trade_post_wanted_cards")
-      .select("post_id, card_id, is_primary")
-      .in("post_id", postIds)
-
-    // カード詳細を取得
-    const allCardIds = new Set<number>()
-    wantedRelations?.forEach((r) => allCardIds.add(r.card_id))
-
-    const cardsMap = new Map<number, { id: string; name: string; image_url: string }>()
-    if (allCardIds.size > 0) {
-      const { data: cardDetails, error: cardsError } = await supabase
-        .from("cards")
-        .select("id, name, image_url")
-        .in("id", Array.from(allCardIds))
-
-      if (!cardsError && cardDetails) {
-        cardDetails.forEach((c) => cardsMap.set(c.id, { ...c, id: c.id.toString() }))
-      }
-    }
-
     // 投稿データを整形
     const formattedPosts = posts.map((post: any) => {
       const commentCount = commentCountsMap.get(post.id) || 0
@@ -892,16 +725,11 @@ export async function getMyTradePosts(userId: string) {
         displayStatus = "open"
       }
 
-      // プライマリカードを取得
-      const primaryWantedCard = wantedRelations
-        ?.filter((r) => r.post_id === post.id && r.is_primary)
-        .map((r) => {
-          const card = cardsMap.get(r.card_id)
-          return {
-            name: card?.name || "不明",
-            imageUrl: card?.image_url || "/placeholder.svg?width=80&height=112",
-          }
-        })[0]
+      // カード情報を整形（1対1関係）
+      const primaryWantedCard = {
+        name: post.wanted_card?.name || "不明",
+        imageUrl: post.wanted_card?.image_url || "/placeholder.svg?width=80&height=112",
+      }
 
       const createdAt = new Date(post.created_at)
       const now = new Date()
@@ -911,8 +739,8 @@ export async function getMyTradePosts(userId: string) {
       return {
         id: post.id,
         title: post.title,
-        primaryCardName: primaryWantedCard?.name || "不明",
-        primaryCardImageUrl: primaryWantedCard?.imageUrl || "/placeholder.svg?width=80&height=112",
+        primaryCardName: primaryWantedCard.name,
+        primaryCardImageUrl: primaryWantedCard.imageUrl,
         postedDateRelative,
         status: displayStatus,
         commentCount,
@@ -962,7 +790,9 @@ export async function getCommentedTradePosts(userId: string) {
         status, 
         created_at,
         is_authenticated,
-        comment
+        comment,
+        wanted_card_id,
+        wanted_card:wanted_card_id(id, name, image_url)
       `)
       .in("id", commentedPostIds)
       .or(`owner_id.is.null,owner_id.neq.${userId}`) // 自分の投稿は除外、ゲスト投稿は含める
@@ -993,28 +823,6 @@ export async function getCommentedTradePosts(userId: string) {
       })
     }
 
-    // 求めるカードを取得
-    const { data: wantedRelations, error: wantedError } = await supabase
-      .from("trade_post_wanted_cards")
-      .select("post_id, card_id, is_primary")
-      .in("post_id", postIds)
-
-    // カード詳細を取得
-    const allCardIds = new Set<number>()
-    wantedRelations?.forEach((r) => allCardIds.add(r.card_id))
-
-    const cardsMap = new Map<number, { id: string; name: string; image_url: string }>()
-    if (allCardIds.size > 0) {
-      const { data: cardDetails, error: cardsError } = await supabase
-        .from("cards")
-        .select("id, name, image_url")
-        .in("id", Array.from(allCardIds))
-
-      if (!cardsError && cardDetails) {
-        cardDetails.forEach((c) => cardsMap.set(c.id, { ...c, id: c.id.toString() }))
-      }
-    }
-
     // 投稿データを整形
     const formattedPosts = posts.map((post: any) => {
       const commentCount = commentCountsMap.get(post.id) || 0
@@ -1031,16 +839,11 @@ export async function getCommentedTradePosts(userId: string) {
         displayStatus = "open"
       }
 
-      // プライマリカードを取得
-      const primaryWantedCard = wantedRelations
-        ?.filter((r) => r.post_id === post.id && r.is_primary)
-        .map((r) => {
-          const card = cardsMap.get(r.card_id)
-          return {
-            name: card?.name || "不明",
-            imageUrl: card?.image_url || "/placeholder.svg?width=80&height=112",
-          }
-        })[0]
+      // カード情報を整形（1対1関係）
+      const primaryWantedCard = {
+        name: post.wanted_card?.name || "不明",
+        imageUrl: post.wanted_card?.image_url || "/placeholder.svg?width=80&height=112",
+      }
 
       const createdAt = new Date(post.created_at)
       const now = new Date()
@@ -1050,8 +853,8 @@ export async function getCommentedTradePosts(userId: string) {
       return {
         id: post.id,
         title: post.title,
-        primaryCardName: primaryWantedCard?.name || "不明",
-        primaryCardImageUrl: primaryWantedCard?.imageUrl || "/placeholder.svg?width=80&height=112",
+        primaryCardName: primaryWantedCard.name,
+        primaryCardImageUrl: primaryWantedCard.imageUrl,
         postedDateRelative,
         status: displayStatus,
         commentCount,
