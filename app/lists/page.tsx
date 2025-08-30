@@ -1,9 +1,12 @@
 import { createServerClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
+import TradeOwnedListsManager from "@/components/trade-owned-lists/trade-owned-lists-manager"
 
 interface List {
   id: number
-  name: string
+  list_name: string
+  card_ids: number[]
+  created_at: string
   updated_at: string
   user_id: string
 }
@@ -31,39 +34,27 @@ export default async function ListsPage() {
   if (error) {
     console.error("Error fetching lists:", error)
     return (
-      <div className="container mx-auto p-4">
-        <h1 className="text-2xl font-bold mb-4">Lists</h1>
-        <p className="text-red-500">Error loading lists. Please try again.</p>
+      <div className="min-h-screen bg-gray-50">
+        <div className="container mx-auto px-4 py-8">
+          <div className="max-w-4xl mx-auto">
+            <h1 className="text-3xl font-bold text-gray-900 mb-8">譲れるカードリスト</h1>
+            <div className="bg-white rounded-lg shadow-sm border p-8 text-center">
+              <p className="text-red-500 text-lg">リストの読み込みに失敗しました。</p>
+              <p className="text-gray-600 mt-2">しばらく時間をおいて再度お試しください。</p>
+            </div>
+          </div>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">Lists</h1>
-      {lists && lists.length > 0 ? (
-        <ul className="space-y-4">
-          {lists.map((list: List) => (
-            <li key={list.id} className="bg-white p-4 rounded shadow">
-              <h2 className="text-xl font-semibold">{list.name}</h2>
-              <p className="text-sm text-gray-500">
-                {new Date(list.updated_at)
-                  .toLocaleDateString("ja-JP", {
-                    year: "numeric",
-                    month: "2-digit",
-                    day: "2-digit",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })
-                  .replace(/\//g, "/")
-                  .replace(",", "")}
-              </p>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p className="text-gray-500">No lists found.</p>
-      )}
+    <div className="min-h-screen bg-gray-50">
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-4xl mx-auto">
+          <TradeOwnedListsManager initialLists={lists || []} userId={user.id} />
+        </div>
+      </div>
     </div>
   )
 }
