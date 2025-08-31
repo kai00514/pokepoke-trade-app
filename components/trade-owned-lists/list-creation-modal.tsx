@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { X, Plus, Loader2 } from "lucide-react"
+import { X, Plus, Loader2, Sparkles, Package } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
 import DetailedSearchModal from "@/components/detailed-search-modal"
 import type { Card as SelectedCardType } from "@/components/detailed-search-modal"
@@ -138,94 +138,142 @@ export default function ListCreationModal({ isOpen, onOpenChange, userId, onSucc
   return (
     <>
       <Dialog open={isOpen} onOpenChange={handleModalClose}>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>新しいリストを作成</DialogTitle>
+        <DialogContent className="max-w-5xl max-h-[85vh] overflow-hidden rounded-2xl">
+          <DialogHeader className="pb-6 border-b border-gray-100">
+            <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent flex items-center gap-2">
+              <Sparkles className="h-6 w-6 text-blue-600" />
+              新しいリストを作成
+            </DialogTitle>
           </DialogHeader>
 
-          <div className="space-y-6">
-            {/* リスト名入力 */}
-            <div>
-              <label className="text-sm font-medium text-gray-700">
-                リスト名 <span className="text-red-500">*</span>
-              </label>
-              <Input
-                value={listName}
-                onChange={(e) => setListName(e.target.value)}
-                placeholder="例: 交換用カードリスト"
-                className="mt-1"
-                disabled={isCreating}
-                maxLength={100}
-              />
-              <p className="text-xs text-gray-500 mt-1">{listName.length}/100文字</p>
-            </div>
-
-            {/* カード選択セクション */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-gray-700">登録カード</span>
-                <Badge variant="secondary">{cards.length}/35枚</Badge>
+          <div className="overflow-y-auto max-h-[calc(85vh-120px)]">
+            <div className="space-y-8 p-1">
+              {/* リスト名入力 */}
+              <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-2xl p-6">
+                <label className="text-sm font-semibold text-gray-700 flex items-center gap-2 mb-3">
+                  <Package className="h-4 w-4 text-blue-600" />
+                  リスト名 <span className="text-red-500">*</span>
+                </label>
+                <Input
+                  value={listName}
+                  onChange={(e) => setListName(e.target.value)}
+                  placeholder="例: 交換用レアカードリスト"
+                  className="border-0 bg-white shadow-sm text-lg py-3 rounded-xl"
+                  disabled={isCreating}
+                  maxLength={100}
+                />
+                <div className="flex justify-between items-center mt-2">
+                  <p className="text-xs text-gray-500">リストに分かりやすい名前をつけましょう</p>
+                  <p className="text-xs text-gray-500">{listName.length}/100文字</p>
+                </div>
               </div>
-              <Button
-                variant="outline"
-                onClick={() => setIsCardSearchOpen(true)}
-                disabled={cards.length >= 35 || isCreating}
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                カードを追加
-              </Button>
-            </div>
 
-            {/* カード一覧 */}
-            {cards.length > 0 ? (
-              <div className="grid grid-cols-5 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-12 gap-2">
-                {cards.map((card) => (
-                  <div key={card.id} className="relative group">
-                    <div className="aspect-[7/10] bg-gray-100 rounded-md overflow-hidden border">
-                      <img
-                        src={card.image_url || "/placeholder.svg"}
-                        alt={card.name}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                    <button
-                      onClick={() => handleRemoveCard(card.id)}
-                      className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                      disabled={isCreating}
+              {/* カード選択セクション */}
+              <div>
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-3">
+                    <h3 className="text-lg font-semibold text-gray-900">登録カード</h3>
+                    <Badge
+                      variant="secondary"
+                      className={`px-3 py-1 ${
+                        cards.length >= 35
+                          ? "bg-gradient-to-r from-amber-500 to-orange-500 text-white"
+                          : "bg-gradient-to-r from-blue-500 to-purple-500 text-white"
+                      }`}
                     >
-                      <X className="h-3 w-3" />
-                    </button>
-                    <p className="text-xs text-center mt-1 truncate text-gray-600">{card.name}</p>
+                      {cards.length}/35枚
+                    </Badge>
                   </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-8 text-gray-500 border-2 border-dashed border-gray-300 rounded-lg">
-                <p>カードが選択されていません</p>
-                <p className="text-sm mt-1">「カードを追加」ボタンから追加してください</p>
-              </div>
-            )}
+                  <Button
+                    variant="outline"
+                    onClick={() => setIsCardSearchOpen(true)}
+                    disabled={cards.length >= 35 || isCreating}
+                    className="bg-white hover:bg-blue-50 border-blue-200 text-blue-600 hover:text-blue-700 rounded-full px-6"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    カードを追加
+                  </Button>
+                </div>
 
-            {/* アクションボタン */}
-            <div className="flex justify-end gap-2 pt-4 border-t">
-              <Button variant="outline" onClick={() => handleModalClose(false)} disabled={isCreating}>
-                キャンセル
-              </Button>
-              <Button
-                onClick={handleCreate}
-                disabled={isCreating || !listName.trim()}
-                className="bg-blue-600 hover:bg-blue-700 text-white"
-              >
-                {isCreating ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    作成中...
-                  </>
+                {/* プログレスバー */}
+                <div className="mb-6">
+                  <div className="flex justify-between text-xs text-gray-500 mb-2">
+                    <span>登録進捗</span>
+                    <span>{Math.round((cards.length / 35) * 100)}%</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div
+                      className="bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full transition-all duration-500"
+                      style={{ width: `${Math.min((cards.length / 35) * 100, 100)}%` }}
+                    />
+                  </div>
+                </div>
+
+                {/* カード一覧 */}
+                {cards.length > 0 ? (
+                  <div className="bg-gray-50 rounded-2xl p-6">
+                    <div className="grid grid-cols-6 sm:grid-cols-8 md:grid-cols-10 lg:grid-cols-12 gap-3">
+                      {cards.map((card) => (
+                        <div key={card.id} className="relative group">
+                          <div className="aspect-[7/10] bg-white rounded-lg overflow-hidden border-2 border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 hover:scale-105">
+                            <img
+                              src={card.image_url || "/placeholder.svg"}
+                              alt={card.name}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                          <button
+                            onClick={() => handleRemoveCard(card.id)}
+                            className="absolute -top-2 -right-2 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-all duration-200 shadow-lg hover:scale-110"
+                            disabled={isCreating}
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                          <p className="text-xs text-center mt-2 truncate text-gray-600 font-medium">{card.name}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 ) : (
-                  "作成"
+                  <div className="text-center py-12 border-2 border-dashed border-gray-300 rounded-2xl bg-gray-50">
+                    <div className="bg-gradient-to-br from-blue-100 to-purple-100 rounded-full p-4 w-16 h-16 mx-auto mb-4">
+                      <Package className="h-8 w-8 text-blue-600 mx-auto" />
+                    </div>
+                    <p className="text-gray-600 font-medium mb-2">カードが選択されていません</p>
+                    <p className="text-sm text-gray-500">「カードを追加」ボタンから追加してください</p>
+                  </div>
                 )}
-              </Button>
+              </div>
             </div>
+          </div>
+
+          {/* アクションボタン */}
+          <div className="flex justify-end gap-3 pt-6 border-t border-gray-100 bg-gray-50 px-6 py-4 -mx-6 -mb-6 rounded-b-2xl">
+            <Button
+              variant="outline"
+              onClick={() => handleModalClose(false)}
+              disabled={isCreating}
+              className="rounded-full px-6"
+            >
+              キャンセル
+            </Button>
+            <Button
+              onClick={handleCreate}
+              disabled={isCreating || !listName.trim()}
+              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-full px-8 shadow-lg hover:shadow-xl transition-all duration-300"
+            >
+              {isCreating ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  作成中...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="h-4 w-4 mr-2" />
+                  作成
+                </>
+              )}
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
