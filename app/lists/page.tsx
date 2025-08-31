@@ -9,7 +9,6 @@ import { getTradeOwnedLists, type TradeOwnedList } from "@/lib/actions/trade-own
 import ListCreationModal from "@/components/trade-owned-lists/list-creation-modal"
 import ListCard from "@/components/trade-owned-lists/list-card"
 import LoginPrompt from "@/components/login-prompt"
-import Header from "@/components/layout/header"
 
 export default function ListsPage() {
   const [user, setUser] = useState<any>(null)
@@ -91,7 +90,6 @@ export default function ListsPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <Header />
         <div className="container mx-auto px-4 py-8">
           <div className="flex justify-center items-center py-12">
             <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
@@ -105,7 +103,6 @@ export default function ListsPage() {
   if (!user) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <Header />
         <div className="container mx-auto px-4 py-8">
           <h1 className="text-2xl font-bold text-gray-900 mb-8">カードリスト</h1>
           <LoginPrompt message="カードリストを作成・管理するにはログインが必要です。" />
@@ -116,7 +113,6 @@ export default function ListsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header />
       <div className="container mx-auto px-4 py-8">
         {/* ヘッダー */}
         <div className="flex justify-between items-center mb-8">
