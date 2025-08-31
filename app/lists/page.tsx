@@ -51,7 +51,8 @@ export default function ListsPage() {
     setError(null)
 
     try {
-      console.log("Fetching lists for user:", user.id)
+      console.log("=== Fetching lists from client ===")
+      console.log("User ID:", user.id)
 
       const { data: lists, error } = await supabase
         .from("trade_owned_list")
@@ -59,13 +60,15 @@ export default function ListsPage() {
         .eq("user_id", user.id)
         .order("updated_at", { ascending: false })
 
+      console.log("Client fetch response:", { lists, error })
+
       if (error) {
         console.error("Error fetching lists:", error)
         setError("リストの読み込みに失敗しました。再試行してください。")
         return
       }
 
-      console.log("Fetched lists:", lists)
+      console.log("Successfully fetched lists:", lists?.length || 0, "items")
       setLists(lists || [])
     } catch (err) {
       console.error("Unexpected error:", err)
@@ -76,13 +79,15 @@ export default function ListsPage() {
   }
 
   const handleCreateList = () => {
-    console.log("Creating new list")
+    console.log("=== Creating new list ===")
+    console.log("User ID:", user?.id)
     setEditingList(null)
     setIsEditorOpen(true)
   }
 
   const handleEditList = (list: TradeOwnedList) => {
-    console.log("Editing list:", list)
+    console.log("=== Editing list ===")
+    console.log("List:", list)
     setEditingList(list)
     setIsEditorOpen(true)
   }
@@ -116,7 +121,7 @@ export default function ListsPage() {
   }
 
   const handleListSaved = () => {
-    console.log("List saved, refreshing...")
+    console.log("=== List saved, refreshing ===")
     setIsEditorOpen(false)
     setEditingList(null)
     fetchLists()

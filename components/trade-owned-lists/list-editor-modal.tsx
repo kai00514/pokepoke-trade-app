@@ -141,7 +141,8 @@ export default function ListEditorModal({ isOpen, onClose, onSave, editingList, 
     setIsSaving(true)
 
     try {
-      console.log("Saving list:", {
+      console.log("=== Saving list from modal ===")
+      console.log("Save parameters:", {
         isEditMode,
         userId,
         listName: listName.trim(),
@@ -183,7 +184,8 @@ export default function ListEditorModal({ isOpen, onClose, onSave, editingList, 
         })
       }
     } catch (error) {
-      console.error("Save error:", error)
+      console.error("=== Save error in modal ===")
+      console.error("Error:", error)
       toast({
         title: "エラー",
         description: "予期しないエラーが発生しました。",
