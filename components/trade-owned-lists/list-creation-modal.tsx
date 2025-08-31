@@ -6,45 +6,46 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
-import { X, Search, Loader2 } from "lucide-react"
-import { useToast } from "@/components/ui/use-toast"
-import { createTradeOwnedList, type TradeOwnedList } from "@/lib/actions/trade-owned-lists"
-import DetailedSearchModal from "@/components/detailed-search-modal"
-import type { Card } from "@/types/card"
+import { X, Search } from "lucide-react"
+import { DetailedSearchModal } from "@/components/detailed-search-modal"
+import { createOwnedList } from "@/lib/actions/trade-owned-lists"
+import { createClient } from "@/lib/supabase/client"
+import { toast } from "@/hooks/use-toast"
+
+interface Card {
+  id: string
+  name: string
+  image_url?: string
+}
 
 interface ListCreationModalProps {
   isOpen: boolean
-  onOpenChange: (open: boolean) => void
-  userId: string
-  onSuccess: (newList: TradeOwnedList) => void
+  onClose: () => void
+  onCreated: () => void
 }
 
-export default function ListCreationModal({ isOpen, onOpenChange, userId, onSuccess }: ListCreationModalProps) {
+export function ListCreationModal({ isOpen, onClose, onCreated }: ListCreationModalProps) {
   const [listName, setListName] = useState("")
   const [selectedCards, setSelectedCards] = useState<Card[]>([])
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false)
   const [isCreating, setIsCreating] = useState(false)
-  const { toast } = useToast()
+  const supabase = createClient()
 
-  // モーダルを閉じる際の初期化
   const handleClose = () => {
     setListName("")
     setSelectedCards([])
-    onOpenChange(false)
+    onClose()
   }
 
-  // カード選択完了時の処理
-  const handleCardSelection = (cards: Card[]) => {
+  const handleCardSelect = (cards: Card[]) => {
     setSelectedCards(cards)
     setIsSearchModalOpen(false)
   }
 
-  // カードを削除
-  const removeCard = (cardId: number) => {
+  const removeCard = (cardId: string) => {
     setSelectedCards((prev) => prev.filter((card) => card.id !== cardId))
   }
 
-  // リスト作成処理
   const handleCreate = async () => {
     if (!listName.trim()) {
       toast({
@@ -66,36 +67,45 @@ export default function ListCreationModal({ isOpen, onOpenChange, userId, onSucc
 
     setIsCreating(true)
 
-    const result = await createTradeOwnedList({
-      userId,
-      listName: listName.trim(),
-      cardIds: selectedCards.map((card) => card.id),
-    })
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+      if (!user) {
+        throw new Error("ユーザーが認証されていません")
+      }
 
-    setIsCreating(false)
+      const cardIds = selectedCards.map((card) => Number.parseInt(card.id))
+      await createOwnedList(user.id, listName.trim(), cardIds)
 
-    if (result.success) {
-      onSuccess(result.list)
+      toast({
+        title: "成功",
+        description: "リストが作成されました。",
+      })
+
       handleClose()
-    } else {
+      onCreated()
+    } catch (error) {
+      console.error("Error creating list:", error)
       toast({
         title: "エラー",
-        description: result.error,
+        description: "リストの作成に失敗しました。",
         variant: "destructive",
       })
+    } finally {
+      setIsCreating(false)
     }
   }
 
   return (
     <>
-      <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      <Dialog open={isOpen} onOpenChange={handleClose}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>新しいリストを作成</DialogTitle>
           </DialogHeader>
 
           <div className="space-y-6">
-            {/* リスト名入力 */}
             <div className="space-y-2">
               <Label htmlFor="listName">リスト名</Label>
               <Input
@@ -108,13 +118,12 @@ export default function ListCreationModal({ isOpen, onOpenChange, userId, onSucc
               <p className="text-sm text-gray-500">{listName.length}/100文字</p>
             </div>
 
-            {/* カード選択セクション */}
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <Label>選択したカード ({selectedCards.length}/35)</Label>
                 <Button
-                  type="button"
                   variant="outline"
+                  size="sm"
                   onClick={() => setIsSearchModalOpen(true)}
                   disabled={selectedCards.length >= 35}
                 >
@@ -123,88 +132,64 @@ export default function ListCreationModal({ isOpen, onOpenChange, userId, onSucc
                 </Button>
               </div>
 
-              {/* 選択したカード一覧 */}
               {selectedCards.length > 0 ? (
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 max-h-96 overflow-y-auto border rounded-lg p-4">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 max-h-60 overflow-y-auto">
                   {selectedCards.map((card) => (
                     <div key={card.id} className="relative group">
-                      <div className="bg-white border rounded-lg p-3 hover:shadow-md transition-shadow">
-                        <div className="aspect-[3/4] bg-gray-100 rounded mb-2 overflow-hidden">
-                          {card.game8_image_url ? (
-                            <img
-                              src={card.game8_image_url || "/placeholder.svg"}
-                              alt={card.name}
-                              className="w-full h-full object-cover"
-                              onError={(e) => {
-                                const target = e.target as HTMLImageElement
-                                target.src = "/no-card.png"
-                              }}
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center text-gray-400">
-                              <span className="text-xs">画像なし</span>
-                            </div>
-                          )}
-                        </div>
-                        <p className="text-xs font-medium text-gray-900 truncate">{card.name}</p>
-                        <div className="flex items-center justify-between mt-1">
-                          <Badge variant="secondary" className="text-xs">
-                            {card.rarity}
-                          </Badge>
-                        </div>
+                      <div className="aspect-[2/3] bg-gray-100 rounded-lg overflow-hidden">
+                        {card.image_url ? (
+                          <img
+                            src={card.image_url || "/placeholder.svg"}
+                            alt={card.name}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-gray-400">
+                            <span className="text-xs text-center p-2">{card.name}</span>
+                          </div>
+                        )}
                       </div>
-                      <Button
-                        type="button"
-                        variant="destructive"
-                        size="sm"
-                        className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                      <button
                         onClick={() => removeCard(card.id)}
+                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
                       >
                         <X className="h-3 w-3" />
-                      </Button>
+                      </button>
+                      <p className="text-xs text-center mt-1 truncate">{card.name}</p>
                     </div>
                   ))}
                 </div>
               ) : (
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-                  <Search className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                  <p className="text-gray-500">カードを検索して選択してください</p>
+                <div className="text-center py-8 text-gray-500">
+                  <div className="text-4xl mb-2">🃏</div>
+                  <p>カードが選択されていません</p>
+                  <p className="text-sm">「カードを検索」ボタンからカードを選択してください</p>
                 </div>
               )}
 
-              {/* 上限警告 */}
               {selectedCards.length >= 35 && (
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-                  <p className="text-yellow-800 text-sm">カードは最大35枚まで選択できます。</p>
-                </div>
+                <Badge variant="secondary" className="w-fit">
+                  最大枚数に達しました
+                </Badge>
               )}
             </div>
 
-            {/* アクションボタン */}
-            <div className="flex justify-end space-x-3 pt-4 border-t">
-              <Button type="button" variant="outline" onClick={handleClose} disabled={isCreating}>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={handleClose}>
                 キャンセル
               </Button>
               <Button onClick={handleCreate} disabled={isCreating || !listName.trim() || selectedCards.length === 0}>
-                {isCreating ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    作成中...
-                  </>
-                ) : (
-                  "作成"
-                )}
+                {isCreating ? "作成中..." : "作成"}
               </Button>
             </div>
           </div>
         </DialogContent>
       </Dialog>
 
-      {/* カード検索モーダル */}
       <DetailedSearchModal
         isOpen={isSearchModalOpen}
-        onOpenChange={setIsSearchModalOpen}
-        onCardSelect={handleCardSelection}
+        onClose={() => setIsSearchModalOpen(false)}
+        onCardSelect={handleCardSelect}
         selectedCards={selectedCards}
         maxSelection={35}
         title="カードを選択"

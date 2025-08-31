@@ -2,181 +2,153 @@
 
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { Plus, Loader2 } from "lucide-react"
-import { useToast } from "@/components/ui/use-toast"
+import { Plus } from "lucide-react"
+import { Header } from "@/components/header"
+import { LoginPrompt } from "@/components/login-prompt"
+import { Skeleton } from "@/components/ui/skeleton"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { ListCreationModal } from "@/components/trade-owned-lists/list-creation-modal"
+import { ListCard } from "@/components/trade-owned-lists/list-card"
+import { getUserOwnedLists } from "@/lib/actions/trade-owned-lists"
 import { createClient } from "@/lib/supabase/client"
-import { getTradeOwnedLists, type TradeOwnedList } from "@/lib/actions/trade-owned-lists"
-import ListCreationModal from "@/components/trade-owned-lists/list-creation-modal"
-import ListCard from "@/components/trade-owned-lists/list-card"
-import LoginPrompt from "@/components/login-prompt"
-import Header from "@/components/layout/header"
+import type { User } from "@supabase/supabase-js"
+
+interface OwnedList {
+  id: number
+  list_name: string
+  card_ids: number[]
+  created_at: string
+  updated_at: string
+}
 
 export default function ListsPage() {
-  const [user, setUser] = useState<any>(null)
-  const [lists, setLists] = useState<TradeOwnedList[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+  const [user, setUser] = useState<User | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [lists, setLists] = useState<OwnedList[]>([])
   const [isCreationModalOpen, setIsCreationModalOpen] = useState(false)
-  const { toast } = useToast()
   const supabase = createClient()
 
-  // ユーザー認証状態を確認
   useEffect(() => {
-    const checkUser = async () => {
+    const getUser = async () => {
       const {
         data: { user },
-        error,
       } = await supabase.auth.getUser()
-      if (error) {
-        console.error("認証エラー:", error)
-        setIsLoading(false)
-        return
-      }
       setUser(user)
-
-      if (user) {
-        await fetchLists(user.id)
-      }
-      setIsLoading(false)
+      setLoading(false)
     }
 
-    checkUser()
-  }, [])
+    getUser()
+  }, [supabase.auth])
 
-  // リスト一覧を取得
-  const fetchLists = async (userId: string) => {
-    setIsLoading(true)
-    const result = await getTradeOwnedLists(userId)
-
-    if (result.success) {
-      setLists(result.lists)
-    } else {
-      toast({
-        title: "エラー",
-        description: result.error,
-        variant: "destructive",
-      })
+  useEffect(() => {
+    if (user) {
+      loadLists()
     }
-    setIsLoading(false)
+  }, [user])
+
+  const loadLists = async () => {
+    if (!user) return
+
+    try {
+      const userLists = await getUserOwnedLists(user.id)
+      setLists(userLists)
+    } catch (error) {
+      console.error("Error loading lists:", error)
+    }
   }
 
-  // リスト作成成功時のコールバック
-  const handleListCreated = (newList: TradeOwnedList) => {
-    setLists((prev) => [newList, ...prev])
+  const handleListCreated = () => {
+    loadLists()
     setIsCreationModalOpen(false)
-    toast({
-      title: "成功",
-      description: "新しいリストを作成しました。",
-    })
   }
 
-  // リスト更新時のコールバック
-  const handleListUpdated = (updatedList: TradeOwnedList) => {
-    setLists((prev) => prev.map((list) => (list.id === updatedList.id ? updatedList : list)))
-    toast({
-      title: "成功",
-      description: "リストを更新しました。",
-    })
+  const handleListDeleted = () => {
+    loadLists()
   }
 
-  // リスト削除時のコールバック
-  const handleListDeleted = (deletedListId: number) => {
-    setLists((prev) => prev.filter((list) => list.id !== deletedListId))
-    toast({
-      title: "成功",
-      description: "リストを削除しました。",
-    })
-  }
-
-  // ローディング中
-  if (isLoading) {
+  if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-cyan-50">
         <Header />
         <div className="container mx-auto px-4 py-8">
-          <div className="flex justify-center items-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  // 未認証ユーザー
-  if (!user) {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <Header />
-        <div className="container mx-auto px-4 py-8">
-          <h1 className="text-2xl font-bold text-gray-900 mb-8">カードリスト</h1>
-          <LoginPrompt message="カードリストを作成・管理するにはログインが必要です。" />
-        </div>
-      </div>
-    )
-  }
-
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
-      <div className="container mx-auto px-4 py-8">
-        {/* ヘッダー */}
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">カードリスト</h1>
-          <Button
-            onClick={() => setIsCreationModalOpen(true)}
-            disabled={lists.length >= 10}
-            className="bg-blue-600 hover:bg-blue-700 text-white"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            新しいリストを作成
-          </Button>
-        </div>
-
-        {/* リスト上限の警告 */}
-        {lists.length >= 10 && (
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
-            <p className="text-yellow-800 text-sm">
-              リストは最大10個まで作成できます。新しいリストを作成するには、既存のリストを削除してください。
-            </p>
-          </div>
-        )}
-
-        {/* リスト一覧 */}
-        {lists.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {lists.map((list) => (
-              <ListCard
-                key={list.id}
-                list={list}
-                userId={user.id}
-                onUpdate={handleListUpdated}
-                onDelete={handleListDeleted}
-              />
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-12">
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
-              <div className="text-gray-400 mb-4">
-                <Plus className="h-12 w-12 mx-auto" />
-              </div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">リストがありません</h3>
-              <p className="text-gray-500 mb-6">最初のカードリストを作成してみましょう。</p>
-              <Button onClick={() => setIsCreationModalOpen(true)} className="bg-blue-600 hover:bg-blue-700 text-white">
-                <Plus className="h-4 w-4 mr-2" />
-                新しいリストを作成
-              </Button>
+          <div className="space-y-6">
+            <Skeleton className="h-8 w-48" />
+            <Skeleton className="h-10 w-40" />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {[...Array(6)].map((_, i) => (
+                <Skeleton key={i} className="h-32" />
+              ))}
             </div>
           </div>
-        )}
-
-        {/* リスト作成モーダル */}
-        <ListCreationModal
-          isOpen={isCreationModalOpen}
-          onOpenChange={setIsCreationModalOpen}
-          userId={user.id}
-          onSuccess={handleListCreated}
-        />
+        </div>
       </div>
+    )
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-cyan-50">
+        <Header />
+        <div className="container mx-auto px-4 py-8">
+          <LoginPrompt
+            title="カードリストを管理するにはログインが必要です"
+            description="ログインして、あなたの譲れるカードリストを作成・管理しましょう。"
+          />
+        </div>
+      </div>
+    )
+  }
+
+  const canCreateNewList = lists.length < 10
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-cyan-50">
+      <Header />
+      <div className="container mx-auto px-4 py-8">
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <h1 className="text-2xl font-bold text-gray-900">カードリスト</h1>
+            <Button
+              onClick={() => setIsCreationModalOpen(true)}
+              disabled={!canCreateNewList}
+              className="flex items-center gap-2"
+            >
+              <Plus className="h-4 w-4" />
+              新しいリストを作成
+            </Button>
+          </div>
+
+          {!canCreateNewList && (
+            <Alert>
+              <AlertDescription>
+                リストは最大10個まで作成できます。新しいリストを作成するには、既存のリストを削除してください。
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {lists.length === 0 ? (
+            <div className="text-center py-12">
+              <div className="text-gray-500 mb-4">
+                <div className="text-6xl mb-4">📋</div>
+                <p className="text-lg">まだリストがありません</p>
+                <p className="text-sm">「新しいリストを作成」ボタンから最初のリストを作成しましょう</p>
+              </div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {lists.map((list) => (
+                <ListCard key={list.id} list={list} onDeleted={handleListDeleted} />
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      <ListCreationModal
+        isOpen={isCreationModalOpen}
+        onClose={() => setIsCreationModalOpen(false)}
+        onCreated={handleListCreated}
+      />
     </div>
   )
 }
