@@ -1,460 +1,459 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import Link from "next/link"
+import Image from "next/image"
 import { useRouter } from "next/navigation"
-import { useAuth } from "@/contexts/auth-context"
 import Header from "@/components/layout/header"
 import Footer from "@/components/footer"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { Badge } from "@/components/ui/badge"
-import { Plus, X, List, Package } from "lucide-react"
-import { useToast } from "@/components/ui/use-toast"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { InfoIcon, ArrowLeft, Trash2, Loader2, Clock, AlertTriangle } from "lucide-react"
 import DetailedSearchModal from "@/components/detailed-search-modal"
-import type { Card as SelectedCardType } from "@/components/detailed-search-modal"
-import { getCardsByIds } from "@/lib/card-api"
-import { createTradePost } from "@/lib/actions/trade-actions"
 import ListSelectorModal from "@/components/trade-owned-lists/list-selector-modal"
+import type { Card as SelectedCardType } from "@/components/detailed-search-modal"
+import { useToast } from "@/components/ui/use-toast"
+import { createTradePost } from "@/lib/actions/trade-actions"
+import { supabase } from "@/lib/supabase/client"
+import LoginPromptModal from "@/components/ui/login-prompt-modal"
+import { checkTimeSync, formatTimeSkew, type TimeSync } from "@/lib/utils/time-sync"
 
-interface CardInfo {
-  id: number
-  name: string
-  image_url: string
-}
+type SelectionContextType = "wanted" | "offered" | null
 
 export default function CreateTradePage() {
-  const { user, loading } = useAuth()
-  const router = useRouter()
-  const { toast } = useToast()
-
-  // Form state
-  const [title, setTitle] = useState("")
-  const [description, setDescription] = useState("")
-  const [wantedCards, setWantedCards] = useState<CardInfo[]>([])
-  const [offeredCards, setOfferedCards] = useState<CardInfo[]>([])
-
-  // Modal states
-  const [isWantedSearchOpen, setIsWantedSearchOpen] = useState(false)
-  const [isOfferedSearchOpen, setIsOfferedSearchOpen] = useState(false)
-  const [isListSelectorOpen, setIsListSelectorOpen] = useState(false)
-
-  // Loading states
+  const [tradeTitle, setTradeTitle] = useState("")
+  const [wantedCards, setWantedCards] = useState<SelectedCardType[]>([])
+  const [offeredCards, setOfferedCards] = useState<SelectedCardType[]>([])
+  const [appId, setAppId] = useState("")
+  const [comment, setComment] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false)
+  const [formErrors, setFormErrors] = useState<{ [key: string]: string }>({})
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false)
+  const [timeSync, setTimeSync] = useState<TimeSync | null>(null)
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null)
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [modalSelectionContext, setModalSelectionContext] = useState<SelectionContextType>(null)
+  const [modalMaxSelection, setModalMaxSelection] = useState<number | undefined>(undefined)
+  const [currentModalTitle, setCurrentModalTitle] = useState("カードを選択")
+  const [modalInitialCards, setModalInitialCards] = useState<SelectedCardType[]>([])
+  const [isLoading, setIsLoading] = useState(false)
+  const [showListSelector, setShowListSelector] = useState(false)
+  const { toast } = useToast()
+  const router = useRouter()
 
   useEffect(() => {
-    if (loading) return
-
-    if (!user) {
-      router.push("/auth/login")
-      return
+    const checkTime = async () => {
+      try {
+        const syncResult = await checkTimeSync()
+        setTimeSync(syncResult)
+        if (syncResult.isSkewed)
+          console.warn("⏰ Time sync issue detected:", {
+            deviceTime: new Date(syncResult.deviceTime).toISOString(),
+            serverTime: new Date(syncResult.serverTime).toISOString(),
+            skew: formatTimeSkew(syncResult.skew),
+          })
+      } catch (error) {
+        console.error("Time sync check failed:", error)
+      }
     }
-  }, [user, loading, router])
+    checkTime()
+  }, [])
 
-  const handleAddWantedCards = (selectedCards: SelectedCardType[]) => {
-    const existingIds = new Set(wantedCards.map((card) => card.id))
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        setIsLoading(true)
+        const { data } = await supabase.auth.getSession()
+        const isAuth = !!data.session
+        const userId = data.session?.user?.id || null
+        setIsAuthenticated(isAuth)
+        setCurrentUserId(userId)
 
-    const newCards = selectedCards
-      .filter((card) => !existingIds.has(Number.parseInt(card.id)))
-      .map((card) => ({
-        id: Number.parseInt(card.id),
-        name: card.name,
-        image_url: card.imageUrl || `/placeholder.svg?height=100&width=70&text=${card.name}`,
-      }))
+        if (isAuth && userId) {
+          // ユーザープロファイルからポケポケIDを取得
+          const { data: profile } = await supabase.from("users").select("pokepoke_id").eq("id", userId).single()
 
-    const totalCards = wantedCards.length + newCards.length
-    if (totalCards > 20) {
-      toast({
-        title: "エラー",
-        description: `欲しいカードは最大20枚まで登録できます。（現在: ${wantedCards.length}枚）`,
-        variant: "destructive",
-      })
-      return
+          if (profile?.pokepoke_id) {
+            setAppId(profile.pokepoke_id)
+          }
+        }
+      } catch (error) {
+        console.error("Auth check failed:", error)
+        setIsAuthenticated(false)
+        setCurrentUserId(null)
+      } finally {
+        setIsLoading(false)
+      }
     }
 
-    setWantedCards((prev) => [...prev, ...newCards])
-    setIsWantedSearchOpen(false)
+    checkAuth()
 
-    if (newCards.length > 0) {
-      toast({
-        title: "成功",
-        description: `${newCards.length}枚のカードを追加しました。`,
-      })
+    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
+      const isAuth = !!session
+      const userId = session?.user?.id || null
+      setIsAuthenticated(isAuth)
+      setCurrentUserId(userId)
+
+      if (isAuth && userId) {
+        // ユーザープロファイルからポケポケIDを取得
+        const { data: profile } = await supabase.from("users").select("pokepoke_id").eq("id", userId).single()
+
+        if (profile?.pokepoke_id) {
+          setAppId(profile.pokepoke_id)
+        }
+      }
+    })
+
+    return () => {
+      authListener.subscription.unsubscribe()
     }
+  }, [])
+
+  const validateForm = () => {
+    const errors: { [key: string]: string } = {}
+    if (!tradeTitle.trim()) errors.title = "トレード目的を入力してください。"
+    if (wantedCards.length === 0) errors.wantedCards = "求めるカードを選択してください。"
+    if (offeredCards.length === 0) errors.offeredCards = "譲れるカードを選択してください。"
+    setFormErrors(errors)
+    return Object.keys(errors).length === 0
   }
 
-  const handleAddOfferedCards = (selectedCards: SelectedCardType[]) => {
-    const existingIds = new Set(offeredCards.map((card) => card.id))
-
-    const newCards = selectedCards
-      .filter((card) => !existingIds.has(Number.parseInt(card.id)))
-      .map((card) => ({
-        id: Number.parseInt(card.id),
-        name: card.name,
-        image_url: card.imageUrl || `/placeholder.svg?height=100&width=70&text=${card.name}`,
-      }))
-
-    const totalCards = offeredCards.length + newCards.length
-    if (totalCards > 20) {
-      toast({
-        title: "エラー",
-        description: `譲れるカードは最大20枚まで登録できます。（現在: ${offeredCards.length}枚）`,
-        variant: "destructive",
-      })
-      return
-    }
-
-    setOfferedCards((prev) => [...prev, ...newCards])
-    setIsOfferedSearchOpen(false)
-
-    if (newCards.length > 0) {
-      toast({
-        title: "成功",
-        description: `${newCards.length}枚のカードを追加しました。`,
-      })
-    }
+  const openModal = (context: SelectionContextType, maxSelection: number | undefined, title: string) => {
+    const currentCards = context === "wanted" ? wantedCards : offeredCards
+    setModalSelectionContext(context)
+    setModalMaxSelection(maxSelection)
+    setCurrentModalTitle(title)
+    setModalInitialCards([...currentCards])
+    setIsModalOpen(true)
   }
 
-  const handleListSelected = async (cardIds: number[]) => {
+  const handleModalSelectionComplete = (selected: SelectedCardType[]) => {
+    if (modalSelectionContext === "wanted") {
+      setWantedCards([...selected])
+      if (formErrors.wantedCards) setFormErrors((prev) => ({ ...prev, wantedCards: "" }))
+    } else if (modalSelectionContext === "offered") {
+      setOfferedCards([...selected])
+      if (formErrors.offeredCards) setFormErrors((prev) => ({ ...prev, offeredCards: "" }))
+    }
+    setIsModalOpen(false)
+    setModalSelectionContext(null)
+    setModalInitialCards([])
+  }
+
+  const handleModalClose = () => {
+    setIsModalOpen(false)
+    setModalSelectionContext(null)
+    setModalInitialCards([])
+  }
+
+  const removeCard = (cardId: string, context: "wanted" | "offered") => {
+    if (context === "wanted") setWantedCards((prev) => prev.filter((card) => card.id !== cardId))
+    else setOfferedCards((prev) => prev.filter((card) => card.id !== cardId))
+  }
+
+  const handleRefreshSession = async () => {
     try {
-      const cardData = await getCardsByIds(cardIds)
-      const existingIds = new Set(offeredCards.map((card) => card.id))
-
-      const newCards = cardData
-        .filter((card) => !existingIds.has(card.id))
-        .map((card) => ({
-          id: card.id,
-          name: card.name,
-          image_url: card.image_url || card.game8_image_url || `/placeholder.svg?height=100&width=70&text=${card.name}`,
-        }))
-
-      const totalCards = offeredCards.length + newCards.length
-      if (totalCards > 20) {
+      const { error } = await supabase.auth.refreshSession()
+      if (error) {
+        console.error("Failed to refresh session:", error)
         toast({
-          title: "エラー",
-          description: `譲れるカードは最大20枚まで登録できます。（現在: ${offeredCards.length}枚）`,
+          title: "セッション更新エラー",
+          description: "セッションの更新に失敗しました。再ログインしてください。",
           variant: "destructive",
         })
-        return
-      }
-
-      setOfferedCards((prev) => [...prev, ...newCards])
-      setIsListSelectorOpen(false)
-
-      if (newCards.length > 0) {
-        toast({
-          title: "成功",
-          description: `リストから${newCards.length}枚のカードを追加しました。`,
-        })
       } else {
-        toast({
-          title: "情報",
-          description: "すべてのカードは既に追加されています。",
-        })
+        toast({ title: "セッション更新完了", description: "セッションが正常に更新されました。" })
       }
     } catch (error) {
-      console.error("Error loading cards from list:", error)
-      toast({
-        title: "エラー",
-        description: "リストからカードを読み込めませんでした。",
-        variant: "destructive",
-      })
+      console.error("Error refreshing session:", error)
     }
   }
 
-  const handleRemoveWantedCard = (cardId: number) => {
-    setWantedCards((prev) => prev.filter((card) => card.id !== cardId))
+  const handleSubmitClick = () => {
+    if (!validateForm()) {
+      toast({ title: "入力エラー", description: "必須項目を入力してください。", variant: "destructive" })
+      return
+    }
+    if (timeSync?.isSkewed)
+      toast({
+        title: "時刻同期の問題",
+        description: `デバイスの時計が${formatTimeSkew(timeSync.skew)}ずれています。投稿に失敗する可能性があります。`,
+        variant: "destructive",
+      })
+    if (!isAuthenticated) setShowLoginPrompt(true)
+    else handleSubmit()
   }
 
-  const handleRemoveOfferedCard = (cardId: number) => {
-    setOfferedCards((prev) => prev.filter((card) => card.id !== cardId))
+  const handleContinueAsGuest = () => {
+    setShowLoginPrompt(false)
+    handleSubmit()
   }
 
   const handleSubmit = async () => {
-    if (!title.trim()) {
-      toast({
-        title: "エラー",
-        description: "タイトルを入力してください。",
-        variant: "destructive",
-      })
-      return
-    }
-
-    if (wantedCards.length === 0) {
-      toast({
-        title: "エラー",
-        description: "欲しいカードを最低1枚選択してください。",
-        variant: "destructive",
-      })
-      return
-    }
-
-    if (offeredCards.length === 0) {
-      toast({
-        title: "エラー",
-        description: "譲れるカードを最低1枚選択してください。",
-        variant: "destructive",
-      })
-      return
-    }
-
-    setIsSubmitting(true)
-
     try {
+      setIsSubmitting(true)
       const result = await createTradePost({
-        title: title.trim(),
-        description: description.trim(),
-        wantedCardIds: wantedCards.map((card) => card.id),
-        offeredCardIds: offeredCards.map((card) => card.id),
+        title: tradeTitle,
+        wantedCards,
+        offeredCards,
+        appId: appId.trim() || undefined,
+        comment: comment.trim() || undefined,
+        userId: isAuthenticated ? currentUserId : undefined,
       })
-
       if (result.success) {
-        toast({
-          title: "成功",
-          description: "トレード投稿を作成しました。",
-        })
-        router.push("/")
+        toast({ title: "投稿成功", description: "トレード投稿が作成されました。" })
+        if (result.postId) router.push(`/trades/${result.postId}`)
+        else router.push("/")
       } else {
         toast({
-          title: "エラー",
-          description: result.error || "トレード投稿の作成に失敗しました。",
+          title: "投稿エラー",
+          description: result.error || "投稿の作成に失敗しました。",
           variant: "destructive",
         })
       }
     } catch (error) {
-      console.error("Error creating trade post:", error)
-      toast({
-        title: "エラー",
-        description: "予期しないエラーが発生しました。",
-        variant: "destructive",
-      })
+      console.error("Error submitting trade post:", error)
+      toast({ title: "エラー", description: "予期しないエラーが発生しました。", variant: "destructive" })
     } finally {
       setIsSubmitting(false)
     }
   }
 
-  if (loading) {
+  const renderSelectedCards = (cards: SelectedCardType[], context: "wanted" | "offered") => {
+    if (cards.length === 0) {
+      return (
+        <div>
+          <p className="text-sm text-slate-500 mt-2">カードが選択されていません</p>
+          {formErrors[context === "wanted" ? "wantedCards" : "offeredCards"] && (
+            <p className="text-sm text-red-500 mt-1">
+              {formErrors[context === "wanted" ? "wantedCards" : "offeredCards"]}
+            </p>
+          )}
+        </div>
+      )
+    }
+    return (
+      <div className="mt-3 flex flex-wrap gap-0">
+        {cards.map((card) => (
+          <div key={card.id} className="relative group border rounded-md p-0 bg-slate-50 mx-0">
+            <Image
+              src={card.imageUrl || "/placeholder.svg"}
+              alt={card.name}
+              width={80}
+              height={112}
+              className="rounded object-contain aspect-[5/7] mx-auto"
+            />
+            <p className="text-xs text-center mt-1 truncate">{card.name}</p>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute top-0 right-0 h-2 w-2 bg-red-500 text-white opacity-0 group-hover:opacity-100 hover:bg-red-600 transition-opacity"
+              onClick={() => removeCard(card.id, context)}
+              aria-label={`Remove ${card.name}`}
+              disabled={isSubmitting}
+            >
+              <Trash2 className="h-1 w-1" />
+            </Button>
+          </div>
+        ))}
+      </div>
+    )
+  }
+
+  if (isLoading) {
     return (
       <div className="flex flex-col min-h-screen bg-gradient-to-b from-blue-50 via-blue-100 to-white">
         <Header />
-        <main className="flex-grow container mx-auto px-4 py-8 flex justify-center items-center">
-          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
+        <main className="flex-grow container mx-auto px-4 py-8 flex items-center justify-center">
+          <Loader2 className="h-10 w-10 animate-spin text-blue-600" />
         </main>
         <Footer />
       </div>
     )
   }
 
-  if (!user) {
-    return null
-  }
-
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-b from-blue-50 via-blue-100 to-white">
       <Header />
       <main className="flex-grow container mx-auto px-4 py-8">
-        <div className="max-w-4xl mx-auto">
-          <h1 className="text-2xl font-bold text-slate-800 mb-6">トレード投稿を作成</h1>
-
-          <div className="space-y-6">
-            {/* Basic Information */}
-            <Card>
-              <CardHeader>
-                <CardTitle>基本情報</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <label className="text-sm font-medium text-slate-700">タイトル</label>
-                  <Input
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    placeholder="トレードのタイトルを入力"
-                    className="mt-1"
-                    disabled={isSubmitting}
-                  />
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-slate-700">説明（任意）</label>
-                  <Textarea
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    placeholder="トレードの詳細や条件を入力"
-                    className="mt-1"
-                    rows={3}
-                    disabled={isSubmitting}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Wanted Cards */}
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <CardTitle>欲しいカード</CardTitle>
-                    <Badge variant="secondary">{wantedCards.length}/20枚</Badge>
-                  </div>
+        <Link href="/" className="inline-flex items-center text-sm text-blue-600 hover:text-blue-700 mb-6">
+          <ArrowLeft className="h-4 w-4 mr-1" />
+          タイムラインに戻る
+        </Link>
+        <div className="bg-white p-6 sm:p-8 rounded-lg shadow-md max-w-2xl mx-auto">
+          <h1 className="text-2xl font-bold text-slate-800 mb-6 text-center">トレードカードを登録</h1>
+          {timeSync?.isSkewed && (
+            <Alert className="mb-6 bg-yellow-50 border-yellow-200">
+              <AlertTriangle className="h-5 w-5 text-yellow-600" />
+              <AlertTitle className="text-yellow-700 font-semibold">時刻同期の問題</AlertTitle>
+              <AlertDescription className="text-yellow-600 text-sm">
+                デバイスの時計が{formatTimeSkew(timeSync.skew)}
+                ずれています。これにより認証に問題が発生する可能性があります。
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleRefreshSession}
+                  className="ml-2 text-yellow-700 border-yellow-300 hover:bg-yellow-100 bg-transparent"
+                >
+                  <Clock className="h-4 w-4 mr-1" />
+                  セッション更新
+                </Button>
+              </AlertDescription>
+            </Alert>
+          )}
+          <Alert className="mb-6 bg-blue-50 border-blue-200">
+            <InfoIcon className="h-5 w-5 text-blue-600" />
+            <AlertTitle className="text-blue-700 font-semibold">お知らせ</AlertTitle>
+            <AlertDescription className="text-blue-600 text-sm">
+              ここで登録された内容はタイムラインに即時反映されます。コメントがあれば、ベルマークから確認できます。トレード状況はマイページのトレード履歴から確認できます。
+            </AlertDescription>
+          </Alert>
+          <form className="space-y-6">
+            <div>
+              <label htmlFor="tradeTitle" className="block text-sm font-medium text-slate-700 mb-1">
+                トレード目的 <span className="text-red-500">*</span>
+              </label>
+              <Input
+                id="tradeTitle"
+                value={tradeTitle}
+                onChange={(e) => {
+                  setTradeTitle(e.target.value)
+                  if (formErrors.title) setFormErrors((prev) => ({ ...prev, title: "" }))
+                }}
+                placeholder="例：リザードンex求む"
+                required
+                disabled={isSubmitting}
+                className={formErrors.title ? "border-red-500" : ""}
+              />
+              {formErrors.title && <p className="text-sm text-red-500 mt-1">{formErrors.title}</p>}
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">
+                求めるカード <span className="text-red-500">*</span>
+              </label>
+              <Button
+                type="button"
+                onClick={() => openModal("wanted", 20, "求めるカードを選択")}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                disabled={isSubmitting}
+              >
+                カードを選択 (最大20枚)
+              </Button>
+              {renderSelectedCards(wantedCards, "wanted")}
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">
+                譲れるカード <span className="text-red-500">*</span>
+              </label>
+              {/* リスト選択UI */}
+              <div className="mb-1 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-sm font-medium text-blue-700">保存済みリストから選択</span>
                   <Button
+                    type="button"
                     variant="outline"
-                    onClick={() => setIsWantedSearchOpen(true)}
-                    disabled={wantedCards.length >= 20 || isSubmitting}
+                    size="sm"
+                    onClick={() => setShowListSelector(true)}
+                    className="text-blue-600 border-blue-300 hover:bg-blue-100"
+                    disabled={isSubmitting}
                   >
-                    <Plus className="h-4 w-4 mr-2" />
-                    カードを追加
+                    リストを選択
                   </Button>
                 </div>
-              </CardHeader>
-              <CardContent>
-                {wantedCards.length > 0 ? (
-                  <div className="grid grid-cols-5 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-12 gap-2">
-                    {wantedCards.map((card) => (
-                      <div key={card.id} className="relative group">
-                        <div className="aspect-[7/10] bg-gray-100 rounded-md overflow-hidden border">
-                          <img
-                            src={card.image_url || "/placeholder.svg"}
-                            alt={card.name}
-                            className="w-full h-full object-cover"
-                            onError={(e) => {
-                              const target = e.target as HTMLImageElement
-                              target.src = "/placeholder.svg"
-                            }}
-                          />
-                        </div>
-                        <button
-                          onClick={() => handleRemoveWantedCard(card.id)}
-                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                          disabled={isSubmitting}
-                        >
-                          <X className="h-3 w-3" />
-                        </button>
-                        <p className="text-xs text-center mt-1 truncate text-slate-600">{card.name}</p>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-12 text-slate-500 border-2 border-dashed border-slate-200 rounded-lg">
-                    <Package className="h-8 w-8 mx-auto mb-2" />
-                    <p>欲しいカードを追加してください</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+              </div>
 
-            {/* Offered Cards */}
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <CardTitle>譲れるカード</CardTitle>
-                    <Badge variant="secondary">{offeredCards.length}/20枚</Badge>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      onClick={() => setIsListSelectorOpen(true)}
-                      disabled={offeredCards.length >= 20 || isSubmitting}
-                      className="bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100"
-                    >
-                      <List className="h-4 w-4 mr-2" />
-                      リストから選択
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={() => setIsOfferedSearchOpen(true)}
-                      disabled={offeredCards.length >= 20 || isSubmitting}
-                    >
-                      <Plus className="h-4 w-4 mr-2" />
-                      カードを追加
-                    </Button>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                  <p className="text-sm text-blue-700">
-                    💡 <strong>リストから選択</strong>で、事前に作成した譲れるカードリストから簡単に追加できます。
-                    リストは
-                    <a href="/lists" className="underline font-medium">
-                      こちら
-                    </a>
-                    から管理できます。
-                  </p>
-                </div>
-                {offeredCards.length > 0 ? (
-                  <div className="grid grid-cols-5 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-12 gap-2">
-                    {offeredCards.map((card) => (
-                      <div key={card.id} className="relative group">
-                        <div className="aspect-[7/10] bg-gray-100 rounded-md overflow-hidden border">
-                          <img
-                            src={card.image_url || "/placeholder.svg"}
-                            alt={card.name}
-                            className="w-full h-full object-cover"
-                            onError={(e) => {
-                              const target = e.target as HTMLImageElement
-                              target.src = "/placeholder.svg"
-                            }}
-                          />
-                        </div>
-                        <button
-                          onClick={() => handleRemoveOfferedCard(card.id)}
-                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                          disabled={isSubmitting}
-                        >
-                          <X className="h-3 w-3" />
-                        </button>
-                        <p className="text-xs text-center mt-1 truncate text-slate-600">{card.name}</p>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-12 text-slate-500 border-2 border-dashed border-slate-200 rounded-lg">
-                    <Package className="h-8 w-8 mx-auto mb-2" />
-                    <p>譲れるカードを追加してください</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Submit Button */}
-            <div className="flex justify-end">
               <Button
-                onClick={handleSubmit}
-                disabled={isSubmitting || !title.trim() || wantedCards.length === 0 || offeredCards.length === 0}
-                className="bg-blue-600 hover:bg-blue-700"
+                type="button"
+                onClick={() => openModal("offered", 20, "譲れるカードを選択")}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                disabled={isSubmitting}
               >
-                {isSubmitting ? "作成中..." : "トレード投稿を作成"}
+                カードを選択 (最大20枚)
+              </Button>
+              {renderSelectedCards(offeredCards, "offered")}
+            </div>
+            <div>
+              <label htmlFor="appId" className="block text-sm font-medium text-slate-700 mb-1">
+                ポケポケアプリID
+              </label>
+              <Input
+                id="appId"
+                value={appId}
+                onChange={(e) => setAppId(e.target.value)}
+                placeholder="ポケポケアプリのID (任意)"
+                disabled={isSubmitting || (isAuthenticated && appId.trim() !== "")}
+                readOnly={isAuthenticated && appId.trim() !== ""}
+              />
+              <p className="text-xs text-slate-500 mt-1">
+                {isAuthenticated
+                  ? appId.trim() !== ""
+                    ? "登録済みのポケポケIDが自動入力されています。"
+                    : "ログイン中です。ポケポケIDは任意です。"
+                  : "ゲストユーザーとして投稿します。ポケポケIDは任意です。"}
+              </p>
+            </div>
+            <div>
+              <label htmlFor="comment" className="block text-sm font-medium text-slate-700 mb-1">
+                コメント (任意)
+              </label>
+              <Textarea
+                id="comment"
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+                placeholder="コメントを入力 (256文字まで)"
+                rows={4}
+                disabled={isSubmitting}
+                maxLength={256}
+              />
+              <p className="text-xs text-right text-slate-500 mt-1">{comment.length}/256</p>
+            </div>
+            <div className="pt-4">
+              <Button
+                type="button"
+                onClick={handleSubmitClick}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white text-base py-3"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    登録中...
+                  </>
+                ) : (
+                  "登録する"
+                )}
               </Button>
             </div>
-          </div>
+          </form>
         </div>
       </main>
       <Footer />
-
-      {/* Modals */}
       <DetailedSearchModal
-        isOpen={isWantedSearchOpen}
-        onOpenChange={setIsWantedSearchOpen}
-        onSelectionComplete={handleAddWantedCards}
-        modalTitle="欲しいカードを選択"
-        allowMultipleSelection={true}
+        isOpen={isModalOpen}
+        onOpenChange={handleModalClose}
+        onSelectionComplete={handleModalSelectionComplete}
+        maxSelection={modalMaxSelection}
+        initialSelectedCards={modalInitialCards}
+        modalTitle={currentModalTitle}
       />
-
-      <DetailedSearchModal
-        isOpen={isOfferedSearchOpen}
-        onOpenChange={setIsOfferedSearchOpen}
-        onSelectionComplete={handleAddOfferedCards}
-        modalTitle="譲れるカードを選択"
-        allowMultipleSelection={true}
-      />
-
       <ListSelectorModal
-        isOpen={isListSelectorOpen}
-        onClose={() => setIsListSelectorOpen(false)}
-        onListSelected={handleListSelected}
-        userId={user.id}
+        isOpen={showListSelector}
+        onOpenChange={(open) => setShowListSelector(open)}
+        userId={currentUserId || ""}
+        onListSelect={(selectedCards) => {
+          // 重複を除去して追加
+          const existingIds = new Set(offeredCards.map((card) => card.id))
+          const newCards = selectedCards.filter((card) => !existingIds.has(card.id))
+          setOfferedCards((prev) => [...prev, ...newCards])
+          setShowListSelector(false)
+        }}
       />
+      {showLoginPrompt && (
+        <LoginPromptModal onClose={() => setShowLoginPrompt(false)} onContinueAsGuest={handleContinueAsGuest} />
+      )}
     </div>
   )
 }
