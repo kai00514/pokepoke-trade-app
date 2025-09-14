@@ -40,11 +40,20 @@ export default function ListDetailPage({ params }: ListDetailPageProps) {
 
         setUserId(user.id)
 
+        // Get list ID from params
+        const { id } = params
+
+        console.log("Loading list with ID:", id)
+
         // Get lists
         const result = await getTradeOwnedLists(user.id)
 
+        console.log("getTradeOwnedLists result:", result)
+
         if (result.success && result.lists) {
-          const foundList = result.lists.find((l) => l.id === Number.parseInt(params.id))
+          const foundList = result.lists.find((l) => l.id === Number.parseInt(id))
+          console.log("Found list:", foundList)
+
           if (foundList) {
             setList(foundList)
           } else {
@@ -77,7 +86,7 @@ export default function ListDetailPage({ params }: ListDetailPageProps) {
     }
 
     loadData()
-  }, [params.id, router, toast])
+  }, [params, router, toast])
 
   const handleDelete = async () => {
     if (!list || !userId || !confirm("このリストを削除しますか？")) return
