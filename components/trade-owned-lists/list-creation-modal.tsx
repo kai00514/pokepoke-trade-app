@@ -10,7 +10,7 @@ import { Progress } from "@/components/ui/progress"
 import { X, Search, Plus } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
 import { createTradeOwnedList, type TradeOwnedList } from "@/lib/actions/trade-owned-lists"
-import { DetailedSearchModal } from "@/components/detailed-search-modal"
+import DetailedSearchModal from "@/components/detailed-search-modal"
 import type { Card } from "@/types/card"
 
 interface ListCreationModalProps {

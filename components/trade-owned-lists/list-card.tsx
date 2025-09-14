@@ -19,7 +19,7 @@ import {
 import { Edit, Trash2, Calendar, Package } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
 import { deleteTradeOwnedList, type TradeOwnedList } from "@/lib/actions/trade-owned-lists"
-import { ListEditorModal } from "@/components/trade-owned-lists/list-editor-modal"
+import ListEditorModal from "./list-editor-modal"
 
 interface ListCardProps {
   list: TradeOwnedList
@@ -143,7 +143,7 @@ export default function ListCard({ list, userId, onUpdate, onDelete }: ListCardP
         onOpenChange={setIsEditorModalOpen}
         list={list}
         userId={userId}
-        onSuccess={handleUpdate}
+        onSave={handleUpdate}
       />
     </>
   )
