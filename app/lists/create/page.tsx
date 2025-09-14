@@ -10,14 +10,14 @@ import { Label } from "@/components/ui/label"
 import { useToast } from "@/hooks/use-toast"
 import { createClient } from "@/lib/supabase/client"
 import { createTradeOwnedList } from "@/lib/actions/trade-owned-lists"
-import CardDisplay from "@/components/card-display"
 import DetailedSearchModal from "@/components/detailed-search-modal"
+import CardDisplay from "@/components/card-display"
 
 export default function CreateListPage() {
   const router = useRouter()
   const { toast } = useToast()
   const [listName, setListName] = useState("")
-  const [selectedCards, setSelectedCards] = useState<number[]>([])
+  const [selectedCards, setSelectedCards] = useState<any[]>([])
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false)
   const [isCreating, setIsCreating] = useState(false)
   const [userId, setUserId] = useState<string | null>(null)
@@ -37,14 +37,9 @@ export default function CreateListPage() {
     getUser()
   }, [router])
 
-  const handleCardSelect = (cardId: number) => {
-    setSelectedCards((prev) => {
-      if (prev.includes(cardId)) {
-        return prev.filter((id) => id !== cardId)
-      } else {
-        return [...prev, cardId]
-      }
-    })
+  const handleCardSelection = (cards: any[]) => {
+    setSelectedCards(cards)
+    setIsSearchModalOpen(false)
   }
 
   const handleCreateList = async () => {
@@ -64,10 +59,11 @@ export default function CreateListPage() {
       const result = await createTradeOwnedList(userId, listName.trim())
 
       if (result.success && result.list) {
-        // リストが作成されたら、カードを追加
+        // カードが選択されている場合は、リストを更新
         if (selectedCards.length > 0) {
           const { updateTradeOwnedList } = await import("@/lib/actions/trade-owned-lists")
-          const updateResult = await updateTradeOwnedList(result.list.id, userId, listName.trim(), selectedCards)
+          const cardIds = selectedCards.map((card) => Number.parseInt(card.id))
+          const updateResult = await updateTradeOwnedList(result.list.id, userId, listName.trim(), cardIds)
 
           if (updateResult.success) {
             toast({
@@ -77,11 +73,10 @@ export default function CreateListPage() {
             router.push("/lists")
           } else {
             toast({
-              title: "警告",
-              description: "リストは作成されましたが、カードの追加に失敗しました",
+              title: "エラー",
+              description: updateResult.error || "カードの追加に失敗しました",
               variant: "destructive",
             })
-            router.push("/lists")
           }
         } else {
           toast({
@@ -150,11 +145,10 @@ export default function CreateListPage() {
                 <Button
                   onClick={() => setIsSearchModalOpen(true)}
                   variant="outline"
-                  size="sm"
                   className="text-blue-600 border-blue-600 hover:bg-blue-50"
                 >
                   <Search className="h-4 w-4 mr-2" />
-                  カードを検索
+                  カード詳細検索
                 </Button>
               </div>
 
@@ -163,14 +157,13 @@ export default function CreateListPage() {
                 <div className="space-y-2">
                   <p className="text-sm text-gray-600">{selectedCards.length}枚のカードが選択されています</p>
                   <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-2 max-h-60 overflow-y-auto">
-                    {selectedCards.map((cardId, index) => (
-                      <div key={`${cardId}-${index}`} className="aspect-[5/7]">
+                    {selectedCards.map((card, index) => (
+                      <div key={`${card.id}-${index}`} className="aspect-[5/7]">
                         <CardDisplay
-                          cardId={cardId.toString()}
+                          cardId={card.id}
                           width={80}
                           height={112}
-                          className="w-full h-full object-cover rounded-md cursor-pointer"
-                          onClick={() => handleCardSelect(cardId)}
+                          className="w-full h-full object-cover rounded-md"
                         />
                       </div>
                     ))}
@@ -186,7 +179,7 @@ export default function CreateListPage() {
                 disabled={isCreating || !listName.trim()}
                 className="bg-blue-600 hover:bg-blue-700"
               >
-                {isCreating ? "作成中..." : "リストを作成"}
+                {isCreating ? "作成中..." : "選択完了"}
               </Button>
             </div>
           </CardContent>
@@ -196,8 +189,9 @@ export default function CreateListPage() {
         <DetailedSearchModal
           isOpen={isSearchModalOpen}
           onOpenChange={setIsSearchModalOpen}
-          onCardSelect={handleCardSelect}
-          selectedCards={selectedCards}
+          onSelectionComplete={handleCardSelection}
+          initialSelectedCards={selectedCards}
+          modalTitle="カード詳細検索"
         />
       </div>
     </div>
