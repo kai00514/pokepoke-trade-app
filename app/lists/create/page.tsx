@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { ArrowLeft, Search, Check } from "lucide-react"
+import { ArrowLeft, Search } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -17,7 +17,7 @@ export default function CreateListPage() {
   const router = useRouter()
   const { toast } = useToast()
   const [listName, setListName] = useState("")
-  const [selectedCards, setSelectedCards] = useState<any[]>([])
+  const [selectedCards, setSelectedCards] = useState<number[]>([])
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false)
   const [isCreating, setIsCreating] = useState(false)
   const [userId, setUserId] = useState<string | null>(null)
@@ -37,26 +37,18 @@ export default function CreateListPage() {
     getUser()
   }, [router])
 
-  const handleCardSelect = (card: any) => {
+  const handleCardSelect = (cardId: number) => {
     setSelectedCards((prev) => {
-      const exists = prev.find((c) => c.id === card.id)
-      if (exists) {
-        return prev.filter((c) => c.id !== card.id)
+      if (prev.includes(cardId)) {
+        return prev.filter((id) => id !== cardId)
       } else {
-        return [...prev, card]
+        return [...prev, cardId]
       }
     })
   }
 
   const handleCreateList = async () => {
-    if (!userId) {
-      toast({
-        title: "エラー",
-        description: "ログインが必要です",
-        variant: "destructive",
-      })
-      return
-    }
+    if (!userId) return
 
     if (!listName.trim()) {
       toast({
@@ -67,24 +59,14 @@ export default function CreateListPage() {
       return
     }
 
-    if (selectedCards.length === 0) {
-      toast({
-        title: "エラー",
-        description: "少なくとも1枚のカードを選択してください",
-        variant: "destructive",
-      })
-      return
-    }
-
     setIsCreating(true)
     try {
-      const cardIds = selectedCards.map((card) => card.id)
-      const result = await createTradeOwnedList(userId, listName.trim(), cardIds)
+      const result = await createTradeOwnedList(userId, listName.trim(), selectedCards)
 
       if (result.success) {
         toast({
           title: "成功",
-          description: "リストが作成されました",
+          description: "リストを作成しました",
         })
         router.push("/lists")
       } else {
@@ -137,46 +119,39 @@ export default function CreateListPage() {
                 value={listName}
                 onChange={(e) => setListName(e.target.value)}
                 placeholder="リスト名を入力してください"
-                className="w-full"
               />
             </div>
 
-            {/* Card Search */}
+            {/* Card Selection */}
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <Label>カード選択</Label>
-                <Button onClick={() => setIsSearchModalOpen(true)} className="bg-blue-600 hover:bg-blue-700">
+                <Button
+                  onClick={() => setIsSearchModalOpen(true)}
+                  variant="outline"
+                  className="text-blue-600 border-blue-600 hover:bg-blue-50"
+                >
                   <Search className="h-4 w-4 mr-2" />
-                  カードを検索
+                  カード詳細検索
                 </Button>
               </div>
 
-              {/* Selected Cards */}
               {selectedCards.length > 0 && (
                 <div className="space-y-2">
                   <p className="text-sm text-gray-600">{selectedCards.length}枚のカードが選択されています</p>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                    {selectedCards.map((card) => (
-                      <div key={card.id} className="relative">
-                        <CardDisplay cardId={card.id.toString()} />
-                        <Button
-                          size="sm"
-                          variant="destructive"
-                          className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0"
-                          onClick={() => handleCardSelect(card)}
-                        >
-                          ×
-                        </Button>
+                  <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-2 max-h-60 overflow-y-auto">
+                    {selectedCards.map((cardId, index) => (
+                      <div key={`${cardId}-${index}`} className="aspect-[5/7]">
+                        <CardDisplay
+                          cardId={cardId.toString()}
+                          width={80}
+                          height={112}
+                          className="w-full h-full object-cover rounded-md cursor-pointer"
+                          onClick={() => handleCardSelect(cardId)}
+                        />
                       </div>
                     ))}
                   </div>
-                </div>
-              )}
-
-              {selectedCards.length === 0 && (
-                <div className="text-center py-8 text-gray-500">
-                  <p>カードが選択されていません</p>
-                  <p className="text-sm">「カードを検索」ボタンからカードを選択してください</p>
                 </div>
               )}
             </div>
@@ -185,11 +160,10 @@ export default function CreateListPage() {
             <div className="flex justify-end">
               <Button
                 onClick={handleCreateList}
-                disabled={isCreating || !listName.trim() || selectedCards.length === 0}
+                disabled={isCreating || !listName.trim()}
                 className="bg-blue-600 hover:bg-blue-700"
               >
-                <Check className="h-4 w-4 mr-2" />
-                {isCreating ? "作成中..." : "リストを作成"}
+                {isCreating ? "作成中..." : "選択完了"}
               </Button>
             </div>
           </CardContent>
