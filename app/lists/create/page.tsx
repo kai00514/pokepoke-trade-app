@@ -1,13 +1,14 @@
 "use client"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { ArrowLeft, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "@/components/ui/card"
 import DetailedSearchModal, { type Card as CardType } from "@/components/detailed-search-modal"
-import { createTradeOwnedList } from "@/lib/actions/trade-owned-lists"
+import { createTradeOwnedList, updateTradeOwnedList } from "@/lib/actions/trade-owned-lists"
 import { useToast } from "@/hooks/use-toast"
+import { createClient } from "@/lib/supabase/client"
 
 export default function CreateListPage() {
   const router = useRouter()
@@ -16,6 +17,22 @@ export default function CreateListPage() {
   const [listName, setListName] = useState("")
   const [selectedCards, setSelectedCards] = useState<CardType[]>([])
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false)
+  const [userId, setUserId] = useState<string | null>(null)
+
+  useEffect(() => {
+    const getUser = async () => {
+      const supabase = createClient()
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+      if (user) {
+        setUserId(user.id)
+      } else {
+        router.push("/auth/login")
+      }
+    }
+    getUser()
+  }, [router])
 
   const handleCardSelection = (cards: CardType[]) => {
     setSelectedCards(cards)
@@ -23,6 +40,15 @@ export default function CreateListPage() {
   }
 
   const handleComplete = async () => {
+    if (!userId) {
+      toast({
+        title: "エラー",
+        description: "ログインが必要です",
+        variant: "destructive",
+      })
+      return
+    }
+
     if (!listName.trim()) {
       toast({
         title: "エラー",
@@ -43,27 +69,36 @@ export default function CreateListPage() {
 
     setIsLoading(true)
     try {
-      const cardIds = selectedCards.map((card) => Number.parseInt(card.id))
-      const result = await createTradeOwnedList({
-        list_name: listName,
-        description: "",
-        card_ids: cardIds,
-      })
+      // まずリストを作成
+      const createResult = await createTradeOwnedList(userId, listName.trim())
 
-      if (result.success) {
-        toast({
-          title: "成功",
-          description: "リストが作成されました",
-        })
-        router.push("/lists")
+      if (createResult.success && createResult.list) {
+        // カードIDを追加
+        const cardIds = selectedCards.map((card) => Number.parseInt(card.id))
+        const updateResult = await updateTradeOwnedList(createResult.list.id, userId, listName.trim(), cardIds)
+
+        if (updateResult.success) {
+          toast({
+            title: "成功",
+            description: "リストが作成されました",
+          })
+          router.push("/lists")
+        } else {
+          toast({
+            title: "エラー",
+            description: updateResult.error || "カードの追加に失敗しました",
+            variant: "destructive",
+          })
+        }
       } else {
         toast({
           title: "エラー",
-          description: result.error || "リストの作成に失敗しました",
+          description: createResult.error || "リストの作成に失敗しました",
           variant: "destructive",
         })
       }
     } catch (error) {
+      console.error("Error creating list:", error)
       toast({
         title: "エラー",
         description: "リストの作成に失敗しました",
@@ -72,6 +107,17 @@ export default function CreateListPage() {
     } finally {
       setIsLoading(false)
     }
+  }
+
+  if (!userId) {
+    return (
+      <div className="min-h-screen bg-blue-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">読み込み中...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
