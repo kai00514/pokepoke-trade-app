@@ -169,30 +169,95 @@ export default function ListsPage() {
                 {lists.map((list) => (
                   <div
                     key={list.id}
-                    className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow"
+                    className="bg-white border border-blue-100 rounded-xl p-6 shadow-sm hover:shadow-lg hover:border-blue-200 transition-all duration-200 cursor-pointer group"
                   >
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">{list.name}</h3>
-                    <p className="text-gray-600 text-sm mb-4">{list.description || "説明なし"}</p>
-                    <div className="flex justify-between items-center text-sm text-gray-500">
-                      <span>カード数: {list.card_count || 0}</span>
-                      <span>{new Date(list.created_at).toLocaleDateString()}</span>
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex-1">
+                        <h3 className="text-lg font-semibold text-gray-900 mb-1 group-hover:text-blue-700 transition-colors">
+                          {list.name}
+                        </h3>
+                        <p className="text-gray-600 text-sm line-clamp-2">{list.description || "説明なし"}</p>
+                      </div>
+                      <div className="ml-3 p-2 bg-blue-50 rounded-lg group-hover:bg-blue-100 transition-colors">
+                        <svg className="h-5 w-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+                      <div className="flex items-center space-x-4 text-sm text-gray-500">
+                        <div className="flex items-center">
+                          <svg
+                            className="h-4 w-4 mr-1 text-blue-500"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M7 4V2a1 1 0 011-1h8a1 1 0 011 1v2h4a1 1 0 110 2h-1v12a2 2 0 01-2 2H6a2 2 0 01-2-2V6H3a1 1 0 110-2h4zM9 6v10h6V6H9z"
+                            />
+                          </svg>
+                          <span className="font-medium text-blue-600">{list.card_count || 0}枚</span>
+                        </div>
+                        <div className="flex items-center">
+                          <svg className="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M8 7V3a1 1 0 011-1h6a1 1 0 011 1v4h3a1 1 0 110 2h-1v9a2 2 0 01-2 2H8a2 2 0 01-2-2V9H5a1 1 0 110-2h3z"
+                            />
+                          </svg>
+                          <span>{new Date(list.created_at).toLocaleDateString()}</span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center text-blue-600 group-hover:text-blue-700 transition-colors">
+                        <span className="text-sm font-medium mr-1">詳細</span>
+                        <svg
+                          className="h-4 w-4 transform group-hover:translate-x-1 transition-transform"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </div>
                     </div>
                   </div>
                 ))}
               </div>
             ) : (
               <div className="text-center py-12">
-                <div className="bg-gray-50 rounded-lg border-2 border-dashed border-gray-300 p-8">
-                  <div className="text-gray-400 mb-4">
-                    <Plus className="h-12 w-12 mx-auto" />
+                <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border-2 border-dashed border-blue-200 p-12">
+                  <div className="text-blue-300 mb-6">
+                    <svg className="h-16 w-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={1.5}
+                        d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                      />
+                    </svg>
                   </div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">リストがありません</h3>
-                  <p className="text-gray-500 mb-6">最初のカードリストを作成してみましょう。</p>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-3">リストがありません</h3>
+                  <p className="text-gray-600 mb-8 max-w-md mx-auto">
+                    最初のカードリストを作成して、トレードで譲れるカードを管理しましょう。
+                  </p>
                   <Button
                     onClick={() => setIsCreationModalOpen(true)}
-                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-medium shadow-lg hover:shadow-xl transition-all duration-200"
                   >
-                    <Plus className="h-4 w-4 mr-2" />
+                    <Plus className="h-5 w-5 mr-2" />
                     新しいリストを作成
                   </Button>
                 </div>
