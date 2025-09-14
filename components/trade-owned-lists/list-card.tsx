@@ -62,60 +62,98 @@ export default function ListCard({ list, userId, onUpdate, onDelete }: ListCardP
 
   return (
     <>
-      <Card className="hover:shadow-md transition-shadow duration-200">
+      <Card className="hover:shadow-xl transition-all duration-300 border-0 shadow-md bg-white hover:scale-[1.02] group">
         <CardContent className="p-6">
           {/* ヘッダー */}
-          <div className="flex justify-between items-start mb-4">
+          <div className="flex justify-between items-start mb-6">
             <div className="flex-1 min-w-0">
-              <h3 className="text-lg font-semibold text-gray-900 truncate">{list.list_name}</h3>
-              <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
-                <div className="flex items-center gap-1">
-                  <Calendar className="h-4 w-4" />
-                  <span>{formatDate(list.updated_at)}</span>
+              <h3 className="text-xl font-bold text-gray-900 truncate mb-3 group-hover:text-blue-600 transition-colors">
+                {list.list_name}
+              </h3>
+              <div className="flex items-center gap-6 text-sm text-gray-500">
+                <div className="flex items-center gap-2">
+                  <div className="bg-gray-100 rounded-full p-1">
+                    <Calendar className="h-3 w-3" />
+                  </div>
+                  <span className="font-medium">{formatDate(list.updated_at)}</span>
                 </div>
-                <div className="flex items-center gap-1">
-                  <Package className="h-4 w-4" />
-                  <span>{list.card_ids.length}枚</span>
+                <div className="flex items-center gap-2">
+                  <div className="bg-blue-100 rounded-full p-1">
+                    <Package className="h-3 w-3 text-blue-600" />
+                  </div>
+                  <span className="font-medium">{list.card_ids.length}枚</span>
                 </div>
               </div>
             </div>
 
             {/* アクションボタン */}
             <div className="flex gap-2 ml-4">
-              <Button variant="outline" size="sm" onClick={() => setIsEditorOpen(true)} className="p-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsEditorOpen(true)}
+                className="p-2 hover:bg-blue-50 hover:border-blue-200 hover:text-blue-600 transition-colors"
+              >
                 <Edit className="h-4 w-4" />
               </Button>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setIsDeleteDialogOpen(true)}
-                className="p-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+                className="p-2 text-red-600 hover:text-red-700 hover:bg-red-50 hover:border-red-200 transition-colors"
               >
                 <Trash2 className="h-4 w-4" />
               </Button>
             </div>
           </div>
 
-          {/* カード枚数バッジ */}
-          <div className="flex justify-between items-center">
+          {/* カード枚数とステータス */}
+          <div className="flex justify-between items-center mb-4">
             <Badge
               variant={list.card_ids.length === 0 ? "secondary" : "default"}
-              className={list.card_ids.length === 0 ? "bg-gray-100 text-gray-600" : "bg-blue-100 text-blue-800"}
+              className={`px-3 py-1 text-sm font-medium ${
+                list.card_ids.length === 0
+                  ? "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                  : "bg-blue-100 text-blue-800 hover:bg-blue-200"
+              } transition-colors`}
             >
               {list.card_ids.length === 0 ? "カードなし" : `${list.card_ids.length}枚登録済み`}
             </Badge>
 
             {list.card_ids.length >= 35 && (
-              <Badge variant="outline" className="text-orange-600 border-orange-600">
+              <Badge variant="outline" className="text-orange-600 border-orange-300 bg-orange-50 px-3 py-1">
                 上限達成
               </Badge>
             )}
           </div>
 
+          {/* プログレスバー */}
+          <div className="mb-4">
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-xs font-medium text-gray-500">登録状況</span>
+              <span className="text-xs font-medium text-gray-500">{list.card_ids.length}/35</span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div
+                className={`h-2 rounded-full transition-all duration-300 ${
+                  list.card_ids.length === 0
+                    ? "bg-gray-300"
+                    : list.card_ids.length >= 35
+                      ? "bg-orange-500"
+                      : "bg-blue-500"
+                }`}
+                style={{ width: `${Math.min((list.card_ids.length / 35) * 100, 100)}%` }}
+              />
+            </div>
+          </div>
+
           {/* 作成日時（更新日時と異なる場合のみ表示） */}
           {list.created_at !== list.updated_at && (
-            <div className="mt-3 pt-3 border-t border-gray-100">
-              <p className="text-xs text-gray-400">作成日: {formatDate(list.created_at)}</p>
+            <div className="pt-4 border-t border-gray-100">
+              <p className="text-xs text-gray-400 flex items-center gap-1">
+                <Calendar className="h-3 w-3" />
+                作成日: {formatDate(list.created_at)}
+              </p>
             </div>
           )}
         </CardContent>
