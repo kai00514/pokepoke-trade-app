@@ -6,9 +6,7 @@ import { Plus, Loader2, ArrowLeft } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
 import { createClient } from "@/lib/supabase/client"
 import { getTradeOwnedLists, type TradeOwnedList } from "@/lib/actions/trade-owned-lists"
-import ListCreationModal from "@/components/trade-owned-lists/list-creation-modal"
-import ListCard from "@/components/trade-owned-lists/list-card"
-import LoginPrompt from "@/components/login-prompt"
+import LoginPromptModal from "@/components/ui/login-prompt-modal"
 import Link from "next/link"
 
 export default function ListsPage() {
@@ -59,34 +57,6 @@ export default function ListsPage() {
     setIsLoading(false)
   }
 
-  // リスト作成成功時のコールバック
-  const handleListCreated = (newList: TradeOwnedList) => {
-    setLists((prev) => [newList, ...prev])
-    setIsCreationModalOpen(false)
-    toast({
-      title: "成功",
-      description: "新しいリストを作成しました。",
-    })
-  }
-
-  // リスト更新時のコールバック
-  const handleListUpdated = (updatedList: TradeOwnedList) => {
-    setLists((prev) => prev.map((list) => (list.id === updatedList.id ? updatedList : list)))
-    toast({
-      title: "成功",
-      description: "リストを更新しました。",
-    })
-  }
-
-  // リスト削除時のコールバック
-  const handleListDeleted = (deletedListId: number) => {
-    setLists((prev) => prev.filter((list) => list.id !== deletedListId))
-    toast({
-      title: "成功",
-      description: "リストを削除しました。",
-    })
-  }
-
   // ローディング中
   if (isLoading) {
     return (
@@ -116,7 +86,7 @@ export default function ListsPage() {
           <div className="max-w-2xl mx-auto">
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
               <h1 className="text-2xl font-bold text-gray-900 mb-6 text-center">カードリスト</h1>
-              <LoginPrompt message="カードリストを作成・管理するにはログインが必要です。" />
+              <LoginPromptModal message="カードリストを作成・管理するにはログインが必要です。" />
             </div>
           </div>
         </div>
@@ -197,13 +167,17 @@ export default function ListsPage() {
             {lists.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {lists.map((list) => (
-                  <ListCard
+                  <div
                     key={list.id}
-                    list={list}
-                    userId={user.id}
-                    onUpdate={handleListUpdated}
-                    onDelete={handleListDeleted}
-                  />
+                    className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow"
+                  >
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">{list.name}</h3>
+                    <p className="text-gray-600 text-sm mb-4">{list.description || "説明なし"}</p>
+                    <div className="flex justify-between items-center text-sm text-gray-500">
+                      <span>カード数: {list.card_count || 0}</span>
+                      <span>{new Date(list.created_at).toLocaleDateString()}</span>
+                    </div>
+                  </div>
                 ))}
               </div>
             ) : (
@@ -226,14 +200,6 @@ export default function ListsPage() {
             )}
           </div>
         </div>
-
-        {/* リスト作成モーダル */}
-        <ListCreationModal
-          isOpen={isCreationModalOpen}
-          onOpenChange={setIsCreationModalOpen}
-          userId={user.id}
-          onSuccess={handleListCreated}
-        />
       </div>
     </div>
   )
