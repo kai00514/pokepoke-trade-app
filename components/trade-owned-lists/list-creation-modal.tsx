@@ -1,52 +1,34 @@
 "use client"
 
 import { useState } from "react"
-import { Button } from "@/components/ui/button"
+import Image from "next/image"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
-import { X, Search, Plus } from "lucide-react"
+import { Loader2, Trash2, Search } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
-import { createTradeOwnedList, type TradeOwnedList } from "@/lib/actions/trade-owned-lists"
+import { createOwnedList } from "@/lib/actions/trade-owned-lists"
 import DetailedSearchModal from "@/components/detailed-search-modal"
-import type { Card } from "@/types/card"
+import type { Card as SelectedCardType } from "@/components/detailed-search-modal"
 
 interface ListCreationModalProps {
   isOpen: boolean
   onOpenChange: (open: boolean) => void
   userId: string
-  onSuccess: (newList: TradeOwnedList) => void
+  onSuccess: () => void
 }
 
 export default function ListCreationModal({ isOpen, onOpenChange, userId, onSuccess }: ListCreationModalProps) {
   const [listName, setListName] = useState("")
-  const [selectedCards, setSelectedCards] = useState<Card[]>([])
-  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false)
-  const [isCreating, setIsCreating] = useState(false)
+  const [selectedCards, setSelectedCards] = useState<SelectedCardType[]>([])
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [showCardSearch, setShowCardSearch] = useState(false)
   const { toast } = useToast()
 
-  const maxCards = 35
-  const progressPercentage = (selectedCards.length / maxCards) * 100
-
-  const handleCardSelect = (cards: Card[]) => {
-    if (cards.length > maxCards) {
-      toast({
-        title: "選択上限エラー",
-        description: `カードは最大${maxCards}枚まで選択できます。`,
-        variant: "destructive",
-      })
-      return
-    }
-    setSelectedCards(cards)
-  }
-
-  const handleRemoveCard = (cardId: number) => {
-    setSelectedCards((prev) => prev.filter((card) => card.id !== cardId))
-  }
-
-  const handleCreate = async () => {
+  const handleSubmit = async () => {
     if (!listName.trim()) {
       toast({
         title: "入力エラー",
@@ -58,28 +40,42 @@ export default function ListCreationModal({ isOpen, onOpenChange, userId, onSucc
 
     if (selectedCards.length === 0) {
       toast({
-        title: "選択エラー",
+        title: "入力エラー",
         description: "少なくとも1枚のカードを選択してください。",
         variant: "destructive",
       })
       return
     }
 
-    setIsCreating(true)
-    const cardIds = selectedCards.map((card) => card.id)
-    const result = await createTradeOwnedList(userId, listName.trim(), cardIds)
+    setIsSubmitting(true)
+    try {
+      const cardIds = selectedCards.map((card) => Number.parseInt(card.id))
+      const result = await createOwnedList(userId, listName.trim(), cardIds)
 
-    if (result.success) {
-      onSuccess(result.list)
-      handleClose()
-    } else {
+      if (result.success) {
+        toast({
+          title: "作成完了",
+          description: "リストが作成されました。",
+        })
+        onSuccess()
+        handleClose()
+      } else {
+        toast({
+          title: "作成エラー",
+          description: result.error || "リストの作成に失敗しました。",
+          variant: "destructive",
+        })
+      }
+    } catch (error) {
+      console.error("Error creating list:", error)
       toast({
-        title: "作成エラー",
-        description: result.error,
+        title: "エラー",
+        description: "リストの作成中にエラーが発生しました。",
         variant: "destructive",
       })
+    } finally {
+      setIsSubmitting(false)
     }
-    setIsCreating(false)
   }
 
   const handleClose = () => {
@@ -88,129 +84,133 @@ export default function ListCreationModal({ isOpen, onOpenChange, userId, onSucc
     onOpenChange(false)
   }
 
+  const handleCardSelectionComplete = (cards: SelectedCardType[]) => {
+    setSelectedCards(cards)
+    setShowCardSearch(false)
+  }
+
+  const removeCard = (cardId: string) => {
+    setSelectedCards((prev) => prev.filter((card) => card.id !== cardId))
+  }
+
+  const progressPercentage = (selectedCards.length / 35) * 100
+
   return (
     <>
       <Dialog open={isOpen} onOpenChange={handleClose}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden bg-white/95 backdrop-blur-sm">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-white/95 backdrop-blur-sm">
           <DialogHeader>
-            <DialogTitle className="text-xl font-semibold">新しいリストを作成</DialogTitle>
+            <DialogTitle className="text-xl font-bold text-gray-800">新しいリストを作成</DialogTitle>
           </DialogHeader>
 
-          <div className="space-y-6 overflow-y-auto">
-            {/* リスト名入力 */}
+          <div className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="listName" className="text-sm font-medium">
+              <Label htmlFor="listName" className="text-sm font-medium text-gray-700">
                 リスト名 <span className="text-red-500">*</span>
               </Label>
               <Input
                 id="listName"
                 value={listName}
                 onChange={(e) => setListName(e.target.value)}
-                placeholder="例: 交換用レアカード"
+                placeholder="例：交換用レアカード"
                 maxLength={100}
+                disabled={isSubmitting}
                 className="w-full"
               />
-              <div className="text-xs text-gray-500 text-right">{listName.length}/100</div>
+              <div className="text-xs text-gray-500 text-right">{listName.length}/100文字</div>
             </div>
 
-            {/* カード選択セクション */}
-            <div className="space-y-4">
+            <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <Label className="text-sm font-medium">カード選択</Label>
-                <div className="flex items-center gap-2">
-                  <Badge variant={selectedCards.length === maxCards ? "destructive" : "default"}>
-                    {selectedCards.length}/{maxCards}
-                  </Badge>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setIsSearchModalOpen(true)}
-                    disabled={selectedCards.length >= maxCards}
-                    className="text-blue-600 border-blue-600 hover:bg-blue-50"
-                  >
-                    <Search className="h-4 w-4 mr-2" />
-                    カードを検索
-                  </Button>
-                </div>
+                <Label className="text-sm font-medium text-gray-700">
+                  カード選択 <span className="text-red-500">*</span>
+                </Label>
+                <Badge variant={selectedCards.length === 35 ? "default" : "secondary"}>
+                  {selectedCards.length}/35枚
+                </Badge>
               </div>
 
-              {/* プログレスバー */}
+              <Button
+                type="button"
+                onClick={() => setShowCardSearch(true)}
+                disabled={isSubmitting || selectedCards.length >= 35}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                <Search className="h-4 w-4 mr-2" />
+                カードを選択
+              </Button>
+
               <div className="space-y-2">
                 <Progress value={progressPercentage} className="h-2" />
-                <div className="flex justify-between text-xs text-gray-500">
-                  <span>選択状況</span>
-                  <span>{Math.round(progressPercentage)}%</span>
+                <div className="text-xs text-gray-500 text-right">
+                  {progressPercentage.toFixed(0)}% ({35 - selectedCards.length}枚追加可能)
                 </div>
               </div>
+            </div>
 
-              {/* 選択されたカード一覧 */}
-              {selectedCards.length > 0 ? (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 max-h-60 overflow-y-auto p-2 bg-gray-50 rounded-lg">
+            {selectedCards.length > 0 && (
+              <div className="space-y-3">
+                <Label className="text-sm font-medium text-gray-700">選択されたカード ({selectedCards.length}枚)</Label>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 max-h-60 overflow-y-auto p-2 border rounded-lg bg-gray-50">
                   {selectedCards.map((card) => (
                     <div key={card.id} className="relative group">
-                      <div className="bg-white rounded-lg p-2 shadow-sm border hover:shadow-md transition-shadow">
-                        <div className="aspect-[3/4] bg-gray-100 rounded mb-2 overflow-hidden">
-                          {card.game8_image_url ? (
-                            <img
-                              src={card.game8_image_url || "/placeholder.svg"}
-                              alt={card.name}
-                              className="w-full h-full object-cover"
-                              onError={(e) => {
-                                const target = e.target as HTMLImageElement
-                                target.src = "/no-card.png"
-                              }}
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center text-gray-400">
-                              <span className="text-xs">画像なし</span>
-                            </div>
-                          )}
-                        </div>
-                        <p className="text-xs font-medium text-gray-900 truncate">{card.name}</p>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleRemoveCard(card.id)}
-                          className="absolute -top-1 -right-1 h-6 w-6 p-0 bg-red-500 hover:bg-red-600 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                          <X className="h-3 w-3" />
-                        </Button>
+                      <div className="bg-white rounded-lg p-2 shadow-sm border">
+                        <Image
+                          src={card.imageUrl || "/placeholder.svg"}
+                          alt={card.name}
+                          width={80}
+                          height={112}
+                          className="rounded object-contain aspect-[5/7] mx-auto"
+                        />
+                        <p className="text-xs text-center mt-1 truncate" title={card.name}>
+                          {card.name}
+                        </p>
                       </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="absolute -top-1 -right-1 h-6 w-6 p-0 bg-red-500 text-white opacity-0 group-hover:opacity-100 hover:bg-red-600 transition-opacity rounded-full"
+                        onClick={() => removeCard(card.id)}
+                        disabled={isSubmitting}
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
                     </div>
                   ))}
                 </div>
-              ) : (
-                <div className="text-center py-8 text-gray-500">
-                  <Plus className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                  <p className="text-sm">カードを検索して選択してください</p>
-                </div>
-              )}
-            </div>
-          </div>
+              </div>
+            )}
 
-          {/* フッター */}
-          <div className="flex justify-end gap-3 pt-4 border-t">
-            <Button variant="outline" onClick={handleClose} disabled={isCreating}>
-              キャンセル
-            </Button>
-            <Button
-              onClick={handleCreate}
-              disabled={isCreating || !listName.trim() || selectedCards.length === 0}
-              className="bg-blue-600 hover:bg-blue-700"
-            >
-              {isCreating ? "作成中..." : "作成"}
-            </Button>
+            <div className="flex gap-3 pt-4">
+              <Button variant="outline" onClick={handleClose} disabled={isSubmitting} className="flex-1 bg-transparent">
+                キャンセル
+              </Button>
+              <Button
+                onClick={handleSubmit}
+                disabled={isSubmitting || !listName.trim() || selectedCards.length === 0}
+                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    作成中...
+                  </>
+                ) : (
+                  "作成"
+                )}
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
 
       <DetailedSearchModal
-        isOpen={isSearchModalOpen}
-        onOpenChange={setIsSearchModalOpen}
-        onCardSelect={handleCardSelect}
-        selectedCards={selectedCards}
-        maxSelection={maxCards}
-        title="カードを選択"
+        isOpen={showCardSearch}
+        onOpenChange={setShowCardSearch}
+        onSelectionComplete={handleCardSelectionComplete}
+        maxSelection={35}
+        initialSelectedCards={selectedCards}
+        modalTitle="リスト用カードを選択"
       />
     </>
   )

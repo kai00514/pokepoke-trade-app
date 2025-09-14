@@ -1,219 +1,317 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
-import { Plus, Loader2, ArrowLeft } from "lucide-react"
-import { useToast } from "@/components/ui/use-toast"
-import { createClient } from "@/lib/supabase/client"
-import { getTradeOwnedLists, type TradeOwnedList } from "@/lib/actions/trade-owned-lists"
-import ListCreationModal from "@/components/trade-owned-lists/list-creation-modal"
-import ListCard from "@/components/trade-owned-lists/list-card"
-import LoginPrompt from "@/components/login-prompt"
+import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { Package } from "lucide-react"
 import Header from "@/components/layout/header"
+import Footer from "@/components/footer"
+import { Button } from "@/components/ui/button"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { InfoIcon, ArrowLeft, Plus, Loader2, AlertTriangle } from "lucide-react"
+import { useToast } from "@/components/ui/use-toast"
+import { getUserOwnedLists, deleteOwnedList } from "@/lib/actions/trade-owned-lists"
+import { supabase } from "@/lib/supabase/client"
+import LoginPromptModal from "@/components/ui/login-prompt-modal"
+import ListCard from "@/components/trade-owned-lists/list-card"
+import ListCreationModal from "@/components/trade-owned-lists/list-creation-modal"
+import ListEditorModal from "@/components/trade-owned-lists/list-editor-modal"
+
+interface OwnedList {
+  id: number
+  list_name: string
+  card_ids: number[]
+  created_at: string
+  updated_at: string
+}
 
 export default function ListsPage() {
-  const [user, setUser] = useState<any>(null)
-  const [lists, setLists] = useState<TradeOwnedList[]>([])
+  const [lists, setLists] = useState<OwnedList[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [isCreationModalOpen, setIsCreationModalOpen] = useState(false)
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false)
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null)
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false)
+  const [showCreationModal, setShowCreationModal] = useState(false)
+  const [showEditModal, setShowEditModal] = useState(false)
+  const [editingList, setEditingList] = useState<OwnedList | null>(null)
   const { toast } = useToast()
-  const supabase = createClient()
   const router = useRouter()
 
-  // ユーザー認証状態を確認
   useEffect(() => {
-    const checkUser = async () => {
-      const {
-        data: { user },
-        error,
-      } = await supabase.auth.getUser()
-      if (error) {
-        console.error("認証エラー:", error)
-        setIsLoading(false)
-        return
-      }
-      setUser(user)
+    const checkAuth = async () => {
+      try {
+        const { data } = await supabase.auth.getSession()
+        const isAuth = !!data.session
+        const userId = data.session?.user?.id || null
+        setIsAuthenticated(isAuth)
+        setCurrentUserId(userId)
 
-      if (user) {
-        await fetchLists(user.id)
+        if (isAuth && userId) {
+          await loadLists(userId)
+        }
+      } catch (error) {
+        console.error("Auth check failed:", error)
+        setIsAuthenticated(false)
+        setCurrentUserId(null)
+      } finally {
+        setIsLoading(false)
       }
-      setIsLoading(false)
     }
 
-    checkUser()
+    checkAuth()
+
+    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
+      const isAuth = !!session
+      const userId = session?.user?.id || null
+      setIsAuthenticated(isAuth)
+      setCurrentUserId(userId)
+
+      if (isAuth && userId) {
+        await loadLists(userId)
+      } else {
+        setLists([])
+      }
+    })
+
+    return () => {
+      authListener.subscription.unsubscribe()
+    }
   }, [])
 
-  // リスト一覧を取得
-  const fetchLists = async (userId: string) => {
-    setIsLoading(true)
-    const result = await getTradeOwnedLists(userId)
-
-    if (result.success) {
-      setLists(result.lists)
-    } else {
+  const loadLists = async (userId: string) => {
+    try {
+      const result = await getUserOwnedLists(userId)
+      if (result.success && result.lists) {
+        setLists(result.lists)
+      } else {
+        console.error("Failed to load lists:", result.error)
+        toast({
+          title: "エラー",
+          description: "リストの読み込みに失敗しました。",
+          variant: "destructive",
+        })
+      }
+    } catch (error) {
+      console.error("Error loading lists:", error)
       toast({
         title: "エラー",
-        description: result.error,
+        description: "リストの読み込み中にエラーが発生しました。",
         variant: "destructive",
       })
     }
-    setIsLoading(false)
   }
 
-  // リスト作成成功時のコールバック
-  const handleListCreated = (newList: TradeOwnedList) => {
-    setLists((prev) => [newList, ...prev])
-    setIsCreationModalOpen(false)
-    toast({
-      title: "成功",
-      description: "新しいリストを作成しました。",
-    })
+  const handleCreateList = () => {
+    if (!isAuthenticated) {
+      setShowLoginPrompt(true)
+      return
+    }
+
+    if (lists.length >= 10) {
+      toast({
+        title: "リスト上限",
+        description: "リストは最大10個まで作成できます。",
+        variant: "destructive",
+      })
+      return
+    }
+
+    setShowCreationModal(true)
   }
 
-  // リスト更新時のコールバック
-  const handleListUpdated = (updatedList: TradeOwnedList) => {
-    setLists((prev) => prev.map((list) => (list.id === updatedList.id ? updatedList : list)))
-    toast({
-      title: "成功",
-      description: "リストを更新しました。",
-    })
+  const handleEditList = (list: OwnedList) => {
+    setEditingList(list)
+    setShowEditModal(true)
   }
 
-  // リスト削除時のコールバック
-  const handleListDeleted = (deletedListId: number) => {
-    setLists((prev) => prev.filter((list) => list.id !== deletedListId))
-    toast({
-      title: "成功",
-      description: "リストを削除しました。",
-    })
+  const handleDeleteList = async (listId: number) => {
+    if (!currentUserId) return
+
+    try {
+      const result = await deleteOwnedList(listId, currentUserId)
+      if (result.success) {
+        setLists((prev) => prev.filter((list) => list.id !== listId))
+        toast({
+          title: "削除完了",
+          description: "リストが削除されました。",
+        })
+      } else {
+        toast({
+          title: "削除エラー",
+          description: result.error || "リストの削除に失敗しました。",
+          variant: "destructive",
+        })
+      }
+    } catch (error) {
+      console.error("Error deleting list:", error)
+      toast({
+        title: "エラー",
+        description: "リストの削除中にエラーが発生しました。",
+        variant: "destructive",
+      })
+    }
   }
 
-  // ローディング中
+  const handleListCreated = () => {
+    if (currentUserId) {
+      loadLists(currentUserId)
+    }
+    setShowCreationModal(false)
+  }
+
+  const handleListUpdated = () => {
+    if (currentUserId) {
+      loadLists(currentUserId)
+    }
+    setShowEditModal(false)
+    setEditingList(null)
+  }
+
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-blue-100 to-blue-200">
+      <div className="flex flex-col min-h-screen bg-gradient-to-br from-blue-50 via-blue-100 to-blue-200">
         <Header />
-        <div className="container mx-auto px-4 py-8 max-w-7xl">
-          <div className="flex justify-center items-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
-          </div>
-        </div>
+        <main className="flex-grow container mx-auto px-4 py-8 flex items-center justify-center">
+          <Loader2 className="h-10 w-10 animate-spin text-blue-600" />
+        </main>
+        <Footer />
       </div>
     )
   }
 
-  // 未認証ユーザー
-  if (!user) {
+  if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-blue-100 to-blue-200">
+      <div className="flex flex-col min-h-screen bg-gradient-to-br from-blue-50 via-blue-100 to-blue-200">
         <Header />
-        <div className="container mx-auto px-4 py-8 max-w-7xl">
-          <h1 className="text-2xl font-bold text-gray-900 mb-8">カードリスト</h1>
-          <LoginPrompt message="カードリストを作成・管理するにはログインが必要です。" />
-        </div>
+        <main className="flex-grow container mx-auto px-4 py-8">
+          <Link href="/" className="inline-flex items-center text-sm text-blue-600 hover:text-blue-700 mb-6">
+            <ArrowLeft className="h-4 w-4 mr-1" />
+            タイムラインに戻る
+          </Link>
+
+          <div className="bg-white p-6 sm:p-8 rounded-lg shadow-md max-w-2xl mx-auto">
+            <h1 className="text-2xl font-bold text-slate-800 mb-6 text-center">カードリスト</h1>
+
+            <Alert className="mb-6 bg-blue-50 border-blue-200">
+              <InfoIcon className="h-5 w-5 text-blue-600" />
+              <AlertTitle className="text-blue-700 font-semibold">ログインが必要です</AlertTitle>
+              <AlertDescription className="text-blue-600 text-sm">
+                カードリストを作成・管理するにはログインが必要です。
+              </AlertDescription>
+            </Alert>
+
+            <div className="text-center">
+              <Button onClick={() => setShowLoginPrompt(true)} className="bg-blue-600 hover:bg-blue-700 text-white">
+                ログインする
+              </Button>
+            </div>
+          </div>
+        </main>
+        <Footer />
+        {showLoginPrompt && (
+          <LoginPromptModal
+            onClose={() => setShowLoginPrompt(false)}
+            onContinueAsGuest={() => setShowLoginPrompt(false)}
+          />
+        )}
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-blue-100 to-blue-200">
+    <div className="flex flex-col min-h-screen bg-gradient-to-br from-blue-50 via-blue-100 to-blue-200">
       <Header />
-      <div className="container mx-auto px-4 py-8 max-w-7xl">
-        {/* ヘッダー */}
-        <div className="mb-8">
-          <div className="flex items-center gap-4 mb-6">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => router.back()}
-              className="text-gray-600 hover:text-gray-900 hover:bg-white/50"
-            >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              戻る
-            </Button>
-          </div>
+      <main className="flex-grow container mx-auto px-4 py-8">
+        <Link href="/" className="inline-flex items-center text-sm text-blue-600 hover:text-blue-700 mb-6">
+          <ArrowLeft className="h-4 w-4 mr-1" />
+          タイムラインに戻る
+        </Link>
 
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">カードリスト</h1>
-              <p className="text-gray-700">トレード用のカードリストを作成・管理できます（最大10リスト、各35枚まで）</p>
-            </div>
+        <div className="bg-white p-6 sm:p-8 rounded-lg shadow-md max-w-4xl mx-auto">
+          <h1 className="text-2xl font-bold text-slate-800 mb-6 text-center">カードリスト</h1>
+
+          <Alert className="mb-6 bg-blue-50 border-blue-200">
+            <InfoIcon className="h-5 w-5 text-blue-600" />
+            <AlertTitle className="text-blue-700 font-semibold">お知らせ</AlertTitle>
+            <AlertDescription className="text-blue-600 text-sm">
+              ここで作成したリストは、トレード投稿時に「譲れるカード」として簡単に選択できます。
+              最大10個のリストを作成でき、各リストには35枚までのカードを登録できます。
+            </AlertDescription>
+          </Alert>
+
+          {lists.length >= 10 && (
+            <Alert className="mb-6 bg-amber-50 border-amber-200">
+              <AlertTriangle className="h-5 w-5 text-amber-600" />
+              <AlertTitle className="text-amber-700 font-semibold">リスト上限に達しました</AlertTitle>
+              <AlertDescription className="text-amber-600 text-sm">
+                リストは最大10個まで作成できます。新しいリストを作成するには、既存のリストを削除してください。
+              </AlertDescription>
+            </Alert>
+          )}
+
+          <div className="mb-6">
             <Button
-              onClick={() => setIsCreationModalOpen(true)}
+              onClick={handleCreateList}
               disabled={lists.length >= 10}
-              className="bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-200"
-              size="lg"
+              className="bg-blue-600 hover:bg-blue-700 text-white disabled:bg-gray-400"
             >
-              <Plus className="h-5 w-5 mr-2" />
+              <Plus className="h-4 w-4 mr-2" />
               新しいリストを作成
             </Button>
           </div>
+
+          {lists.length === 0 ? (
+            <div className="text-center py-12">
+              <div className="bg-gray-50 rounded-lg p-8 max-w-md mx-auto">
+                <div className="text-6xl mb-4">📋</div>
+                <h3 className="text-lg font-semibold text-gray-700 mb-2">リストがありません</h3>
+                <p className="text-gray-500 text-sm mb-4">最初のカードリストを作成して、トレードを始めましょう！</p>
+                <Button onClick={handleCreateList} className="bg-blue-600 hover:bg-blue-700 text-white">
+                  <Plus className="h-4 w-4 mr-2" />
+                  リストを作成
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {lists.map((list) => (
+                <ListCard
+                  key={list.id}
+                  list={list}
+                  onEdit={() => handleEditList(list)}
+                  onDelete={() => handleDeleteList(list.id)}
+                />
+              ))}
+            </div>
+          )}
         </div>
+      </main>
+      <Footer />
 
-        {/* リスト上限の警告 */}
-        {lists.length >= 10 && (
-          <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-xl p-6 mb-8 shadow-sm">
-            <div className="flex items-center gap-3">
-              <div className="bg-yellow-100 rounded-full p-2">
-                <Package className="h-5 w-5 text-yellow-600" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-yellow-800 mb-1">リスト上限に達しました</h3>
-                <p className="text-yellow-700 text-sm">
-                  リストは最大10個まで作成できます。新しいリストを作成するには、既存のリストを削除してください。
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
+      <ListCreationModal
+        isOpen={showCreationModal}
+        onOpenChange={setShowCreationModal}
+        userId={currentUserId || ""}
+        onSuccess={handleListCreated}
+      />
 
-        {/* リスト一覧 */}
-        {lists.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
-            {lists.map((list) => (
-              <ListCard
-                key={list.id}
-                list={list}
-                userId={user.id}
-                onUpdate={handleListUpdated}
-                onDelete={handleListDeleted}
-              />
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-16">
-            <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/50 p-12 max-w-md mx-auto">
-              <div className="bg-blue-100 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6">
-                <Plus className="h-10 w-10 text-blue-600" />
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">リストがありません</h3>
-              <p className="text-gray-600 mb-8 leading-relaxed">
-                最初のカードリストを作成して、
-                <br />
-                トレードの準備を始めましょう。
-              </p>
-              <Button
-                onClick={() => setIsCreationModalOpen(true)}
-                className="bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-200"
-                size="lg"
-              >
-                <Plus className="h-5 w-5 mr-2" />
-                新しいリストを作成
-              </Button>
-            </div>
-          </div>
-        )}
-
-        {/* リスト作成モーダル */}
-        <ListCreationModal
-          isOpen={isCreationModalOpen}
-          onOpenChange={setIsCreationModalOpen}
-          userId={user.id}
-          onSuccess={handleListCreated}
+      {editingList && (
+        <ListEditorModal
+          isOpen={showEditModal}
+          onOpenChange={setShowEditModal}
+          userId={currentUserId || ""}
+          listId={editingList.id}
+          initialListName={editingList.list_name}
+          initialCardIds={editingList.card_ids}
+          onSave={handleListUpdated}
         />
-      </div>
+      )}
+
+      {showLoginPrompt && (
+        <LoginPromptModal
+          onClose={() => setShowLoginPrompt(false)}
+          onContinueAsGuest={() => setShowLoginPrompt(false)}
+        />
+      )}
     </div>
   )
 }
