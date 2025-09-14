@@ -8,14 +8,15 @@ import { createClient } from "@/lib/supabase/client"
 import { getTradeOwnedLists, type TradeOwnedList } from "@/lib/actions/trade-owned-lists"
 import LoginPromptModal from "@/components/ui/login-prompt-modal"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 
 export default function ListsPage() {
   const [user, setUser] = useState<any>(null)
   const [lists, setLists] = useState<TradeOwnedList[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [isCreationModalOpen, setIsCreationModalOpen] = useState(false)
   const { toast } = useToast()
   const supabase = createClient()
+  const router = useRouter()
 
   // ユーザー認証状態を確認
   useEffect(() => {
@@ -55,6 +56,17 @@ export default function ListsPage() {
       })
     }
     setIsLoading(false)
+  }
+
+  // 新しいリスト作成ボタンのクリック
+  const handleCreateNewList = () => {
+    // 新しいリスト作成ページに遷移
+    router.push("/lists/create")
+  }
+
+  // カードクリック時の詳細ページ遷移
+  const handleCardClick = (listId: number) => {
+    router.push(`/lists/${listId}`)
   }
 
   // ローディング中
@@ -112,7 +124,7 @@ export default function ListsPage() {
             <div className="flex justify-between items-center mb-8">
               <h1 className="text-2xl font-bold text-gray-900">カードリスト</h1>
               <Button
-                onClick={() => setIsCreationModalOpen(true)}
+                onClick={handleCreateNewList}
                 disabled={lists.length >= 10}
                 className="bg-blue-600 hover:bg-blue-700 text-white"
               >
@@ -169,12 +181,13 @@ export default function ListsPage() {
                 {lists.map((list) => (
                   <div
                     key={list.id}
+                    onClick={() => handleCardClick(list.id)}
                     className="bg-white border border-blue-100 rounded-xl p-6 shadow-sm hover:shadow-lg hover:border-blue-200 transition-all duration-200 cursor-pointer group"
                   >
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex-1">
                         <h3 className="text-lg font-semibold text-gray-900 mb-1 group-hover:text-blue-700 transition-colors">
-                          {list.name}
+                          {list.list_name || "無題のリスト"}
                         </h3>
                         <p className="text-gray-600 text-sm line-clamp-2">{list.description || "説明なし"}</p>
                       </div>
@@ -206,7 +219,9 @@ export default function ListsPage() {
                               d="M7 4V2a1 1 0 011-1h8a1 1 0 011 1v2h4a1 1 0 110 2h-1v12a2 2 0 01-2 2H6a2 2 0 01-2-2V6H3a1 1 0 110-2h4zM9 6v10h6V6H9z"
                             />
                           </svg>
-                          <span className="font-medium text-blue-600">{list.card_count || 0}枚</span>
+                          <span className="font-medium text-blue-600">
+                            {list.card_ids ? list.card_ids.length : 0}枚
+                          </span>
                         </div>
                         <div className="flex items-center">
                           <svg className="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -217,7 +232,7 @@ export default function ListsPage() {
                               d="M8 7V3a1 1 0 011-1h6a1 1 0 011 1v4h3a1 1 0 110 2h-1v9a2 2 0 01-2 2H8a2 2 0 01-2-2V9H5a1 1 0 110-2h3z"
                             />
                           </svg>
-                          <span>{new Date(list.created_at).toLocaleDateString()}</span>
+                          <span>{new Date(list.updated_at || list.created_at).toLocaleDateString()}</span>
                         </div>
                       </div>
 
@@ -254,7 +269,7 @@ export default function ListsPage() {
                     最初のカードリストを作成して、トレードで譲れるカードを管理しましょう。
                   </p>
                   <Button
-                    onClick={() => setIsCreationModalOpen(true)}
+                    onClick={handleCreateNewList}
                     className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-medium shadow-lg hover:shadow-xl transition-all duration-200"
                   >
                     <Plus className="h-5 w-5 mr-2" />

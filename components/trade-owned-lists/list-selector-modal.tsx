@@ -16,7 +16,7 @@ interface ListSelectorModalProps {
   onListSelect: (cards: SelectedCardType[]) => void
 }
 
-export default function ListSelectorModal({ isOpen, onOpenChange, userId, onListSelect }: ListSelectorModalProps) {
+function ListSelectorModal({ isOpen, onOpenChange, userId, onListSelect }: ListSelectorModalProps) {
   const [lists, setLists] = useState<TradeOwnedList[]>([])
   const [isLoading, setIsLoading] = useState(false)
 
@@ -129,3 +129,6 @@ export default function ListSelectorModal({ isOpen, onOpenChange, userId, onList
     </Dialog>
   )
 }
+
+export default ListSelectorModal
+export { ListSelectorModal }
