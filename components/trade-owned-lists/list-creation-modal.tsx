@@ -4,14 +4,12 @@ import { useState } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
-import { Progress } from "@/components/ui/progress"
+import { X, Plus, Loader2 } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
-import { createTradeOwnedList, type TradeOwnedList } from "@/lib/actions/trade-owned-lists"
 import DetailedSearchModal from "@/components/detailed-search-modal"
-import { X, Search, Package } from "lucide-react"
-import type { Card } from "@/types/card"
+import type { Card as SelectedCardType } from "@/components/detailed-search-modal"
+import { createTradeOwnedList, type TradeOwnedList } from "@/lib/actions/trade-owned-lists"
 
 interface ListCreationModalProps {
   isOpen: boolean
@@ -20,216 +18,224 @@ interface ListCreationModalProps {
   onSuccess: (newList: TradeOwnedList) => void
 }
 
+interface CardInfo {
+  id: number
+  name: string
+  image_url: string
+}
+
 export default function ListCreationModal({ isOpen, onOpenChange, userId, onSuccess }: ListCreationModalProps) {
   const [listName, setListName] = useState("")
-  const [selectedCards, setSelectedCards] = useState<Card[]>([])
-  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false)
+  const [cards, setCards] = useState<CardInfo[]>([])
+  const [isCardSearchOpen, setIsCardSearchOpen] = useState(false)
   const [isCreating, setIsCreating] = useState(false)
   const { toast } = useToast()
 
-  const maxCards = 35
-  const progressPercentage = (selectedCards.length / maxCards) * 100
+  // モーダルが閉じられた時の初期化
+  const handleModalClose = (open: boolean) => {
+    if (!open) {
+      setListName("")
+      setCards([])
+      setIsCardSearchOpen(false)
+    }
+    onOpenChange(open)
+  }
 
-  const handleCardSelect = (cards: Card[]) => {
-    if (cards.length > maxCards) {
+  // カード追加処理
+  const handleAddCards = (selectedCards: SelectedCardType[]) => {
+    // 重複除去
+    const existingIds = new Set(cards.map((card) => card.id))
+
+    const newCards = selectedCards
+      .filter((card) => !existingIds.has(Number.parseInt(card.id)))
+      .map((card) => ({
+        id: Number.parseInt(card.id),
+        name: card.name,
+        image_url: card.imageUrl || `/placeholder.svg?height=100&width=70&text=${card.name}`,
+      }))
+
+    const totalCards = cards.length + newCards.length
+    if (totalCards > 35) {
       toast({
-        title: "選択上限エラー",
-        description: `カードは最大${maxCards}枚まで選択できます。`,
+        title: "エラー",
+        description: `カードは最大35枚まで登録できます。（現在: ${cards.length}枚）`,
         variant: "destructive",
       })
       return
     }
-    setSelectedCards(cards)
+
+    setCards((prev) => [...prev, ...newCards])
+    setIsCardSearchOpen(false)
+
+    if (newCards.length > 0) {
+      toast({
+        title: "成功",
+        description: `${newCards.length}枚のカードを追加しました。`,
+      })
+    }
   }
 
+  // カード削除処理
   const handleRemoveCard = (cardId: number) => {
-    setSelectedCards((prev) => prev.filter((card) => card.id !== cardId))
+    setCards((prev) => prev.filter((card) => card.id !== cardId))
   }
 
+  // リスト作成処理
   const handleCreate = async () => {
     if (!listName.trim()) {
       toast({
-        title: "入力エラー",
+        title: "エラー",
         description: "リスト名を入力してください。",
         variant: "destructive",
       })
       return
     }
 
-    if (selectedCards.length === 0) {
+    setIsCreating(true)
+
+    // まずリストを作成
+    const createResult = await createTradeOwnedList(userId, listName.trim())
+
+    if (!createResult.success) {
       toast({
-        title: "選択エラー",
-        description: "少なくとも1枚のカードを選択してください。",
+        title: "エラー",
+        description: createResult.error,
         variant: "destructive",
       })
+      setIsCreating(false)
       return
     }
 
-    setIsCreating(true)
-    const cardIds = selectedCards.map((card) => card.id)
-    const result = await createTradeOwnedList(userId, listName.trim(), cardIds)
+    // カードが選択されている場合は更新
+    if (cards.length > 0) {
+      const { updateTradeOwnedList } = await import("@/lib/actions/trade-owned-lists")
+      const updateResult = await updateTradeOwnedList(
+        createResult.list.id,
+        userId,
+        listName.trim(),
+        cards.map((card) => card.id),
+      )
 
-    if (result.success) {
-      onSuccess(result.list)
-      setListName("")
-      setSelectedCards([])
+      if (!updateResult.success) {
+        toast({
+          title: "警告",
+          description: "リストは作成されましたが、カードの追加に失敗しました。",
+          variant: "destructive",
+        })
+        setIsCreating(false)
+        onSuccess(createResult.list)
+        return
+      }
+
+      onSuccess(updateResult.list)
     } else {
-      toast({
-        title: "作成エラー",
-        description: result.error,
-        variant: "destructive",
-      })
+      onSuccess(createResult.list)
     }
-    setIsCreating(false)
-  }
 
-  const handleClose = () => {
-    setListName("")
-    setSelectedCards([])
-    onOpenChange(false)
+    setIsCreating(false)
   }
 
   return (
     <>
-      <Dialog open={isOpen} onOpenChange={handleClose}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden bg-white/95 backdrop-blur-sm">
+      <Dialog open={isOpen} onOpenChange={handleModalClose}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-xl font-bold text-gray-900">新しいリストを作成</DialogTitle>
+            <DialogTitle>新しいリストを作成</DialogTitle>
           </DialogHeader>
 
-          <div className="space-y-6 overflow-y-auto max-h-[calc(90vh-120px)]">
+          <div className="space-y-6">
             {/* リスト名入力 */}
-            <div className="space-y-2">
-              <Label htmlFor="listName" className="text-sm font-medium text-gray-700">
+            <div>
+              <label className="text-sm font-medium text-gray-700">
                 リスト名 <span className="text-red-500">*</span>
-              </Label>
+              </label>
               <Input
-                id="listName"
                 value={listName}
                 onChange={(e) => setListName(e.target.value)}
-                placeholder="例: 交換用レアカード"
+                placeholder="例: 交換用カードリスト"
+                className="mt-1"
+                disabled={isCreating}
                 maxLength={100}
-                className="bg-white/80"
               />
-              <div className="text-xs text-gray-500 text-right">{listName.length}/100文字</div>
+              <p className="text-xs text-gray-500 mt-1">{listName.length}/100文字</p>
             </div>
 
             {/* カード選択セクション */}
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <Label className="text-sm font-medium text-gray-700">
-                  カード選択 <span className="text-red-500">*</span>
-                </Label>
-                <Button
-                  onClick={() => setIsSearchModalOpen(true)}
-                  variant="outline"
-                  size="sm"
-                  className="bg-white/80 hover:bg-blue-50"
-                >
-                  <Search className="h-4 w-4 mr-2" />
-                  カードを検索
-                </Button>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium text-gray-700">登録カード</span>
+                <Badge variant="secondary">{cards.length}/35枚</Badge>
               </div>
-
-              {/* プログレスバー */}
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Package className="h-4 w-4 text-gray-500" />
-                    <span className="text-sm text-gray-600">選択状況</span>
-                  </div>
-                  <Badge
-                    variant={
-                      selectedCards.length === maxCards
-                        ? "destructive"
-                        : selectedCards.length > 25
-                          ? "secondary"
-                          : "default"
-                    }
-                    className="font-medium"
-                  >
-                    {selectedCards.length} / {maxCards}
-                  </Badge>
-                </div>
-                <Progress value={progressPercentage} className="h-2" />
-                <div className="flex justify-between text-xs text-gray-500">
-                  <span>{selectedCards.length === 0 ? "カード未選択" : `${selectedCards.length}枚選択済み`}</span>
-                  <span>{maxCards - selectedCards.length}枚追加可能</span>
-                </div>
-              </div>
-
-              {/* 選択されたカード一覧 */}
-              {selectedCards.length > 0 ? (
-                <div className="bg-gray-50/80 rounded-lg p-4 space-y-3">
-                  <h4 className="font-medium text-gray-900">選択されたカード</h4>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 max-h-60 overflow-y-auto">
-                    {selectedCards.map((card) => (
-                      <div
-                        key={card.id}
-                        className="flex items-center gap-3 bg-white/80 rounded-lg p-3 shadow-sm hover:shadow-md transition-shadow"
-                      >
-                        <img
-                          src={card.game8_image_url || "/no-card.png"}
-                          alt={card.name}
-                          className="w-12 h-16 object-cover rounded border"
-                        />
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-gray-900 truncate">{card.name}</p>
-                          <p className="text-xs text-gray-500">ID: {card.id}</p>
-                        </div>
-                        <Button
-                          onClick={() => handleRemoveCard(card.id)}
-                          variant="ghost"
-                          size="sm"
-                          className="h-8 w-8 p-0 hover:bg-red-100 hover:text-red-700 transition-colors"
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ) : (
-                <div className="bg-gray-50/80 rounded-lg p-8 text-center">
-                  <Package className="h-12 w-12 text-gray-400 mx-auto mb-3" />
-                  <p className="text-gray-500 mb-4">カードが選択されていません</p>
-                  <Button
-                    onClick={() => setIsSearchModalOpen(true)}
-                    variant="outline"
-                    size="sm"
-                    className="bg-white/80 hover:bg-blue-50"
-                  >
-                    <Search className="h-4 w-4 mr-2" />
-                    カードを検索して追加
-                  </Button>
-                </div>
-              )}
+              <Button
+                variant="outline"
+                onClick={() => setIsCardSearchOpen(true)}
+                disabled={cards.length >= 35 || isCreating}
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                カードを追加
+              </Button>
             </div>
 
-            {/* 作成ボタン */}
-            <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
-              <Button onClick={handleClose} variant="outline" className="bg-white/80">
+            {/* カード一覧 */}
+            {cards.length > 0 ? (
+              <div className="grid grid-cols-5 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-12 gap-2">
+                {cards.map((card) => (
+                  <div key={card.id} className="relative group">
+                    <div className="aspect-[7/10] bg-gray-100 rounded-md overflow-hidden border">
+                      <img
+                        src={card.image_url || "/placeholder.svg"}
+                        alt={card.name}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <button
+                      onClick={() => handleRemoveCard(card.id)}
+                      className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                      disabled={isCreating}
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                    <p className="text-xs text-center mt-1 truncate text-gray-600">{card.name}</p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-gray-500 border-2 border-dashed border-gray-300 rounded-lg">
+                <p>カードが選択されていません</p>
+                <p className="text-sm mt-1">「カードを追加」ボタンから追加してください</p>
+              </div>
+            )}
+
+            {/* アクションボタン */}
+            <div className="flex justify-end gap-2 pt-4 border-t">
+              <Button variant="outline" onClick={() => handleModalClose(false)} disabled={isCreating}>
                 キャンセル
               </Button>
               <Button
                 onClick={handleCreate}
-                disabled={isCreating || !listName.trim() || selectedCards.length === 0}
+                disabled={isCreating || !listName.trim()}
                 className="bg-blue-600 hover:bg-blue-700 text-white"
               >
-                {isCreating ? "作成中..." : "作成"}
+                {isCreating ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    作成中...
+                  </>
+                ) : (
+                  "作成"
+                )}
               </Button>
             </div>
           </div>
         </DialogContent>
       </Dialog>
 
+      {/* カード検索モーダル */}
       <DetailedSearchModal
-        isOpen={isSearchModalOpen}
-        onOpenChange={setIsSearchModalOpen}
-        onCardSelect={handleCardSelect}
-        selectedCards={selectedCards}
-        maxSelection={maxCards}
-        title="カードを選択"
+        isOpen={isCardSearchOpen}
+        onOpenChange={setIsCardSearchOpen}
+        onSelectionComplete={handleAddCards}
+        modalTitle="カードを選択"
       />
     </>
   )
