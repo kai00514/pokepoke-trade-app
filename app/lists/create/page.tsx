@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { ArrowLeft, Search } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -8,29 +8,49 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useToast } from "@/hooks/use-toast"
-import { createTradeOwnedList } from "@/lib/actions/trade-owned-lists"
+import { createTradeOwnedList, updateTradeOwnedList } from "@/lib/actions/trade-owned-lists"
 import { createClient } from "@/lib/supabase/client"
-import { DetailedSearchModal } from "@/components/detailed-search-modal"
+import DetailedSearchModal, { type Card as CardType } from "@/components/detailed-search-modal"
 
 export default function CreateListPage() {
   const router = useRouter()
   const { toast } = useToast()
   const [listName, setListName] = useState("")
-  const [selectedCards, setSelectedCards] = useState<number[]>([])
+  const [selectedCards, setSelectedCards] = useState<CardType[]>([])
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false)
   const [isCreating, setIsCreating] = useState(false)
+  const [userId, setUserId] = useState<string | null>(null)
 
-  const handleCardSelect = (cardId: number) => {
-    setSelectedCards((prev) => {
-      if (prev.includes(cardId)) {
-        return prev.filter((id) => id !== cardId)
+  useEffect(() => {
+    const getUser = async () => {
+      const supabase = createClient()
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+      if (user) {
+        setUserId(user.id)
       } else {
-        return [...prev, cardId]
+        router.push("/auth/login")
       }
-    })
+    }
+    getUser()
+  }, [router])
+
+  const handleCardSelection = (cards: CardType[]) => {
+    setSelectedCards(cards)
+    setIsSearchModalOpen(false)
   }
 
   const handleComplete = async () => {
+    if (!userId) {
+      toast({
+        title: "エラー",
+        description: "ログインが必要です",
+        variant: "destructive",
+      })
+      return
+    }
+
     if (!listName.trim()) {
       toast({
         title: "エラー",
@@ -40,30 +60,42 @@ export default function CreateListPage() {
       return
     }
 
+    if (selectedCards.length === 0) {
+      toast({
+        title: "エラー",
+        description: "カードを選択してください",
+        variant: "destructive",
+      })
+      return
+    }
+
     setIsCreating(true)
     try {
-      const supabase = createClient()
-      const {
-        data: { user },
-      } = await supabase.auth.getUser()
+      // まずリストを作成
+      const createResult = await createTradeOwnedList(userId, listName.trim())
 
-      if (!user) {
-        router.push("/auth/login")
-        return
-      }
+      if (createResult.success && createResult.list) {
+        // カードIDを追加
+        const cardIds = selectedCards.map((card) => Number.parseInt(card.id))
+        const updateResult = await updateTradeOwnedList(createResult.list.id, userId, listName.trim(), cardIds)
 
-      const result = await createTradeOwnedList(user.id, listName.trim())
-
-      if (result.success) {
-        toast({
-          title: "成功",
-          description: "リストが作成されました",
-        })
-        router.push("/lists")
+        if (updateResult.success) {
+          toast({
+            title: "成功",
+            description: "リストが作成されました",
+          })
+          router.push("/lists")
+        } else {
+          toast({
+            title: "エラー",
+            description: updateResult.error || "カードの追加に失敗しました",
+            variant: "destructive",
+          })
+        }
       } else {
         toast({
           title: "エラー",
-          description: result.error || "リストの作成に失敗しました",
+          description: createResult.error || "リストの作成に失敗しました",
           variant: "destructive",
         })
       }
@@ -77,6 +109,17 @@ export default function CreateListPage() {
     } finally {
       setIsCreating(false)
     }
+  }
+
+  if (!userId) {
+    return (
+      <div className="min-h-screen bg-blue-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">読み込み中...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -131,7 +174,7 @@ export default function CreateListPage() {
               {/* Complete Button */}
               <Button
                 onClick={handleComplete}
-                disabled={isCreating || !listName.trim()}
+                disabled={isCreating || !listName.trim() || selectedCards.length === 0}
                 className="w-full bg-blue-600 hover:bg-blue-700"
               >
                 {isCreating ? "作成中..." : "選択完了"}
@@ -144,8 +187,9 @@ export default function CreateListPage() {
         <DetailedSearchModal
           isOpen={isSearchModalOpen}
           onOpenChange={setIsSearchModalOpen}
-          onCardSelect={handleCardSelect}
-          selectedCards={selectedCards}
+          onSelectionComplete={handleCardSelection}
+          modalTitle="カード検索"
+          initialSelectedCards={selectedCards}
         />
       </div>
     </div>

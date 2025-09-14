@@ -5,10 +5,9 @@ import { useRouter } from "next/navigation"
 import { ArrowLeft, Edit, Trash2, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { useToast } from "@/hooks/use-toast"
-import { getTradeOwnedLists, deleteTradeOwnedList } from "@/lib/actions/trade-owned-lists"
 import { createClient } from "@/lib/supabase/client"
+import { getTradeOwnedLists, deleteTradeOwnedList } from "@/lib/actions/trade-owned-lists"
 import CardDisplay from "@/components/card-display"
 import type { TradeOwnedList } from "@/lib/actions/trade-owned-lists"
 
@@ -17,38 +16,38 @@ interface ListDetailPageProps {
 }
 
 export default function ListDetailPage({ params }: ListDetailPageProps) {
+  const { id } = params
   const router = useRouter()
   const { toast } = useToast()
   const [list, setList] = useState<TradeOwnedList | null>(null)
+  const [cards, setCards] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [isDeleting, setIsDeleting] = useState(false)
   const [userId, setUserId] = useState<string | null>(null)
 
   useEffect(() => {
-    const loadData = async () => {
-      try {
-        // Get user
-        const supabase = createClient()
-        const {
-          data: { user },
-        } = await supabase.auth.getUser()
-
-        if (!user) {
-          router.push("/auth/login")
-          return
-        }
-
+    const getUser = async () => {
+      const supabase = createClient()
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+      if (user) {
         setUserId(user.id)
+      } else {
+        router.push("/auth/login")
+      }
+    }
+    getUser()
+  }, [router])
 
-        // Get list ID from params
-        const { id } = params
+  useEffect(() => {
+    const fetchListData = async () => {
+      if (!userId) return
 
-        console.log("Loading list with ID:", id)
-
-        // Get lists
-        const result = await getTradeOwnedLists(user.id)
-
-        console.log("getTradeOwnedLists result:", result)
+      setIsLoading(true)
+      try {
+        console.log("Fetching lists for user:", userId)
+        const result = await getTradeOwnedLists(userId)
+        console.log("Lists result:", result)
 
         if (result.success && result.lists) {
           const foundList = result.lists.find((l) => l.id === Number.parseInt(id))
@@ -56,6 +55,23 @@ export default function ListDetailPage({ params }: ListDetailPageProps) {
 
           if (foundList) {
             setList(foundList)
+
+            // カード情報を取得
+            if (foundList.card_ids && foundList.card_ids.length > 0) {
+              const supabase = createClient()
+              const { data: cardsData, error } = await supabase.from("cards").select("*").in("id", foundList.card_ids)
+
+              if (error) {
+                console.error("Error fetching cards:", error)
+                toast({
+                  title: "エラー",
+                  description: "カード情報の取得に失敗しました",
+                  variant: "destructive",
+                })
+              } else {
+                setCards(cardsData || [])
+              }
+            }
           } else {
             toast({
               title: "エラー",
@@ -67,16 +83,16 @@ export default function ListDetailPage({ params }: ListDetailPageProps) {
         } else {
           toast({
             title: "エラー",
-            description: result.error || "リストの読み込みに失敗しました",
+            description: result.error || "リストの取得に失敗しました",
             variant: "destructive",
           })
           router.push("/lists")
         }
       } catch (error) {
-        console.error("Error loading list:", error)
+        console.error("Error fetching list:", error)
         toast({
           title: "エラー",
-          description: "リストの読み込みに失敗しました",
+          description: "リストの取得に失敗しました",
           variant: "destructive",
         })
         router.push("/lists")
@@ -85,51 +101,45 @@ export default function ListDetailPage({ params }: ListDetailPageProps) {
       }
     }
 
-    loadData()
-  }, [params, router, toast])
+    fetchListData()
+  }, [userId, id, router, toast])
 
   const handleDelete = async () => {
-    if (!list || !userId || !confirm("このリストを削除しますか？")) return
+    if (!list || !userId) return
 
-    setIsDeleting(true)
-    try {
-      const result = await deleteTradeOwnedList(list.id, userId)
-
-      if (result.success) {
-        toast({
-          title: "成功",
-          description: "リストが削除されました",
-        })
-        router.push("/lists")
-      } else {
+    if (confirm("このリストを削除しますか？")) {
+      try {
+        const result = await deleteTradeOwnedList(list.id, userId)
+        if (result.success) {
+          toast({
+            title: "成功",
+            description: "リストを削除しました",
+          })
+          router.push("/lists")
+        } else {
+          toast({
+            title: "エラー",
+            description: result.error || "リストの削除に失敗しました",
+            variant: "destructive",
+          })
+        }
+      } catch (error) {
+        console.error("Error deleting list:", error)
         toast({
           title: "エラー",
-          description: result.error || "リストの削除に失敗しました",
+          description: "リストの削除に失敗しました",
           variant: "destructive",
         })
       }
-    } catch (error) {
-      console.error("Error deleting list:", error)
-      toast({
-        title: "エラー",
-        description: "リストの削除に失敗しました",
-        variant: "destructive",
-      })
-    } finally {
-      setIsDeleting(false)
     }
   }
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-blue-50">
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex items-center justify-center py-12">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-              <p className="text-gray-600">読み込み中...</p>
-            </div>
-          </div>
+      <div className="min-h-screen bg-blue-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">読み込み中...</p>
         </div>
       </div>
     )
@@ -137,14 +147,12 @@ export default function ListDetailPage({ params }: ListDetailPageProps) {
 
   if (!list) {
     return (
-      <div className="min-h-screen bg-blue-50">
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex items-center justify-center py-12">
-            <div className="text-center">
-              <p className="text-gray-600 mb-4">リストが見つかりません</p>
-              <Button onClick={() => router.push("/lists")}>リスト一覧に戻る</Button>
-            </div>
-          </div>
+      <div className="min-h-screen bg-blue-50 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-gray-600">リストが見つかりません</p>
+          <Button onClick={() => router.push("/lists")} className="mt-4">
+            リスト一覧に戻る
+          </Button>
         </div>
       </div>
     )
@@ -163,29 +171,18 @@ export default function ListDetailPage({ params }: ListDetailPageProps) {
               className="text-blue-600 hover:text-blue-700 hover:bg-blue-100"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
-              リスト一覧に戻る
+              戻る
             </Button>
             <h1 className="text-2xl font-bold text-gray-900">{list.list_name}</h1>
           </div>
-
           <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              className="text-blue-600 border-blue-600 hover:bg-blue-50 bg-transparent"
-            >
+            <Button variant="outline" size="sm">
               <Edit className="h-4 w-4 mr-2" />
               編集
             </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleDelete}
-              disabled={isDeleting}
-              className="text-red-600 border-red-600 hover:bg-red-50 bg-transparent"
-            >
+            <Button variant="outline" size="sm" onClick={handleDelete}>
               <Trash2 className="h-4 w-4 mr-2" />
-              {isDeleting ? "削除中..." : "削除"}
+              削除
             </Button>
           </div>
         </div>
@@ -195,46 +192,68 @@ export default function ListDetailPage({ params }: ListDetailPageProps) {
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
               <span>リスト情報</span>
-              <Badge variant="secondary">{list.card_ids?.length || 0}枚</Badge>
+              <span className="text-sm font-normal text-gray-600">{cards.length}枚のカード</span>
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-sm text-gray-500">作成日: {new Date(list.created_at).toLocaleDateString("ja-JP")}</div>
-            {list.updated_at && (
-              <div className="text-sm text-gray-500">
-                更新日: {new Date(list.updated_at).toLocaleDateString("ja-JP")}
+            <div className="space-y-2">
+              <div>
+                <span className="font-medium">作成日: </span>
+                <span className="text-gray-600">
+                  {list.created_at ? new Date(list.created_at).toLocaleDateString("ja-JP") : "不明"}
+                </span>
+              </div>
+              {list.updated_at && (
+                <div>
+                  <span className="font-medium">更新日: </span>
+                  <span className="text-gray-600">{new Date(list.updated_at).toLocaleDateString("ja-JP")}</span>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Cards Grid */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center justify-between">
+              <span>カード一覧</span>
+              <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
+                <Plus className="h-4 w-4 mr-2" />
+                カードを追加
+              </Button>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {cards.length > 0 ? (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                {cards.map((card) => (
+                  <div key={card.id} className="aspect-[5/7]">
+                    <CardDisplay
+                      card={{
+                        id: card.id,
+                        name: card.name,
+                        imageUrl: card.image_url,
+                        type: card.type_code,
+                        rarity: card.rarity_code,
+                      }}
+                      showName={true}
+                      className="w-full h-full"
+                    />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <p className="text-gray-500 mb-4">カードが登録されていません</p>
+                <Button className="bg-blue-600 hover:bg-blue-700">
+                  <Plus className="h-4 w-4 mr-2" />
+                  最初のカードを追加
+                </Button>
               </div>
             )}
           </CardContent>
         </Card>
-
-        {/* Cards */}
-        {list.card_ids && list.card_ids.length > 0 ? (
-          <Card>
-            <CardHeader>
-              <CardTitle>カード一覧</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                {list.card_ids.map((cardId, index) => (
-                  <div key={`${cardId}-${index}`} className="flex flex-col items-center">
-                    <CardDisplay cardId={cardId.toString()} />
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        ) : (
-          <Card>
-            <CardContent className="text-center py-12">
-              <p className="text-gray-500 mb-4">このリストにはカードが登録されていません</p>
-              <Button className="bg-blue-600 hover:bg-blue-700">
-                <Plus className="h-4 w-4 mr-2" />
-                カードを追加
-              </Button>
-            </CardContent>
-          </Card>
-        )}
       </div>
     </div>
   )
