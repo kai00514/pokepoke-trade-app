@@ -15,7 +15,7 @@ import { X, Search, Plus } from "lucide-react"
 interface Card {
   id: string
   name: string
-  image_url?: string
+  imageUrl?: string // image_url から imageUrl に変更
 }
 
 interface ListCreationModalProps {
@@ -156,9 +156,9 @@ export default function ListCreationModal({ isOpen, onOpenChange, userId, onSucc
                     <div key={card.id} className="relative group">
                       <div className="bg-white rounded-lg p-2 shadow-sm border hover:shadow-md transition-shadow">
                         <div className="aspect-[3/4] bg-gray-100 rounded mb-2 overflow-hidden">
-                          {card.image_url ? (
+                          {card.imageUrl ? ( // image_url から imageUrl に変更
                             <img
-                              src={card.image_url || "/placeholder.svg"}
+                              src={card.imageUrl || "/placeholder.svg"} // image_url から imageUrl に変更
                               alt={card.name}
                               className="w-full h-full object-cover"
                             />
@@ -219,10 +219,10 @@ export default function ListCreationModal({ isOpen, onOpenChange, userId, onSucc
       <DetailedSearchModal
         isOpen={isSearchModalOpen}
         onOpenChange={setIsSearchModalOpen}
-        onCardSelect={handleCardSelect}
-        selectedCards={selectedCards}
+        onSelectionComplete={handleCardSelect} // onCardSelect から onSelectionComplete に変更
+        initialSelectedCards={selectedCards} // selectedCards から initialSelectedCards に変更
         maxSelection={maxCards}
-        title="カードを選択"
+        modalTitle="カードを選択" // title から modalTitle に変更
       />
     </>
   )
