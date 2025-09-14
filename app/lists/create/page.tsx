@@ -91,9 +91,9 @@ export default function CreateListPage() {
           <h1 className="text-2xl font-bold text-gray-900">新しいリストを作成</h1>
         </div>
 
-        {/* Title Input */}
+        {/* Combined Title and Card Selection */}
         <Card className="mb-6">
-          <CardContent className="p-6">
+          <CardContent className="p-6 space-y-6">
             <div>
               <label htmlFor="listName" className="block text-sm font-medium text-gray-700 mb-2">
                 リスト名
@@ -107,23 +107,20 @@ export default function CreateListPage() {
                 className="w-full"
               />
             </div>
-          </CardContent>
-        </Card>
 
-        {/* Card Search */}
-        <Card className="mb-6">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold">カード選択</h2>
-              <Button onClick={() => setIsSearchModalOpen(true)} className="bg-blue-600 hover:bg-blue-700">
-                <Plus className="h-4 w-4 mr-2" />
-                カードを検索
-              </Button>
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold">カード選択</h2>
+                <Button onClick={() => setIsSearchModalOpen(true)} className="bg-blue-600 hover:bg-blue-700">
+                  <Plus className="h-4 w-4 mr-2" />
+                  カードを検索
+                </Button>
+              </div>
+
+              {selectedCards.length > 0 && (
+                <div className="text-sm text-gray-600 mb-2">{selectedCards.length}枚のカードが選択されています</div>
+              )}
             </div>
-
-            {selectedCards.length > 0 && (
-              <div className="text-sm text-gray-600 mb-2">{selectedCards.length}枚のカードが選択されています</div>
-            )}
           </CardContent>
         </Card>
 

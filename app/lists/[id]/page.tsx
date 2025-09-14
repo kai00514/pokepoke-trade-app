@@ -1,4 +1,5 @@
 "use client"
+
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { ArrowLeft, Edit, Trash2 } from "lucide-react"
@@ -7,12 +8,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { useToast } from "@/hooks/use-toast"
 import { getTradeOwnedLists, deleteTradeOwnedList } from "@/lib/actions/trade-owned-lists"
+import { CardDisplay } from "@/components/card-display"
 import type { TradeOwnedList } from "@/lib/actions/trade-owned-lists"
 
 interface ListDetailPageProps {
-  params: {
-    id: string
-  }
+  params: Promise<{ id: string }>
 }
 
 export default function ListDetailPage({ params }: ListDetailPageProps) {
@@ -23,11 +23,13 @@ export default function ListDetailPage({ params }: ListDetailPageProps) {
   const [isDeleting, setIsDeleting] = useState(false)
 
   useEffect(() => {
-    const fetchList = async () => {
+    const loadList = async () => {
       try {
+        const { id } = await params
         const result = await getTradeOwnedLists()
+
         if (result.success && result.data) {
-          const foundList = result.data.find((l) => l.id === Number.parseInt(params.id))
+          const foundList = result.data.find((l) => l.id === Number.parseInt(id))
           if (foundList) {
             setList(foundList)
           } else {
@@ -38,6 +40,12 @@ export default function ListDetailPage({ params }: ListDetailPageProps) {
             })
             router.push("/lists")
           }
+        } else {
+          toast({
+            title: "エラー",
+            description: "リストの読み込みに失敗しました",
+            variant: "destructive",
+          })
         }
       } catch (error) {
         toast({
@@ -45,14 +53,13 @@ export default function ListDetailPage({ params }: ListDetailPageProps) {
           description: "リストの読み込みに失敗しました",
           variant: "destructive",
         })
-        router.push("/lists")
       } finally {
         setIsLoading(false)
       }
     }
 
-    fetchList()
-  }, [params.id, router, toast])
+    loadList()
+  }, [params, router, toast])
 
   const handleDelete = async () => {
     if (!list || !confirm("このリストを削除しますか？")) return
@@ -60,6 +67,7 @@ export default function ListDetailPage({ params }: ListDetailPageProps) {
     setIsDeleting(true)
     try {
       const result = await deleteTradeOwnedList(list.id)
+
       if (result.success) {
         toast({
           title: "成功",
@@ -86,10 +94,9 @@ export default function ListDetailPage({ params }: ListDetailPageProps) {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-blue-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">読み込み中...</p>
+      <div className="min-h-screen bg-blue-50">
+        <div className="container mx-auto px-4 py-6">
+          <div className="text-center">読み込み中...</div>
         </div>
       </div>
     )
@@ -97,9 +104,9 @@ export default function ListDetailPage({ params }: ListDetailPageProps) {
 
   if (!list) {
     return (
-      <div className="min-h-screen bg-blue-50 flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-gray-600">リストが見つかりません</p>
+      <div className="min-h-screen bg-blue-50">
+        <div className="container mx-auto px-4 py-6">
+          <div className="text-center">リストが見つかりません</div>
         </div>
       </div>
     )
@@ -124,7 +131,7 @@ export default function ListDetailPage({ params }: ListDetailPageProps) {
           </div>
 
           <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={() => router.push(`/lists/${list.id}/edit`)}>
+            <Button variant="outline" size="sm">
               <Edit className="h-4 w-4 mr-2" />
               編集
             </Button>
@@ -146,7 +153,7 @@ export default function ListDetailPage({ params }: ListDetailPageProps) {
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
               <span>リスト情報</span>
-              <Badge variant="secondary">{Array.isArray(list.card_ids) ? list.card_ids.length : 0}枚</Badge>
+              <Badge variant="secondary">{list.card_ids?.length || 0}枚</Badge>
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -156,23 +163,28 @@ export default function ListDetailPage({ params }: ListDetailPageProps) {
         </Card>
 
         {/* Cards */}
-        <Card>
-          <CardHeader>
-            <CardTitle>カード一覧</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {Array.isArray(list.card_ids) && list.card_ids.length > 0 ? (
-              <div className="text-center py-8">
-                <p className="text-gray-600">{list.card_ids.length}枚のカードが登録されています</p>
-                <p className="text-sm text-gray-500 mt-2">カード詳細表示機能は今後実装予定です</p>
+        {list.card_ids && list.card_ids.length > 0 ? (
+          <Card>
+            <CardHeader>
+              <CardTitle>カード一覧</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                {list.card_ids.map((cardId, index) => (
+                  <div key={`${cardId}-${index}`} className="flex flex-col items-center">
+                    <CardDisplay cardId={cardId.toString()} />
+                  </div>
+                ))}
               </div>
-            ) : (
-              <div className="text-center py-8">
-                <p className="text-gray-600">カードが登録されていません</p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        ) : (
+          <Card>
+            <CardContent className="text-center py-8">
+              <p className="text-gray-500">このリストにはカードが登録されていません</p>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   )
