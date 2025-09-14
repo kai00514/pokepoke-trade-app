@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { useToast } from "@/hooks/use-toast"
 import { getTradeOwnedLists, deleteTradeOwnedList } from "@/lib/actions/trade-owned-lists"
 import { createClient } from "@/lib/supabase/client"
-import { CardDisplay } from "@/components/card-display"
+import CardDisplay from "@/components/card-display"
 import type { TradeOwnedList } from "@/lib/actions/trade-owned-lists"
 
 interface ListDetailPageProps {
