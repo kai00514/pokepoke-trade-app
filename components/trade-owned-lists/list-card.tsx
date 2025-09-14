@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Card, CardContent } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
@@ -16,18 +16,16 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
-import { Edit, Trash2, Calendar, CreditCard } from "lucide-react"
-
-interface OwnedList {
-  id: number
-  list_name: string
-  card_ids: number[]
-  created_at: string
-  updated_at: string
-}
+import { Edit, Trash2, Calendar, Package } from "lucide-react"
 
 interface ListCardProps {
-  list: OwnedList
+  list: {
+    id: number
+    list_name: string
+    card_ids: number[]
+    created_at: string
+    updated_at: string
+  }
   onEdit: () => void
   onDelete: () => void
 }
@@ -35,16 +33,18 @@ interface ListCardProps {
 export default function ListCard({ list, onEdit, onDelete }: ListCardProps) {
   const [isDeleting, setIsDeleting] = useState(false)
 
+  const cardCount = list.card_ids.length
+  const maxCards = 35
+  const progressPercentage = (cardCount / maxCards) * 100
+
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("ja-JP", {
+    const date = new Date(dateString)
+    return date.toLocaleDateString("ja-JP", {
       year: "numeric",
-      month: "short",
-      day: "numeric",
+      month: "2-digit",
+      day: "2-digit",
     })
   }
-
-  const cardCount = list.card_ids.length
-  const progressPercentage = (cardCount / 35) * 100
 
   const handleDelete = async () => {
     setIsDeleting(true)
@@ -56,16 +56,16 @@ export default function ListCard({ list, onEdit, onDelete }: ListCardProps) {
   }
 
   return (
-    <Card className="bg-white/90 backdrop-blur-sm border border-gray-200 hover:shadow-lg hover:scale-[1.02] transition-all duration-200">
-      <CardContent className="p-4">
-        <div className="flex justify-between items-start mb-3">
-          <h3 className="font-semibold text-gray-800 text-lg truncate flex-1 mr-2">{list.list_name}</h3>
-          <div className="flex gap-1">
+    <Card className="bg-white/80 backdrop-blur-sm border border-gray-200 hover:shadow-lg hover:scale-[1.02] transition-all duration-200">
+      <CardHeader className="pb-3">
+        <div className="flex items-start justify-between">
+          <CardTitle className="text-lg font-semibold text-gray-900 line-clamp-2">{list.list_name}</CardTitle>
+          <div className="flex gap-1 ml-2">
             <Button
               variant="ghost"
               size="sm"
               onClick={onEdit}
-              className="h-8 w-8 p-0 hover:bg-blue-100 hover:text-blue-600"
+              className="h-8 w-8 p-0 text-gray-500 hover:text-blue-600 hover:bg-blue-50"
             >
               <Edit className="h-4 w-4" />
             </Button>
@@ -74,7 +74,7 @@ export default function ListCard({ list, onEdit, onDelete }: ListCardProps) {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-8 w-8 p-0 hover:bg-red-100 hover:text-red-600"
+                  className="h-8 w-8 p-0 text-gray-500 hover:text-red-600 hover:bg-red-50"
                   disabled={isDeleting}
                 >
                   <Trash2 className="h-4 w-4" />
@@ -89,7 +89,11 @@ export default function ListCard({ list, onEdit, onDelete }: ListCardProps) {
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                   <AlertDialogCancel>キャンセル</AlertDialogCancel>
-                  <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700">
+                  <AlertDialogAction
+                    onClick={handleDelete}
+                    className="bg-red-600 hover:bg-red-700"
+                    disabled={isDeleting}
+                  >
                     削除する
                   </AlertDialogAction>
                 </AlertDialogFooter>
@@ -97,28 +101,47 @@ export default function ListCard({ list, onEdit, onDelete }: ListCardProps) {
             </AlertDialog>
           </div>
         </div>
+      </CardHeader>
 
-        <div className="space-y-3">
-          <div className="flex items-center gap-2 text-sm text-gray-600">
-            <Calendar className="h-4 w-4" />
-            <span>更新: {formatDate(list.updated_at)}</span>
-          </div>
-
-          <div className="flex items-center gap-2 text-sm text-gray-600">
-            <CreditCard className="h-4 w-4" />
-            <span>カード数: {cardCount}/35枚</span>
-            <Badge
-              variant={cardCount === 35 ? "default" : "secondary"}
-              className={cardCount === 35 ? "bg-green-100 text-green-800" : ""}
-            >
-              {cardCount === 35 ? "満杯" : `${35 - cardCount}枚追加可能`}
-            </Badge>
-          </div>
-
-          <div className="space-y-1">
+      <CardContent className="pt-0">
+        <div className="space-y-4">
+          {/* カード枚数とプログレス */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-sm">
+              <div className="flex items-center gap-2 text-gray-600">
+                <Package className="h-4 w-4" />
+                <span>カード枚数</span>
+              </div>
+              <Badge
+                variant={cardCount === maxCards ? "destructive" : cardCount > 30 ? "secondary" : "default"}
+                className="text-xs"
+              >
+                {cardCount}/{maxCards}枚
+              </Badge>
+            </div>
             <Progress value={progressPercentage} className="h-2" />
-            <div className="text-xs text-gray-500 text-right">{progressPercentage.toFixed(0)}%</div>
           </div>
+
+          {/* 更新日 */}
+          <div className="flex items-center gap-2 text-sm text-gray-500">
+            <Calendar className="h-4 w-4" />
+            <span>更新日: {formatDate(list.updated_at)}</span>
+          </div>
+
+          {/* 状態表示 */}
+          {cardCount === 0 && (
+            <div className="text-center py-2">
+              <p className="text-sm text-gray-500">カードが登録されていません</p>
+            </div>
+          )}
+
+          {cardCount === maxCards && (
+            <div className="text-center py-2">
+              <Badge variant="secondary" className="text-xs">
+                上限達成
+              </Badge>
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>

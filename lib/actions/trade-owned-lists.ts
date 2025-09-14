@@ -34,6 +34,10 @@ export async function getTradeOwnedLists(userId: string) {
   }
 }
 
+export async function getUserOwnedLists(userId: string) {
+  return await getTradeOwnedLists(userId)
+}
+
 export async function createTradeOwnedList(userId: string, listName: string) {
   try {
     const supabase = await createServerClient()
@@ -65,12 +69,51 @@ export async function createTradeOwnedList(userId: string, listName: string) {
   }
 }
 
+export async function createOwnedList(userId: string, listName: string, cardIds: number[] = []) {
+  try {
+    const supabase = await createServerClient()
+
+    if (!listName.trim()) {
+      return { success: false, error: "リスト名を入力してください。" }
+    }
+
+    if (cardIds.length > 35) {
+      return { success: false, error: "カードは35枚まで登録できます。" }
+    }
+
+    const { data: newList, error } = await supabase
+      .from("trade_owned_list")
+      .insert({
+        user_id: userId,
+        list_name: listName.trim(),
+        card_ids: cardIds,
+      })
+      .select()
+      .single()
+
+    if (error) {
+      console.error("Error creating owned list:", error)
+      return { success: false, error: `リストの作成に失敗しました: ${error.message}` }
+    }
+
+    revalidatePath("/lists")
+    return { success: true, list: newList }
+  } catch (error) {
+    console.error("Unexpected error creating owned list:", error)
+    return { success: false, error: "予期しないエラーが発生しました。" }
+  }
+}
+
 export async function updateTradeOwnedList(listId: number, userId: string, listName: string, cardIds: number[]) {
   try {
     const supabase = await createServerClient()
 
     if (!listName.trim()) {
       return { success: false, error: "リスト名を入力してください。" }
+    }
+
+    if (cardIds.length > 35) {
+      return { success: false, error: "カードは35枚まで登録できます。" }
     }
 
     // 所有者確認
@@ -143,4 +186,8 @@ export async function deleteTradeOwnedList(listId: number, userId: string) {
     console.error("Unexpected error deleting trade owned list:", error)
     return { success: false, error: "予期しないエラーが発生しました。" }
   }
+}
+
+export async function deleteOwnedList(listId: number, userId: string) {
+  return await deleteTradeOwnedList(listId, userId)
 }

@@ -10,7 +10,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { InfoIcon, ArrowLeft, Plus, Loader2, AlertTriangle } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
 import { getUserOwnedLists, deleteOwnedList } from "@/lib/actions/trade-owned-lists"
-import { supabase } from "@/lib/supabase/client"
+import { createClient } from "@/lib/supabase/client"
 import LoginPromptModal from "@/components/ui/login-prompt-modal"
 import ListCard from "@/components/trade-owned-lists/list-card"
 import ListCreationModal from "@/components/trade-owned-lists/list-creation-modal"
@@ -35,6 +35,7 @@ export default function ListsPage() {
   const [editingList, setEditingList] = useState<OwnedList | null>(null)
   const { toast } = useToast()
   const router = useRouter()
+  const supabase = createClient()
 
   useEffect(() => {
     const checkAuth = async () => {
