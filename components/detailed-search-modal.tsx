@@ -268,6 +268,7 @@ export default function DetailedSearchModal({
       return
     }
     onSelectionComplete([...currentSelectedCards])
+    onOpenChange(false) // モーダルを閉じる処理を追加
   }
 
   const handlePreviewClose = () => {
@@ -293,9 +294,9 @@ export default function DetailedSearchModal({
     const handleEscapeKey = (event: KeyboardEvent) => {
       if (event.key === "Escape" && isOpen) {
         if (isPreviewOverlayOpen) {
-          handlePreviewClose()
           event.preventDefault()
           event.stopPropagation()
+          handlePreviewClose()
         } else {
           onOpenChange(false)
         }
@@ -514,12 +515,9 @@ export default function DetailedSearchModal({
               <Button
                 onClick={handleSelectionComplete}
                 className="bg-blue-600 hover:bg-blue-700 text-white"
-                disabled={
-                  (maxSelection === 1 && currentSelectedCards.length !== 1) ||
-                  (maxSelection !== 1 && currentSelectedCards.length === 0 && !!maxSelection)
-                }
+                disabled={currentSelectedCards.length === 0}
               >
-                {"選択完了"}
+                選択完了
               </Button>
             </div>
           </DialogFooter>
