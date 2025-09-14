@@ -1,14 +1,12 @@
 "use client"
-
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { ArrowLeft, Edit, Trash2, Plus } from "lucide-react"
+import { ArrowLeft, Edit, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { getTradeOwnedLists, deleteTradeOwnedList } from "@/lib/actions/trade-owned-lists"
 import { useToast } from "@/hooks/use-toast"
-import { CardDisplay } from "@/components/card-display"
+import { getTradeOwnedLists, deleteTradeOwnedList } from "@/lib/actions/trade-owned-lists"
 import type { TradeOwnedList } from "@/lib/actions/trade-owned-lists"
 
 interface ListDetailPageProps {
@@ -44,7 +42,7 @@ export default function ListDetailPage({ params }: ListDetailPageProps) {
       } catch (error) {
         toast({
           title: "エラー",
-          description: "リストの取得に失敗しました",
+          description: "リストの読み込みに失敗しました",
           variant: "destructive",
         })
         router.push("/lists")
@@ -101,8 +99,7 @@ export default function ListDetailPage({ params }: ListDetailPageProps) {
     return (
       <div className="min-h-screen bg-blue-50 flex items-center justify-center">
         <div className="text-center">
-          <p className="text-gray-600 mb-4">リストが見つかりません</p>
-          <Button onClick={() => router.push("/lists")}>リスト一覧に戻る</Button>
+          <p className="text-gray-600">リストが見つかりません</p>
         </div>
       </div>
     )
@@ -117,21 +114,17 @@ export default function ListDetailPage({ params }: ListDetailPageProps) {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => router.push("/lists")}
+              onClick={() => router.back()}
               className="text-blue-600 hover:text-blue-700 hover:bg-blue-100"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
-              リスト一覧に戻る
+              戻る
             </Button>
             <h1 className="text-2xl font-bold text-gray-900">{list.list_name}</h1>
           </div>
 
           <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              className="text-blue-600 border-blue-600 hover:bg-blue-50 bg-transparent"
-            >
+            <Button variant="outline" size="sm" onClick={() => router.push(`/lists/${list.id}/edit`)}>
               <Edit className="h-4 w-4 mr-2" />
               編集
             </Button>
@@ -140,7 +133,7 @@ export default function ListDetailPage({ params }: ListDetailPageProps) {
               size="sm"
               onClick={handleDelete}
               disabled={isDeleting}
-              className="text-red-600 border-red-600 hover:bg-red-50 bg-transparent"
+              className="text-red-600 hover:text-red-700 hover:bg-red-50 bg-transparent"
             >
               <Trash2 className="h-4 w-4 mr-2" />
               {isDeleting ? "削除中..." : "削除"}
@@ -151,45 +144,31 @@ export default function ListDetailPage({ params }: ListDetailPageProps) {
         {/* List Info */}
         <Card className="mb-6">
           <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-lg">{list.list_name}</CardTitle>
-              <Badge variant="secondary">{list.card_ids?.length || 0}枚</Badge>
-            </div>
-          </CardHeader>
-          {list.description && (
-            <CardContent>
-              <p className="text-gray-600">{list.description}</p>
-            </CardContent>
-          )}
-        </Card>
-
-        {/* Cards Section */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-lg">カード一覧</CardTitle>
-              <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
-                <Plus className="h-4 w-4 mr-2" />
-                カードを追加
-              </Button>
-            </div>
+            <CardTitle className="flex items-center justify-between">
+              <span>リスト情報</span>
+              <Badge variant="secondary">{Array.isArray(list.card_ids) ? list.card_ids.length : 0}枚</Badge>
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            {!list.card_ids || list.card_ids.length === 0 ? (
-              <div className="text-center py-12">
-                <p className="text-gray-500 mb-4">まだカードが追加されていません</p>
-                <Button className="bg-blue-600 hover:bg-blue-700">
-                  <Plus className="h-4 w-4 mr-2" />
-                  最初のカードを追加
-                </Button>
+            {list.description && <p className="text-gray-600 mb-4">{list.description}</p>}
+            <div className="text-sm text-gray-500">作成日: {new Date(list.created_at).toLocaleDateString("ja-JP")}</div>
+          </CardContent>
+        </Card>
+
+        {/* Cards */}
+        <Card>
+          <CardHeader>
+            <CardTitle>カード一覧</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {Array.isArray(list.card_ids) && list.card_ids.length > 0 ? (
+              <div className="text-center py-8">
+                <p className="text-gray-600">{list.card_ids.length}枚のカードが登録されています</p>
+                <p className="text-sm text-gray-500 mt-2">カード詳細表示機能は今後実装予定です</p>
               </div>
             ) : (
-              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                {list.card_ids.map((cardId, index) => (
-                  <div key={index} className="relative">
-                    <CardDisplay cardId={cardId} size="small" showDetails={false} />
-                  </div>
-                ))}
+              <div className="text-center py-8">
+                <p className="text-gray-600">カードが登録されていません</p>
               </div>
             )}
           </CardContent>

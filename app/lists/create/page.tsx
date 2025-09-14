@@ -1,14 +1,11 @@
 "use client"
-
-import type React from "react"
-
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { ArrowLeft } from "lucide-react"
+import { ArrowLeft, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
+import DetailedSearchModal, { type Card as CardType } from "@/components/detailed-search-modal"
 import { createTradeOwnedList } from "@/lib/actions/trade-owned-lists"
 import { useToast } from "@/hooks/use-toast"
 
@@ -16,14 +13,17 @@ export default function CreateListPage() {
   const router = useRouter()
   const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(false)
-  const [formData, setFormData] = useState({
-    name: "",
-    description: "",
-  })
+  const [listName, setListName] = useState("")
+  const [selectedCards, setSelectedCards] = useState<CardType[]>([])
+  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false)
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!formData.name.trim()) {
+  const handleCardSelection = (cards: CardType[]) => {
+    setSelectedCards(cards)
+    setIsSearchModalOpen(false)
+  }
+
+  const handleComplete = async () => {
+    if (!listName.trim()) {
       toast({
         title: "エラー",
         description: "リスト名を入力してください",
@@ -32,12 +32,22 @@ export default function CreateListPage() {
       return
     }
 
+    if (selectedCards.length === 0) {
+      toast({
+        title: "エラー",
+        description: "カードを選択してください",
+        variant: "destructive",
+      })
+      return
+    }
+
     setIsLoading(true)
     try {
+      const cardIds = selectedCards.map((card) => Number.parseInt(card.id))
       const result = await createTradeOwnedList({
-        list_name: formData.name,
-        description: formData.description,
-        card_ids: [],
+        list_name: listName,
+        description: "",
+        card_ids: cardIds,
       })
 
       if (result.success) {
@@ -81,52 +91,63 @@ export default function CreateListPage() {
           <h1 className="text-2xl font-bold text-gray-900">新しいリストを作成</h1>
         </div>
 
-        {/* Form */}
-        <Card className="max-w-2xl mx-auto">
-          <CardHeader>
-            <CardTitle>リスト情報</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div>
-                <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-                  リスト名 <span className="text-red-500">*</span>
-                </label>
-                <Input
-                  id="name"
-                  type="text"
-                  value={formData.name}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
-                  placeholder="リスト名を入力してください"
-                  required
-                />
-              </div>
-
-              <div>
-                <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
-                  説明（任意）
-                </label>
-                <Textarea
-                  id="description"
-                  value={formData.description}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
-                  placeholder="リストの説明を入力してください"
-                  rows={3}
-                />
-              </div>
-
-              <div className="flex gap-4 pt-4">
-                <Button type="button" variant="outline" onClick={() => router.back()} className="flex-1">
-                  キャンセル
-                </Button>
-                <Button type="submit" disabled={isLoading} className="flex-1 bg-blue-600 hover:bg-blue-700">
-                  {isLoading ? "作成中..." : "リストを作成"}
-                </Button>
-              </div>
-            </form>
+        {/* Title Input */}
+        <Card className="mb-6">
+          <CardContent className="p-6">
+            <div>
+              <label htmlFor="listName" className="block text-sm font-medium text-gray-700 mb-2">
+                リスト名
+              </label>
+              <Input
+                id="listName"
+                type="text"
+                value={listName}
+                onChange={(e) => setListName(e.target.value)}
+                placeholder="リスト名を入力してください"
+                className="w-full"
+              />
+            </div>
           </CardContent>
         </Card>
+
+        {/* Card Search */}
+        <Card className="mb-6">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold">カード選択</h2>
+              <Button onClick={() => setIsSearchModalOpen(true)} className="bg-blue-600 hover:bg-blue-700">
+                <Plus className="h-4 w-4 mr-2" />
+                カードを検索
+              </Button>
+            </div>
+
+            {selectedCards.length > 0 && (
+              <div className="text-sm text-gray-600 mb-2">{selectedCards.length}枚のカードが選択されています</div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Complete Button */}
+        <div className="flex justify-center">
+          <Button
+            onClick={handleComplete}
+            disabled={isLoading || !listName.trim() || selectedCards.length === 0}
+            className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold"
+            size="lg"
+          >
+            {isLoading ? "作成中..." : "選択完了"}
+          </Button>
+        </div>
       </div>
+
+      {/* Search Modal */}
+      <DetailedSearchModal
+        isOpen={isSearchModalOpen}
+        onOpenChange={setIsSearchModalOpen}
+        onSelectionComplete={handleCardSelection}
+        modalTitle="カード検索"
+        initialSelectedCards={selectedCards}
+      />
     </div>
   )
 }
