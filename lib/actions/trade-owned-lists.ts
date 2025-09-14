@@ -70,36 +70,66 @@ export async function createTradeOwnedList(userId: string, listName: string) {
 }
 
 export async function createOwnedList(userId: string, listName: string, cardIds: number[] = []) {
+  console.log("=== createOwnedList DEBUG START ===")
+  console.log("Parameters received:")
+  console.log("- userId:", userId)
+  console.log("- listName:", listName)
+  console.log("- cardIds:", cardIds)
+  console.log("- cardIds length:", cardIds.length)
+  console.log("- cardIds type:", typeof cardIds)
+
   try {
     const supabase = await createServerClient()
+    console.log("Supabase client created successfully")
 
     if (!listName.trim()) {
+      console.log("Validation failed: listName is empty")
       return { success: false, error: "リスト名を入力してください。" }
     }
 
     if (cardIds.length > 35) {
+      console.log("Validation failed: too many cards")
       return { success: false, error: "カードは35枚まで登録できます。" }
     }
 
-    const { data: newList, error } = await supabase
-      .from("trade_owned_list")
-      .insert({
-        user_id: userId,
-        list_name: listName.trim(),
-        card_ids: cardIds,
-      })
-      .select()
-      .single()
+    console.log("Validation passed, attempting to insert into database")
+
+    const insertData = {
+      user_id: userId,
+      list_name: listName.trim(),
+      card_ids: cardIds,
+    }
+    console.log("Insert data:", insertData)
+
+    const { data: newList, error } = await supabase.from("trade_owned_list").insert(insertData).select().single()
+
+    console.log("Supabase insert result:")
+    console.log("- data:", newList)
+    console.log("- error:", error)
 
     if (error) {
       console.error("Error creating owned list:", error)
+      console.log("Error details:", {
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        code: error.code,
+      })
       return { success: false, error: `リストの作成に失敗しました: ${error.message}` }
     }
 
+    console.log("Insert successful, calling revalidatePath")
     revalidatePath("/lists")
-    return { success: true, list: newList }
+
+    const result = { success: true, list: newList }
+    console.log("Final result:", result)
+    console.log("=== createOwnedList DEBUG END ===")
+
+    return result
   } catch (error) {
     console.error("Unexpected error creating owned list:", error)
+    console.log("Unexpected error details:", error)
+    console.log("=== createOwnedList DEBUG END (ERROR) ===")
     return { success: false, error: "予期しないエラーが発生しました。" }
   }
 }
