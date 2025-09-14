@@ -13,7 +13,7 @@ import { CardDisplay } from "@/components/card-display"
 import type { TradeOwnedList } from "@/lib/actions/trade-owned-lists"
 
 interface ListDetailPageProps {
-  params: Promise<{ id: string }>
+  params: { id: string }
 }
 
 export default function ListDetailPage({ params }: ListDetailPageProps) {
@@ -40,14 +40,11 @@ export default function ListDetailPage({ params }: ListDetailPageProps) {
 
         setUserId(user.id)
 
-        // Get list ID from params
-        const { id } = await params
-
         // Get lists
         const result = await getTradeOwnedLists(user.id)
 
         if (result.success && result.lists) {
-          const foundList = result.lists.find((l) => l.id === Number.parseInt(id))
+          const foundList = result.lists.find((l) => l.id === Number.parseInt(params.id))
           if (foundList) {
             setList(foundList)
           } else {
@@ -80,7 +77,7 @@ export default function ListDetailPage({ params }: ListDetailPageProps) {
     }
 
     loadData()
-  }, [params, router, toast])
+  }, [params.id, router, toast])
 
   const handleDelete = async () => {
     if (!list || !userId || !confirm("このリストを削除しますか？")) return
