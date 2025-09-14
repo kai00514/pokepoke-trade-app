@@ -92,7 +92,7 @@ export default function ListsPage() {
   // ローディング中
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-blue-100 to-blue-200">
         <div className="container mx-auto px-4 py-8 max-w-7xl">
           <div className="flex justify-center items-center py-12">
             <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
@@ -105,7 +105,7 @@ export default function ListsPage() {
   // 未認証ユーザー
   if (!user) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-blue-100 to-blue-200">
         <div className="container mx-auto px-4 py-8 max-w-7xl">
           <h1 className="text-2xl font-bold text-gray-900 mb-8">カードリスト</h1>
           <LoginPrompt message="カードリストを作成・管理するにはログインが必要です。" />
@@ -115,7 +115,7 @@ export default function ListsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-blue-100 to-blue-200">
       <div className="container mx-auto px-4 py-8 max-w-7xl">
         {/* ヘッダー */}
         <div className="mb-8">
@@ -124,7 +124,7 @@ export default function ListsPage() {
               variant="ghost"
               size="sm"
               onClick={() => router.back()}
-              className="text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+              className="text-gray-600 hover:text-gray-900 hover:bg-white/50"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
               戻る
@@ -134,7 +134,7 @@ export default function ListsPage() {
           <div className="flex justify-between items-center">
             <div>
               <h1 className="text-3xl font-bold text-gray-900 mb-2">カードリスト</h1>
-              <p className="text-gray-600">トレード用のカードリストを作成・管理できます（最大10リスト、各35枚まで）</p>
+              <p className="text-gray-700">トレード用のカードリストを作成・管理できます（最大10リスト、各35枚まで）</p>
             </div>
             <Button
               onClick={() => setIsCreationModalOpen(true)}
@@ -180,12 +180,12 @@ export default function ListsPage() {
           </div>
         ) : (
           <div className="text-center py-16">
-            <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-12 max-w-md mx-auto">
-              <div className="bg-blue-50 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6">
+            <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/50 p-12 max-w-md mx-auto">
+              <div className="bg-blue-100 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6">
                 <Plus className="h-10 w-10 text-blue-600" />
               </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-3">リストがありません</h3>
-              <p className="text-gray-500 mb-8 leading-relaxed">
+              <p className="text-gray-600 mb-8 leading-relaxed">
                 最初のカードリストを作成して、
                 <br />
                 トレードの準備を始めましょう。
