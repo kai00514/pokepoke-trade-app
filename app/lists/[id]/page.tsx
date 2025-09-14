@@ -20,7 +20,6 @@ export default function ListDetailPage({ params }: ListDetailPageProps) {
   const router = useRouter()
   const { toast } = useToast()
   const [list, setList] = useState<TradeOwnedList | null>(null)
-  const [cards, setCards] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [userId, setUserId] = useState<string | null>(null)
 
@@ -55,23 +54,6 @@ export default function ListDetailPage({ params }: ListDetailPageProps) {
 
           if (foundList) {
             setList(foundList)
-
-            // カード情報を取得
-            if (foundList.card_ids && foundList.card_ids.length > 0) {
-              const supabase = createClient()
-              const { data: cardsData, error } = await supabase.from("cards").select("*").in("id", foundList.card_ids)
-
-              if (error) {
-                console.error("Error fetching cards:", error)
-                toast({
-                  title: "エラー",
-                  description: "カード情報の取得に失敗しました",
-                  variant: "destructive",
-                })
-              } else {
-                setCards(cardsData || [])
-              }
-            }
           } else {
             toast({
               title: "エラー",
@@ -192,7 +174,7 @@ export default function ListDetailPage({ params }: ListDetailPageProps) {
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
               <span>リスト情報</span>
-              <span className="text-sm font-normal text-gray-600">{cards.length}枚のカード</span>
+              <span className="text-sm font-normal text-gray-600">{list.card_ids?.length || 0}枚のカード</span>
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -225,20 +207,15 @@ export default function ListDetailPage({ params }: ListDetailPageProps) {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {cards.length > 0 ? (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                {cards.map((card) => (
-                  <div key={card.id} className="aspect-[5/7]">
+            {list.card_ids && list.card_ids.length > 0 ? (
+              <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-2">
+                {list.card_ids.map((cardId, index) => (
+                  <div key={`${cardId}-${index}`} className="aspect-[5/7]">
                     <CardDisplay
-                      card={{
-                        id: card.id,
-                        name: card.name,
-                        imageUrl: card.image_url,
-                        type: card.type_code,
-                        rarity: card.rarity_code,
-                      }}
-                      showName={true}
-                      className="w-full h-full"
+                      cardId={cardId.toString()}
+                      width={80}
+                      height={112}
+                      className="w-full h-full object-cover rounded-md"
                     />
                   </div>
                 ))}

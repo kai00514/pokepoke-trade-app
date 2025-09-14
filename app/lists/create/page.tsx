@@ -2,21 +2,22 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { ArrowLeft, Search } from "lucide-react"
+import { ArrowLeft, Search, Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useToast } from "@/hooks/use-toast"
-import { createTradeOwnedList, updateTradeOwnedList } from "@/lib/actions/trade-owned-lists"
 import { createClient } from "@/lib/supabase/client"
-import DetailedSearchModal, { type Card as CardType } from "@/components/detailed-search-modal"
+import { createTradeOwnedList } from "@/lib/actions/trade-owned-lists"
+import DetailedSearchModal from "@/components/detailed-search-modal"
+import CardDisplay from "@/components/card-display"
 
 export default function CreateListPage() {
   const router = useRouter()
   const { toast } = useToast()
   const [listName, setListName] = useState("")
-  const [selectedCards, setSelectedCards] = useState<CardType[]>([])
+  const [selectedCards, setSelectedCards] = useState<any[]>([])
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false)
   const [isCreating, setIsCreating] = useState(false)
   const [userId, setUserId] = useState<string | null>(null)
@@ -36,12 +37,18 @@ export default function CreateListPage() {
     getUser()
   }, [router])
 
-  const handleCardSelection = (cards: CardType[]) => {
-    setSelectedCards(cards)
-    setIsSearchModalOpen(false)
+  const handleCardSelect = (card: any) => {
+    setSelectedCards((prev) => {
+      const exists = prev.find((c) => c.id === card.id)
+      if (exists) {
+        return prev.filter((c) => c.id !== card.id)
+      } else {
+        return [...prev, card]
+      }
+    })
   }
 
-  const handleComplete = async () => {
+  const handleCreateList = async () => {
     if (!userId) {
       toast({
         title: "エラー",
@@ -63,7 +70,7 @@ export default function CreateListPage() {
     if (selectedCards.length === 0) {
       toast({
         title: "エラー",
-        description: "カードを選択してください",
+        description: "少なくとも1枚のカードを選択してください",
         variant: "destructive",
       })
       return
@@ -71,31 +78,19 @@ export default function CreateListPage() {
 
     setIsCreating(true)
     try {
-      // まずリストを作成
-      const createResult = await createTradeOwnedList(userId, listName.trim())
+      const cardIds = selectedCards.map((card) => card.id)
+      const result = await createTradeOwnedList(userId, listName.trim(), cardIds)
 
-      if (createResult.success && createResult.list) {
-        // カードIDを追加
-        const cardIds = selectedCards.map((card) => Number.parseInt(card.id))
-        const updateResult = await updateTradeOwnedList(createResult.list.id, userId, listName.trim(), cardIds)
-
-        if (updateResult.success) {
-          toast({
-            title: "成功",
-            description: "リストが作成されました",
-          })
-          router.push("/lists")
-        } else {
-          toast({
-            title: "エラー",
-            description: updateResult.error || "カードの追加に失敗しました",
-            variant: "destructive",
-          })
-        }
+      if (result.success) {
+        toast({
+          title: "成功",
+          description: "リストが作成されました",
+        })
+        router.push("/lists")
       } else {
         toast({
           title: "エラー",
-          description: createResult.error || "リストの作成に失敗しました",
+          description: result.error || "リストの作成に失敗しました",
           variant: "destructive",
         })
       }
@@ -111,17 +106,6 @@ export default function CreateListPage() {
     }
   }
 
-  if (!userId) {
-    return (
-      <div className="min-h-screen bg-blue-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">読み込み中...</p>
-        </div>
-      </div>
-    )
-  }
-
   return (
     <div className="min-h-screen bg-blue-50">
       <div className="container mx-auto px-4 py-6">
@@ -130,7 +114,7 @@ export default function CreateListPage() {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => router.back()}
+            onClick={() => router.push("/lists")}
             className="text-blue-600 hover:text-blue-700 hover:bg-blue-100"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
@@ -141,43 +125,71 @@ export default function CreateListPage() {
 
         {/* Main Content */}
         <Card>
-          <CardContent className="p-6">
-            <div className="space-y-6">
-              {/* Title Input */}
-              <div className="space-y-2">
-                <Label htmlFor="listName">リスト名</Label>
-                <Input
-                  id="listName"
-                  value={listName}
-                  onChange={(e) => setListName(e.target.value)}
-                  placeholder="リスト名を入力してください"
-                  className="w-full"
-                />
-              </div>
+          <CardHeader>
+            <CardTitle>リスト作成</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* List Name Input */}
+            <div className="space-y-2">
+              <Label htmlFor="listName">リスト名</Label>
+              <Input
+                id="listName"
+                value={listName}
+                onChange={(e) => setListName(e.target.value)}
+                placeholder="リスト名を入力してください"
+                className="w-full"
+              />
+            </div>
 
-              {/* Card Search */}
-              <div className="space-y-2">
+            {/* Card Search */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
                 <Label>カード選択</Label>
-                <Button
-                  variant="outline"
-                  onClick={() => setIsSearchModalOpen(true)}
-                  className="w-full justify-start text-left"
-                >
+                <Button onClick={() => setIsSearchModalOpen(true)} className="bg-blue-600 hover:bg-blue-700">
                   <Search className="h-4 w-4 mr-2" />
-                  カードを検索して追加
+                  カードを検索
                 </Button>
-                {selectedCards.length > 0 && (
-                  <p className="text-sm text-gray-600">{selectedCards.length}枚のカードが選択されています</p>
-                )}
               </div>
 
-              {/* Complete Button */}
+              {/* Selected Cards */}
+              {selectedCards.length > 0 && (
+                <div className="space-y-2">
+                  <p className="text-sm text-gray-600">{selectedCards.length}枚のカードが選択されています</p>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                    {selectedCards.map((card) => (
+                      <div key={card.id} className="relative">
+                        <CardDisplay cardId={card.id.toString()} />
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0"
+                          onClick={() => handleCardSelect(card)}
+                        >
+                          ×
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {selectedCards.length === 0 && (
+                <div className="text-center py-8 text-gray-500">
+                  <p>カードが選択されていません</p>
+                  <p className="text-sm">「カードを検索」ボタンからカードを選択してください</p>
+                </div>
+              )}
+            </div>
+
+            {/* Create Button */}
+            <div className="flex justify-end">
               <Button
-                onClick={handleComplete}
+                onClick={handleCreateList}
                 disabled={isCreating || !listName.trim() || selectedCards.length === 0}
-                className="w-full bg-blue-600 hover:bg-blue-700"
+                className="bg-blue-600 hover:bg-blue-700"
               >
-                {isCreating ? "作成中..." : "選択完了"}
+                <Check className="h-4 w-4 mr-2" />
+                {isCreating ? "作成中..." : "リストを作成"}
               </Button>
             </div>
           </CardContent>
@@ -187,9 +199,8 @@ export default function CreateListPage() {
         <DetailedSearchModal
           isOpen={isSearchModalOpen}
           onOpenChange={setIsSearchModalOpen}
-          onSelectionComplete={handleCardSelection}
-          modalTitle="カード検索"
-          initialSelectedCards={selectedCards}
+          onCardSelect={handleCardSelect}
+          selectedCards={selectedCards}
         />
       </div>
     </div>
