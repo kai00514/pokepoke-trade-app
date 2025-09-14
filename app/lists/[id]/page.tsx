@@ -31,6 +31,7 @@ export default function ListDetailPage({ params }: ListDetailPageProps) {
   const [editListName, setEditListName] = useState("")
   const [editSelectedCards, setEditSelectedCards] = useState<number[]>([])
   const [isUpdating, setIsUpdating] = useState(false)
+  const [isAddingCards, setIsAddingCards] = useState(false)
 
   useEffect(() => {
     const getUser = async () => {
@@ -130,7 +131,7 @@ export default function ListDetailPage({ params }: ListDetailPageProps) {
   const handleEdit = () => {
     if (list) {
       setEditListName(list.list_name)
-      setEditSelectedCards(list.card_ids || [])
+      setEditSelectedCards([...(list.card_ids || [])])
       setIsEditModalOpen(true)
     }
   }
@@ -178,54 +179,78 @@ export default function ListDetailPage({ params }: ListDetailPageProps) {
   }
 
   const handleCardSelect = (cardId: number) => {
-    setEditSelectedCards((prev) => {
-      if (prev.includes(cardId)) {
-        return prev.filter((id) => id !== cardId)
-      } else {
-        return [...prev, cardId]
-      }
-    })
+    if (isAddingCards) {
+      // カード追加モードの場合
+      setEditSelectedCards((prev) => {
+        if (prev.includes(cardId)) {
+          return prev.filter((id) => id !== cardId)
+        } else {
+          return [...prev, cardId]
+        }
+      })
+    } else {
+      // 編集モードの場合
+      setEditSelectedCards((prev) => {
+        if (prev.includes(cardId)) {
+          return prev.filter((id) => id !== cardId)
+        } else {
+          return [...prev, cardId]
+        }
+      })
+    }
   }
 
   const handleAddCards = () => {
     if (list) {
-      setEditSelectedCards(list.card_ids || [])
+      setIsAddingCards(true)
+      setEditSelectedCards([...(list.card_ids || [])])
       setIsSearchModalOpen(true)
     }
   }
 
-  const handleAddCardsComplete = () => {
+  const handleAddCardsComplete = async () => {
     if (!list || !userId) return
 
     setIsUpdating(true)
-    updateTradeOwnedList(list.id, userId, list.list_name, editSelectedCards)
-      .then((result) => {
-        if (result.success) {
-          setList(result.list)
-          setIsSearchModalOpen(false)
-          toast({
-            title: "成功",
-            description: "カードを追加しました",
-          })
-        } else {
-          toast({
-            title: "エラー",
-            description: result.error || "カードの追加に失敗しました",
-            variant: "destructive",
-          })
-        }
-      })
-      .catch((error) => {
-        console.error("Error adding cards:", error)
+    try {
+      const result = await updateTradeOwnedList(list.id, userId, list.list_name, editSelectedCards)
+
+      if (result.success) {
+        setList(result.list)
+        setIsSearchModalOpen(false)
+        setIsAddingCards(false)
+        toast({
+          title: "成功",
+          description: "カードを追加しました",
+        })
+      } else {
         toast({
           title: "エラー",
-          description: "カードの追加に失敗しました",
+          description: result.error || "カードの追加に失敗しました",
           variant: "destructive",
         })
+      }
+    } catch (error) {
+      console.error("Error adding cards:", error)
+      toast({
+        title: "エラー",
+        description: "カードの追加に失敗しました",
+        variant: "destructive",
       })
-      .finally(() => {
-        setIsUpdating(false)
-      })
+    } finally {
+      setIsUpdating(false)
+    }
+  }
+
+  const handleSearchModalClose = (open: boolean) => {
+    setIsSearchModalOpen(open)
+    if (!open) {
+      if (isAddingCards) {
+        // カード追加モードの場合、変更を保存
+        handleAddCardsComplete()
+      }
+      setIsAddingCards(false)
+    }
   }
 
   if (isLoading) {
@@ -367,7 +392,10 @@ export default function ListDetailPage({ params }: ListDetailPageProps) {
                 <div className="flex items-center justify-between">
                   <Label>カード選択</Label>
                   <Button
-                    onClick={() => setIsSearchModalOpen(true)}
+                    onClick={() => {
+                      setIsAddingCards(false)
+                      setIsSearchModalOpen(true)
+                    }}
                     variant="outline"
                     size="sm"
                     className="text-blue-600 border-blue-600 hover:bg-blue-50"
@@ -417,13 +445,7 @@ export default function ListDetailPage({ params }: ListDetailPageProps) {
         {/* Search Modal */}
         <DetailedSearchModal
           isOpen={isSearchModalOpen}
-          onOpenChange={(open) => {
-            setIsSearchModalOpen(open)
-            if (!open && list) {
-              // モーダルが閉じられた時にカードを追加
-              handleAddCardsComplete()
-            }
-          }}
+          onOpenChange={handleSearchModalClose}
           onCardSelect={handleCardSelect}
           selectedCards={editSelectedCards}
         />

@@ -10,8 +10,8 @@ import { Label } from "@/components/ui/label"
 import { useToast } from "@/hooks/use-toast"
 import { createClient } from "@/lib/supabase/client"
 import { createTradeOwnedList } from "@/lib/actions/trade-owned-lists"
-import DetailedSearchModal from "@/components/detailed-search-modal"
 import CardDisplay from "@/components/card-display"
+import DetailedSearchModal from "@/components/detailed-search-modal"
 
 export default function CreateListPage() {
   const router = useRouter()
@@ -61,14 +61,35 @@ export default function CreateListPage() {
 
     setIsCreating(true)
     try {
-      const result = await createTradeOwnedList(userId, listName.trim(), selectedCards)
+      const result = await createTradeOwnedList(userId, listName.trim())
 
-      if (result.success) {
-        toast({
-          title: "成功",
-          description: "リストを作成しました",
-        })
-        router.push("/lists")
+      if (result.success && result.list) {
+        // リストが作成されたら、カードを追加
+        if (selectedCards.length > 0) {
+          const { updateTradeOwnedList } = await import("@/lib/actions/trade-owned-lists")
+          const updateResult = await updateTradeOwnedList(result.list.id, userId, listName.trim(), selectedCards)
+
+          if (updateResult.success) {
+            toast({
+              title: "成功",
+              description: "リストを作成しました",
+            })
+            router.push("/lists")
+          } else {
+            toast({
+              title: "警告",
+              description: "リストは作成されましたが、カードの追加に失敗しました",
+              variant: "destructive",
+            })
+            router.push("/lists")
+          }
+        } else {
+          toast({
+            title: "成功",
+            description: "リストを作成しました",
+          })
+          router.push("/lists")
+        }
       } else {
         toast({
           title: "エラー",
@@ -105,7 +126,7 @@ export default function CreateListPage() {
           <h1 className="text-2xl font-bold text-gray-900">新しいリストを作成</h1>
         </div>
 
-        {/* Main Content */}
+        {/* Main Card */}
         <Card>
           <CardHeader>
             <CardTitle>リスト作成</CardTitle>
@@ -122,20 +143,22 @@ export default function CreateListPage() {
               />
             </div>
 
-            {/* Card Selection */}
+            {/* Card Search Button */}
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <Label>カード選択</Label>
                 <Button
                   onClick={() => setIsSearchModalOpen(true)}
                   variant="outline"
+                  size="sm"
                   className="text-blue-600 border-blue-600 hover:bg-blue-50"
                 >
                   <Search className="h-4 w-4 mr-2" />
-                  カード詳細検索
+                  カードを検索
                 </Button>
               </div>
 
+              {/* Selected Cards Display */}
               {selectedCards.length > 0 && (
                 <div className="space-y-2">
                   <p className="text-sm text-gray-600">{selectedCards.length}枚のカードが選択されています</p>
@@ -163,7 +186,7 @@ export default function CreateListPage() {
                 disabled={isCreating || !listName.trim()}
                 className="bg-blue-600 hover:bg-blue-700"
               >
-                {isCreating ? "作成中..." : "選択完了"}
+                {isCreating ? "作成中..." : "リストを作成"}
               </Button>
             </div>
           </CardContent>
