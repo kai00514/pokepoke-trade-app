@@ -1,5 +1,7 @@
 "use client"
 
+import type React from "react"
+
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import Image from "next/image"
@@ -41,6 +43,7 @@ export default function CreateTradePage() {
   const [modalInitialCards, setModalInitialCards] = useState<SelectedCardType[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [showListSelector, setShowListSelector] = useState(false)
+  const [hasRegisteredPokepokeId, setHasRegisteredPokepokeId] = useState(false)
   const { toast } = useToast()
   const router = useRouter()
 
@@ -78,12 +81,16 @@ export default function CreateTradePage() {
 
           if (profile?.pokepoke_id) {
             setAppId(profile.pokepoke_id)
+            setHasRegisteredPokepokeId(true)
+          } else {
+            setHasRegisteredPokepokeId(false)
           }
         }
       } catch (error) {
         console.error("Auth check failed:", error)
         setIsAuthenticated(false)
         setCurrentUserId(null)
+        setHasRegisteredPokepokeId(false)
       } finally {
         setIsLoading(false)
       }
@@ -103,7 +110,12 @@ export default function CreateTradePage() {
 
         if (profile?.pokepoke_id) {
           setAppId(profile.pokepoke_id)
+          setHasRegisteredPokepokeId(true)
+        } else {
+          setHasRegisteredPokepokeId(false)
         }
+      } else {
+        setHasRegisteredPokepokeId(false)
       }
     })
 
@@ -119,6 +131,13 @@ export default function CreateTradePage() {
     if (offeredCards.length === 0) errors.offeredCards = "譲れるカードを選択してください。"
     setFormErrors(errors)
     return Object.keys(errors).length === 0
+  }
+
+  const handleAppIdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value
+    // 半角数字のみを許可
+    const numericValue = value.replace(/[^0-9]/g, "")
+    setAppId(numericValue)
   }
 
   const openModal = (context: SelectionContextType, maxSelection: number | undefined, title: string) => {
@@ -382,17 +401,19 @@ export default function CreateTradePage() {
               <Input
                 id="appId"
                 value={appId}
-                onChange={(e) => setAppId(e.target.value)}
+                onChange={handleAppIdChange}
                 placeholder="ポケポケアプリのID (任意)"
-                disabled={isSubmitting || (isAuthenticated && appId.trim() !== "")}
-                readOnly={isAuthenticated && appId.trim() !== ""}
+                disabled={isSubmitting || (isAuthenticated && hasRegisteredPokepokeId)}
+                readOnly={isAuthenticated && hasRegisteredPokepokeId}
+                inputMode="numeric"
+                pattern="[0-9]*"
               />
               <p className="text-xs text-slate-500 mt-1">
                 {isAuthenticated
-                  ? appId.trim() !== ""
+                  ? hasRegisteredPokepokeId
                     ? "登録済みのポケポケIDが自動入力されています。"
-                    : "ログイン中です。ポケポケIDは任意です。"
-                  : "ゲストユーザーとして投稿します。ポケポケIDは任意です。"}
+                    : "ログイン中です。ポケポケIDは任意です。半角数字のみ入力可能です。"
+                  : "ゲストユーザーとして投稿します。ポケポケIDは任意です。半角数字のみ入力可能です。"}
               </p>
             </div>
             <div>

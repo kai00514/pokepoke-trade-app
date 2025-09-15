@@ -1,5 +1,7 @@
 "use client"
 import { useState, useEffect, useCallback } from "react"
+import type React from "react"
+
 import { useParams, useRouter } from "next/navigation"
 import Link from "next/link"
 import Image from "next/image"
@@ -190,6 +192,14 @@ export default function TradeDetailPage() {
     setShowLoginPrompt(false)
     handleCommentSubmit()
   }, [handleCommentSubmit])
+
+  const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
+    // Enterキーでの自動送信を無効化
+    if (e.key === "Enter") {
+      e.preventDefault()
+      // 何もしない（送信ボタンを押した時のみ送信）
+    }
+  }, [])
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -442,12 +452,7 @@ export default function TradeDetailPage() {
                 value={newComment}
                 onChange={(e) => setNewComment(e.target.value)}
                 className="flex-grow bg-white"
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey) {
-                    e.preventDefault()
-                    handleCommentSubmitClick()
-                  }
-                }}
+                onKeyDown={handleKeyDown}
               />
               <Button
                 type="button"
