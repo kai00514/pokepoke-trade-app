@@ -69,6 +69,12 @@ export default function TradePostCard({ post }: TradePostCardProps) {
     router.push(`/trades/${post.id}`)
   }
 
+  const handleDetailsClick = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    e.preventDefault()
+    handleCardClick(e)
+  }
+
   // 複数カード表示用
   const wantedCards = post.rawData?.wantedCards || []
   const offeredCards = post.rawData?.offeredCards || []
@@ -200,7 +206,7 @@ export default function TradePostCard({ post }: TradePostCardProps) {
         </CardContent>
       </div>
 
-      <CardFooter className="bg-[#F8FAFC] px-4 py-3 flex flex-col sm:flex-row justify-between items-center gap-2 sm:gap-4 rounded-b-xl border-t border-[#3d496e] mx-1">
+      <CardFooter className="bg-[#F8FAFC] px-4 py-3 flex items-center justify-between rounded-b-xl border-t border-[#3d496e] mx-1">
         <div className="flex items-center gap-2">
           <p className="text-xs text-[#6B7280]">ID: {post.postId}</p>
           <Button
@@ -216,7 +222,7 @@ export default function TradePostCard({ post }: TradePostCardProps) {
           variant="default"
           size="sm"
           className="bg-[#3B82F6] hover:bg-[#2563EB] text-white text-xs h-auto py-1.5 px-3 rounded-md"
-          onClick={handleCardClick}
+          onClick={handleDetailsClick}
         >
           <MessageSquare className="mr-1.5 h-3.5 w-3.5" />
           詳細
