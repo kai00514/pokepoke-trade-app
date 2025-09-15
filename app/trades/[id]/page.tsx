@@ -8,7 +8,7 @@ import Image from "next/image"
 import Header from "@/components/layout/header"
 import Footer from "@/components/footer"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { ArrowLeft, Copy, Send, UserCircle } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
@@ -193,13 +193,17 @@ export default function TradeDetailPage() {
     handleCommentSubmit()
   }, [handleCommentSubmit])
 
-  const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
-    // Enterキーでの自動送信を無効化
-    if (e.key === "Enter") {
-      e.preventDefault()
-      // 何もしない（送信ボタンを押した時のみ送信）
-    }
-  }, [])
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+      // Ctrl+Enter または Cmd+Enter で送信
+      if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+        e.preventDefault()
+        handleCommentSubmitClick()
+      }
+      // 通常のEnterは改行として処理（デフォルト動作）
+    },
+    [handleCommentSubmitClick],
+  )
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -445,24 +449,26 @@ export default function TradeDetailPage() {
             )}
           </div>
           <div className="p-4 sm:p-6 border-t border-slate-200 bg-slate-50 rounded-b-lg">
-            <div className="flex items-center space-x-2">
-              <Input
-                type="text"
+            <div className="space-y-3">
+              <Textarea
                 placeholder="コメントを入力してください..."
                 value={newComment}
                 onChange={(e) => setNewComment(e.target.value)}
-                className="flex-grow bg-white"
+                className="min-h-[80px] bg-white resize-none"
                 onKeyDown={handleKeyDown}
               />
-              <Button
-                type="button"
-                onClick={handleCommentSubmitClick}
-                className="bg-blue-600 hover:bg-blue-700 text-white"
-                disabled={!newComment.trim()}
-              >
-                <Send className="h-4 w-4 mr-0 sm:mr-2" />
-                <span className="hidden sm:inline">投稿</span>
-              </Button>
+              <div className="flex justify-between items-center">
+                <p className="text-xs text-slate-500">Ctrl+Enter で送信</p>
+                <Button
+                  type="button"
+                  onClick={handleCommentSubmitClick}
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                  disabled={!newComment.trim()}
+                >
+                  <Send className="h-4 w-4 mr-2" />
+                  投稿
+                </Button>
+              </div>
             </div>
           </div>
         </div>

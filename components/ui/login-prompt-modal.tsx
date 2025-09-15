@@ -1,86 +1,55 @@
 "use client"
 
-import { useRef, useEffect } from "react"
-import { useRouter } from "next/navigation"
-import { LogIn, UserPlus } from "lucide-react"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { Button } from "@/components/ui/button"
+import { UserCircle, LogIn } from "lucide-react"
 
-type LoginPromptModalProps = {
+interface LoginPromptModalProps {
   onClose: () => void
-  onContinueAsGuest?: () => void
-  showGuestButton?: boolean
+  onContinueAsGuest: () => void
 }
 
-export default function LoginPromptModal({
-  onClose,
-  onContinueAsGuest,
-  showGuestButton = true,
-}: LoginPromptModalProps) {
-  const router = useRouter()
-  const modalRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
-        onClose()
-      }
-    }
-
-    document.addEventListener("mousedown", handleClickOutside)
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside)
-    }
-  }, [onClose])
-
+export default function LoginPromptModal({ onClose, onContinueAsGuest }: LoginPromptModalProps) {
   const handleLogin = () => {
-    router.push("/auth/login")
-  }
-
-  const handleRegister = () => {
-    router.push("/auth/signup")
+    window.location.href = "/auth/login"
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div ref={modalRef} className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-        <h2 className="text-xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">
-          アカウント登録でもっと便利に！
-        </h2>
-        <div className="text-gray-800 mb-6">
-          <ol className="list-decimal list-inside space-y-1">
-            <li>ポケポケID・ユーザー名を自動入力</li>
-            <li>希望/譲渡カードのリスト作成</li>
-            <li>通知アイコンで最新情報を受け取り</li>
-            <li>履歴画面でトレード状況を確認</li>
-            <li>デッキをお気に入り登録</li>
-          </ol>
-        </div>
-        <div className="grid grid-cols-2 gap-4 mb-6">
-          <button
-            onClick={handleLogin}
-            className="bg-blue-600 text-white rounded-lg py-3 text-center font-medium hover:bg-blue-700 transition-colors flex items-center justify-center"
-          >
-            <LogIn size={18} className="mr-2" />
-            ログイン
-          </button>
-          <button
-            onClick={handleRegister}
-            className="bg-[#e45858] text-white rounded-lg py-3 text-center font-medium hover:bg-opacity-90 transition-colors flex items-center justify-center"
-          >
-            <UserPlus size={18} className="mr-2" />
-            新規登録
-          </button>
-        </div>
-        {showGuestButton && onContinueAsGuest && (
-          <div className="text-center">
-            <button
-              onClick={onContinueAsGuest}
-              className="text-sm text-gray-500 hover:text-gray-700 underline transition-colors"
-            >
-              ゲストとして続ける
-            </button>
+    <Dialog open={true} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-md mx-4 bg-gradient-to-br from-blue-50 to-violet-50 border-blue-200">
+        <DialogHeader className="text-center">
+          <div className="mx-auto w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4">
+            <UserCircle className="w-8 h-8 text-blue-600" />
           </div>
-        )}
-      </div>
-    </div>
+          <DialogTitle className="text-xl font-bold text-gray-900">ログインしますか？</DialogTitle>
+          <DialogDescription className="text-gray-600 mt-2">
+            ログインすると、あなたの名前とアバターでコメントが投稿されます。
+            <br />
+            ゲストとして投稿することも可能です。
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter className="flex flex-col sm:flex-row gap-3 mt-6">
+          <Button
+            onClick={onContinueAsGuest}
+            variant="outline"
+            className="flex-1 border-gray-300 hover:bg-gray-50 bg-transparent"
+          >
+            <UserCircle className="w-4 h-4 mr-2" />
+            ゲストとして投稿
+          </Button>
+          <Button onClick={handleLogin} className="flex-1 bg-blue-600 hover:bg-blue-700 text-white">
+            <LogIn className="w-4 h-4 mr-2" />
+            ログインして投稿
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   )
 }
