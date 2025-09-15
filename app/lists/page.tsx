@@ -121,12 +121,12 @@ export default function ListsPage() {
           {/* メインコンテンツ */}
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
             {/* ヘッダー */}
-            <div className="flex justify-between items-center mb-8">
+            <div className="flex flex-col space-y-4 mb-8 sm:flex-row sm:justify-between sm:items-center sm:space-y-0">
               <h1 className="text-2xl font-bold text-gray-900">カードリスト</h1>
               <Button
                 onClick={handleCreateNewList}
                 disabled={lists.length >= 10}
-                className="bg-blue-600 hover:bg-blue-700 text-white"
+                className="bg-blue-600 hover:bg-blue-700 text-white w-full sm:w-auto"
               >
                 <Plus className="h-4 w-4 mr-2" />
                 新しいリストを作成
@@ -216,7 +216,7 @@ export default function ListsPage() {
                               strokeLinecap="round"
                               strokeLinejoin="round"
                               strokeWidth={2}
-                              d="M7 4V2a1 1 0 011-1h8a1 1 0 011 1v2h4a1 1 0 110 2h-1v12a2 2 0 01-2 2H6a2 2 0 01-2-2V6H3a1 1 0 110-2h4zM9 6v10h6V6H9z"
+                              d="M7 4V2a1 1 0 011-1h8a1 1 0 011 1v2h4a1 1 0 012 2v6a2 2 0 01-2 2H6a2 2 0 01-2-2V6H3a1 1 0 110-2h4zM9 6v10h6V6H9z"
                             />
                           </svg>
                           <span className="font-medium text-blue-600">
