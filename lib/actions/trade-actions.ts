@@ -152,7 +152,20 @@ export async function createTradePost(formData: TradeFormData) {
       guestName: isAuthenticated ? null : guestName,
     })
 
-    // 最初のカードのみを使用（1対1関係）
+    // 複数カードをJSONB形式で準備
+    const wantedCardsJsonb = formData.wantedCards.map((card) => ({
+      id: Number.parseInt(card.id),
+      name: card.name,
+      imageUrl: card.imageUrl,
+    }))
+
+    const offeredCardsJsonb = formData.offeredCards.map((card) => ({
+      id: Number.parseInt(card.id),
+      name: card.name,
+      imageUrl: card.imageUrl,
+    }))
+
+    // 後方互換性のため、最初のカードのIDも保存
     const wantedCardId = formData.wantedCards[0]?.id ? Number.parseInt(formData.wantedCards[0].id) : null
     const offeredCardId = formData.offeredCards[0]?.id ? Number.parseInt(formData.offeredCards[0].id) : null
 
@@ -166,8 +179,8 @@ export async function createTradePost(formData: TradeFormData) {
       custom_id: formData.appId?.trim() || null,
       comment: formData.comment?.trim() || null,
       want_card_id: wantedCardId, // 既存カラム（後で削除予定）
-      wanted_card_id: wantedCardId, // 新しいカラム
-      offered_card_id: offeredCardId, // 新しいカラム
+      wanted_card_id: wantedCardsJsonb, // JSONB形式で複数カード保存
+      offered_card_id: offeredCardsJsonb, // JSONB形式で複数カード保存
       status: "OPEN",
       is_authenticated: isAuthenticated,
     }
@@ -218,7 +231,7 @@ export async function getTradePostsWithCards(limit = 10, offset = 0) {
       console.error("Error fetching total count:", countError)
     }
 
-    // Get posts with card information in a single query
+    // Get posts with card information
     const { data: posts, error: postsError } = await supabase
       .from("trade_posts")
       .select(`
@@ -232,9 +245,7 @@ export async function getTradePostsWithCards(limit = 10, offset = 0) {
         is_authenticated,
         comment,
         wanted_card_id,
-        offered_card_id,
-        wanted_card:wanted_card_id(id, name, image_url),
-        offered_card:offered_card_id(id, name, image_url)
+        offered_card_id
       `)
       .order("created_at", { ascending: false })
       .range(offset, offset + limit - 1)
@@ -315,18 +326,78 @@ export async function getTradePostsWithCards(limit = 10, offset = 0) {
         username = post.guest_name || "ゲスト"
       }
 
-      // カード情報を整形（1対1関係）
-      const wantedCard = {
-        id: post.wanted_card?.id?.toString() || post.wanted_card_id?.toString() || "unknown",
-        name: post.wanted_card?.name || "不明",
-        imageUrl: post.wanted_card?.image_url || "/placeholder.svg?width=80&height=112",
-        isPrimary: true, // 1つしかないので常にprimary
+      // JSONB形式のカード情報を処理
+      let wantedCards: any[] = []
+      let offeredCards: any[] = []
+
+      try {
+        // wanted_card_idがJSONB配列の場合
+        if (Array.isArray(post.wanted_card_id)) {
+          wantedCards = post.wanted_card_id.map((card: any, index: number) => ({
+            id: card.id?.toString() || "unknown",
+            name: card.name || "不明",
+            imageUrl: card.imageUrl || "/placeholder.svg?width=80&height=112",
+            isPrimary: index === 0, // 最初のカードをプライマリとする
+          }))
+        } else if (post.wanted_card_id) {
+          // 単一カードの場合（後方互換性）
+          wantedCards = [
+            {
+              id: post.wanted_card_id.toString(),
+              name: "不明",
+              imageUrl: "/placeholder.svg?width=80&height=112",
+              isPrimary: true,
+            },
+          ]
+        }
+
+        // offered_card_idがJSONB配列の場合
+        if (Array.isArray(post.offered_card_id)) {
+          offeredCards = post.offered_card_id.map((card: any) => ({
+            id: card.id?.toString() || "unknown",
+            name: card.name || "不明",
+            imageUrl: card.imageUrl || "/placeholder.svg?width=80&height=112",
+          }))
+        } else if (post.offered_card_id) {
+          // 単一カードの場合（後方互換性）
+          offeredCards = [
+            {
+              id: post.offered_card_id.toString(),
+              name: "不明",
+              imageUrl: "/placeholder.svg?width=80&height=112",
+            },
+          ]
+        }
+      } catch (error) {
+        console.error("Error parsing card data:", error)
+        // フォールバック
+        wantedCards = [
+          {
+            id: "unknown",
+            name: "不明",
+            imageUrl: "/placeholder.svg?width=80&height=112",
+            isPrimary: true,
+          },
+        ]
+        offeredCards = [
+          {
+            id: "unknown",
+            name: "不明",
+            imageUrl: "/placeholder.svg?width=80&height=112",
+          },
+        ]
       }
 
-      const offeredCard = {
-        id: post.offered_card?.id?.toString() || post.offered_card_id?.toString() || "unknown",
-        name: post.offered_card?.name || "不明",
-        imageUrl: post.offered_card?.image_url || "/placeholder.svg?width=80&height=112",
+      // プライマリカード（表示用）
+      const primaryWantedCard = wantedCards.find((card) => card.isPrimary) ||
+        wantedCards[0] || {
+          name: "不明",
+          image: "/placeholder.svg?width=80&height=112",
+        }
+
+      const primaryOfferedCard = offeredCards[0] || {
+        name: "不明",
+        image: "/placeholder.svg?width=80&height=112",
       }
 
       return {
@@ -342,12 +413,12 @@ export async function getTradePostsWithCards(limit = 10, offset = 0) {
                 ? "完了"
                 : "キャンセル",
         wantedCard: {
-          name: wantedCard.name,
-          image: wantedCard.imageUrl,
+          name: primaryWantedCard.name,
+          image: primaryWantedCard.imageUrl || primaryWantedCard.image,
         },
         offeredCard: {
-          name: offeredCard.name,
-          image: offeredCard.imageUrl,
+          name: primaryOfferedCard.name,
+          image: primaryOfferedCard.imageUrl || primaryOfferedCard.image,
         },
         comments: commentCountsMap.get(post.id) || 0,
         postId: post.custom_id || post.id.substring(0, 8),
@@ -355,8 +426,8 @@ export async function getTradePostsWithCards(limit = 10, offset = 0) {
         avatarUrl,
         authorComment: post.comment || null,
         rawData: {
-          wantedCards: [wantedCard], // 配列形式を維持（フロントエンド互換性のため）
-          offeredCards: [offeredCard], // 配列形式を維持（フロントエンド互換性のため）
+          wantedCards, // 全てのカード情報
+          offeredCards, // 全てのカード情報
           // 詳細画面用の追加データ
           fullPostData: {
             id: post.id,
@@ -379,8 +450,8 @@ export async function getTradePostsWithCards(limit = 10, offset = 0) {
               isOwner: post.is_authenticated && post.owner_id,
             },
             createdAt: formattedDate,
-            wantedCards: [wantedCard], // 配列形式を維持
-            offeredCards: [offeredCard], // 配列形式を維持
+            wantedCards, // 全てのカード情報
+            offeredCards, // 全てのカード情報
           },
         },
       }
@@ -407,13 +478,11 @@ export async function getTradePostDetailsById(postId: string) {
 
     const supabase = await createServerClient()
 
-    // Get the main post data with card information in a single query
+    // Get the main post data
     const { data: postData, error: postError } = await supabase
       .from("trade_posts")
       .select(`
-        *,
-        wanted_card:wanted_card_id(id, name, image_url),
-        offered_card:offered_card_id(id, name, image_url)
+        *
       `)
       .eq("id", postId)
       .single()
@@ -488,18 +557,66 @@ export async function getTradePostDetailsById(postId: string) {
       console.error(`Error fetching user profiles for post ${postId}:`, usersError)
     }
 
-    // カード情報を整形（1対1関係）
-    const wantedCard = {
-      id: postData.wanted_card?.id?.toString() || postData.wanted_card_id?.toString() || "unknown",
-      name: postData.wanted_card?.name || "不明",
-      imageUrl: postData.wanted_card?.image_url || "/placeholder.svg?width=100&height=140",
-      isPrimary: true, // 1つしかないので常にprimary
-    }
+    // JSONB形式のカード情報を処理
+    let wantedCards: any[] = []
+    let offeredCards: any[] = []
 
-    const offeredCard = {
-      id: postData.offered_card?.id?.toString() || postData.offered_card_id?.toString() || "unknown",
-      name: postData.offered_card?.name || "不明",
-      imageUrl: postData.offered_card?.image_url || "/placeholder.svg?width=100&height=140",
+    try {
+      // wanted_card_idがJSONB配列の場合
+      if (Array.isArray(postData.wanted_card_id)) {
+        wantedCards = postData.wanted_card_id.map((card: any, index: number) => ({
+          id: card.id?.toString() || "unknown",
+          name: card.name || "不明",
+          imageUrl: card.imageUrl || "/placeholder.svg?width=100&height=140",
+          isPrimary: index === 0,
+        }))
+      } else if (postData.wanted_card_id) {
+        // 単一カードの場合（後方互換性）
+        wantedCards = [
+          {
+            id: postData.wanted_card_id.toString(),
+            name: "不明",
+            imageUrl: "/placeholder.svg?width=100&height=140",
+            isPrimary: true,
+          },
+        ]
+      }
+
+      // offered_card_idがJSONB配列の場合
+      if (Array.isArray(postData.offered_card_id)) {
+        offeredCards = postData.offered_card_id.map((card: any) => ({
+          id: card.id?.toString() || "unknown",
+          name: card.name || "不明",
+          imageUrl: card.imageUrl || "/placeholder.svg?width=100&height=140",
+        }))
+      } else if (postData.offered_card_id) {
+        // 単一カードの場合（後方互換性）
+        offeredCards = [
+          {
+            id: postData.offered_card_id.toString(),
+            name: "不明",
+            imageUrl: "/placeholder.svg?width=100&height=140",
+          },
+        ]
+      }
+    } catch (error) {
+      console.error("Error parsing card data:", error)
+      // フォールバック
+      wantedCards = [
+        {
+          id: "unknown",
+          name: "不明",
+          imageUrl: "/placeholder.svg?width=100&height=140",
+          isPrimary: true,
+        },
+      ]
+      offeredCards = [
+        {
+          id: "unknown",
+          name: "不明",
+          imageUrl: "/placeholder.svg?width=100&height=140",
+        },
+      ]
     }
 
     // Map comments with author info
@@ -548,8 +665,8 @@ export async function getTradePostDetailsById(postId: string) {
             : postData.status === "COMPLETED"
               ? "完了"
               : "キャンセル",
-      wantedCards: [wantedCard], // 配列形式を維持（フロントエンド互換性のため）
-      offeredCards: [offeredCard], // 配列形式を維持（フロントエンド互換性のため）
+      wantedCards, // 複数カード対応
+      offeredCards, // 複数カード対応
       description: postData.comment || "",
       authorNotes: postData.comment || "",
       originalPostId: postData.custom_id || postData.id.substring(0, 8),
@@ -677,8 +794,7 @@ export async function getMyTradePosts(userId: string) {
         created_at,
         is_authenticated,
         comment,
-        wanted_card_id,
-        wanted_card:wanted_card_id(id, name, image_url)
+        wanted_card_id
       `)
       .eq("owner_id", userId)
       .eq("is_authenticated", true)
@@ -725,10 +841,22 @@ export async function getMyTradePosts(userId: string) {
         displayStatus = "open"
       }
 
-      // カード情報を整形（1対1関係）
-      const primaryWantedCard = {
-        name: post.wanted_card?.name || "不明",
-        imageUrl: post.wanted_card?.image_url || "/placeholder.svg?width=80&height=112",
+      // JSONB形式のカード情報を処理
+      let primaryWantedCard = {
+        name: "不明",
+        imageUrl: "/placeholder.svg?width=80&height=112",
+      }
+
+      try {
+        if (Array.isArray(post.wanted_card_id) && post.wanted_card_id.length > 0) {
+          const firstCard = post.wanted_card_id[0]
+          primaryWantedCard = {
+            name: firstCard.name || "不明",
+            imageUrl: firstCard.imageUrl || "/placeholder.svg?width=80&height=112",
+          }
+        }
+      } catch (error) {
+        console.error("Error parsing wanted card data:", error)
       }
 
       const createdAt = new Date(post.created_at)
@@ -791,8 +919,7 @@ export async function getCommentedTradePosts(userId: string) {
         created_at,
         is_authenticated,
         comment,
-        wanted_card_id,
-        wanted_card:wanted_card_id(id, name, image_url)
+        wanted_card_id
       `)
       .in("id", commentedPostIds)
       .or(`owner_id.is.null,owner_id.neq.${userId}`) // 自分の投稿は除外、ゲスト投稿は含める
@@ -839,10 +966,22 @@ export async function getCommentedTradePosts(userId: string) {
         displayStatus = "open"
       }
 
-      // カード情報を整形（1対1関係）
-      const primaryWantedCard = {
-        name: post.wanted_card?.name || "不明",
-        imageUrl: post.wanted_card?.image_url || "/placeholder.svg?width=80&height=112",
+      // JSONB形式のカード情報を処理
+      let primaryWantedCard = {
+        name: "不明",
+        imageUrl: "/placeholder.svg?width=80&height=112",
+      }
+
+      try {
+        if (Array.isArray(post.wanted_card_id) && post.wanted_card_id.length > 0) {
+          const firstCard = post.wanted_card_id[0]
+          primaryWantedCard = {
+            name: firstCard.name || "不明",
+            imageUrl: firstCard.imageUrl || "/placeholder.svg?width=80&height=112",
+          }
+        }
+      } catch (error) {
+        console.error("Error parsing wanted card data:", error)
       }
 
       const createdAt = new Date(post.created_at)
