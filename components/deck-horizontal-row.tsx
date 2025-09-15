@@ -166,7 +166,7 @@ export default function DeckHorizontalRow({
         const byId = new Map<number, CardData>()
         fetched.forEach((c) => byId.set(Number(c.id), c))
 
-        // twentyIds の順序通りに20枚を組み立て、欠落はプレースホルダーで補完
+        // twentyIds の順序通りに20枚を組み立て、欠落はプレースホルダー��補完
         const tiles: CardTile[] = twentyIds.map((id, idx) => {
           if (id && byId.has(id)) {
             const c = byId.get(id)!
