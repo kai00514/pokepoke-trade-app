@@ -22,6 +22,32 @@ export interface TradeFormData {
   userId?: string
 }
 
+// Helper function to convert Card[] to JSONB format
+function prepareCardsForDatabase(cards: Card[]) {
+  return cards.map((card) => ({
+    id: Number.parseInt(card.id),
+    name: card.name,
+    image_url: card.imageUrl,
+    pack_name: card.packName || null,
+    type: card.type || null,
+    rarity: card.rarity || null,
+  }))
+}
+
+// Helper function to convert JSONB data back to Card format
+function parseCardsFromDatabase(jsonbData: any[]): Card[] {
+  if (!Array.isArray(jsonbData)) return []
+
+  return jsonbData.map((card) => ({
+    id: card.id?.toString() || "unknown",
+    name: card.name || "不明",
+    imageUrl: card.image_url || "/placeholder.svg?width=80&height=112",
+    packName: card.pack_name || undefined,
+    type: card.type || undefined,
+    rarity: card.rarity || undefined,
+  }))
+}
+
 // 新しい軽量コメント取得関数
 export async function getTradePostCommentsOnly(postId: string) {
   try {
@@ -152,22 +178,9 @@ export async function createTradePost(formData: TradeFormData) {
       guestName: isAuthenticated ? null : guestName,
     })
 
-    // 複数カードをJSONB形式で準備
-    const wantedCardsJsonb = formData.wantedCards.map((card) => ({
-      id: Number.parseInt(card.id),
-      name: card.name,
-      imageUrl: card.imageUrl,
-    }))
-
-    const offeredCardsJsonb = formData.offeredCards.map((card) => ({
-      id: Number.parseInt(card.id),
-      name: card.name,
-      imageUrl: card.imageUrl,
-    }))
-
-    // 後方互換性のため、最初のカードのIDも保存
-    const wantedCardId = formData.wantedCards[0]?.id ? Number.parseInt(formData.wantedCards[0].id) : null
-    const offeredCardId = formData.offeredCards[0]?.id ? Number.parseInt(formData.offeredCards[0].id) : null
+    // カード配列をJSONB形式に変換
+    const wantedCardsJsonb = prepareCardsForDatabase(formData.wantedCards)
+    const offeredCardsJsonb = prepareCardsForDatabase(formData.offeredCards)
 
     // 投稿データの準備
     const postId = uuidv4()
@@ -178,14 +191,17 @@ export async function createTradePost(formData: TradeFormData) {
       guest_name: isAuthenticated ? null : guestName,
       custom_id: formData.appId?.trim() || null,
       comment: formData.comment?.trim() || null,
-      want_card_id: wantedCardId, // 既存カラム（後で削除予定）
-      wanted_card_id: wantedCardsJsonb, // JSONB形式で複数カード保存
-      offered_card_id: offeredCardsJsonb, // JSONB形式で複数カード保存
+      wanted_card_id: wantedCardsJsonb, // JSONB配列
+      offered_card_id: offeredCardsJsonb, // JSONB配列
       status: "OPEN",
       is_authenticated: isAuthenticated,
     }
 
-    console.log("[createTradePost] Insert data:", insertData)
+    console.log("[createTradePost] Insert data:", {
+      ...insertData,
+      wanted_card_id: `[${wantedCardsJsonb.length} cards]`,
+      offered_card_id: `[${offeredCardsJsonb.length} cards]`,
+    })
 
     // データベースに挿入
     const { data: insertResult, error: postError } = await supabase.from("trade_posts").insert(insertData).select()
@@ -231,7 +247,7 @@ export async function getTradePostsWithCards(limit = 10, offset = 0) {
       console.error("Error fetching total count:", countError)
     }
 
-    // Get posts with card information
+    // Get posts with JSONB card data
     const { data: posts, error: postsError } = await supabase
       .from("trade_posts")
       .select(`
@@ -326,78 +342,20 @@ export async function getTradePostsWithCards(limit = 10, offset = 0) {
         username = post.guest_name || "ゲスト"
       }
 
-      // JSONB形式のカード情報を処理
-      let wantedCards: any[] = []
-      let offeredCards: any[] = []
+      // Parse JSONB card data
+      const wantedCards = parseCardsFromDatabase(post.wanted_card_id || [])
+      const offeredCards = parseCardsFromDatabase(post.offered_card_id || [])
 
-      try {
-        // wanted_card_idがJSONB配列の場合
-        if (Array.isArray(post.wanted_card_id)) {
-          wantedCards = post.wanted_card_id.map((card: any, index: number) => ({
-            id: card.id?.toString() || "unknown",
-            name: card.name || "不明",
-            imageUrl: card.imageUrl || "/placeholder.svg?width=80&height=112",
-            isPrimary: index === 0, // 最初のカードをプライマリとする
-          }))
-        } else if (post.wanted_card_id) {
-          // 単一カードの場合（後方互換性）
-          wantedCards = [
-            {
-              id: post.wanted_card_id.toString(),
-              name: "不明",
-              imageUrl: "/placeholder.svg?width=80&height=112",
-              isPrimary: true,
-            },
-          ]
-        }
-
-        // offered_card_idがJSONB配列の場合
-        if (Array.isArray(post.offered_card_id)) {
-          offeredCards = post.offered_card_id.map((card: any) => ({
-            id: card.id?.toString() || "unknown",
-            name: card.name || "不明",
-            imageUrl: card.imageUrl || "/placeholder.svg?width=80&height=112",
-          }))
-        } else if (post.offered_card_id) {
-          // 単一カードの場合（後方互換性）
-          offeredCards = [
-            {
-              id: post.offered_card_id.toString(),
-              name: "不明",
-              imageUrl: "/placeholder.svg?width=80&height=112",
-            },
-          ]
-        }
-      } catch (error) {
-        console.error("Error parsing card data:", error)
-        // フォールバック
-        wantedCards = [
-          {
-            id: "unknown",
-            name: "不明",
-            imageUrl: "/placeholder.svg?width=80&height=112",
-            isPrimary: true,
-          },
-        ]
-        offeredCards = [
-          {
-            id: "unknown",
-            name: "不明",
-            imageUrl: "/placeholder.svg?width=80&height=112",
-          },
-        ]
-      }
-
-      // プライマリカード（表示用）
-      const primaryWantedCard = wantedCards.find((card) => card.isPrimary) ||
-        wantedCards[0] || {
-          name: "不明",
-          image: "/placeholder.svg?width=80&height=112",
-        }
-
-      const primaryOfferedCard = offeredCards[0] || {
+      // Get primary cards for backward compatibility
+      const primaryWantedCard = wantedCards[0] || {
+        id: "unknown",
         name: "不明",
-        image: "/placeholder.svg?width=80&height=112",
+        imageUrl: "/placeholder.svg?width=80&height=112",
+      }
+      const primaryOfferedCard = offeredCards[0] || {
+        id: "unknown",
+        name: "不明",
+        imageUrl: "/placeholder.svg?width=80&height=112",
       }
 
       return {
@@ -414,11 +372,11 @@ export async function getTradePostsWithCards(limit = 10, offset = 0) {
                 : "キャンセル",
         wantedCard: {
           name: primaryWantedCard.name,
-          image: primaryWantedCard.imageUrl || primaryWantedCard.image,
+          image: primaryWantedCard.imageUrl,
         },
         offeredCard: {
           name: primaryOfferedCard.name,
-          image: primaryOfferedCard.imageUrl || primaryOfferedCard.image,
+          image: primaryOfferedCard.imageUrl,
         },
         comments: commentCountsMap.get(post.id) || 0,
         postId: post.custom_id || post.id.substring(0, 8),
@@ -426,8 +384,8 @@ export async function getTradePostsWithCards(limit = 10, offset = 0) {
         avatarUrl,
         authorComment: post.comment || null,
         rawData: {
-          wantedCards, // 全てのカード情報
-          offeredCards, // 全てのカード情報
+          wantedCards: wantedCards,
+          offeredCards: offeredCards,
           // 詳細画面用の追加データ
           fullPostData: {
             id: post.id,
@@ -450,8 +408,8 @@ export async function getTradePostsWithCards(limit = 10, offset = 0) {
               isOwner: post.is_authenticated && post.owner_id,
             },
             createdAt: formattedDate,
-            wantedCards, // 全てのカード情報
-            offeredCards, // 全てのカード情報
+            wantedCards: wantedCards,
+            offeredCards: offeredCards,
           },
         },
       }
@@ -478,7 +436,7 @@ export async function getTradePostDetailsById(postId: string) {
 
     const supabase = await createServerClient()
 
-    // Get the main post data
+    // Get the main post data with JSONB card information
     const { data: postData, error: postError } = await supabase
       .from("trade_posts")
       .select(`
@@ -557,67 +515,9 @@ export async function getTradePostDetailsById(postId: string) {
       console.error(`Error fetching user profiles for post ${postId}:`, usersError)
     }
 
-    // JSONB形式のカード情報を処理
-    let wantedCards: any[] = []
-    let offeredCards: any[] = []
-
-    try {
-      // wanted_card_idがJSONB配列の場合
-      if (Array.isArray(postData.wanted_card_id)) {
-        wantedCards = postData.wanted_card_id.map((card: any, index: number) => ({
-          id: card.id?.toString() || "unknown",
-          name: card.name || "不明",
-          imageUrl: card.imageUrl || "/placeholder.svg?width=100&height=140",
-          isPrimary: index === 0,
-        }))
-      } else if (postData.wanted_card_id) {
-        // 単一カードの場合（後方互換性）
-        wantedCards = [
-          {
-            id: postData.wanted_card_id.toString(),
-            name: "不明",
-            imageUrl: "/placeholder.svg?width=100&height=140",
-            isPrimary: true,
-          },
-        ]
-      }
-
-      // offered_card_idがJSONB配列の場合
-      if (Array.isArray(postData.offered_card_id)) {
-        offeredCards = postData.offered_card_id.map((card: any) => ({
-          id: card.id?.toString() || "unknown",
-          name: card.name || "不明",
-          imageUrl: card.imageUrl || "/placeholder.svg?width=100&height=140",
-        }))
-      } else if (postData.offered_card_id) {
-        // 単一カードの場合（後方互換性）
-        offeredCards = [
-          {
-            id: postData.offered_card_id.toString(),
-            name: "不明",
-            imageUrl: "/placeholder.svg?width=100&height=140",
-          },
-        ]
-      }
-    } catch (error) {
-      console.error("Error parsing card data:", error)
-      // フォールバック
-      wantedCards = [
-        {
-          id: "unknown",
-          name: "不明",
-          imageUrl: "/placeholder.svg?width=100&height=140",
-          isPrimary: true,
-        },
-      ]
-      offeredCards = [
-        {
-          id: "unknown",
-          name: "不明",
-          imageUrl: "/placeholder.svg?width=100&height=140",
-        },
-      ]
-    }
+    // Parse JSONB card data
+    const wantedCards = parseCardsFromDatabase(postData.wanted_card_id || [])
+    const offeredCards = parseCardsFromDatabase(postData.offered_card_id || [])
 
     // Map comments with author info
     const comments =
@@ -665,8 +565,8 @@ export async function getTradePostDetailsById(postId: string) {
             : postData.status === "COMPLETED"
               ? "完了"
               : "キャンセル",
-      wantedCards, // 複数カード対応
-      offeredCards, // 複数カード対応
+      wantedCards: wantedCards,
+      offeredCards: offeredCards,
       description: postData.comment || "",
       authorNotes: postData.comment || "",
       originalPostId: postData.custom_id || postData.id.substring(0, 8),
@@ -841,22 +741,11 @@ export async function getMyTradePosts(userId: string) {
         displayStatus = "open"
       }
 
-      // JSONB形式のカード情報を処理
-      let primaryWantedCard = {
+      // Parse JSONB card data
+      const wantedCards = parseCardsFromDatabase(post.wanted_card_id || [])
+      const primaryWantedCard = wantedCards[0] || {
         name: "不明",
         imageUrl: "/placeholder.svg?width=80&height=112",
-      }
-
-      try {
-        if (Array.isArray(post.wanted_card_id) && post.wanted_card_id.length > 0) {
-          const firstCard = post.wanted_card_id[0]
-          primaryWantedCard = {
-            name: firstCard.name || "不明",
-            imageUrl: firstCard.imageUrl || "/placeholder.svg?width=80&height=112",
-          }
-        }
-      } catch (error) {
-        console.error("Error parsing wanted card data:", error)
       }
 
       const createdAt = new Date(post.created_at)
@@ -966,22 +855,11 @@ export async function getCommentedTradePosts(userId: string) {
         displayStatus = "open"
       }
 
-      // JSONB形式のカード情報を処理
-      let primaryWantedCard = {
+      // Parse JSONB card data
+      const wantedCards = parseCardsFromDatabase(post.wanted_card_id || [])
+      const primaryWantedCard = wantedCards[0] || {
         name: "不明",
         imageUrl: "/placeholder.svg?width=80&height=112",
-      }
-
-      try {
-        if (Array.isArray(post.wanted_card_id) && post.wanted_card_id.length > 0) {
-          const firstCard = post.wanted_card_id[0]
-          primaryWantedCard = {
-            name: firstCard.name || "不明",
-            imageUrl: firstCard.imageUrl || "/placeholder.svg?width=80&height=112",
-          }
-        }
-      } catch (error) {
-        console.error("Error parsing wanted card data:", error)
       }
 
       const createdAt = new Date(post.created_at)
