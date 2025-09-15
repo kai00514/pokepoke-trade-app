@@ -195,6 +195,7 @@ export async function createTradePost(formData: TradeFormData) {
       offered_card_id: offeredCardsJsonb, // JSONB配列
       status: "OPEN",
       is_authenticated: isAuthenticated,
+      g8_flg: false, // 新しい行
     }
 
     console.log("[createTradePost] Insert data:", {
@@ -858,6 +859,7 @@ export async function getCommentedTradePosts(userId: string) {
       // Parse JSONB card data
       const wantedCards = parseCardsFromDatabase(post.wanted_card_id || [])
       const primaryWantedCard = wantedCards[0] || {
+        id: "unknown",
         name: "不明",
         imageUrl: "/placeholder.svg?width=80&height=112",
       }

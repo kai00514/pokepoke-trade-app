@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { Plus, Loader2, ArrowLeft } from "lucide-react"
+import { Plus, ArrowLeft } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
 import { createClient } from "@/lib/supabase/client"
 import { getTradeOwnedLists, type TradeOwnedList } from "@/lib/actions/trade-owned-lists"
@@ -43,7 +43,6 @@ export default function ListsPage() {
 
   // リスト一覧を取得
   const fetchLists = async (userId: string) => {
-    setIsLoading(true)
     const result = await getTradeOwnedLists(userId)
 
     if (result.success) {
@@ -55,7 +54,6 @@ export default function ListsPage() {
         variant: "destructive",
       })
     }
-    setIsLoading(false)
   }
 
   // 新しいリスト作成ボタンのクリック
@@ -69,21 +67,8 @@ export default function ListsPage() {
     router.push(`/lists/${listId}`)
   }
 
-  // ローディング中
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-blue-50">
-        <div className="container mx-auto px-4 py-8">
-          <div className="flex justify-center items-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
-          </div>
-        </div>
-      </div>
-    )
-  }
-
   // 未認証ユーザー
-  if (!user) {
+  if (!user && !isLoading) {
     return (
       <div className="min-h-screen bg-blue-50">
         <div className="container mx-auto px-4 py-8">
@@ -216,7 +201,7 @@ export default function ListsPage() {
                               strokeLinecap="round"
                               strokeLinejoin="round"
                               strokeWidth={2}
-                              d="M7 4V2a1 1 0 011-1h8a1 1 0 011 1v2h4a1 1 0 012 2v6a2 2 0 01-2 2H6a2 2 0 01-2-2V6H3a1 1 0 110-2h4zM9 6v10h6V6H9z"
+                              d="M7 4V2a1 1 0 011-1h8a1 1 0 011 1v2h4a1 1 0 110 2h-1v9a2 2 0 01-2 2H8a2 2 0 01-2-2V9H5a1 1 0 110-2h3z"
                             />
                           </svg>
                           <span className="font-medium text-blue-600">
