@@ -1,31 +1,53 @@
-import { type NextRequest, NextResponse } from "next/server"
+import { NextResponse } from "next/headers"
+import { cookies } from "next/headers"
 
 const SESSION_COOKIE_NAME = "admin_session"
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
-    console.log("Session check request received")
+    const cookieStore = await cookies()
+    const sessionCookie = cookieStore.get(SESSION_COOKIE_NAME)
 
-    const sessionId = request.cookies.get(SESSION_COOKIE_NAME)?.value
-    console.log("Session ID from cookie:", sessionId ? "[EXISTS]" : "none")
-
-    if (!sessionId) {
-      console.log("No session cookie found")
-      return NextResponse.json({ authenticated: false }, { status: 401 })
+    if (!sessionCookie?.value) {
+      return NextResponse.json({ session: null })
     }
 
-    // 簡易セッション管理（実際のプロダクションではRedisなどを使用）
-    // ここでは一時的にCookieの存在のみでセッションを判定
-    console.log("Session valid")
+    try {
+      const sessionData = JSON.parse(sessionCookie.value)
 
-    return NextResponse.json({
-      authenticated: true,
-      user: {
-        username: "admin", // 実際の実装では適切なユーザー情報を返す
-      },
-    })
+      // セッション有効期限チェック（8時間）
+      const loginTime = new Date(sessionData.loginTime)
+      const now = new Date()
+      const diffHours = (now.getTime() - loginTime.getTime()) / (1000 * 60 * 60)
+
+      if (diffHours > 8) {
+        // セッション期限切れ
+        cookieStore.set(SESSION_COOKIE_NAME, "", {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          sameSite: "lax",
+          maxAge: 0,
+          path: "/",
+        })
+        return NextResponse.json({ session: null })
+      }
+
+      return NextResponse.json({
+        session: {
+          user: {
+            userId: sessionData.userId,
+            username: sessionData.username,
+            email: sessionData.email,
+            name: sessionData.name,
+          },
+        },
+      })
+    } catch (parseError) {
+      console.error("Session parse error:", parseError)
+      return NextResponse.json({ session: null })
+    }
   } catch (error) {
     console.error("Session check error:", error)
-    return NextResponse.json({ authenticated: false }, { status: 500 })
+    return NextResponse.json({ session: null })
   }
 }
