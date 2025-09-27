@@ -5,8 +5,8 @@ import { Label } from "@/components/ui/label"
 import { Plus, Trash2 } from "lucide-react"
 
 interface PickupItem {
-  label: string
-  href?: string
+  title: string
+  url?: string
 }
 
 interface PickupBlockData {
@@ -39,7 +39,7 @@ export function PickupBlockEditor({ data, onChange }: PickupBlockEditorProps) {
   }
 
   const addItem = () => {
-    const newItem: PickupItem = { label: "", href: "" }
+    const newItem: PickupItem = { title: "", url: "" }
     handleChange("items", [...safeData.items, newItem])
   }
 
@@ -70,19 +70,19 @@ export function PickupBlockEditor({ data, onChange }: PickupBlockEditorProps) {
           {safeData.items.map((item, index) => (
             <div key={index} className="grid grid-cols-1 gap-2 p-3 border rounded-lg">
               <div className="space-y-2">
-                <Label className="text-xs">ラベル</Label>
+                <Label className="text-xs">タイトル</Label>
                 <Input
-                  value={item.label || ""}
-                  onChange={(e) => handleItemChange(index, "label", e.target.value)}
-                  placeholder="項目のラベル"
+                  value={item.title || ""}
+                  onChange={(e) => handleItemChange(index, "title", e.target.value)}
+                  placeholder="項目のタイトル"
                 />
               </div>
               <div className="space-y-2">
                 <Label className="text-xs">URL（オプション）</Label>
                 <div className="flex space-x-2">
                   <Input
-                    value={item.href || ""}
-                    onChange={(e) => handleItemChange(index, "href", e.target.value)}
+                    value={item.url || ""}
+                    onChange={(e) => handleItemChange(index, "url", e.target.value)}
                     placeholder="https://example.com"
                   />
                   <Button
@@ -120,12 +120,12 @@ export function PickupBlockEditor({ data, onChange }: PickupBlockEditorProps) {
                   <ul className="space-y-1">
                     {safeData.items.map((item, index) => (
                       <li key={index} className="text-red-700">
-                        {item.href ? (
-                          <a href={item.href} className="hover:underline" target="_blank" rel="noopener noreferrer">
-                            {item.label || "ラベル未設定"}
+                        {item.url ? (
+                          <a href={item.url} className="hover:underline" target="_blank" rel="noopener noreferrer">
+                            {item.title || "タイトル未設定"}
                           </a>
                         ) : (
-                          item.label || "ラベル未設定"
+                          item.title || "タイトル未設定"
                         )}
                       </li>
                     ))}

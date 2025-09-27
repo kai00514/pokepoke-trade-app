@@ -18,6 +18,8 @@ import { PickupBlockEditor } from "./blocks/pickup-block-editor"
 import { ButtonBlockEditor } from "./blocks/button-block-editor"
 import { RichTextBlockEditor } from "./blocks/rich-text-block-editor"
 import { BlockTypeSelector } from "./block-type-selector"
+import { FlexibleTableBlockEditor } from "./blocks/flexible-table-block-editor"
+import { MediaGalleryBlockEditor } from "./blocks/media-gallery-block-editor"
 
 export interface Block {
   id: string
@@ -115,6 +117,10 @@ export function BlockEditor({ blocks = [], onChange }: BlockEditorProps) {
         return <PickupBlockEditor {...commonProps} />
       case "button":
         return <ButtonBlockEditor {...commonProps} />
+      case "media-gallery":
+        return <MediaGalleryBlockEditor {...commonProps} />
+      case "flexible-table":
+        return <FlexibleTableBlockEditor {...commonProps} />
       default:
         return <div className="text-red-500">未対応のブロックタイプ: {block.type}</div>
     }
@@ -144,6 +150,10 @@ export function BlockEditor({ blocks = [], onChange }: BlockEditorProps) {
         return `ピックアップ: ${block.data?.title || "未設定"} (${(block.data?.items || []).length}項目)`
       case "button":
         return `ボタン: ${block.data?.label || "未設定"}`
+      case "media-gallery":
+        return `メディアギャラリー: ${(block.data?.items || []).length}アイテム`
+      case "flexible-table":
+        return `フレキシブルテーブル: ${(block.data?.rows || []).length}行`
       default:
         return `不明なブロック: ${block.type}`
     }
@@ -221,6 +231,10 @@ function getDefaultBlockData(type: string): any {
       return { title: "", items: [] }
     case "button":
       return { label: "", href: "" }
+    case "media-gallery":
+      return { items: [] }
+    case "flexible-table":
+      return { headers: [], rows: [] }
     default:
       return {}
   }

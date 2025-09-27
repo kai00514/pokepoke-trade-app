@@ -10,7 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Plus, Type, FileText, ImageIcon, List, Table, AlertCircle, CreditCard, Star, MousePointer } from "lucide-react"
+import { Plus } from "lucide-react"
 
 interface BlockTypeSelectorProps {
   onSelect: (type: string) => void
@@ -21,39 +21,50 @@ export function BlockTypeSelector({ onSelect }: BlockTypeSelectorProps) {
 
   const blockTypes = [
     {
-      category: "基本",
+      category: "基本コンテンツ",
       items: [
-        { type: "heading", label: "見出し", icon: Type, description: "H1, H2, H3の見出し" },
-        { type: "paragraph", label: "段落", icon: FileText, description: "通常のテキスト段落" },
-        { type: "rich-text", label: "リッチテキスト", icon: FileText, description: "Markdown/HTML対応テキスト" },
-        { type: "image", label: "画像", icon: ImageIcon, description: "画像の挿入" },
+        { type: "heading", label: "見出し", description: "H1, H2, H3の見出し" },
+        { type: "paragraph", label: "段落", description: "通常のテキスト段落" },
+        { type: "rich-text", label: "リッチテキスト", description: "Markdown/HTML対応テキスト" },
       ],
     },
     {
-      category: "構造",
+      category: "メディア",
       items: [
-        { type: "list", label: "リスト", icon: List, description: "箇条書きまたは番号付きリスト" },
-        { type: "table", label: "テーブル", icon: Table, description: "表形式のデータ" },
-        { type: "callout", label: "コールアウト", icon: AlertCircle, description: "注意書きや強調表示" },
+        { type: "image", label: "画像", description: "単一画像の表示" },
+        { type: "media-gallery", label: "メディアギャラリー", description: "複数画像のギャラリー" },
       ],
     },
     {
-      category: "カード",
+      category: "リスト・テーブル",
       items: [
-        { type: "cards-table", label: "カードテーブル", icon: CreditCard, description: "カード一覧表" },
-        {
-          type: "card-display-table",
-          label: "カード表示テーブル",
-          icon: CreditCard,
-          description: "カード画像表示テーブル",
-        },
+        { type: "list", label: "リスト", description: "箇条書き・番号付きリスト" },
+        { type: "table", label: "テーブル", description: "基本的な表" },
+        { type: "flexible-table", label: "柔軟テーブル", description: "高度な表機能" },
       ],
     },
     {
-      category: "特殊",
+      category: "ポケモンカード専用",
       items: [
-        { type: "pickup", label: "ピックアップ", icon: Star, description: "重要な情報の強調表示" },
-        { type: "button", label: "ボタン", icon: MousePointer, description: "リンクボタン" },
+        { type: "cards-table", label: "カードテーブル", description: "カード情報の表" },
+        { type: "card-display-table", label: "カード表示テーブル", description: "カード画像の表示テーブル" },
+        { type: "evaluation", label: "評価", description: "デッキ評価情報" },
+      ],
+    },
+    {
+      category: "インタラクティブ",
+      items: [
+        { type: "button", label: "ボタン", description: "CTA・リンクボタン" },
+        { type: "callout", label: "コールアウト", description: "注意・情報ボックス" },
+        { type: "pickup", label: "ピックアップ", description: "重要情報の強調表示" },
+      ],
+    },
+    {
+      category: "ナビゲーション",
+      items: [
+        { type: "toc", label: "目次", description: "記事の目次" },
+        { type: "related-links", label: "関連リンク", description: "関連記事・外部リンク" },
+        { type: "divider", label: "区切り線", description: "セクション区切り" },
       ],
     },
   ]
