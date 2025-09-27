@@ -6,17 +6,16 @@ import { useRouter, usePathname } from "next/navigation"
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
 import { AdminSidebar } from "@/components/admin/admin-sidebar"
 import { Toaster } from "@/components/ui/sonner"
-import { supabase } from "@/lib/supabase/client"
 import { Shield } from "lucide-react"
-import { getAdminSession } from "@/lib/auth/admin-session"
+import { checkAdminSession, type AdminSession } from "@/lib/auth/admin-session"
 
-export default async function AdminLayout({
+export default function AdminLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
   const [isLoading, setIsLoading] = useState(true)
-  const [isAuthorized, setIsAuthorized] = useState(false)
+  const [session, setSession] = useState<AdminSession | null>(null)
   const router = useRouter()
   const pathname = usePathname()
 
@@ -29,38 +28,16 @@ export default async function AdminLayout({
           return
         }
 
-        const session = await getAdminSession()
+        const adminSession = await checkAdminSession()
 
-        if (!session) {
+        if (!adminSession) {
           console.log("No session found, redirecting to login")
           router.push("/admin/login")
           return
         }
 
-        // 管理者権限チェック
-        console.log("Checking admin permissions for:", session.user.email)
-        const { data: isAdmin, error: adminError } = await supabase.rpc("is_admin_user", {
-          user_email: session.user.email,
-        })
-
-        console.log("Admin check result:", { isAdmin, adminError })
-
-        if (adminError) {
-          console.error("Admin check error:", adminError)
-          router.push("/admin/login?error=auth_failed")
-          return
-        }
-
-        if (!isAdmin) {
-          console.log("User is not admin, redirecting to login")
-          // 一般ユーザーの場合は管理者セッションをクリア
-          await supabase.auth.signOut()
-          router.push("/admin/login?error=unauthorized")
-          return
-        }
-
-        console.log("User is authorized admin")
-        setIsAuthorized(true)
+        console.log("User is authorized admin:", adminSession.user.username)
+        setSession(adminSession)
       } catch (error) {
         console.error("Auth check failed:", error)
         router.push("/admin/login?error=auth_failed")
@@ -70,39 +47,6 @@ export default async function AdminLayout({
     }
 
     checkAuth()
-
-    // 認証状態の変更を監視
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log("Auth state changed:", event, session?.user?.email)
-
-      if (event === "SIGNED_OUT" || !session) {
-        console.log("User signed out, redirecting to login")
-        setIsAuthorized(false)
-        if (pathname !== "/admin/login") {
-          router.push("/admin/login")
-        }
-      } else if (event === "SIGNED_IN" && session.user?.email) {
-        // ログインページ以外で再度管理者権限をチェック
-        if (pathname !== "/admin/login") {
-          console.log("User signed in, checking admin permissions")
-          const { data: isAdmin, error } = await supabase.rpc("is_admin_user", {
-            user_email: session.user.email,
-          })
-
-          if (error || !isAdmin) {
-            console.log("User is not admin after sign in")
-            await supabase.auth.signOut()
-            router.push("/admin/login?error=unauthorized")
-          } else {
-            setIsAuthorized(true)
-          }
-        }
-      }
-    })
-
-    return () => subscription.unsubscribe()
   }, [router, pathname])
 
   // ログインページの場合は認証チェックなしで表示
@@ -121,7 +65,7 @@ export default async function AdminLayout({
     )
   }
 
-  if (!isAuthorized) {
+  if (!session) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center space-y-4">

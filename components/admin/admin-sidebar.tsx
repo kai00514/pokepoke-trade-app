@@ -1,7 +1,9 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { Calendar, FileText, Home, LogOut, Settings, Shield, Trophy, Users } from "lucide-react"
+import Link from "next/link"
+import { usePathname, useRouter } from "next/navigation"
+import { Button } from "@/components/ui/button"
 import {
   Sidebar,
   SidebarContent,
@@ -14,15 +16,13 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { BarChart3, FileText, Settings, Users, Calendar, Shield, LogOut, ChevronUp } from "lucide-react"
+import { logoutAdmin } from "@/lib/auth/admin-session"
 
-const items = [
+const menuItems = [
   {
     title: "ダッシュボード",
     url: "/admin",
-    icon: BarChart3,
+    icon: Home,
   },
   {
     title: "記事管理",
@@ -32,12 +32,12 @@ const items = [
   {
     title: "デッキ管理",
     url: "/admin/decks",
-    icon: FileText,
+    icon: Shield,
   },
   {
     title: "トーナメント",
     url: "/admin/tournaments",
-    icon: Calendar,
+    icon: Trophy,
   },
   {
     title: "ユーザー管理",
@@ -47,7 +47,7 @@ const items = [
   {
     title: "分析",
     url: "/admin/analytics",
-    icon: BarChart3,
+    icon: Calendar,
   },
   {
     title: "設定",
@@ -56,60 +56,39 @@ const items = [
   },
 ]
 
-interface AdminUser {
-  username: string
-  name: string
-}
-
 export function AdminSidebar() {
-  const [user, setUser] = useState<AdminUser | null>(null)
+  const pathname = usePathname()
   const router = useRouter()
 
-  useEffect(() => {
-    // クライアントサイドでユーザー情報を取得
-    // 実際の実装では、セッションからユーザー情報を取得
-    setUser({
-      username: "admin",
-      name: "Administrator",
-    })
-  }, [])
-
-  const handleSignOut = async () => {
+  const handleLogout = async () => {
     try {
-      const response = await fetch("/api/admin/logout", {
-        method: "POST",
-      })
-
-      if (response.ok) {
-        router.push("/admin/login")
-        router.refresh()
-      }
+      await logoutAdmin()
+      router.push("/admin/login")
     } catch (error) {
-      console.error("Sign out error:", error)
+      console.error("Logout failed:", error)
     }
   }
 
   return (
-    <Sidebar variant="inset">
+    <Sidebar>
       <SidebarHeader>
         <div className="flex items-center gap-2 px-4 py-2">
           <Shield className="h-6 w-6 text-blue-600" />
           <span className="font-semibold text-lg">管理画面</span>
         </div>
       </SidebarHeader>
-
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel>メニュー</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {items.map((item) => (
+              {menuItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <a href={item.url}>
-                      <item.icon />
+                  <SidebarMenuButton asChild isActive={pathname === item.url}>
+                    <Link href={item.url}>
+                      <item.icon className="h-4 w-4" />
                       <span>{item.title}</span>
-                    </a>
+                    </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
@@ -117,42 +96,11 @@ export function AdminSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-
       <SidebarFooter>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <SidebarMenuButton
-                  size="lg"
-                  className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
-                >
-                  <Avatar className="h-8 w-8 rounded-lg">
-                    <AvatarFallback className="rounded-lg">
-                      {user?.name?.[0] || user?.username?.[0] || "A"}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="grid flex-1 text-left text-sm leading-tight">
-                    <span className="truncate font-semibold">{user?.name || "管理者"}</span>
-                    <span className="truncate text-xs">{user?.username}</span>
-                  </div>
-                  <ChevronUp className="ml-auto size-4" />
-                </SidebarMenuButton>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent
-                className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
-                side="bottom"
-                align="end"
-                sideOffset={4}
-              >
-                <DropdownMenuItem onClick={handleSignOut}>
-                  <LogOut className="h-4 w-4 mr-2" />
-                  ログアウト
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </SidebarMenuItem>
-        </SidebarMenu>
+        <Button variant="ghost" className="w-full justify-start" onClick={handleLogout}>
+          <LogOut className="h-4 w-4 mr-2" />
+          ログアウト
+        </Button>
       </SidebarFooter>
     </Sidebar>
   )

@@ -1,16 +1,16 @@
 import { NextResponse } from "next/server"
-import { clearAdminSession } from "@/lib/auth/admin-session"
+import { cookies } from "next/headers"
+
+const SESSION_COOKIE_NAME = "admin_session"
 
 export async function POST() {
   try {
-    await clearAdminSession()
+    const cookieStore = await cookies()
+    cookieStore.delete(SESSION_COOKIE_NAME)
 
-    return NextResponse.json({
-      success: true,
-      message: "ログアウトしました",
-    })
+    return NextResponse.json({ success: true })
   } catch (error) {
-    console.error("Logout API error:", error)
-    return NextResponse.json({ success: false, message: "ログアウトに失敗しました" }, { status: 500 })
+    console.error("Logout error:", error)
+    return NextResponse.json({ success: false, error: "Logout failed" }, { status: 500 })
   }
 }
