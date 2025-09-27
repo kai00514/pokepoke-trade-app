@@ -1,16 +1,16 @@
 "use client"
 
-import { useState, useRef } from "react"
-import { Button } from "@/components/ui/button"
+import { useState } from "react"
 import { Label } from "@/components/ui/label"
-import { Separator } from "@/components/ui/separator"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Bold, Italic, Underline, Link, List, ListOrdered, Quote, Code } from "lucide-react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Eye, Code, FileText } from "lucide-react"
 
 interface RichTextData {
   content: string
-  format: "html" | "markdown"
+  format: "markdown" | "html" | "plain"
 }
 
 interface RichTextBlockEditorProps {
@@ -19,144 +19,212 @@ interface RichTextBlockEditorProps {
 }
 
 export function RichTextBlockEditor({ data, onChange }: RichTextBlockEditorProps) {
-  const [isPreview, setIsPreview] = useState(false)
-  const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const [activeTab, setActiveTab] = useState("editor")
 
-  // データの初期化
-  const safeData = data || { content: "", format: "markdown" }
-
-  const insertText = (before: string, after = "") => {
-    const textarea = textareaRef.current
-    if (!textarea) return
-
-    const start = textarea.selectionStart
-    const end = textarea.selectionEnd
-    const selectedText = textarea.value.substring(start, end)
-    const newText = before + selectedText + after
-
-    const newValue = textarea.value.substring(0, start) + newText + textarea.value.substring(end)
-    onChange({ ...safeData, content: newValue })
-
-    // カーソル位置を調整
-    setTimeout(() => {
-      textarea.focus()
-      textarea.setSelectionRange(start + before.length, start + before.length + selectedText.length)
-    }, 0)
+  const safeData: RichTextData = {
+    content: data?.content || "",
+    format: data?.format || "markdown",
   }
 
-  const formatButtons = [
-    { icon: Bold, label: "太字", action: () => insertText("**", "**") },
-    { icon: Italic, label: "斜体", action: () => insertText("*", "*") },
-    { icon: Underline, label: "下線", action: () => insertText("<u>", "</u>") },
-    { icon: Link, label: "リンク", action: () => insertText("[", "](URL)") },
-    { icon: List, label: "箇条書き", action: () => insertText("- ") },
-    { icon: ListOrdered, label: "番号付きリスト", action: () => insertText("1. ") },
-    { icon: Quote, label: "引用", action: () => insertText("> ") },
-    { icon: Code, label: "コード", action: () => insertText("`", "`") },
-  ]
+  const handleContentChange = (content: string) => {
+    onChange({ ...safeData, content })
+  }
+
+  const handleFormatChange = (format: string) => {
+    onChange({ ...safeData, format: format as RichTextData["format"] })
+  }
 
   const renderPreview = () => {
-    if (safeData.format === "markdown") {
-      // 簡単なMarkdownプレビュー
-      return safeData.content
-        .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
-        .replace(/\*(.*?)\*/g, "<em>$1</em>")
-        .replace(/`(.*?)`/g, "<code>$1</code>")
-        .replace(/^> (.+)$/gm, "<blockquote>$1</blockquote>")
-        .replace(/^- (.+)$/gm, "<li>$1</li>")
-        .replace(/(<li>.*<\/li>)/s, "<ul>$1</ul>")
-        .replace(/\n/g, "<br>")
+    if (!safeData.content) {
+      return <p className="text-slate-400 italic">プレビューするコンテンツがありません</p>
     }
-    return safeData.content
+
+    switch (safeData.format) {
+      case "html":
+        return <div className="prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: safeData.content }} />
+      case "markdown":
+        // 簡易的なMarkdownプレビュー（実際の実装では適切なMarkdownパーサーを使用）
+        return (
+          <div className="prose prose-sm max-w-none">
+            <pre className="whitespace-pre-wrap font-sans text-sm">{safeData.content}</pre>
+          </div>
+        )
+      case "plain":
+        return (
+          <div className="prose prose-sm max-w-none">
+            <p className="whitespace-pre-wrap">{safeData.content}</p>
+          </div>
+        )
+      default:
+        return <p className="text-slate-400">未対応の形式です</p>
+    }
+  }
+
+  const getPlaceholder = () => {
+    switch (safeData.format) {
+      case "html":
+        return `<h2>見出し</h2>
+<p>段落のテキストです。<strong>太字</strong>や<em>斜体</em>も使用できます。</p>
+<ul>
+  <li>リスト項目1</li>
+  <li>リスト項目2</li>
+</ul>`
+      case "markdown":
+        return `## 見出し
+
+段落のテキストです。**太字**や*斜体*も使用できます。
+
+- リスト項目1
+- リスト項目2
+
+[リンクテキスト](https://example.com)`
+      case "plain":
+        return "プレーンテキストを入力してください。\n\n改行やスペースがそのまま表示されます。"
+      default:
+        return ""
+    }
   }
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <Label className="text-sm font-medium">リッチテキスト</Label>
-        <div className="flex items-center gap-2">
-          <Select value={safeData.format} onValueChange={(value: any) => onChange({ ...safeData, format: value })}>
-            <SelectTrigger className="w-32">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="markdown">Markdown</SelectItem>
-              <SelectItem value="html">HTML</SelectItem>
-            </SelectContent>
-          </Select>
-          <Button onClick={() => setIsPreview(!isPreview)} size="sm" variant={isPreview ? "default" : "outline"}>
-            {isPreview ? "編集" : "プレビュー"}
-          </Button>
-        </div>
+        <Label className="text-base font-medium">リッチテキスト</Label>
+        <Select value={safeData.format} onValueChange={handleFormatChange}>
+          <SelectTrigger className="w-32">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="markdown">Markdown</SelectItem>
+            <SelectItem value="html">HTML</SelectItem>
+            <SelectItem value="plain">プレーンテキスト</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
-      {!isPreview && (
-        <>
-          {/* ツールバー */}
-          <div className="flex flex-wrap items-center gap-1 p-2 bg-slate-50 rounded-lg border">
-            {formatButtons.map((button, index) => (
-              <Button
-                key={index}
-                onClick={button.action}
-                size="sm"
-                variant="ghost"
-                className="h-8 w-8 p-0"
-                title={button.label}
-              >
-                <button.icon className="h-4 w-4" />
-              </Button>
-            ))}
-            <Separator orientation="vertical" className="h-6 mx-1" />
-            <Button
-              onClick={() => insertText("## ")}
-              size="sm"
-              variant="ghost"
-              className="h-8 px-2 text-xs font-bold"
-              title="見出し2"
-            >
-              H2
-            </Button>
-            <Button
-              onClick={() => insertText("### ")}
-              size="sm"
-              variant="ghost"
-              className="h-8 px-2 text-xs font-bold"
-              title="見出し3"
-            >
-              H3
-            </Button>
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="editor" className="flex items-center gap-2">
+            <Code className="h-4 w-4" />
+            エディター
+          </TabsTrigger>
+          <TabsTrigger value="preview" className="flex items-center gap-2">
+            <Eye className="h-4 w-4" />
+            プレビュー
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="editor" className="space-y-2">
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <FileText className="h-4 w-4 text-slate-500" />
+              <span className="text-sm text-slate-600">
+                {safeData.format === "markdown" && "Markdown記法が使用できます"}
+                {safeData.format === "html" && "HTMLタグが使用できます"}
+                {safeData.format === "plain" && "プレーンテキストとして表示されます"}
+              </span>
+            </div>
+            <Textarea
+              value={safeData.content}
+              onChange={(e) => handleContentChange(e.target.value)}
+              placeholder={getPlaceholder()}
+              rows={12}
+              className="font-mono text-sm resize-none"
+            />
           </div>
+        </TabsContent>
 
-          {/* エディター */}
-          <Textarea
-            ref={textareaRef}
-            value={safeData.content}
-            onChange={(e) => onChange({ ...safeData, content: e.target.value })}
-            className="w-full min-h-[300px] p-4 border border-slate-200 rounded-lg resize-y font-mono text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder={
-              safeData.format === "markdown"
-                ? "Markdownで記述してください...\n\n**太字** *斜体* `コード`\n## 見出し\n- リスト項目"
-                : "HTMLで記述してください..."
-            }
-          />
-        </>
-      )}
+        <TabsContent value="preview" className="space-y-2">
+          <Card className="bg-slate-50">
+            <CardHeader>
+              <CardTitle className="text-sm flex items-center gap-2">
+                <Eye className="h-4 w-4" />
+                プレビュー ({safeData.format})
+              </CardTitle>
+            </CardHeader>
+            <CardContent>{renderPreview()}</CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
 
-      {isPreview && (
-        <div className="min-h-[300px] p-4 border border-slate-200 rounded-lg bg-white">
-          <div className="prose prose-slate max-w-none" dangerouslySetInnerHTML={{ __html: renderPreview() }} />
-        </div>
-      )}
-
-      <div className="text-xs text-slate-500">
-        {safeData.format === "markdown" ? (
-          <p>Markdown記法を使用できます。**太字**、*斜体*、`コード`、## 見出し、- リスト、&gt; 引用</p>
-        ) : (
-          <p>
-            HTML記法を使用できます。&lt;strong&gt;、&lt;em&gt;、&lt;code&gt;、&lt;h2&gt;、&lt;ul&gt;、&lt;blockquote&gt;
-          </p>
-        )}
-      </div>
+      {/* フォーマット別のヘルプ */}
+      <Card className="bg-blue-50 border-blue-200">
+        <CardContent className="pt-4">
+          <div className="text-sm space-y-2">
+            {safeData.format === "markdown" && (
+              <div>
+                <p className="font-medium text-blue-900 mb-2">Markdown記法の例:</p>
+                <div className="grid grid-cols-2 gap-4 text-xs text-blue-800">
+                  <div>
+                    <p>
+                      <code># 見出し1</code>
+                    </p>
+                    <p>
+                      <code>## 見出し2</code>
+                    </p>
+                    <p>
+                      <code>**太字**</code>
+                    </p>
+                    <p>
+                      <code>*斜体*</code>
+                    </p>
+                  </div>
+                  <div>
+                    <p>
+                      <code>- リスト項目</code>
+                    </p>
+                    <p>
+                      <code>[リンク](URL)</code>
+                    </p>
+                    <p>
+                      <code>`コード`</code>
+                    </p>
+                    <p>
+                      <code>> 引用</code>
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+            {safeData.format === "html" && (
+              <div>
+                <p className="font-medium text-blue-900 mb-2">HTML記法の例:</p>
+                <div className="grid grid-cols-2 gap-4 text-xs text-blue-800">
+                  <div>
+                    <p>
+                      <code>&lt;h2&gt;見出し&lt;/h2&gt;</code>
+                    </p>
+                    <p>
+                      <code>&lt;p&gt;段落&lt;/p&gt;</code>
+                    </p>
+                    <p>
+                      <code>&lt;strong&gt;太字&lt;/strong&gt;</code>
+                    </p>
+                  </div>
+                  <div>
+                    <p>
+                      <code>&lt;ul&gt;&lt;li&gt;リスト&lt;/li&gt;&lt;/ul&gt;</code>
+                    </p>
+                    <p>
+                      <code>&lt;a href="URL"&gt;リンク&lt;/a&gt;</code>
+                    </p>
+                    <p>
+                      <code>&lt;code&gt;コード&lt;/code&gt;</code>
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+            {safeData.format === "plain" && (
+              <div>
+                <p className="font-medium text-blue-900 mb-2">プレーンテキスト:</p>
+                <p className="text-xs text-blue-800">
+                  入力したテキストがそのまま表示されます。改行やスペースも保持されます。
+                </p>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   )
 }

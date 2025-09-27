@@ -14,11 +14,18 @@ import { Separator } from "@/components/ui/separator"
 import { Save, Eye, ArrowLeft, FileText, Settings } from "lucide-react"
 import { toast } from "sonner"
 
-import { type Article, type ArticleBlock, createArticle, updateArticle } from "@/lib/actions/admin-articles"
+import { type CreateArticleData, type ArticleBlock, createArticle, updateArticle } from "@/lib/actions/admin-articles"
 import { ImageUpload } from "./image-upload"
 import { BlockEditor } from "./block-editor"
 import { ArticlePreview } from "./article-preview"
 import { BlockTypeSelector } from "./block-type-selector"
+
+interface Article extends CreateArticleData {
+  id?: string
+  created_at?: string
+  updated_at?: string
+  view_count?: number
+}
 
 interface ArticleEditorProps {
   article?: Article
@@ -42,14 +49,18 @@ export function ArticleEditor({ article, isEditing = false }: ArticleEditorProps
   const [autoSave, setAutoSave] = useState(true)
   const [lastSaved, setLastSaved] = useState<Date | null>(null)
 
-  const [formData, setFormData] = useState<Article>({
+  const [formData, setFormData] = useState<CreateArticleData>({
     title: article?.title || "",
     slug: article?.slug || "",
     category: article?.category || "news",
     is_published: article?.is_published || false,
     pinned: article?.pinned || false,
+    priority: article?.priority || 0,
     thumbnail_image_url: article?.thumbnail_image_url || "",
+    hero_image_url: article?.hero_image_url || "",
     excerpt: article?.excerpt || "",
+    subtitle: article?.subtitle || "",
+    tags: article?.tags || [],
     blocks: article?.blocks || [],
   })
 
@@ -86,7 +97,7 @@ export function ArticleEditor({ article, isEditing = false }: ArticleEditorProps
     return () => clearTimeout(timer)
   }, [formData, autoSave, isEditing, article?.id])
 
-  const handleInputChange = (field: keyof Article, value: any) => {
+  const handleInputChange = (field: keyof CreateArticleData, value: any) => {
     console.log("=== DEBUG: Input change ===")
     console.log("Field:", field)
     console.log("Value:", value)
@@ -115,7 +126,7 @@ export function ArticleEditor({ article, isEditing = false }: ArticleEditorProps
       id: `block-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       type,
       data: getDefaultBlockData(type),
-      order: formData.blocks.length,
+      display_order: formData.blocks.length * 10 + 10,
     }
 
     console.log("New block:", JSON.stringify(newBlock, null, 2))
@@ -220,6 +231,21 @@ export function ArticleEditor({ article, isEditing = false }: ArticleEditorProps
           items: [{ href: "", label: "" }],
         }
         break
+      case "pickup":
+        defaultData = {
+          title: "",
+          description: "",
+          link_url: "",
+          link_text: "詳細を見る",
+        }
+        break
+      case "button":
+        defaultData = {
+          text: "ボタン",
+          url: "",
+          style: "primary",
+        }
+        break
       case "divider":
         defaultData = {}
         break
@@ -286,7 +312,10 @@ export function ArticleEditor({ article, isEditing = false }: ArticleEditorProps
         if (!silent) {
           toast.success(isEditing ? "記事を更新しました" : "記事を作成しました")
           if (!isEditing) {
+            // 記事作成後は記事一覧に戻る
             router.push("/admin/articles")
+            // キャッシュを更新してユーザー側にも反映
+            router.refresh()
           }
         }
       } else {
@@ -387,6 +416,16 @@ export function ArticleEditor({ article, isEditing = false }: ArticleEditorProps
                         className="font-mono text-sm"
                       />
                     </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="subtitle">サブタイトル</Label>
+                    <Input
+                      id="subtitle"
+                      value={formData.subtitle}
+                      onChange={(e) => handleInputChange("subtitle", e.target.value)}
+                      placeholder="記事のサブタイトル（任意）"
+                    />
                   </div>
 
                   <div className="space-y-2">
@@ -493,6 +532,20 @@ export function ArticleEditor({ article, isEditing = false }: ArticleEditorProps
                 </CardContent>
               </Card>
 
+              {/* ヒーロー画像 */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">ヒーロー画像</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ImageUpload
+                    value={formData.hero_image_url}
+                    onChange={(url) => handleInputChange("hero_image_url", url)}
+                  />
+                  <p className="text-xs text-slate-500 mt-2">記事上部に表示される大きな画像</p>
+                </CardContent>
+              </Card>
+
               {/* 統計情報（編集時のみ） */}
               {isEditing && article && (
                 <Card>
@@ -546,24 +599,46 @@ export function ArticleEditor({ article, isEditing = false }: ArticleEditorProps
               <Separator />
 
               <div className="space-y-2">
+                <Label>タグ設定</Label>
+                <p className="text-sm text-slate-600">記事に関連するタグ（カンマ区切り）</p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="tags">タグ</Label>
+                <Input
+                  id="tags"
+                  value={formData.tags?.join(", ") || ""}
+                  onChange={(e) =>
+                    handleInputChange(
+                      "tags",
+                      e.target.value
+                        .split(",")
+                        .map((tag) => tag.trim())
+                        .filter(Boolean),
+                    )
+                  }
+                  placeholder="タグ1, タグ2, タグ3"
+                />
+              </div>
+
+              <Separator />
+
+              <div className="space-y-2">
                 <Label>表示設定</Label>
                 <p className="text-sm text-slate-600">記事の表示に関する設定</p>
               </div>
 
-              <div className="flex items-center justify-between">
-                <div>
-                  <Label className="font-medium">コメントを許可</Label>
-                  <p className="text-xs text-slate-500">読者がコメントを投稿できます</p>
-                </div>
-                <Switch defaultChecked />
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div>
-                  <Label className="font-medium">目次を自動生成</Label>
-                  <p className="text-xs text-slate-500">見出しから目次を自動作成</p>
-                </div>
-                <Switch defaultChecked />
+              <div className="space-y-2">
+                <Label htmlFor="priority">優先度</Label>
+                <Input
+                  id="priority"
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={formData.priority || 0}
+                  onChange={(e) => handleInputChange("priority", Number.parseInt(e.target.value) || 0)}
+                  placeholder="0-100（数値が大きいほど優先表示）"
+                />
               </div>
             </CardContent>
           </Card>
