@@ -535,3 +535,6 @@ export default function DetailedSearchModal({
     </>
   )
 }
+
+// Named export for compatibility
+export { DetailedSearchModal }
