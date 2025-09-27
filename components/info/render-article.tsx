@@ -140,91 +140,29 @@ function renderTable(block: Block & { type: "table" }) {
   )
 }
 
-function renderFlexibleTable(block: Block & { type: "flexible-table" }) {
-  const { columns, rows, style } = block.data
-
-  const getColumnWidth = (width: string) => {
-    switch (width) {
-      case "narrow":
-        return "w-24"
-      case "wide":
-        return "w-64"
-      default:
-        return "w-auto"
-    }
-  }
-
-  const getCellContent = (content: string, type: string) => {
-    if (type === "badge") {
-      return (
-        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-          {content}
-        </span>
-      )
-    }
-    return content
-  }
-
-  const tableClasses = {
-    default: "border border-slate-200",
-    striped: "border border-slate-200",
-    bordered: "border-2 border-slate-300",
-  }
-
-  return (
-    <div className="bg-white rounded-lg overflow-hidden shadow-sm my-2">
-      <table className={`w-full border-collapse ${tableClasses[style] || tableClasses.default}`}>
-        <thead>
-          <tr className="bg-blue-100">
-            {columns.map((column) => (
-              <th
-                key={column.id}
-                className={`px-4 py-2 text-left text-sm font-semibold text-slate-700 border-b border-slate-200 ${getColumnWidth(column.width)}`}
-              >
-                {column.header}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((row, rowIndex) => (
-            <tr key={row.id} className={style === "striped" && rowIndex % 2 === 1 ? "bg-slate-50" : "bg-white"}>
-              {columns.map((column) => (
-                <td key={column.id} className="px-4 py-2 text-sm text-slate-600 border-b border-slate-100">
-                  {getCellContent(row.cells[column.id] || "", column.type)}
-                </td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  )
-}
-
 function renderCallout(block: Block & { type: "callout" }) {
-  const { tone, body, title } = block.data
+  const { tone, text, title } = block.data
 
   const styles = {
     info: {
       bg: "bg-blue-50",
       border: "border-blue-200",
       icon: <Info className="h-4 w-4 text-blue-600 flex-shrink-0" />,
-      text: "text-blue-800",
+      textColor: "text-blue-800",
       label: "情報",
     },
     warning: {
       bg: "bg-yellow-50",
       border: "border-yellow-200",
       icon: <AlertCircle className="h-4 w-4 text-yellow-600 flex-shrink-0" />,
-      text: "text-yellow-800",
+      textColor: "text-yellow-800",
       label: "警告",
     },
     success: {
       bg: "bg-green-50",
       border: "border-green-200",
       icon: <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0" />,
-      text: "text-green-800",
+      textColor: "text-green-800",
       label: "成功",
     },
   }
@@ -239,7 +177,7 @@ function renderCallout(block: Block & { type: "callout" }) {
           <div className="flex items-center gap-2 mb-0.5">
             <span className="font-semibold text-sm">{title || style.label}</span>
           </div>
-          <p className={`text-sm ${style.text} leading-relaxed`}>{body}</p>
+          <p className={`text-sm ${style.textColor} leading-relaxed`}>{text}</p>
         </div>
       </div>
     </div>
@@ -247,7 +185,7 @@ function renderCallout(block: Block & { type: "callout" }) {
 }
 
 function renderRichText(block: Block & { type: "rich-text" }) {
-  const { content, format } = block.data
+  const { content, format, style } = block.data
 
   if (format === "markdown") {
     // 簡単なMarkdownレンダリング
@@ -257,6 +195,7 @@ function renderRichText(block: Block & { type: "rich-text" }) {
       .replace(/`(.*?)`/g, "<code class='bg-slate-100 px-1 py-0.5 rounded text-sm'>$1</code>")
       .replace(/^### (.+)$/gm, "<h3 class='text-lg font-semibold text-slate-900 mt-4 mb-2'>$1</h3>")
       .replace(/^## (.+)$/gm, "<h2 class='text-xl font-bold text-slate-900 mt-6 mb-3'>$1</h2>")
+      .replace(/^# (.+)$/gm, "<h1 class='text-2xl font-bold text-slate-900 mt-8 mb-4'>$1</h1>")
       .replace(
         /^> (.+)$/gm,
         "<blockquote class='border-l-4 border-slate-300 pl-4 italic text-slate-600'>$1</blockquote>",
@@ -264,81 +203,52 @@ function renderRichText(block: Block & { type: "rich-text" }) {
       .replace(/^- (.+)$/gm, "<li>$1</li>")
       .replace(/(<li>.*<\/li>)/s, "<ul class='list-disc list-inside space-y-1'>$1</ul>")
       .replace(/^\d+\. (.+)$/gm, "<li>$1</li>")
+      .replace(/\[([^\]]+)\]$$([^)]+)$$/g, "<a href='$2' class='text-blue-600 hover:underline'>$1</a>")
+      .replace(/!\[([^\]]*)\]$$([^)]+)$$/g, "<img src='$2' alt='$1' class='max-w-full h-auto rounded' />")
       .replace(/\n\n/g, "</p><p class='mb-4'>")
       .replace(/\n/g, "<br>")
 
     return (
       <div
         className="prose prose-slate max-w-none my-2"
+        style={{
+          fontSize: style?.fontSize,
+          color: style?.color,
+          backgroundColor: style?.backgroundColor,
+          textAlign: style?.textAlign,
+        }}
         dangerouslySetInnerHTML={{ __html: `<p class='mb-4'>${htmlContent}</p>` }}
       />
     )
   }
 
-  return <div className="prose prose-slate max-w-none my-2" dangerouslySetInnerHTML={{ __html: content }} />
-}
-
-function renderMediaGallery(block: Block & { type: "media-gallery" }) {
-  const { items, layout, columns } = block.data
-
-  if (items.length === 0) {
-    return null
-  }
-
-  const gridClasses = {
-    2: "grid-cols-2",
-    3: "grid-cols-3",
-    4: "grid-cols-4",
-    5: "grid-cols-5",
-  }
-
-  if (layout === "grid") {
+  if (format === "html") {
     return (
-      <div className={`grid ${gridClasses[columns] || "grid-cols-3"} gap-4 my-4`}>
-        {items.map((item, index) => (
-          <div key={item.id || index} className="space-y-2">
-            <div className="aspect-video relative rounded-lg overflow-hidden bg-slate-100">
-              <Image src={item.url || "/placeholder.svg"} alt={item.alt || ""} fill className="object-cover" />
-            </div>
-            {item.caption && <p className="text-sm text-slate-600 text-center">{item.caption}</p>}
-          </div>
-        ))}
-      </div>
+      <div
+        className="prose prose-slate max-w-none my-2"
+        style={{
+          fontSize: style?.fontSize,
+          color: style?.color,
+          backgroundColor: style?.backgroundColor,
+          textAlign: style?.textAlign,
+        }}
+        dangerouslySetInnerHTML={{ __html: content }}
+      />
     )
   }
 
-  if (layout === "carousel") {
-    return (
-      <div className="flex overflow-x-auto gap-4 pb-4 my-4">
-        {items.map((item, index) => (
-          <div key={item.id || index} className="flex-shrink-0 w-64 space-y-2">
-            <div className="aspect-video relative rounded-lg overflow-hidden bg-slate-100">
-              <Image src={item.url || "/placeholder.svg"} alt={item.alt || ""} fill className="object-cover" />
-            </div>
-            {item.caption && <p className="text-sm text-slate-600 text-center">{item.caption}</p>}
-          </div>
-        ))}
-      </div>
-    )
-  }
-
-  // masonry layout (simplified)
+  // プレーンテキスト
   return (
-    <div className="columns-2 md:columns-3 gap-4 my-4">
-      {items.map((item, index) => (
-        <div key={item.id || index} className="break-inside-avoid mb-4">
-          <div className="relative rounded-lg overflow-hidden bg-slate-100">
-            <Image
-              src={item.url || "/placeholder.svg"}
-              alt={item.alt || ""}
-              width={400}
-              height={300}
-              className="w-full h-auto object-cover"
-            />
-          </div>
-          {item.caption && <p className="text-sm text-slate-600 text-center mt-2">{item.caption}</p>}
-        </div>
-      ))}
+    <div
+      className="whitespace-pre-wrap my-2"
+      style={{
+        fontSize: style?.fontSize,
+        color: style?.color,
+        backgroundColor: style?.backgroundColor,
+        textAlign: style?.textAlign,
+      }}
+    >
+      {content}
     </div>
   )
 }
@@ -417,15 +327,15 @@ function CardDisplayTable({
                       <div key={card.id} className="flex flex-col items-center">
                         <div className="aspect-[5/7] relative rounded border overflow-hidden bg-slate-100 w-full max-w-[60px]">
                           <Image
-                            src={getCardImageUrl(card.id) || "/placeholder.svg"}
-                            alt={getCardName(card.id)}
+                            src={card.imageUrl || getCardImageUrl(card.id) || "/placeholder.svg"}
+                            alt={card.name || getCardName(card.id)}
                             fill
                             className="object-cover"
                             sizes="60px"
                           />
                         </div>
                         <div className="mt-1 text-[8px] text-slate-600 text-center truncate w-full max-w-[60px]">
-                          {getCardName(card.id)}
+                          {card.name || getCardName(card.id)}
                         </div>
                       </div>
                     ))}
@@ -645,18 +555,8 @@ export default function RenderArticle({ blocks }: RenderArticleProps) {
               </div>
             )
 
-          case "flexible-table":
-            return (
-              <div key={index} className="my-0">
-                {renderFlexibleTable(block)}
-              </div>
-            )
-
           case "callout":
             return <div key={index}>{renderCallout(block)}</div>
-
-          case "media-gallery":
-            return <div key={index}>{renderMediaGallery(block)}</div>
 
           case "divider":
             return <hr key={index} className="my-2 border-slate-200" />
@@ -733,6 +633,45 @@ export default function RenderArticle({ blocks }: RenderArticleProps) {
 
           case "card-display-table":
             return <CardDisplayTable key={index} rows={block.data.rows} />
+
+          case "pickup":
+            return (
+              <div key={index} className="my-4 bg-red-50 border border-red-200 rounded-lg p-4">
+                <div className="flex items-start gap-3">
+                  <div className="flex-shrink-0 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center">
+                    <span className="text-white text-sm font-bold">★</span>
+                  </div>
+                  <div className="flex-1">
+                    {block.data.title && <h4 className="font-semibold text-red-800 mb-2">{block.data.title}</h4>}
+                    <ul className="space-y-1">
+                      {block.data.items.map((item, itemIndex) => (
+                        <li key={itemIndex} className="text-red-700">
+                          {item.href ? (
+                            <Link href={item.href} className="hover:underline">
+                              {item.label}
+                            </Link>
+                          ) : (
+                            item.label
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            )
+
+          case "button":
+            return (
+              <div key={index} className="my-4 text-center">
+                <Link
+                  href={block.data.href}
+                  className="inline-flex items-center px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  {block.data.label}
+                </Link>
+              </div>
+            )
 
           default:
             return null

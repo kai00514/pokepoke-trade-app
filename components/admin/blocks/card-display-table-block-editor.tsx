@@ -7,16 +7,16 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Plus, Trash2, Edit, Search } from "lucide-react"
-import { DetailedSearchModal } from "@/components/detailed-search-modal"
+import Image from "next/image"
+import DetailedSearchModal from "@/components/detailed-search-modal"
 
 interface CardDisplayRow {
   id: string
   header: string
   cards: Array<{
-    id: number
+    id: string
     name: string
-    image_url?: string
-    game8_image_url?: string
+    imageUrl: string
   }>
 }
 
@@ -33,6 +33,10 @@ export function CardDisplayTableBlockEditor({ data, onChange }: CardDisplayTable
   const [searchModalOpen, setSearchModalOpen] = useState(false)
   const [editingRowId, setEditingRowId] = useState<string | null>(null)
 
+  const safeData: CardDisplayTableBlockData = {
+    rows: data?.rows || [],
+  }
+
   const addRow = () => {
     const newRow: CardDisplayRow = {
       id: `row-${Date.now()}`,
@@ -40,22 +44,19 @@ export function CardDisplayTableBlockEditor({ data, onChange }: CardDisplayTable
       cards: [],
     }
     onChange({
-      ...data,
-      rows: [...data.rows, newRow],
+      rows: [...safeData.rows, newRow],
     })
   }
 
   const updateRowHeader = (rowId: string, header: string) => {
     onChange({
-      ...data,
-      rows: data.rows.map((row) => (row.id === rowId ? { ...row, header } : row)),
+      rows: safeData.rows.map((row) => (row.id === rowId ? { ...row, header } : row)),
     })
   }
 
   const deleteRow = (rowId: string) => {
     onChange({
-      ...data,
-      rows: data.rows.filter((row) => row.id !== rowId),
+      rows: safeData.rows.filter((row) => row.id !== rowId),
     })
   }
 
@@ -64,32 +65,35 @@ export function CardDisplayTableBlockEditor({ data, onChange }: CardDisplayTable
     setSearchModalOpen(true)
   }
 
-  const handleCardSelection = (selectedCards: any[]) => {
+  const handleCardSelectionComplete = (selectedCards: any[]) => {
     if (!editingRowId) return
 
     const formattedCards = selectedCards.map((card) => ({
-      id: card.id,
+      id: card.id.toString(),
       name: card.name,
-      image_url: card.image_url,
-      game8_image_url: card.game8_image_url,
+      imageUrl: card.game8_image_url || card.image_url || "/placeholder.svg",
     }))
 
     onChange({
-      ...data,
-      rows: data.rows.map((row) => (row.id === editingRowId ? { ...row, cards: formattedCards } : row)),
+      rows: safeData.rows.map((row) => (row.id === editingRowId ? { ...row, cards: formattedCards } : row)),
     })
 
     setSearchModalOpen(false)
     setEditingRowId(null)
   }
 
-  const removeCardFromRow = (rowId: string, cardId: number) => {
+  const removeCardFromRow = (rowId: string, cardId: string) => {
     onChange({
-      ...data,
-      rows: data.rows.map((row) =>
+      rows: safeData.rows.map((row) =>
         row.id === rowId ? { ...row, cards: row.cards.filter((card) => card.id !== cardId) } : row,
       ),
     })
+  }
+
+  const getCurrentRowCards = () => {
+    if (!editingRowId) return []
+    const row = safeData.rows.find((r) => r.id === editingRowId)
+    return row?.cards || []
   }
 
   return (
@@ -104,7 +108,7 @@ export function CardDisplayTableBlockEditor({ data, onChange }: CardDisplayTable
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        {data.rows.length === 0 ? (
+        {safeData.rows.length === 0 ? (
           <div className="text-center py-8 text-slate-500">
             <p>行が追加されていません</p>
             <Button onClick={addRow} variant="outline" className="mt-2 bg-transparent">
@@ -114,7 +118,7 @@ export function CardDisplayTableBlockEditor({ data, onChange }: CardDisplayTable
           </div>
         ) : (
           <div className="space-y-4">
-            {data.rows.map((row, index) => (
+            {safeData.rows.map((row, index) => (
               <Card key={row.id} className="border-l-4 border-l-blue-500">
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
@@ -151,22 +155,14 @@ export function CardDisplayTableBlockEditor({ data, onChange }: CardDisplayTable
                     <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
                       {row.cards.map((card) => (
                         <div key={card.id} className="relative group">
-                          <div className="aspect-[3/4] bg-slate-100 rounded-lg overflow-hidden border">
-                            {card.game8_image_url || card.image_url ? (
-                              <img
-                                src={card.game8_image_url || card.image_url}
-                                alt={card.name}
-                                className="w-full h-full object-cover"
-                                onError={(e) => {
-                                  const target = e.target as HTMLImageElement
-                                  target.src = "/no-card.png"
-                                }}
-                              />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center text-xs text-slate-500">
-                                画像なし
-                              </div>
-                            )}
+                          <div className="aspect-[5/7] relative rounded border overflow-hidden bg-slate-100">
+                            <Image
+                              src={card.imageUrl || "/placeholder.svg"}
+                              alt={card.name}
+                              fill
+                              className="object-cover"
+                              sizes="(max-width: 768px) 50vw, (max-width: 1024px) 25vw, 16vw"
+                            />
                             <Button
                               onClick={() => removeCardFromRow(row.id, card.id)}
                               size="sm"
@@ -199,36 +195,28 @@ export function CardDisplayTableBlockEditor({ data, onChange }: CardDisplayTable
         )}
 
         {/* プレビュー */}
-        {data.rows.length > 0 && (
+        {safeData.rows.length > 0 && (
           <Card className="mt-6">
             <CardHeader>
               <CardTitle className="text-base">プレビュー</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-6">
-                {data.rows.map((row) => (
+                {safeData.rows.map((row) => (
                   <div key={row.id}>
                     <h3 className="text-lg font-semibold mb-3 text-blue-600">{row.header}</h3>
                     {row.cards.length > 0 ? (
                       <div className="grid grid-cols-3 md:grid-cols-6 lg:grid-cols-8 gap-2">
                         {row.cards.map((card) => (
                           <div key={card.id} className="text-center">
-                            <div className="aspect-[3/4] bg-slate-100 rounded overflow-hidden border">
-                              {card.game8_image_url || card.image_url ? (
-                                <img
-                                  src={card.game8_image_url || card.image_url}
-                                  alt={card.name}
-                                  className="w-full h-full object-cover"
-                                  onError={(e) => {
-                                    const target = e.target as HTMLImageElement
-                                    target.src = "/no-card.png"
-                                  }}
-                                />
-                              ) : (
-                                <div className="w-full h-full flex items-center justify-center text-xs text-slate-500">
-                                  画像なし
-                                </div>
-                              )}
+                            <div className="aspect-[5/7] relative rounded border overflow-hidden bg-slate-100">
+                              <Image
+                                src={card.imageUrl || "/placeholder.svg"}
+                                alt={card.name}
+                                fill
+                                className="object-cover"
+                                sizes="(max-width: 768px) 33vw, (max-width: 1024px) 16vw, 12vw"
+                              />
                             </div>
                             <p className="text-xs mt-1 truncate" title={card.name}>
                               {card.name}
@@ -249,13 +237,10 @@ export function CardDisplayTableBlockEditor({ data, onChange }: CardDisplayTable
         {/* カード検索モーダル */}
         <DetailedSearchModal
           isOpen={searchModalOpen}
-          onClose={() => {
-            setSearchModalOpen(false)
-            setEditingRowId(null)
-          }}
-          onSelectionComplete={handleCardSelection}
-          initialSelectedCards={editingRowId ? data.rows.find((row) => row.id === editingRowId)?.cards || [] : []}
-          multiSelect={true}
+          onOpenChange={setSearchModalOpen}
+          onSelectionComplete={handleCardSelectionComplete}
+          initialSelectedCards={getCurrentRowCards()}
+          modalTitle="カードを選択"
         />
       </CardContent>
     </Card>

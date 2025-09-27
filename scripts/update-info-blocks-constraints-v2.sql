@@ -2,13 +2,7 @@
 DO $$
 BEGIN
     -- 既存の制約を削除
-    IF EXISTS (
-        SELECT 1 FROM information_schema.table_constraints 
-        WHERE constraint_name = 'info_blocks_type_allowed' 
-        AND table_name = 'info_article_blocks'
-    ) THEN
-        ALTER TABLE info_article_blocks DROP CONSTRAINT info_blocks_type_allowed;
-    END IF;
+    ALTER TABLE info_article_blocks DROP CONSTRAINT IF EXISTS info_blocks_type_allowed;
     
     -- 新しい制約を追加（実装済みのブロックタイプのみ）
     ALTER TABLE info_article_blocks ADD CONSTRAINT info_blocks_type_allowed 

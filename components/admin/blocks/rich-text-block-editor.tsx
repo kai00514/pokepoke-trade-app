@@ -5,18 +5,17 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Separator } from "@/components/ui/separator"
-import { Tabs, TabsContent } from "@/components/ui/tabs"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
+import { Separator } from "@/components/ui/separator"
 import {
   Bold,
   Italic,
   Heading1,
   Heading2,
   Heading3,
-  LinkIcon,
+  Link,
   ImageIcon,
   List,
   ListOrdered,
@@ -24,12 +23,6 @@ import {
   Quote,
   Eye,
   EyeOff,
-  Type,
-  Palette,
-  AlignLeft,
-  AlignCenter,
-  AlignRight,
-  AlignJustify,
 } from "lucide-react"
 
 interface RichTextBlockData {
@@ -51,21 +44,24 @@ interface RichTextBlockEditorProps {
 export function RichTextBlockEditor({ data, onChange }: RichTextBlockEditorProps) {
   const [showPreview, setShowPreview] = useState(false)
 
-  const handleContentChange = (content: string) => {
-    onChange({ ...data, content })
+  const safeData: RichTextBlockData = {
+    content: data?.content || "",
+    format: data?.format || "markdown",
+    style: data?.style || {},
   }
 
-  const handleFormatChange = (format: "markdown" | "html" | "plain") => {
-    onChange({ ...data, format })
+  const updateContent = (content: string) => {
+    onChange({ ...safeData, content })
   }
 
-  const handleStyleChange = (styleKey: string, value: string) => {
+  const updateFormat = (format: "markdown" | "html" | "plain") => {
+    onChange({ ...safeData, format })
+  }
+
+  const updateStyle = (styleUpdate: Partial<RichTextBlockData["style"]>) => {
     onChange({
-      ...data,
-      style: {
-        ...data.style,
-        [styleKey]: value,
-      },
+      ...safeData,
+      style: { ...safeData.style, ...styleUpdate },
     })
   }
 
@@ -75,51 +71,63 @@ export function RichTextBlockEditor({ data, onChange }: RichTextBlockEditorProps
 
     const start = textarea.selectionStart
     const end = textarea.selectionEnd
-    const selectedText = data.content.substring(start, end)
+    const selectedText = safeData.content.substring(start, end)
     const replacement = selectedText || placeholder
 
-    let newContent = ""
-    if (syntax === "link") {
-      newContent =
-        data.content.substring(0, start) + `[${replacement || "リンクテキスト"}](URL)` + data.content.substring(end)
-    } else if (syntax === "image") {
-      newContent =
-        data.content.substring(0, start) + `![${replacement || "画像の説明"}](画像URL)` + data.content.substring(end)
-    } else if (syntax === "code") {
-      newContent = data.content.substring(0, start) + `\`${replacement || "コード"}\`` + data.content.substring(end)
-    } else if (syntax === "quote") {
-      newContent =
-        data.content.substring(0, start) + `${"> "}${replacement || "引用テキスト"}` + data.content.substring(end)
-    } else {
-      newContent = data.content.substring(0, start) + syntax + replacement + syntax + data.content.substring(end)
+    let newText = ""
+    if (syntax === "**") {
+      newText = `**${replacement}**`
+    } else if (syntax === "*") {
+      newText = `*${replacement}*`
+    } else if (syntax === "# ") {
+      newText = `# ${replacement}`
+    } else if (syntax === "## ") {
+      newText = `## ${replacement}`
+    } else if (syntax === "### ") {
+      newText = `### ${replacement}`
+    } else if (syntax === "[]()") {
+      newText = `[${replacement}](url)`
+    } else if (syntax === "![]()") {
+      newText = `![${replacement}](image-url)`
+    } else if (syntax === "- ") {
+      newText = `- ${replacement}`
+    } else if (syntax === "1. ") {
+      newText = `1. ${replacement}`
+    } else if (syntax === "`") {
+      newText = `\`${replacement}\``
+    } else if (syntax === "> ") {
+      newText = `${"> "}${replacement}`
     }
 
-    handleContentChange(newContent)
+    const newContent = safeData.content.substring(0, start) + newText + safeData.content.substring(end)
+    updateContent(newContent)
+
+    // フォーカスを戻す
+    setTimeout(() => {
+      textarea.focus()
+      textarea.setSelectionRange(start + newText.length, start + newText.length)
+    }, 0)
   }
 
-  const renderPreview = () => {
-    if (data.format === "html") {
-      return <div dangerouslySetInnerHTML={{ __html: data.content }} />
-    } else if (data.format === "markdown") {
-      // 簡易的なMarkdownパーサー
-      const html = data.content
-        .replace(/^### (.*$)/gim, "<h3>$1</h3>")
-        .replace(/^## (.*$)/gim, "<h2>$1</h2>")
-        .replace(/^# (.*$)/gim, "<h1>$1</h1>")
-        .replace(/\*\*(.*)\*\*/gim, "<strong>$1</strong>")
-        .replace(/\*(.*)\*/gim, "<em>$1</em>")
-        .replace(/\[([^\]]+)\]$$([^)]+)$$/gim, '<a href="$2">$1</a>')
-        .replace(/!\[([^\]]*)\]$$([^)]+)$$/gim, '<img alt="$1" src="$2" />')
-        .replace(/`([^`]+)`/gim, "<code>$1</code>")
-        .replace(/^> (.*)$/gim, "<blockquote>$1</blockquote>")
-        .replace(/^\* (.*)$/gim, "<li>$1</li>")
-        .replace(/^(\d+)\. (.*)$/gim, "<li>$1. $2</li>")
-        .replace(/\n/gim, "<br>")
-
-      return <div dangerouslySetInnerHTML={{ __html: html }} />
-    } else {
-      return <div style={{ whiteSpace: "pre-wrap" }}>{data.content}</div>
-    }
+  const renderMarkdownPreview = (content: string) => {
+    return content
+      .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+      .replace(/\*(.*?)\*/g, "<em>$1</em>")
+      .replace(/`(.*?)`/g, "<code class='bg-slate-100 px-1 py-0.5 rounded text-sm'>$1</code>")
+      .replace(/^### (.+)$/gm, "<h3 class='text-lg font-semibold text-slate-900 mt-4 mb-2'>$1</h3>")
+      .replace(/^## (.+)$/gm, "<h2 class='text-xl font-bold text-slate-900 mt-6 mb-3'>$1</h2>")
+      .replace(/^# (.+)$/gm, "<h1 class='text-2xl font-bold text-slate-900 mt-8 mb-4'>$1</h1>")
+      .replace(
+        /^> (.+)$/gm,
+        "<blockquote class='border-l-4 border-slate-300 pl-4 italic text-slate-600 my-2'>$1</blockquote>",
+      )
+      .replace(/^- (.+)$/gm, "<li>$1</li>")
+      .replace(/(<li>.*<\/li>)/s, "<ul class='list-disc list-inside space-y-1 my-2'>$1</ul>")
+      .replace(/^\d+\. (.+)$/gm, "<li>$1</li>")
+      .replace(/\[([^\]]+)\]$$([^)]+)$$/g, "<a href='$2' class='text-blue-600 hover:underline'>$1</a>")
+      .replace(/!\[([^\]]*)\]$$([^)]+)$$/g, "<img src='$2' alt='$1' class='max-w-full h-auto rounded' />")
+      .replace(/\n\n/g, "</p><p class='mb-4'>")
+      .replace(/\n/g, "<br>")
   }
 
   return (
@@ -128,7 +136,7 @@ export function RichTextBlockEditor({ data, onChange }: RichTextBlockEditorProps
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg">リッチテキスト</CardTitle>
           <div className="flex items-center space-x-2">
-            <Select value={data.format} onValueChange={handleFormatChange}>
+            <Select value={safeData.format} onValueChange={updateFormat}>
               <SelectTrigger className="w-32">
                 <SelectValue />
               </SelectTrigger>
@@ -138,199 +146,184 @@ export function RichTextBlockEditor({ data, onChange }: RichTextBlockEditorProps
                 <SelectItem value="plain">プレーンテキスト</SelectItem>
               </SelectContent>
             </Select>
-            <Button variant="outline" size="sm" onClick={() => setShowPreview(!showPreview)}>
+            <Button onClick={() => setShowPreview(!showPreview)} size="sm" variant="outline">
               {showPreview ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-              {showPreview ? "編集" : "プレビュー"}
             </Button>
           </div>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
         {/* スタイル設定 */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-slate-50 rounded-lg">
           <div className="space-y-2">
-            <Label className="text-sm flex items-center gap-1">
-              <Type className="h-3 w-3" />
-              フォントサイズ
-            </Label>
+            <Label className="text-xs">フォントサイズ</Label>
             <Select
-              value={data.style?.fontSize || "16px"}
-              onValueChange={(value) => handleStyleChange("fontSize", value)}
+              value={safeData.style?.fontSize || "text-base"}
+              onValueChange={(value) => updateStyle({ fontSize: value })}
             >
-              <SelectTrigger>
-                <SelectValue />
+              <SelectTrigger className="h-8">
+                <SelectValue placeholder="デフォルト" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="12px">12px</SelectItem>
-                <SelectItem value="14px">14px</SelectItem>
-                <SelectItem value="16px">16px</SelectItem>
-                <SelectItem value="18px">18px</SelectItem>
-                <SelectItem value="20px">20px</SelectItem>
-                <SelectItem value="24px">24px</SelectItem>
+                <SelectItem value="text-sm">小</SelectItem>
+                <SelectItem value="text-base">中</SelectItem>
+                <SelectItem value="text-lg">大</SelectItem>
+                <SelectItem value="text-xl">特大</SelectItem>
               </SelectContent>
             </Select>
           </div>
-
           <div className="space-y-2">
-            <Label className="text-sm flex items-center gap-1">
-              <Palette className="h-3 w-3" />
-              文字色
-            </Label>
+            <Label className="text-xs">文字色</Label>
             <Input
               type="color"
-              value={data.style?.color || "#000000"}
-              onChange={(e) => handleStyleChange("color", e.target.value)}
-              className="h-10 w-full"
+              value={safeData.style?.color || "#000000"}
+              onChange={(e) => updateStyle({ color: e.target.value })}
+              className="h-8 w-full"
             />
           </div>
-
           <div className="space-y-2">
-            <Label className="text-sm">背景色</Label>
+            <Label className="text-xs">背景色</Label>
             <Input
               type="color"
-              value={data.style?.backgroundColor || "#ffffff"}
-              onChange={(e) => handleStyleChange("backgroundColor", e.target.value)}
-              className="h-10 w-full"
+              value={safeData.style?.backgroundColor || "#ffffff"}
+              onChange={(e) => updateStyle({ backgroundColor: e.target.value })}
+              className="h-8 w-full"
             />
           </div>
-
           <div className="space-y-2">
-            <Label className="text-sm">テキスト配置</Label>
+            <Label className="text-xs">テキスト配置</Label>
             <Select
-              value={data.style?.textAlign || "left"}
-              onValueChange={(value) => handleStyleChange("textAlign", value)}
+              value={safeData.style?.textAlign || "left"}
+              onValueChange={(value: "left" | "center" | "right" | "justify") => updateStyle({ textAlign: value })}
             >
-              <SelectTrigger>
+              <SelectTrigger className="h-8">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="left">
-                  <div className="flex items-center gap-2">
-                    <AlignLeft className="h-4 w-4" />
-                    左揃え
-                  </div>
-                </SelectItem>
-                <SelectItem value="center">
-                  <div className="flex items-center gap-2">
-                    <AlignCenter className="h-4 w-4" />
-                    中央揃え
-                  </div>
-                </SelectItem>
-                <SelectItem value="right">
-                  <div className="flex items-center gap-2">
-                    <AlignRight className="h-4 w-4" />
-                    右揃え
-                  </div>
-                </SelectItem>
-                <SelectItem value="justify">
-                  <div className="flex items-center gap-2">
-                    <AlignJustify className="h-4 w-4" />
-                    両端揃え
-                  </div>
-                </SelectItem>
+                <SelectItem value="left">左寄せ</SelectItem>
+                <SelectItem value="center">中央</SelectItem>
+                <SelectItem value="right">右寄せ</SelectItem>
+                <SelectItem value="justify">両端揃え</SelectItem>
               </SelectContent>
             </Select>
           </div>
         </div>
 
-        <Separator />
-
         {/* Markdownツールバー */}
-        {data.format === "markdown" && !showPreview && (
-          <div className="flex flex-wrap gap-1 p-2 bg-slate-50 rounded-md">
-            <Button variant="ghost" size="sm" onClick={() => insertMarkdown("**", "太字テキスト")} title="太字">
+        {safeData.format === "markdown" && (
+          <div className="flex flex-wrap gap-1 p-2 bg-slate-50 rounded-lg">
+            <Button onClick={() => insertMarkdown("**", "太字テキスト")} size="sm" variant="ghost" title="太字">
               <Bold className="h-4 w-4" />
             </Button>
-            <Button variant="ghost" size="sm" onClick={() => insertMarkdown("*", "斜体テキスト")} title="斜体">
+            <Button onClick={() => insertMarkdown("*", "斜体テキスト")} size="sm" variant="ghost" title="斜体">
               <Italic className="h-4 w-4" />
             </Button>
             <Separator orientation="vertical" className="h-6" />
-            <Button variant="ghost" size="sm" onClick={() => insertMarkdown("# ", "")} title="見出し1">
+            <Button onClick={() => insertMarkdown("# ", "見出し1")} size="sm" variant="ghost" title="見出し1">
               <Heading1 className="h-4 w-4" />
             </Button>
-            <Button variant="ghost" size="sm" onClick={() => insertMarkdown("## ", "")} title="見出し2">
+            <Button onClick={() => insertMarkdown("## ", "見出し2")} size="sm" variant="ghost" title="見出し2">
               <Heading2 className="h-4 w-4" />
             </Button>
-            <Button variant="ghost" size="sm" onClick={() => insertMarkdown("### ", "")} title="見出し3">
+            <Button onClick={() => insertMarkdown("### ", "見出し3")} size="sm" variant="ghost" title="見出し3">
               <Heading3 className="h-4 w-4" />
             </Button>
             <Separator orientation="vertical" className="h-6" />
-            <Button variant="ghost" size="sm" onClick={() => insertMarkdown("link")} title="リンク">
-              <LinkIcon className="h-4 w-4" />
+            <Button onClick={() => insertMarkdown("[]())", "リンクテキスト")} size="sm" variant="ghost" title="リンク">
+              <Link className="h-4 w-4" />
             </Button>
-            <Button variant="ghost" size="sm" onClick={() => insertMarkdown("image")} title="画像">
+            <Button onClick={() => insertMarkdown("![]()", "画像の説明")} size="sm" variant="ghost" title="画像">
               <ImageIcon className="h-4 w-4" />
             </Button>
             <Separator orientation="vertical" className="h-6" />
-            <Button variant="ghost" size="sm" onClick={() => insertMarkdown("* ", "")} title="箇条書きリスト">
+            <Button onClick={() => insertMarkdown("- ", "リスト項目")} size="sm" variant="ghost" title="箇条書きリスト">
               <List className="h-4 w-4" />
             </Button>
-            <Button variant="ghost" size="sm" onClick={() => insertMarkdown("1. ", "")} title="番号付きリスト">
+            <Button
+              onClick={() => insertMarkdown("1. ", "番号付きリスト項目")}
+              size="sm"
+              variant="ghost"
+              title="番号付きリスト"
+            >
               <ListOrdered className="h-4 w-4" />
             </Button>
             <Separator orientation="vertical" className="h-6" />
-            <Button variant="ghost" size="sm" onClick={() => insertMarkdown("code")} title="インラインコード">
+            <Button onClick={() => insertMarkdown("`", "コード")} size="sm" variant="ghost" title="インラインコード">
               <Code className="h-4 w-4" />
             </Button>
-            <Button variant="ghost" size="sm" onClick={() => insertMarkdown("quote")} title="引用">
+            <Button onClick={() => insertMarkdown("> ", "引用")} size="sm" variant="ghost" title="引用">
               <Quote className="h-4 w-4" />
             </Button>
           </div>
         )}
 
-        {/* エディター/プレビュー */}
-        <Tabs value={showPreview ? "preview" : "editor"} className="w-full">
-          <TabsContent value="editor" className="mt-0">
-            <div className="space-y-2">
-              <Label>コンテンツ</Label>
-              <Textarea
-                data-rich-text
-                value={data.content}
-                onChange={(e) => handleContentChange(e.target.value)}
-                placeholder={
-                  data.format === "markdown"
-                    ? "Markdownで記述してください...\n\n# 見出し1\n## 見出し2\n**太字** *斜体*\n[リンク](URL)\n![画像](URL)"
-                    : data.format === "html"
-                      ? "HTMLで記述してください...\n\n<h1>見出し1</h1>\n<p><strong>太字</strong> <em>斜体</em></p>"
-                      : "プレーンテキストを入力してください..."
-                }
-                rows={12}
-                className="font-mono text-sm"
-                style={{
-                  fontSize: data.style?.fontSize,
-                  color: data.style?.color,
-                  backgroundColor: data.style?.backgroundColor,
-                  textAlign: data.style?.textAlign,
-                }}
-              />
-            </div>
-          </TabsContent>
-          <TabsContent value="preview" className="mt-0">
+        {/* エディター */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label>コンテンツ</Label>
+            <Textarea
+              data-rich-text
+              value={safeData.content}
+              onChange={(e) => updateContent(e.target.value)}
+              placeholder={
+                safeData.format === "markdown"
+                  ? "# 見出し\n\n**太字**や*斜体*を使えます。\n\n- リスト項目1\n- リスト項目2"
+                  : safeData.format === "html"
+                    ? "<h1>見出し</h1>\n<p><strong>太字</strong>や<em>斜体</em>を使えます。</p>"
+                    : "プレーンテキストを入力してください"
+              }
+              className="min-h-[300px] font-mono text-sm"
+              style={{
+                fontSize: safeData.style?.fontSize,
+                color: safeData.style?.color,
+                backgroundColor: safeData.style?.backgroundColor,
+                textAlign: safeData.style?.textAlign,
+              }}
+            />
+          </div>
+
+          {/* プレビュー */}
+          {showPreview && (
             <div className="space-y-2">
               <Label>プレビュー</Label>
-              <div
-                className="min-h-[300px] p-4 border rounded-md bg-white prose prose-sm max-w-none"
-                style={{
-                  fontSize: data.style?.fontSize,
-                  color: data.style?.color,
-                  backgroundColor: data.style?.backgroundColor,
-                  textAlign: data.style?.textAlign,
-                }}
-              >
-                {data.content ? (
-                  renderPreview()
+              <div className="min-h-[300px] p-4 border rounded-md bg-white overflow-auto">
+                {safeData.format === "markdown" ? (
+                  <div
+                    className="prose prose-slate max-w-none"
+                    dangerouslySetInnerHTML={{
+                      __html: renderMarkdownPreview(safeData.content),
+                    }}
+                  />
+                ) : safeData.format === "html" ? (
+                  <div
+                    className="prose prose-slate max-w-none"
+                    dangerouslySetInnerHTML={{ __html: safeData.content }}
+                  />
                 ) : (
-                  <p className="text-slate-400">プレビューするコンテンツがありません</p>
+                  <div
+                    className="whitespace-pre-wrap"
+                    style={{
+                      fontSize: safeData.style?.fontSize,
+                      color: safeData.style?.color,
+                      backgroundColor: safeData.style?.backgroundColor,
+                      textAlign: safeData.style?.textAlign,
+                    }}
+                  >
+                    {safeData.content}
+                  </div>
                 )}
               </div>
             </div>
-          </TabsContent>
-        </Tabs>
+          )}
+        </div>
 
-        {/* フォーマット情報 */}
-        <div className="flex items-center gap-2">
-          <Badge variant="secondary">{data.format.toUpperCase()}</Badge>
-          <span className="text-sm text-slate-500">{data.content.length} 文字</span>
+        {/* 統計情報 */}
+        <div className="flex items-center space-x-4 text-sm text-slate-500">
+          <Badge variant="secondary">{safeData.content.length} 文字</Badge>
+          <Badge variant="secondary">
+            {safeData.content.split(/\s+/).filter((word) => word.length > 0).length} 単語
+          </Badge>
+          <Badge variant="secondary">{safeData.content.split("\n").length} 行</Badge>
         </div>
       </CardContent>
     </Card>
