@@ -262,65 +262,133 @@ function CardDisplayTable({
     Array<{ id: number; name: string; image_url: string; thumb_url?: string; game8_image_url?: string }>
   >([])
   const [loading, setLoading] = React.useState(true)
-  const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
+  const [error, setError] = React.useState<string | null>(null)
 
   React.useEffect(() => {
     async function fetchCards() {
       try {
-        const allCardIds = rows.flatMap((row) =>
-          row.cards
-            .map((card) => {
-              const cardId = Number.parseInt(card.id)
-              return !isNaN(cardId) ? cardId : null
-            })
-            .filter(Boolean),
-        )
+        setLoading(true)
+        setError(null)
 
-        if (allCardIds.length === 0) {
-          setLoading(false)
+        // 環境変数の確認
+        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+        const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+        if (!supabaseUrl || !supabaseKey) {
+          console.error("Supabase環境変数が設定されていません")
+          setError("データベース接続エラー")
           return
         }
 
-        const { data } = await supabase
+        const supabase = createClient(supabaseUrl, supabaseKey)
+
+        // 全てのカードIDを収集
+        const allCardIds = rows.flatMap((row) =>
+          row.cards
+            .map((card) => {
+              const cardId = Number.parseInt(card.id, 10)
+              return !isNaN(cardId) ? cardId : null
+            })
+            .filter((id): id is number => id !== null),
+        )
+
+        console.log("取得するカードID:", allCardIds)
+
+        if (allCardIds.length === 0) {
+          console.log("カードIDが見つかりません")
+          setCards([])
+          return
+        }
+
+        // データベースからカード情報を取得
+        const { data, error: fetchError } = await supabase
           .from("cards")
           .select("id, name, image_url, thumb_url, game8_image_url")
           .in("id", allCardIds)
+
+        if (fetchError) {
+          console.error("カード取得エラー:", fetchError)
+          setError("カード情報の取得に失敗しました")
+          return
+        }
+
+        console.log("取得したカードデータ:", data)
         setCards(data || [])
       } catch (error) {
-        console.error("Failed to fetch cards:", error)
+        console.error("カード取得中にエラーが発生:", error)
+        setError("予期しないエラーが発生しました")
       } finally {
         setLoading(false)
       }
     }
 
-    fetchCards()
-  }, [rows, supabase])
+    if (rows && rows.length > 0) {
+      fetchCards()
+    } else {
+      setLoading(false)
+    }
+  }, [rows])
 
-  const getCardImageUrl = (cardId: string) => {
-    const numericCardId = Number.parseInt(cardId)
-    if (isNaN(numericCardId)) return "/placeholder.svg"
+  const getCardImageUrl = (card: { id: string; name: string; imageUrl: string }) => {
+    // 1. まず、管理画面で設定されたimageUrlを確認
+    if (card.imageUrl && card.imageUrl !== "") {
+      console.log(`カード${card.id}の管理画面設定URL:`, card.imageUrl)
+      return card.imageUrl
+    }
 
-    const card = cards.find((c) => c.id === numericCardId)
-    if (!card) return "/placeholder.svg"
+    // 2. データベースから取得したカード情報を確認
+    const numericCardId = Number.parseInt(card.id, 10)
+    if (!isNaN(numericCardId)) {
+      const dbCard = cards.find((c) => c.id === numericCardId)
+      if (dbCard) {
+        // 優先順位: game8_image_url > image_url
+        if (dbCard.game8_image_url) {
+          console.log(`カード${card.id}のgame8 URL:`, dbCard.game8_image_url)
+          return dbCard.game8_image_url
+        }
+        if (dbCard.image_url) {
+          console.log(`カード${card.id}のimage URL:`, dbCard.image_url)
+          return dbCard.image_url
+        }
+      }
+    }
 
-    // 優先順位: game8_image_url > image_url > placeholder
-    if (card.game8_image_url) return card.game8_image_url
-    if (card.image_url) return card.image_url
-    return "/placeholder.svg"
+    // 3. フォールバック
+    console.log(`カード${card.id}はプレースホルダーを使用`)
+    return "/placeholder.svg?height=280&width=200&text=Card"
   }
 
-  const getCardName = (cardId: string) => {
-    const numericCardId = Number.parseInt(cardId)
-    if (isNaN(numericCardId)) return `Card ${cardId}`
+  const getCardName = (card: { id: string; name: string; imageUrl: string }) => {
+    // 1. 管理画面で設定された名前
+    if (card.name && card.name !== "") {
+      return card.name
+    }
 
-    const card = cards.find((c) => c.id === numericCardId)
-    return card?.name || `Card ${cardId}`
+    // 2. データベースから取得した名前
+    const numericCardId = Number.parseInt(card.id, 10)
+    if (!isNaN(numericCardId)) {
+      const dbCard = cards.find((c) => c.id === numericCardId)
+      if (dbCard && dbCard.name) {
+        return dbCard.name
+      }
+    }
+
+    // 3. フォールバック
+    return `Card ${card.id}`
   }
 
   if (loading) {
     return (
       <div className="bg-white border border-slate-200 rounded-lg overflow-hidden p-4">
         <div className="text-center text-slate-500">カード情報を読み込み中...</div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="bg-white border border-slate-200 rounded-lg overflow-hidden p-4">
+        <div className="text-center text-red-500">エラー: {error}</div>
       </div>
     )
   }
@@ -337,26 +405,35 @@ function CardDisplayTable({
               <td className="px-4 py-4 border-b border-slate-200 w-full">
                 {row.cards.length > 0 ? (
                   <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-3">
-                    {row.cards.map((card) => (
-                      <div key={card.id} className="flex flex-col items-center">
-                        <div className="aspect-[5/7] relative rounded border overflow-hidden bg-slate-100 w-full max-w-[80px]">
-                          <Image
-                            src={card.imageUrl || getCardImageUrl(card.id)}
-                            alt={card.name || getCardName(card.id)}
-                            fill
-                            className="object-cover"
-                            sizes="80px"
-                            onError={(e) => {
-                              const target = e.target as HTMLImageElement
-                              target.src = "/placeholder.svg"
-                            }}
-                          />
+                    {row.cards.map((card, cardIndex) => {
+                      const imageUrl = getCardImageUrl(card)
+                      const cardName = getCardName(card)
+
+                      return (
+                        <div key={`${card.id}-${cardIndex}`} className="flex flex-col items-center">
+                          <div className="aspect-[5/7] relative rounded border overflow-hidden bg-slate-100 w-full max-w-[80px]">
+                            <Image
+                              src={imageUrl || "/placeholder.svg"}
+                              alt={cardName}
+                              fill
+                              className="object-cover"
+                              sizes="80px"
+                              onError={(e) => {
+                                console.error(`画像読み込みエラー (${card.id}):`, imageUrl)
+                                const target = e.target as HTMLImageElement
+                                target.src = "/placeholder.svg?height=280&width=200&text=Error"
+                              }}
+                              onLoad={() => {
+                                console.log(`画像読み込み成功 (${card.id}):`, imageUrl)
+                              }}
+                            />
+                          </div>
+                          <div className="mt-1 text-[10px] text-slate-600 text-center truncate w-full max-w-[80px]">
+                            {cardName}
+                          </div>
                         </div>
-                        <div className="mt-1 text-[10px] text-slate-600 text-center truncate w-full max-w-[80px]">
-                          {card.name || getCardName(card.id)}
-                        </div>
-                      </div>
-                    ))}
+                      )
+                    })}
                   </div>
                 ) : (
                   <div className="text-slate-500 text-sm">カードが選択されていません</div>
