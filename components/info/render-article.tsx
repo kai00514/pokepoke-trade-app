@@ -617,6 +617,84 @@ function CardsTable({
   )
 }
 
+function FlexibleTable(block: Block & { type: "flexible-table" }) {
+  return (
+    <div key={block.id} className="bg-white border border-slate-200 rounded-lg overflow-hidden my-4">
+      <div className="overflow-x-auto">
+        <table
+          className={`w-full text-sm border-collapse ${
+            block.data.style === "striped"
+              ? ""
+              : block.data.style === "bordered"
+                ? "border border-slate-300"
+                : block.data.style === "compact"
+                  ? ""
+                  : ""
+          }`}
+        >
+          <thead>
+            <tr className="bg-blue-100">
+              {block.data.columns?.map((column: any) => (
+                <th
+                  key={column.id}
+                  className={`p-3 text-left font-semibold text-slate-700 border-b border-slate-200 ${
+                    block.data.style === "bordered" ? "border border-slate-300" : ""
+                  }`}
+                  style={{ width: column.width !== "auto" ? column.width : undefined }}
+                >
+                  {column.header}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {block.data.rows?.map((row: any, rowIndex: number) => (
+              <tr key={row.id} className={block.data.style === "striped" && rowIndex % 2 === 1 ? "bg-slate-50" : ""}>
+                {block.data.columns?.map((column: any) => {
+                  const value = row.cells?.[column.id] || ""
+                  return (
+                    <td
+                      key={column.id}
+                      className={`p-3 text-slate-600 border-b border-slate-100 ${
+                        block.data.style === "bordered" ? "border border-slate-300" : ""
+                      } ${block.data.style === "compact" ? "py-2" : ""}`}
+                    >
+                      {column.type === "image" && value ? (
+                        <Image
+                          src={value || "/placeholder.svg"}
+                          alt="テーブル画像"
+                          width={60}
+                          height={60}
+                          className="object-cover rounded"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement
+                            target.src = "/placeholder.svg"
+                          }}
+                        />
+                      ) : column.type === "link" && value ? (
+                        <a
+                          href={value}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:underline truncate"
+                        >
+                          {value}
+                        </a>
+                      ) : (
+                        <span>{value || "-"}</span>
+                      )}
+                    </td>
+                  )
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  )
+}
+
 export default function RenderArticle({ blocks }: RenderArticleProps) {
   return (
     <div className="prose prose-slate max-w-none">
@@ -761,6 +839,9 @@ export default function RenderArticle({ blocks }: RenderArticleProps) {
 
           case "card-display-table":
             return <CardDisplayTable key={index} rows={block.data.rows} />
+
+          case "flexible-table":
+            return <FlexibleTable key={index} {...block} />
 
           case "pickup":
             return (
