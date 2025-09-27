@@ -179,7 +179,7 @@ export function RichTextBlockEditor({ data, onChange }: RichTextBlockEditorProps
                       <code>`コード`</code>
                     </p>
                     <p>
-                      <code>> 引用</code>
+                      <code>{">"} 引用</code>
                     </p>
                   </div>
                 </div>
