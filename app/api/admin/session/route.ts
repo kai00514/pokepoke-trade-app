@@ -1,4 +1,4 @@
-import { NextResponse } from "next/headers"
+import { NextResponse } from "next/server"
 import { cookies } from "next/headers"
 
 const SESSION_COOKIE_NAME = "admin_session"
@@ -21,15 +21,16 @@ export async function GET() {
       const diffHours = (now.getTime() - loginTime.getTime()) / (1000 * 60 * 60)
 
       if (diffHours > 8) {
-        // セッション期限切れ
-        cookieStore.set(SESSION_COOKIE_NAME, "", {
+        // セッション期限切れ - レスポンスでCookie削除
+        const response = NextResponse.json({ session: null })
+        response.cookies.set(SESSION_COOKIE_NAME, "", {
           httpOnly: true,
           secure: process.env.NODE_ENV === "production",
           sameSite: "lax",
           maxAge: 0,
           path: "/",
         })
-        return NextResponse.json({ session: null })
+        return response
       }
 
       return NextResponse.json({
