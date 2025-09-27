@@ -140,6 +140,28 @@ export type CardDisplayTableBlock = BlockBase<
 >
 
 /**
+ * New: flexible table block (cell-based flexible table)
+ */
+export type FlexibleTableBlock = BlockBase<
+  "flexible-table",
+  {
+    rows: Array<{
+      id: string
+      cells: Array<{
+        id: string
+        type: "text" | "number" | "image" | "link" | "empty"
+        value: string
+        cardId?: string
+        cardName?: string
+        cardImageUrl?: string
+      }>
+    }>
+    style: "default" | "striped" | "bordered" | "compact"
+    maxColumns: number
+  }
+>
+
+/**
  * New: pickup info block (red-accent card with starred links/text list)
  */
 export type PickupBlock = BlockBase<
@@ -174,6 +196,7 @@ export type Block =
   | EvaluationBlock
   | CardsTableBlock
   | CardDisplayTableBlock
+  | FlexibleTableBlock
   | PickupBlock
   | ButtonBlock
 
@@ -457,6 +480,44 @@ function validateBlocks(rawBlocks: RawDbBlock[]): Block[] {
             })
           } else {
             console.warn("[info-articles] Skip invalid card-display-table block", { order, d })
+          }
+          break
+        }
+
+        case "flexible-table": {
+          const d = rb.data as any
+          const rowsRaw = Array.isArray(d?.rows) ? d.rows : []
+          const rows = rowsRaw
+            .map((row: any) => {
+              const id = typeof row?.id === "string" ? row.id : `row-${Math.random()}`
+              const cellsRaw = Array.isArray(row?.cells) ? row.cells : []
+              const cells = cellsRaw
+                .map((cell: any) => {
+                  const cellId = typeof cell?.id === "string" ? cell.id : `cell-${Math.random()}`
+                  const type = ["text", "number", "image", "link", "empty"].includes(cell?.type) ? cell.type : "text"
+                  const value = typeof cell?.value === "string" ? cell.value : ""
+                  const cardId = typeof cell?.cardId === "string" ? cell.cardId : undefined
+                  const cardName = typeof cell?.cardName === "string" ? cell.cardName : undefined
+                  const cardImageUrl = typeof cell?.cardImageUrl === "string" ? cell.cardImageUrl : undefined
+                  return { id: cellId, type, value, cardId, cardName, cardImageUrl }
+                })
+                .filter(Boolean)
+
+              return cells.length > 0 ? { id, cells } : null
+            })
+            .filter(Boolean)
+
+          const style = ["striped", "bordered", "compact"].includes(d?.style) ? d.style : "default"
+          const maxColumns = typeof d?.maxColumns === "number" && d.maxColumns > 0 ? d.maxColumns : 2
+
+          if (rows.length > 0) {
+            safe.push({
+              type: "flexible-table",
+              display_order: order,
+              data: { rows, style, maxColumns },
+            })
+          } else {
+            console.warn("[info-articles] Skip invalid flexible-table block", { order, d })
           }
           break
         }

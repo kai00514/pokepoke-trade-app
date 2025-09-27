@@ -618,8 +618,114 @@ function CardsTable({
 }
 
 function FlexibleTable(block: Block & { type: "flexible-table" }) {
+  const [cards, setCards] = React.useState<
+    Array<{ id: number; name: string; image_url: string; thumb_url?: string; game8_image_url?: string }>
+  >([])
+  const [loading, setLoading] = React.useState(true)
+
+  React.useEffect(() => {
+    async function fetchCards() {
+      try {
+        const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
+
+        // 画像タイプのセルからカードIDを収集
+        const cardIds = block.data.rows
+          .flatMap((row) => row.cells)
+          .filter((cell) => cell.type === "image" && cell.cardId)
+          .map((cell) => Number.parseInt(cell.cardId!, 10))
+          .filter((id) => !isNaN(id))
+
+        if (cardIds.length > 0) {
+          const { data } = await supabase
+            .from("cards")
+            .select("id, name, image_url, thumb_url, game8_image_url")
+            .in("id", cardIds)
+          setCards(data || [])
+        }
+      } catch (error) {
+        console.error("Failed to fetch cards:", error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchCards()
+  }, [block.data.rows])
+
+  const renderCell = (cell: any) => {
+    if (cell.type === "empty") {
+      return <div className="h-8 bg-slate-100 rounded"></div>
+    }
+
+    if (!cell.value && !cell.cardImageUrl && !cell.cardId) {
+      return <span className="text-slate-400 text-sm">-</span>
+    }
+
+    switch (cell.type) {
+      case "image":
+        if (cell.cardId) {
+          const card = cards.find((c) => c.id === Number.parseInt(cell.cardId, 10))
+          const imageUrl = cell.cardImageUrl || card?.game8_image_url || card?.image_url || card?.thumb_url
+          const cardName = cell.cardName || card?.name
+
+          return (
+            <div className="flex flex-col items-center gap-1">
+              <Image
+                src={imageUrl || "/placeholder.svg"}
+                alt={cardName || "カード画像"}
+                width={80}
+                height={112}
+                className="object-cover rounded border"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement
+                  target.src = "/placeholder.svg"
+                }}
+              />
+              {cardName && <span className="text-xs text-slate-600 text-center">{cardName}</span>}
+            </div>
+          )
+        }
+        return (
+          <Image
+            src={cell.value || "/placeholder.svg"}
+            alt="画像"
+            width={80}
+            height={80}
+            className="object-cover rounded"
+            onError={(e) => {
+              const target = e.target as HTMLImageElement
+              target.src = "/placeholder.svg"
+            }}
+          />
+        )
+
+      case "link":
+        return (
+          <a
+            href={cell.value}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-600 hover:underline text-sm truncate"
+          >
+            {cell.value}
+          </a>
+        )
+
+      default:
+        return <span className="text-sm">{cell.value}</span>
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="bg-white border border-slate-200 rounded-lg overflow-hidden p-4">
+        <div className="text-center text-slate-500">カード情報を読み込み中...</div>
+      </div>
+    )
+  }
+
   return (
-    <div key={block.id} className="bg-white border border-slate-200 rounded-lg overflow-hidden my-4">
+    <div className="bg-white border border-slate-200 rounded-lg overflow-hidden my-4">
       <div className="overflow-x-auto">
         <table
           className={`w-full text-sm border-collapse ${
@@ -632,60 +738,19 @@ function FlexibleTable(block: Block & { type: "flexible-table" }) {
                   : ""
           }`}
         >
-          <thead>
-            <tr className="bg-blue-100">
-              {block.data.columns?.map((column: any) => (
-                <th
-                  key={column.id}
-                  className={`p-3 text-left font-semibold text-slate-700 border-b border-slate-200 ${
-                    block.data.style === "bordered" ? "border border-slate-300" : ""
-                  }`}
-                  style={{ width: column.width !== "auto" ? column.width : undefined }}
-                >
-                  {column.header}
-                </th>
-              ))}
-            </tr>
-          </thead>
           <tbody>
             {block.data.rows?.map((row: any, rowIndex: number) => (
               <tr key={row.id} className={block.data.style === "striped" && rowIndex % 2 === 1 ? "bg-slate-50" : ""}>
-                {block.data.columns?.map((column: any) => {
-                  const value = row.cells?.[column.id] || ""
-                  return (
-                    <td
-                      key={column.id}
-                      className={`p-3 text-slate-600 border-b border-slate-100 ${
-                        block.data.style === "bordered" ? "border border-slate-300" : ""
-                      } ${block.data.style === "compact" ? "py-2" : ""}`}
-                    >
-                      {column.type === "image" && value ? (
-                        <Image
-                          src={value || "/placeholder.svg"}
-                          alt="テーブル画像"
-                          width={60}
-                          height={60}
-                          className="object-cover rounded"
-                          onError={(e) => {
-                            const target = e.target as HTMLImageElement
-                            target.src = "/placeholder.svg"
-                          }}
-                        />
-                      ) : column.type === "link" && value ? (
-                        <a
-                          href={value}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-blue-600 hover:underline truncate"
-                        >
-                          {value}
-                        </a>
-                      ) : (
-                        <span>{value || "-"}</span>
-                      )}
-                    </td>
-                  )
-                })}
+                {row.cells?.map((cell: any) => (
+                  <td
+                    key={cell.id}
+                    className={`p-3 text-slate-600 border-b border-slate-100 ${
+                      block.data.style === "bordered" ? "border border-slate-300" : ""
+                    } ${block.data.style === "compact" ? "py-2" : ""}`}
+                  >
+                    {renderCell(cell)}
+                  </td>
+                ))}
               </tr>
             ))}
           </tbody>
