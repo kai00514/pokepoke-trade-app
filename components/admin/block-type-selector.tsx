@@ -25,16 +25,6 @@ import {
   Images,
   Table2,
   MousePointer,
-  BarChart3,
-  BookOpen,
-  Layers,
-  Hash,
-  Quote,
-  Code,
-  Calendar,
-  Users,
-  Settings,
-  Zap,
 } from "lucide-react"
 
 interface BlockTypeSelectorProps {
@@ -49,8 +39,6 @@ export function BlockTypeSelector({ onSelect }: BlockTypeSelectorProps) {
         { type: "heading", label: "見出し", icon: Heading, description: "セクションの見出し（H1-H6）" },
         { type: "paragraph", label: "段落", icon: Type, description: "通常のテキスト段落" },
         { type: "rich-text", label: "リッチテキスト", icon: FileText, description: "Markdown/HTML対応テキスト" },
-        { type: "quote", label: "引用", icon: Quote, description: "引用文の表示" },
-        { type: "code", label: "コードブロック", icon: Code, description: "プログラムコードの表示" },
         { type: "divider", label: "区切り線", icon: Minus, description: "セクションの区切り線" },
       ],
     },
@@ -59,8 +47,6 @@ export function BlockTypeSelector({ onSelect }: BlockTypeSelectorProps) {
       items: [
         { type: "image", label: "画像", icon: ImageIcon, description: "単一画像の表示" },
         { type: "media-gallery", label: "メディアギャラリー", icon: Images, description: "複数画像のギャラリー表示" },
-        { type: "video", label: "動画", icon: Zap, description: "動画の埋め込み" },
-        { type: "audio", label: "音声", icon: Settings, description: "音声ファイルの再生" },
       ],
     },
     {
@@ -74,7 +60,6 @@ export function BlockTypeSelector({ onSelect }: BlockTypeSelectorProps) {
           icon: Table2,
           description: "高機能なカスタマイズ可能テーブル",
         },
-        { type: "comparison-table", label: "比較テーブル", icon: BarChart3, description: "商品やサービスの比較表" },
       ],
     },
     {
@@ -87,8 +72,6 @@ export function BlockTypeSelector({ onSelect }: BlockTypeSelectorProps) {
           icon: Grid3X3,
           description: "ヘッダー付きカード一覧表示",
         },
-        { type: "deck-list", label: "デッキリスト", icon: Layers, description: "デッキ構成の表示" },
-        { type: "card-search", label: "カード検索", icon: Hash, description: "カード検索機能" },
         { type: "evaluation", label: "デッキ評価", icon: Star, description: "デッキの評価・レーティング" },
       ],
     },
@@ -97,9 +80,6 @@ export function BlockTypeSelector({ onSelect }: BlockTypeSelectorProps) {
       items: [
         { type: "button", label: "ボタン", icon: MousePointer, description: "アクションボタン" },
         { type: "callout", label: "コールアウト", icon: AlertCircle, description: "注意書きや重要な情報" },
-        { type: "accordion", label: "アコーディオン", icon: BookOpen, description: "折りたたみ可能なコンテンツ" },
-        { type: "tabs", label: "タブ", icon: Layers, description: "タブ切り替えコンテンツ" },
-        { type: "modal", label: "モーダル", icon: Settings, description: "ポップアップ表示" },
       ],
     },
     {
@@ -107,29 +87,11 @@ export function BlockTypeSelector({ onSelect }: BlockTypeSelectorProps) {
       items: [
         { type: "toc", label: "目次", icon: List, description: "記事の目次を自動生成" },
         { type: "related-links", label: "関連リンク", icon: Link, description: "関連ページへのリンク集" },
-        { type: "breadcrumb", label: "パンくずリスト", icon: Link, description: "ナビゲーションパス" },
-        { type: "pagination", label: "ページネーション", icon: Hash, description: "ページ送り機能" },
       ],
     },
     {
       category: "特殊コンテンツ",
-      items: [
-        { type: "pickup", label: "ピックアップ", icon: Star, description: "注目コンテンツの強調表示" },
-        { type: "banner", label: "バナー", icon: ImageIcon, description: "宣伝・告知バナー" },
-        { type: "timeline", label: "タイムライン", icon: Calendar, description: "時系列の表示" },
-        { type: "testimonial", label: "お客様の声", icon: Users, description: "レビューや感想" },
-        { type: "faq", label: "FAQ", icon: AlertCircle, description: "よくある質問" },
-        { type: "contact-form", label: "お問い合わせフォーム", icon: Settings, description: "連絡フォーム" },
-      ],
-    },
-    {
-      category: "データ表示",
-      items: [
-        { type: "chart", label: "グラフ", icon: BarChart3, description: "データのグラフ表示" },
-        { type: "progress", label: "プログレスバー", icon: BarChart3, description: "進捗の表示" },
-        { type: "counter", label: "カウンター", icon: Hash, description: "数値カウンター" },
-        { type: "stats", label: "統計情報", icon: BarChart3, description: "統計データの表示" },
-      ],
+      items: [{ type: "pickup", label: "ピックアップ", icon: Star, description: "注目コンテンツの強調表示" }],
     },
   ]
 
