@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server"
 import { revalidatePath } from "next/cache"
 
 export interface ArticleBlock {
+  id?: string
   type: string
   data: any
   display_order: number
@@ -22,6 +23,29 @@ export interface CreateArticleData {
   pinned?: boolean
   priority?: number
   blocks: ArticleBlock[]
+}
+
+// スラッグの重複チェックと自動生成
+async function generateUniqueSlug(supabase: any, baseSlug: string, excludeId?: string): Promise<string> {
+  let slug = baseSlug
+  let counter = 1
+
+  while (true) {
+    const query = supabase.from("info_articles").select("id").eq("slug", slug)
+
+    if (excludeId) {
+      query.neq("id", excludeId)
+    }
+
+    const { data: existing } = await query.single()
+
+    if (!existing) {
+      return slug
+    }
+
+    slug = `${baseSlug}-${counter}`
+    counter++
+  }
 }
 
 export async function createArticle(articleData: CreateArticleData) {
@@ -53,50 +77,17 @@ export async function createArticle(articleData: CreateArticleData) {
       throw new Error("認証されていません")
     }
 
-    // セッション情報も確認
-    const {
-      data: { session },
-      error: sessionError,
-    } = await supabase.auth.getSession()
-    console.log("[SERVER] === DEBUG: Session info ===")
-    console.log("[SERVER] Session:", session ? "present" : "missing")
-    console.log("[SERVER] Session error:", sessionError)
-
-    // テーブル構造を確認
-    console.log("[SERVER] === DEBUG: Checking table structure ===")
-    const { data: tableInfo, error: tableError } = await supabase
-      .from("information_schema.columns")
-      .select("column_name, data_type, is_nullable")
-      .eq("table_name", "info_articles")
-      .eq("table_schema", "public")
-
-    console.log("[SERVER] Table structure:", tableInfo)
-    console.log("[SERVER] Table error:", tableError)
-
-    // RLSポリシーの確認
-    console.log("[SERVER] === DEBUG: Checking RLS policies ===")
-    const { data: policies, error: policyError } = await supabase
-      .from("pg_policies")
-      .select("*")
-      .eq("tablename", "info_articles")
-
-    console.log("[SERVER] RLS policies:", policies)
-    console.log("[SERVER] Policy error:", policyError)
-
-    // アクセス権限のテスト
-    console.log("[SERVER] === DEBUG: Testing table access ===")
-    const { data: testData, error: testError } = await supabase.from("info_articles").select("id").limit(1)
-
-    console.log("[SERVER] Test query result:", testData)
-    console.log("[SERVER] Test query error:", testError)
-
     // 記事データの準備
     const { blocks, ...articleFields } = articleData
+
+    // スラッグの生成と重複チェック
+    const baseSlug = articleData.slug || articleData.title.toLowerCase().replace(/\s+/g, "-")
+    const uniqueSlug = await generateUniqueSlug(supabase, baseSlug)
 
     const insertData = {
       ...articleFields,
       author_id: user.id,
-      slug: articleData.slug || articleData.title.toLowerCase().replace(/\s+/g, "-"),
+      slug: uniqueSlug,
       tags: articleData.tags || [],
       pinned: articleData.pinned || false,
       priority: articleData.priority || 0,
@@ -104,12 +95,6 @@ export async function createArticle(articleData: CreateArticleData) {
 
     console.log("[SERVER] === DEBUG: Prepared insert data ===")
     console.log("[SERVER] Insert data:", JSON.stringify(insertData, null, 2))
-
-    // データ型の検証
-    console.log("[SERVER] === DEBUG: Data type validation ===")
-    Object.entries(insertData).forEach(([key, value]) => {
-      console.log(`[SERVER] ${key}: ${typeof value} = ${JSON.stringify(value)}`)
-    })
 
     // 記事を挿入
     console.log("[SERVER] === DEBUG: Inserting article ===")
@@ -138,7 +123,7 @@ export async function createArticle(articleData: CreateArticleData) {
         article_id: article.id,
         type: block.type,
         data: block.data,
-        display_order: (index + 1) * 10,
+        display_order: block.display_order || (index + 1) * 10,
       }))
 
       console.log("[SERVER] Block data:", JSON.stringify(blockData, null, 2))
@@ -195,9 +180,13 @@ export async function updateArticle(id: string, articleData: CreateArticleData) 
 
     const { blocks, ...articleFields } = articleData
 
+    // スラッグの重複チェック（更新時は自分自身を除外）
+    const baseSlug = articleData.slug || articleData.title.toLowerCase().replace(/\s+/g, "-")
+    const uniqueSlug = await generateUniqueSlug(supabase, baseSlug, id)
+
     const updateData = {
       ...articleFields,
-      slug: articleData.slug || articleData.title.toLowerCase().replace(/\s+/g, "-"),
+      slug: uniqueSlug,
       tags: articleData.tags || [],
       pinned: articleData.pinned || false,
       priority: articleData.priority || 0,
@@ -229,7 +218,7 @@ export async function updateArticle(id: string, articleData: CreateArticleData) 
         article_id: id,
         type: block.type,
         data: block.data,
-        display_order: (index + 1) * 10,
+        display_order: block.display_order || (index + 1) * 10,
       }))
 
       const { error: blocksError } = await supabase.from("info_article_blocks").insert(blockData)
