@@ -14,11 +14,9 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { BarChart3, FileText, Settings, Users, Calendar, Shield, LogOut, ChevronUp } from "lucide-react"
-import { supabase } from "@/lib/supabase/client"
-import type { User } from "@supabase/supabase-js"
 
 const items = [
   {
@@ -58,33 +56,34 @@ const items = [
   },
 ]
 
+interface AdminUser {
+  username: string
+  name: string
+}
+
 export function AdminSidebar() {
-  const [user, setUser] = useState<User | null>(null)
+  const [user, setUser] = useState<AdminUser | null>(null)
   const router = useRouter()
 
   useEffect(() => {
-    const getUser = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession()
-      setUser(session?.user || null)
-    }
-
-    getUser()
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user || null)
+    // クライアントサイドでユーザー情報を取得
+    // 実際の実装では、セッションからユーザー情報を取得
+    setUser({
+      username: "admin",
+      name: "Administrator",
     })
-
-    return () => subscription.unsubscribe()
   }, [])
 
   const handleSignOut = async () => {
     try {
-      await supabase.auth.signOut()
-      router.push("/admin/login")
+      const response = await fetch("/api/admin/logout", {
+        method: "POST",
+      })
+
+      if (response.ok) {
+        router.push("/admin/login")
+        router.refresh()
+      }
     } catch (error) {
       console.error("Sign out error:", error)
     }
@@ -129,17 +128,13 @@ export function AdminSidebar() {
                   className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
                 >
                   <Avatar className="h-8 w-8 rounded-lg">
-                    <AvatarImage
-                      src={user?.user_metadata?.avatar_url || "/placeholder.svg"}
-                      alt={user?.user_metadata?.name || user?.email || "Admin"}
-                    />
                     <AvatarFallback className="rounded-lg">
-                      {user?.user_metadata?.name?.[0] || user?.email?.[0] || "A"}
+                      {user?.name?.[0] || user?.username?.[0] || "A"}
                     </AvatarFallback>
                   </Avatar>
                   <div className="grid flex-1 text-left text-sm leading-tight">
-                    <span className="truncate font-semibold">{user?.user_metadata?.name || "管理者"}</span>
-                    <span className="truncate text-xs">{user?.email}</span>
+                    <span className="truncate font-semibold">{user?.name || "管理者"}</span>
+                    <span className="truncate text-xs">{user?.username}</span>
                   </div>
                   <ChevronUp className="ml-auto size-4" />
                 </SidebarMenuButton>

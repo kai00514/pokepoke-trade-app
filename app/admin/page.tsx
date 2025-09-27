@@ -1,63 +1,48 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Shield, Users, FileText, Calendar, BarChart3 } from "lucide-react"
+import { getAdminSession } from "@/lib/auth/admin-session"
+import { redirect } from "next/navigation"
 
-export default function AdminDashboard() {
-  // 認証チェックはlayout.tsxで実行されるため、ここでは不要
+export default async function AdminDashboard() {
+  const session = await getAdminSession()
+
+  if (!session) {
+    redirect("/admin/login")
+  }
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center space-x-2">
-        <Shield className="h-8 w-8 text-blue-600" />
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">管理者ダッシュボード</h1>
-          <p className="text-muted-foreground">システム管理とコンテンツ管理</p>
-        </div>
+      <div>
+        <h1 className="text-3xl font-bold">ダッシュボード</h1>
+        <p className="text-gray-600">ようこそ、{session.user.name}さん</p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">記事管理</CardTitle>
-            <FileText className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">記事</div>
-            <p className="text-xs text-muted-foreground">情報記事の作成・編集</p>
-          </CardContent>
-        </Card>
+        <div className="rounded-lg border bg-card text-card-foreground shadow-sm p-6">
+          <div className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <h3 className="tracking-tight text-sm font-medium">総記事数</h3>
+          </div>
+          <div className="text-2xl font-bold">0</div>
+        </div>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">デッキ管理</CardTitle>
-            <BarChart3 className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">デッキ</div>
-            <p className="text-xs text-muted-foreground">デッキページの管理</p>
-          </CardContent>
-        </Card>
+        <div className="rounded-lg border bg-card text-card-foreground shadow-sm p-6">
+          <div className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <h3 className="tracking-tight text-sm font-medium">総デッキ数</h3>
+          </div>
+          <div className="text-2xl font-bold">0</div>
+        </div>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">ユーザー管理</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">ユーザー</div>
-            <p className="text-xs text-muted-foreground">ユーザー情報の管理</p>
-          </CardContent>
-        </Card>
+        <div className="rounded-lg border bg-card text-card-foreground shadow-sm p-6">
+          <div className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <h3 className="tracking-tight text-sm font-medium">総ユーザー数</h3>
+          </div>
+          <div className="text-2xl font-bold">0</div>
+        </div>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">トーナメント</CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">大会</div>
-            <p className="text-xs text-muted-foreground">大会情報の管理</p>
-          </CardContent>
-        </Card>
+        <div className="rounded-lg border bg-card text-card-foreground shadow-sm p-6">
+          <div className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <h3 className="tracking-tight text-sm font-medium">今月のアクセス</h3>
+          </div>
+          <div className="text-2xl font-bold">0</div>
+        </div>
       </div>
     </div>
   )

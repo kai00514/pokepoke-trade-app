@@ -8,8 +8,9 @@ import { AdminSidebar } from "@/components/admin/admin-sidebar"
 import { Toaster } from "@/components/ui/sonner"
 import { supabase } from "@/lib/supabase/client"
 import { Shield } from "lucide-react"
+import { getAdminSession } from "@/lib/auth/admin-session"
 
-export default function AdminLayout({
+export default async function AdminLayout({
   children,
 }: {
   children: React.ReactNode
@@ -28,15 +29,9 @@ export default function AdminLayout({
           return
         }
 
-        const {
-          data: { session },
-          error: sessionError,
-        } = await supabase.auth.getSession()
+        const session = await getAdminSession()
 
-        console.log("Admin auth check - Session:", session?.user?.email)
-
-        // セッションがない場合はログインページへ
-        if (sessionError || !session?.user?.email) {
+        if (!session) {
           console.log("No session found, redirecting to login")
           router.push("/admin/login")
           return
