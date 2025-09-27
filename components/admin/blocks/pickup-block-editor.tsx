@@ -6,11 +6,11 @@ import { Plus, Trash2 } from "lucide-react"
 
 interface PickupItem {
   title: string
-  url?: string
+  url: string
 }
 
 interface PickupBlockData {
-  title?: string
+  title: string
   items: PickupItem[]
 }
 
@@ -20,31 +20,23 @@ interface PickupBlockEditorProps {
 }
 
 export function PickupBlockEditor({ data, onChange }: PickupBlockEditorProps) {
-  // データの初期化とデフォルト値の設定
-  const safeData = {
-    title: data?.title || "",
-    items: Array.isArray(data?.items) ? data.items : [],
-  }
-
   const handleChange = (field: keyof PickupBlockData, value: any) => {
-    onChange({ ...safeData, [field]: value })
+    onChange({ ...data, [field]: value })
   }
 
   const handleItemChange = (index: number, field: keyof PickupItem, value: string) => {
-    const newItems = [...safeData.items]
-    if (newItems[index]) {
-      newItems[index] = { ...newItems[index], [field]: value }
-      handleChange("items", newItems)
-    }
+    const newItems = [...data.items]
+    newItems[index] = { ...newItems[index], [field]: value }
+    handleChange("items", newItems)
   }
 
   const addItem = () => {
     const newItem: PickupItem = { title: "", url: "" }
-    handleChange("items", [...safeData.items, newItem])
+    handleChange("items", [...data.items, newItem])
   }
 
   const removeItem = (index: number) => {
-    const newItems = safeData.items.filter((_, i) => i !== index)
+    const newItems = data.items.filter((_, i) => i !== index)
     handleChange("items", newItems)
   }
 
@@ -59,7 +51,7 @@ export function PickupBlockEditor({ data, onChange }: PickupBlockEditorProps) {
           <Label htmlFor="pickup-title">タイトル</Label>
           <Input
             id="pickup-title"
-            value={safeData.title}
+            value={data.title}
             onChange={(e) => handleChange("title", e.target.value)}
             placeholder="ピックアップのタイトル"
           />
@@ -67,21 +59,21 @@ export function PickupBlockEditor({ data, onChange }: PickupBlockEditorProps) {
 
         <div className="space-y-3">
           <Label>ピックアップ項目</Label>
-          {safeData.items.map((item, index) => (
+          {data.items.map((item, index) => (
             <div key={index} className="grid grid-cols-1 gap-2 p-3 border rounded-lg">
               <div className="space-y-2">
                 <Label className="text-xs">タイトル</Label>
                 <Input
-                  value={item.title || ""}
+                  value={item.title}
                   onChange={(e) => handleItemChange(index, "title", e.target.value)}
                   placeholder="項目のタイトル"
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-xs">URL（オプション）</Label>
+                <Label className="text-xs">URL</Label>
                 <div className="flex space-x-2">
                   <Input
-                    value={item.url || ""}
+                    value={item.url}
                     onChange={(e) => handleItemChange(index, "url", e.target.value)}
                     placeholder="https://example.com"
                   />
@@ -106,33 +98,25 @@ export function PickupBlockEditor({ data, onChange }: PickupBlockEditorProps) {
       </div>
 
       {/* プレビュー */}
-      {(safeData.title || safeData.items.length > 0) && (
+      {(data.title || data.items.length > 0) && (
         <div className="mt-4 p-4 bg-gray-50 rounded-lg">
           <div className="text-sm text-gray-600 mb-2">プレビュー:</div>
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-            <div className="flex items-start gap-3">
-              <div className="flex-shrink-0 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center">
-                <span className="text-white text-sm font-bold">★</span>
+          <div className="bg-white rounded-lg border p-4">
+            {data.title && <h3 className="text-lg font-semibold mb-3">{data.title}</h3>}
+            {data.items.length > 0 && (
+              <div className="space-y-2">
+                {data.items.map((item, index) => (
+                  <div key={index} className="p-3 bg-blue-50 rounded-lg border-l-4 border-blue-400">
+                    <h4 className="font-medium text-blue-900">{item.title || "タイトル未設定"}</h4>
+                    {item.url && (
+                      <a href={item.url} className="text-sm text-blue-600 hover:underline">
+                        {item.url}
+                      </a>
+                    )}
+                  </div>
+                ))}
               </div>
-              <div className="flex-1">
-                {safeData.title && <h4 className="font-semibold text-red-800 mb-2">{safeData.title}</h4>}
-                {safeData.items.length > 0 && (
-                  <ul className="space-y-1">
-                    {safeData.items.map((item, index) => (
-                      <li key={index} className="text-red-700">
-                        {item.url ? (
-                          <a href={item.url} className="hover:underline" target="_blank" rel="noopener noreferrer">
-                            {item.title || "タイトル未設定"}
-                          </a>
-                        ) : (
-                          item.title || "タイトル未設定"
-                        )}
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-            </div>
+            )}
           </div>
         </div>
       )}

@@ -234,9 +234,7 @@ export function ArticleEditor({ article, isEditing = false }: ArticleEditorProps
       case "pickup":
         defaultData = {
           title: "",
-          description: "",
-          link_url: "",
-          link_text: "詳細を見る",
+          items: [{ title: "", url: "" }],
         }
         break
       case "button":
