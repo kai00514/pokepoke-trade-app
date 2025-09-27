@@ -16,7 +16,13 @@ export async function GET() {
 
     // セッション有効期限チェック
     if (Date.now() > session.expiresAt) {
-      cookieStore.delete(SESSION_COOKIE_NAME)
+      cookieStore.set(SESSION_COOKIE_NAME, "", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        maxAge: 0,
+        path: "/", // pathを明示的に指定
+      })
       return NextResponse.json({ session: null })
     }
 

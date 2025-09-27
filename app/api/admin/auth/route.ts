@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       maxAge: SESSION_DURATION / 1000,
-      path: "/admin",
+      path: "/", // "/admin" から "/" に変更
     })
 
     return NextResponse.json({
