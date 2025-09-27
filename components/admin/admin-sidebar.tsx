@@ -1,6 +1,6 @@
 "use client"
 
-import { Calendar, FileText, Home, LogOut, Settings, Shield, Trophy, Users } from "lucide-react"
+import { FileText, Home, LogOut, Settings, Shield, Trophy, Users, BarChart3, PenTool, Layers, Plus } from "lucide-react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -30,9 +30,19 @@ const menuItems = [
     icon: FileText,
   },
   {
+    title: "記事作成",
+    url: "/admin/articles/create",
+    icon: PenTool,
+  },
+  {
     title: "デッキ管理",
     url: "/admin/decks",
-    icon: Shield,
+    icon: Layers,
+  },
+  {
+    title: "デッキ作成",
+    url: "/admin/decks/create",
+    icon: Plus,
   },
   {
     title: "トーナメント",
@@ -47,7 +57,7 @@ const menuItems = [
   {
     title: "分析",
     url: "/admin/analytics",
-    icon: Calendar,
+    icon: BarChart3,
   },
   {
     title: "設定",
