@@ -1,10 +1,8 @@
-import { checkAdminAuth } from "@/lib/auth/admin-auth"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Shield, Users, FileText, Calendar, BarChart3 } from "lucide-react"
 
-export default async function AdminDashboard() {
-  // 管理者認証チェック（認証されていない場合は自動リダイレクト）
-  await checkAdminAuth()
+export default function AdminDashboard() {
+  // 認証チェックはlayout.tsxで実行されるため、ここでは不要
 
   return (
     <div className="space-y-6">
