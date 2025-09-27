@@ -6,16 +6,16 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Trash2, Plus, Search } from "lucide-react"
-import { DetailedSearchModal } from "@/components/detailed-search-modal"
+import Image from "next/image"
+import DetailedSearchModal from "@/components/detailed-search-modal"
 
 interface CardDisplayRow {
   id: string
   header: string
   cards: Array<{
     id: string
-    card_id: number
-    card_name?: string
-    image_url?: string
+    name: string
+    imageUrl: string
   }>
 }
 
@@ -66,19 +66,16 @@ export function CardDisplayTableBlockEditor({ data, onChange }: CardDisplayTable
     setSearchModalOpen(true)
   }
 
-  const handleCardSelect = (cards: any[]) => {
+  const handleCardSelectionComplete = (selectedCards: any[]) => {
     if (!currentRowId) return
 
-    const selectedCards = cards.map((card, index) => ({
-      id: `card-${Date.now()}-${index}`,
-      card_id: card.id,
-      card_name: card.name,
-      image_url: card.game8_image_url || card.image_url,
+    const formattedCards = selectedCards.map((card) => ({
+      id: card.id.toString(),
+      name: card.name,
+      imageUrl: card.game8_image_url || card.image_url || "/placeholder.svg",
     }))
 
-    const updatedRows = safeData.rows.map((row) =>
-      row.id === currentRowId ? { ...row, cards: [...row.cards, ...selectedCards] } : row,
-    )
+    const updatedRows = safeData.rows.map((row) => (row.id === currentRowId ? { ...row, cards: formattedCards } : row))
 
     onChange({ ...safeData, rows: updatedRows })
     setSearchModalOpen(false)
@@ -90,6 +87,18 @@ export function CardDisplayTableBlockEditor({ data, onChange }: CardDisplayTable
       row.id === rowId ? { ...row, cards: row.cards.filter((card) => card.id !== cardId) } : row,
     )
     onChange({ ...safeData, rows: updatedRows })
+  }
+
+  const getCurrentRowCards = () => {
+    if (!currentRowId) return []
+    const row = safeData.rows.find((r) => r.id === currentRowId)
+    return (
+      row?.cards.map((card) => ({
+        id: card.id,
+        name: card.name,
+        imageUrl: card.imageUrl,
+      })) || []
+    )
   }
 
   return (
@@ -145,18 +154,16 @@ export function CardDisplayTableBlockEditor({ data, onChange }: CardDisplayTable
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                     {row.cards.map((card) => (
                       <div key={card.id} className="relative group border rounded-lg p-2 bg-slate-50">
-                        {card.image_url ? (
-                          <img
-                            src={card.image_url || "/placeholder.svg"}
-                            alt={card.card_name || "カード"}
-                            className="w-full h-20 object-cover rounded"
+                        <div className="aspect-[5/7] relative rounded overflow-hidden bg-slate-100">
+                          <Image
+                            src={card.imageUrl || "/placeholder.svg"}
+                            alt={card.name || "カード"}
+                            fill
+                            className="object-cover"
+                            sizes="(max-width: 768px) 50vw, 25vw"
                           />
-                        ) : (
-                          <div className="w-full h-20 bg-slate-200 rounded flex items-center justify-center">
-                            <span className="text-xs text-slate-500">画像なし</span>
-                          </div>
-                        )}
-                        <p className="text-xs mt-1 truncate">{card.card_name || `カードID: ${card.card_id}`}</p>
+                        </div>
+                        <p className="text-xs mt-1 truncate">{card.name}</p>
                         <Button
                           onClick={() => handleRemoveCard(row.id, card.id)}
                           size="sm"
@@ -196,18 +203,16 @@ export function CardDisplayTableBlockEditor({ data, onChange }: CardDisplayTable
                   <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
                     {row.cards.map((card) => (
                       <div key={card.id} className="text-center">
-                        {card.image_url ? (
-                          <img
-                            src={card.image_url || "/placeholder.svg"}
-                            alt={card.card_name || "カード"}
-                            className="w-full h-16 object-cover rounded border"
+                        <div className="aspect-[5/7] relative rounded border overflow-hidden bg-slate-100">
+                          <Image
+                            src={card.imageUrl || "/placeholder.svg"}
+                            alt={card.name || "カード"}
+                            fill
+                            className="object-cover"
+                            sizes="(max-width: 768px) 33vw, 16vw"
                           />
-                        ) : (
-                          <div className="w-full h-16 bg-slate-200 rounded border flex items-center justify-center">
-                            <span className="text-xs text-slate-500">画像なし</span>
-                          </div>
-                        )}
-                        <p className="text-xs mt-1 truncate">{card.card_name || `ID: ${card.card_id}`}</p>
+                        </div>
+                        <p className="text-xs mt-1 truncate">{card.name}</p>
                       </div>
                     ))}
                   </div>
@@ -223,12 +228,10 @@ export function CardDisplayTableBlockEditor({ data, onChange }: CardDisplayTable
       {/* カード検索モーダル */}
       <DetailedSearchModal
         isOpen={searchModalOpen}
-        onClose={() => {
-          setSearchModalOpen(false)
-          setCurrentRowId("")
-        }}
-        onSelect={handleCardSelect}
-        multiSelect={true}
+        onOpenChange={setSearchModalOpen}
+        onSelectionComplete={handleCardSelectionComplete}
+        initialSelectedCards={getCurrentRowCards()}
+        modalTitle="カードを選択"
       />
     </div>
   )

@@ -1,9 +1,8 @@
--- 新しいブロックタイプを許可するためにCHECK制約を更新（既存のもののみ）
-ALTER TABLE info_article_blocks 
-DROP CONSTRAINT IF EXISTS info_blocks_type_allowed;
+-- 既存の制約を削除
+ALTER TABLE info_article_blocks DROP CONSTRAINT IF EXISTS info_blocks_type_allowed;
 
-ALTER TABLE info_article_blocks 
-ADD CONSTRAINT info_blocks_type_allowed 
+-- 新しい制約を追加（実装済みのブロックタイプのみ）
+ALTER TABLE info_article_blocks ADD CONSTRAINT info_blocks_type_allowed 
 CHECK (type IN (
   'heading',
   'paragraph', 
@@ -23,3 +22,8 @@ CHECK (type IN (
   'related-links',
   'divider'
 ));
+
+-- インデックスの追加（パフォーマンス向上）
+CREATE INDEX IF NOT EXISTS idx_info_article_blocks_type ON info_article_blocks(type);
+CREATE INDEX IF NOT EXISTS idx_info_article_blocks_article_id ON info_article_blocks(article_id);
+CREATE INDEX IF NOT EXISTS idx_info_article_blocks_display_order ON info_article_blocks(display_order);
