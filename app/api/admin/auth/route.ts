@@ -14,27 +14,28 @@ export async function POST(request: Request) {
 
     const supabase = await createClient()
 
-    // まずはadmin_usersテーブルから直接チェック（RPC関数を使わない）
-    const { data: adminUser, error } = await supabase
+    // admin_usersテーブルから直接チェック
+    const { data: adminUsers, error } = await supabase
       .from("admin_users")
       .select("*")
       .eq("username", username)
       .eq("is_active", true)
-      .single()
 
     if (error) {
       console.error("Database query error:", error)
       return NextResponse.json({ success: false, error: "データベースエラーが発生しました" }, { status: 500 })
     }
 
-    if (!adminUser) {
+    if (!adminUsers || adminUsers.length === 0) {
       return NextResponse.json(
         { success: false, error: "ユーザー名またはパスワードが正しくありません" },
         { status: 401 },
       )
     }
 
-    // パスワードチェック（簡易版 - 本来はハッシュ化すべき）
+    const adminUser = adminUsers[0]
+
+    // パスワードチェック
     if (adminUser.password_hash !== password) {
       return NextResponse.json(
         { success: false, error: "ユーザー名またはパスワードが正しくありません" },
