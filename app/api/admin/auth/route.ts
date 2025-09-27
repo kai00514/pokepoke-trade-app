@@ -1,85 +1,71 @@
-import { NextResponse } from "next/server"
-import { cookies } from "next/headers"
+import { type NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 
 const SESSION_COOKIE_NAME = "admin_session"
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
+    console.log("Admin auth request received")
+
     const { username, password } = await request.json()
-    console.log("Login attempt:", { username, password: "***" })
+    console.log("Username:", username, "Password:", password ? "[MASKED]" : "empty")
 
     if (!username || !password) {
-      return NextResponse.json({ success: false, error: "ユーザー名とパスワードを入力してください" }, { status: 400 })
+      console.log("Missing credentials")
+      return NextResponse.json({ error: "ユーザー名とパスワードが必要です" }, { status: 400 })
     }
 
     const supabase = await createClient()
+    console.log("Supabase client created")
 
-    // admin_usersテーブルから直接チェック
-    console.log("Querying admin_users table...")
-    const { data: adminUsers, error } = await supabase
-      .from("admin_users")
-      .select("*")
-      .eq("username", username)
-      .eq("is_active", true)
+    // RPC関数を使用して認証
+    const { data: authResult, error: authError } = await supabase.rpc("authenticate_admin_user", {
+      input_username: username,
+      input_password: password,
+    })
 
-    console.log("Database query result:", { adminUsers, error })
+    console.log("RPC auth result:", authResult, "Error:", authError)
 
-    if (error) {
-      console.error("Database query error:", error)
-      return NextResponse.json({ success: false, error: "データベースエラーが発生しました" }, { status: 500 })
+    if (authError) {
+      console.error("Database authentication error:", authError)
+      return NextResponse.json({ error: "データベースエラーが発生しました" }, { status: 500 })
     }
 
-    if (!adminUsers || adminUsers.length === 0) {
-      console.log("No admin user found")
-      return NextResponse.json(
-        { success: false, error: "ユーザー名またはパスワードが正しくありません" },
-        { status: 401 },
-      )
+    if (!authResult || authResult.length === 0) {
+      console.log("Authentication failed - no user found")
+      return NextResponse.json({ error: "認証に失敗しました" }, { status: 401 })
     }
 
-    const adminUser = adminUsers[0]
-    console.log("Found admin user:", { username: adminUser.username, password_hash: adminUser.password_hash })
+    const user = authResult[0]
+    console.log("Authentication successful for user:", user.username)
 
-    // パスワードチェック
-    if (adminUser.password_hash !== password) {
-      console.log("Password mismatch")
-      return NextResponse.json(
-        { success: false, error: "ユーザー名またはパスワードが正しくありません" },
-        { status: 401 },
-      )
-    }
+    // セッションIDを生成
+    const sessionId = crypto.randomUUID()
+    const expiresAt = new Date(Date.now() + 8 * 60 * 60 * 1000) // 8時間
 
-    console.log("Authentication successful")
+    // Cookieを設定
+    const response = NextResponse.json({
+      success: true,
+      user: {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        name: user.name,
+      },
+    })
 
-    // セッションCookieを設定
-    const sessionData = {
-      userId: adminUser.id,
-      username: adminUser.username,
-      email: adminUser.email,
-      name: adminUser.name,
-      loginTime: new Date().toISOString(),
-    }
-
-    const cookieStore = await cookies()
-    cookieStore.set(SESSION_COOKIE_NAME, JSON.stringify(sessionData), {
+    response.cookies.set(SESSION_COOKIE_NAME, sessionId, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
-      maxAge: 60 * 60 * 8, // 8時間
       path: "/",
+      expires: expiresAt,
     })
 
-    return NextResponse.json({
-      success: true,
-      user: {
-        username: adminUser.username,
-        email: adminUser.email,
-        name: adminUser.name,
-      },
-    })
+    console.log("Session cookie set, redirecting to admin")
+    return response
   } catch (error) {
-    console.error("Login API error:", error)
-    return NextResponse.json({ success: false, error: "サーバーエラーが発生しました" }, { status: 500 })
+    console.error("Admin auth error:", error)
+    return NextResponse.json({ error: "サーバーエラーが発生しました" }, { status: 500 })
   }
 }

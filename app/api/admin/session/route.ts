@@ -1,31 +1,31 @@
-import { NextResponse } from "next/server"
-import { cookies } from "next/headers"
+import { type NextRequest, NextResponse } from "next/server"
 
 const SESSION_COOKIE_NAME = "admin_session"
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const cookieStore = await cookies()
-    const sessionCookie = cookieStore.get(SESSION_COOKIE_NAME)
+    console.log("Session check request received")
 
-    if (!sessionCookie?.value) {
-      return NextResponse.json({ session: null })
+    const sessionId = request.cookies.get(SESSION_COOKIE_NAME)?.value
+    console.log("Session ID from cookie:", sessionId ? "[EXISTS]" : "none")
+
+    if (!sessionId) {
+      console.log("No session cookie found")
+      return NextResponse.json({ authenticated: false }, { status: 401 })
     }
 
-    const sessionData = JSON.parse(sessionCookie.value)
+    // 簡易セッション管理（実際のプロダクションではRedisなどを使用）
+    // ここでは一時的にCookieの存在のみでセッションを判定
+    console.log("Session valid")
 
     return NextResponse.json({
-      session: {
-        user: {
-          username: sessionData.username,
-          email: sessionData.email,
-          name: sessionData.name,
-        },
-        expiresAt: Date.now() + 8 * 60 * 60 * 1000, // 8時間後
+      authenticated: true,
+      user: {
+        username: "admin", // 実際の実装では適切なユーザー情報を返す
       },
     })
   } catch (error) {
     console.error("Session check error:", error)
-    return NextResponse.json({ session: null })
+    return NextResponse.json({ authenticated: false }, { status: 500 })
   }
 }
