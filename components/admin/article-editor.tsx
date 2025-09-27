@@ -11,7 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
-import { Save, Eye, ArrowLeft } from "lucide-react"
+import { Save, Eye, ArrowLeft, FileText, Settings } from "lucide-react"
 import { toast } from "sonner"
 
 import { type Article, type ArticleBlock, createArticle, updateArticle } from "@/lib/actions/admin-articles"
@@ -30,6 +30,8 @@ const categories = [
   { value: "guide", label: "ガイド" },
   { value: "update", label: "アップデート" },
   { value: "event", label: "イベント" },
+  { value: "deck", label: "デッキ" },
+  { value: "card", label: "カード" },
   { value: "other", label: "その他" },
 ]
 
@@ -37,6 +39,8 @@ export function ArticleEditor({ article, isEditing = false }: ArticleEditorProps
   const router = useRouter()
   const [isSaving, setIsSaving] = useState(false)
   const [activeTab, setActiveTab] = useState("editor")
+  const [autoSave, setAutoSave] = useState(true)
+  const [lastSaved, setLastSaved] = useState<Date | null>(null)
 
   const [formData, setFormData] = useState<Article>({
     title: article?.title || "",
@@ -70,6 +74,17 @@ export function ArticleEditor({ article, isEditing = false }: ArticleEditorProps
       setFormData((prev) => ({ ...prev, slug }))
     }
   }, [formData.title, isEditing])
+
+  // 自動保存
+  useEffect(() => {
+    if (!autoSave || !isEditing || !article?.id) return
+
+    const timer = setTimeout(() => {
+      handleSave(true) // silent save
+    }, 30000) // 30秒後に自動保存
+
+    return () => clearTimeout(timer)
+  }, [formData, autoSave, isEditing, article?.id])
 
   const handleInputChange = (field: keyof Article, value: any) => {
     console.log("=== DEBUG: Input change ===")
@@ -122,6 +137,9 @@ export function ArticleEditor({ article, isEditing = false }: ArticleEditorProps
       case "paragraph":
         defaultData = { text: "" }
         break
+      case "rich-text":
+        defaultData = { content: "", format: "markdown" }
+        break
       case "image":
         defaultData = { url: "", alt: "", caption: "", aspect: "16:9" }
         break
@@ -132,6 +150,16 @@ export function ArticleEditor({ article, isEditing = false }: ArticleEditorProps
         defaultData = {
           headers: ["ヘッダー1", "ヘッダー2"],
           rows: [["セル1", "セル2"]],
+        }
+        break
+      case "flexible-table":
+        defaultData = {
+          columns: [
+            { id: "col1", header: "列1", width: "auto", type: "text" },
+            { id: "col2", header: "列2", width: "auto", type: "text" },
+          ],
+          rows: [{ id: "row1", cells: { col1: "", col2: "" } }],
+          style: "default",
         }
         break
       case "callout":
@@ -153,6 +181,24 @@ export function ArticleEditor({ article, isEditing = false }: ArticleEditorProps
             quantity: "使用枚数",
             explanation: "役割",
           },
+        }
+        break
+      case "card-display-table":
+        defaultData = {
+          rows: [
+            {
+              id: `row-${Date.now()}`,
+              header: "ヘッダー1",
+              cards: [],
+            },
+          ],
+        }
+        break
+      case "media-gallery":
+        defaultData = {
+          items: [],
+          layout: "grid",
+          columns: 3,
         }
         break
       case "toc":
@@ -185,28 +231,29 @@ export function ArticleEditor({ article, isEditing = false }: ArticleEditorProps
     return defaultData
   }
 
-  const handleSave = async () => {
+  const handleSave = async (silent = false) => {
     console.log("=== DEBUG: ArticleEditor - handleSave started ===")
     console.log("Current form data:", JSON.stringify(formData, null, 2))
     console.log("Is editing:", isEditing)
     console.log("Article ID:", article?.id)
+    console.log("Silent save:", silent)
 
     // バリデーション
     if (!formData.title.trim()) {
       console.log("ERROR: Title is empty")
-      toast.error("タイトルを入力してください")
+      if (!silent) toast.error("タイトルを入力してください")
       return
     }
 
     if (!formData.slug.trim()) {
       console.log("ERROR: Slug is empty")
-      toast.error("スラッグを入力してください")
+      if (!silent) toast.error("スラッグを入力してください")
       return
     }
 
     if (!formData.category) {
       console.log("ERROR: Category is empty")
-      toast.error("カテゴリーを選択してください")
+      if (!silent) toast.error("カテゴリーを選択してください")
       return
     }
 
@@ -235,19 +282,24 @@ export function ArticleEditor({ article, isEditing = false }: ArticleEditorProps
 
       if (result.success) {
         console.log("=== DEBUG: Save successful ===")
-        toast.success(isEditing ? "記事を更新しました" : "記事を作成しました")
-        router.push("/admin/articles")
+        setLastSaved(new Date())
+        if (!silent) {
+          toast.success(isEditing ? "記事を更新しました" : "記事を作成しました")
+          if (!isEditing) {
+            router.push("/admin/articles")
+          }
+        }
       } else {
         console.error("=== DEBUG: Save failed ===")
         console.error("Error message:", result.error)
-        toast.error(result.error || "保存に失敗しました")
+        if (!silent) toast.error(result.error || "保存に失敗しました")
       }
     } catch (error) {
       console.error("=== DEBUG: Exception in handleSave ===")
       console.error("Error message:", error instanceof Error ? error.message : "Unknown error")
       console.error("Error stack:", error instanceof Error ? error.stack : "No stack trace")
       console.error("Full error object:", error)
-      toast.error("保存中にエラーが発生しました")
+      if (!silent) toast.error("保存中にエラーが発生しました")
     } finally {
       console.log("=== DEBUG: Setting isSaving to false ===")
       setIsSaving(false)
@@ -264,13 +316,20 @@ export function ArticleEditor({ article, isEditing = false }: ArticleEditorProps
             戻る
           </Button>
           <h1 className="text-2xl font-bold">{isEditing ? "記事編集" : "記事作成"}</h1>
+          {lastSaved && <span className="text-sm text-slate-500">最終保存: {lastSaved.toLocaleTimeString()}</span>}
         </div>
         <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2">
+            <Label htmlFor="auto-save" className="text-sm">
+              自動保存
+            </Label>
+            <Switch id="auto-save" checked={autoSave} onCheckedChange={setAutoSave} size="sm" />
+          </div>
           <Button variant="outline" onClick={() => setActiveTab(activeTab === "editor" ? "preview" : "editor")}>
             <Eye className="h-4 w-4 mr-2" />
             {activeTab === "editor" ? "プレビュー" : "エディター"}
           </Button>
-          <Button onClick={handleSave} disabled={isSaving}>
+          <Button onClick={() => handleSave(false)} disabled={isSaving}>
             <Save className="h-4 w-4 mr-2" />
             {isSaving ? "保存中..." : "保存"}
           </Button>
@@ -278,39 +337,56 @@ export function ArticleEditor({ article, isEditing = false }: ArticleEditorProps
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="editor">エディター</TabsTrigger>
-          <TabsTrigger value="preview">プレビュー</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="editor" className="flex items-center gap-2">
+            <FileText className="h-4 w-4" />
+            エディター
+          </TabsTrigger>
+          <TabsTrigger value="settings" className="flex items-center gap-2">
+            <Settings className="h-4 w-4" />
+            設定
+          </TabsTrigger>
+          <TabsTrigger value="preview" className="flex items-center gap-2">
+            <Eye className="h-4 w-4" />
+            プレビュー
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="editor" className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
             {/* メインエディター */}
-            <div className="lg:col-span-2 space-y-6">
+            <div className="lg:col-span-3 space-y-6">
               {/* 基本情報 */}
               <Card>
                 <CardHeader>
-                  <CardTitle>基本情報</CardTitle>
+                  <CardTitle className="flex items-center gap-2">
+                    <FileText className="h-5 w-5" />
+                    基本情報
+                  </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="title">タイトル *</Label>
-                    <Input
-                      id="title"
-                      value={formData.title}
-                      onChange={(e) => handleInputChange("title", e.target.value)}
-                      placeholder="記事のタイトルを入力"
-                    />
-                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="title">タイトル *</Label>
+                      <Input
+                        id="title"
+                        value={formData.title}
+                        onChange={(e) => handleInputChange("title", e.target.value)}
+                        placeholder="記事のタイトルを入力"
+                        className="font-medium"
+                      />
+                    </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="slug">スラッグ *</Label>
-                    <Input
-                      id="slug"
-                      value={formData.slug}
-                      onChange={(e) => handleInputChange("slug", e.target.value)}
-                      placeholder="url-friendly-slug"
-                    />
+                    <div className="space-y-2">
+                      <Label htmlFor="slug">スラッグ *</Label>
+                      <Input
+                        id="slug"
+                        value={formData.slug}
+                        onChange={(e) => handleInputChange("slug", e.target.value)}
+                        placeholder="url-friendly-slug"
+                        className="font-mono text-sm"
+                      />
+                    </div>
                   </div>
 
                   <div className="space-y-2">
@@ -319,8 +395,9 @@ export function ArticleEditor({ article, isEditing = false }: ArticleEditorProps
                       id="excerpt"
                       value={formData.excerpt}
                       onChange={(e) => handleInputChange("excerpt", e.target.value)}
-                      placeholder="記事の概要を入力"
+                      placeholder="記事の概要を入力（SEO対策にも重要です）"
                       rows={3}
+                      className="resize-none"
                     />
                   </div>
                 </CardContent>
@@ -330,7 +407,10 @@ export function ArticleEditor({ article, isEditing = false }: ArticleEditorProps
               <Card>
                 <CardHeader>
                   <div className="flex items-center justify-between">
-                    <CardTitle>コンテンツ</CardTitle>
+                    <CardTitle className="flex items-center gap-2">
+                      <FileText className="h-5 w-5" />
+                      コンテンツ ({formData.blocks.length}ブロック)
+                    </CardTitle>
                     <BlockTypeSelector onSelect={addBlock} />
                   </div>
                 </CardHeader>
@@ -345,7 +425,7 @@ export function ArticleEditor({ article, isEditing = false }: ArticleEditorProps
               {/* 公開設定 */}
               <Card>
                 <CardHeader>
-                  <CardTitle>公開設定</CardTitle>
+                  <CardTitle className="text-base">公開設定</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
@@ -370,7 +450,12 @@ export function ArticleEditor({ article, isEditing = false }: ArticleEditorProps
                   <Separator />
 
                   <div className="flex items-center justify-between">
-                    <Label htmlFor="published">公開する</Label>
+                    <div>
+                      <Label htmlFor="published" className="font-medium">
+                        公開する
+                      </Label>
+                      <p className="text-xs text-slate-500">記事を一般公開します</p>
+                    </div>
                     <Switch
                       id="published"
                       checked={formData.is_published}
@@ -379,7 +464,12 @@ export function ArticleEditor({ article, isEditing = false }: ArticleEditorProps
                   </div>
 
                   <div className="flex items-center justify-between">
-                    <Label htmlFor="pinned">ピン留めする</Label>
+                    <div>
+                      <Label htmlFor="pinned" className="font-medium">
+                        ピン留めする
+                      </Label>
+                      <p className="text-xs text-slate-500">記事を上部に固定表示</p>
+                    </div>
                     <Switch
                       id="pinned"
                       checked={formData.pinned}
@@ -392,17 +482,91 @@ export function ArticleEditor({ article, isEditing = false }: ArticleEditorProps
               {/* サムネイル */}
               <Card>
                 <CardHeader>
-                  <CardTitle>サムネイル画像</CardTitle>
+                  <CardTitle className="text-base">サムネイル画像</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <ImageUpload
                     value={formData.thumbnail_image_url}
                     onChange={(url) => handleInputChange("thumbnail_image_url", url)}
                   />
+                  <p className="text-xs text-slate-500 mt-2">推奨サイズ: 1200x630px (16:9)</p>
                 </CardContent>
               </Card>
+
+              {/* 統計情報（編集時のみ） */}
+              {isEditing && article && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base">統計情報</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-slate-600">作成日:</span>
+                      <span>{new Date(article.created_at || "").toLocaleDateString()}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-600">更新日:</span>
+                      <span>{new Date(article.updated_at || "").toLocaleDateString()}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-600">閲覧数:</span>
+                      <span>{article.view_count || 0}回</span>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
             </div>
           </div>
+        </TabsContent>
+
+        <TabsContent value="settings" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>詳細設定</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label>SEO設定</Label>
+                <p className="text-sm text-slate-600">検索エンジン最適化の設定</p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="meta-description">メタディスクリプション</Label>
+                <Textarea
+                  id="meta-description"
+                  value={formData.excerpt}
+                  onChange={(e) => handleInputChange("excerpt", e.target.value)}
+                  placeholder="検索結果に表示される説明文（160文字以内推奨）"
+                  rows={3}
+                  maxLength={160}
+                />
+                <p className="text-xs text-slate-500">{formData.excerpt?.length || 0}/160文字</p>
+              </div>
+
+              <Separator />
+
+              <div className="space-y-2">
+                <Label>表示設定</Label>
+                <p className="text-sm text-slate-600">記事の表示に関する設定</p>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label className="font-medium">コメントを許可</Label>
+                  <p className="text-xs text-slate-500">読者がコメントを投稿できます</p>
+                </div>
+                <Switch defaultChecked />
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label className="font-medium">目次を自動生成</Label>
+                  <p className="text-xs text-slate-500">見出しから目次を自動作成</p>
+                </div>
+                <Switch defaultChecked />
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="preview">

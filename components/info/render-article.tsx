@@ -140,6 +140,68 @@ function renderTable(block: Block & { type: "table" }) {
   )
 }
 
+function renderFlexibleTable(block: Block & { type: "flexible-table" }) {
+  const { columns, rows, style } = block.data
+
+  const getColumnWidth = (width: string) => {
+    switch (width) {
+      case "narrow":
+        return "w-24"
+      case "wide":
+        return "w-64"
+      default:
+        return "w-auto"
+    }
+  }
+
+  const getCellContent = (content: string, type: string) => {
+    if (type === "badge") {
+      return (
+        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+          {content}
+        </span>
+      )
+    }
+    return content
+  }
+
+  const tableClasses = {
+    default: "border border-slate-200",
+    striped: "border border-slate-200",
+    bordered: "border-2 border-slate-300",
+  }
+
+  return (
+    <div className="bg-white rounded-lg overflow-hidden shadow-sm my-2">
+      <table className={`w-full border-collapse ${tableClasses[style] || tableClasses.default}`}>
+        <thead>
+          <tr className="bg-blue-100">
+            {columns.map((column) => (
+              <th
+                key={column.id}
+                className={`px-4 py-2 text-left text-sm font-semibold text-slate-700 border-b border-slate-200 ${getColumnWidth(column.width)}`}
+              >
+                {column.header}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row, rowIndex) => (
+            <tr key={row.id} className={style === "striped" && rowIndex % 2 === 1 ? "bg-slate-50" : "bg-white"}>
+              {columns.map((column) => (
+                <td key={column.id} className="px-4 py-2 text-sm text-slate-600 border-b border-slate-100">
+                  {getCellContent(row.cells[column.id] || "", column.type)}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
 function renderCallout(block: Block & { type: "callout" }) {
   const { tone, body, title } = block.data
 
@@ -180,6 +242,202 @@ function renderCallout(block: Block & { type: "callout" }) {
           <p className={`text-sm ${style.text} leading-relaxed`}>{body}</p>
         </div>
       </div>
+    </div>
+  )
+}
+
+function renderRichText(block: Block & { type: "rich-text" }) {
+  const { content, format } = block.data
+
+  if (format === "markdown") {
+    // 簡単なMarkdownレンダリング
+    const htmlContent = content
+      .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+      .replace(/\*(.*?)\*/g, "<em>$1</em>")
+      .replace(/`(.*?)`/g, "<code class='bg-slate-100 px-1 py-0.5 rounded text-sm'>$1</code>")
+      .replace(/^### (.+)$/gm, "<h3 class='text-lg font-semibold text-slate-900 mt-4 mb-2'>$1</h3>")
+      .replace(/^## (.+)$/gm, "<h2 class='text-xl font-bold text-slate-900 mt-6 mb-3'>$1</h2>")
+      .replace(
+        /^> (.+)$/gm,
+        "<blockquote class='border-l-4 border-slate-300 pl-4 italic text-slate-600'>$1</blockquote>",
+      )
+      .replace(/^- (.+)$/gm, "<li>$1</li>")
+      .replace(/(<li>.*<\/li>)/s, "<ul class='list-disc list-inside space-y-1'>$1</ul>")
+      .replace(/^\d+\. (.+)$/gm, "<li>$1</li>")
+      .replace(/\n\n/g, "</p><p class='mb-4'>")
+      .replace(/\n/g, "<br>")
+
+    return (
+      <div
+        className="prose prose-slate max-w-none my-2"
+        dangerouslySetInnerHTML={{ __html: `<p class='mb-4'>${htmlContent}</p>` }}
+      />
+    )
+  }
+
+  return <div className="prose prose-slate max-w-none my-2" dangerouslySetInnerHTML={{ __html: content }} />
+}
+
+function renderMediaGallery(block: Block & { type: "media-gallery" }) {
+  const { items, layout, columns } = block.data
+
+  if (items.length === 0) {
+    return null
+  }
+
+  const gridClasses = {
+    2: "grid-cols-2",
+    3: "grid-cols-3",
+    4: "grid-cols-4",
+    5: "grid-cols-5",
+  }
+
+  if (layout === "grid") {
+    return (
+      <div className={`grid ${gridClasses[columns] || "grid-cols-3"} gap-4 my-4`}>
+        {items.map((item, index) => (
+          <div key={item.id || index} className="space-y-2">
+            <div className="aspect-video relative rounded-lg overflow-hidden bg-slate-100">
+              <Image src={item.url || "/placeholder.svg"} alt={item.alt || ""} fill className="object-cover" />
+            </div>
+            {item.caption && <p className="text-sm text-slate-600 text-center">{item.caption}</p>}
+          </div>
+        ))}
+      </div>
+    )
+  }
+
+  if (layout === "carousel") {
+    return (
+      <div className="flex overflow-x-auto gap-4 pb-4 my-4">
+        {items.map((item, index) => (
+          <div key={item.id || index} className="flex-shrink-0 w-64 space-y-2">
+            <div className="aspect-video relative rounded-lg overflow-hidden bg-slate-100">
+              <Image src={item.url || "/placeholder.svg"} alt={item.alt || ""} fill className="object-cover" />
+            </div>
+            {item.caption && <p className="text-sm text-slate-600 text-center">{item.caption}</p>}
+          </div>
+        ))}
+      </div>
+    )
+  }
+
+  // masonry layout (simplified)
+  return (
+    <div className="columns-2 md:columns-3 gap-4 my-4">
+      {items.map((item, index) => (
+        <div key={item.id || index} className="break-inside-avoid mb-4">
+          <div className="relative rounded-lg overflow-hidden bg-slate-100">
+            <Image
+              src={item.url || "/placeholder.svg"}
+              alt={item.alt || ""}
+              width={400}
+              height={300}
+              className="w-full h-auto object-cover"
+            />
+          </div>
+          {item.caption && <p className="text-sm text-slate-600 text-center mt-2">{item.caption}</p>}
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function CardDisplayTable({
+  rows,
+}: {
+  rows: Array<{ id: string; header: string; cards: Array<{ id: string; name: string; imageUrl: string }> }>
+}) {
+  const [cards, setCards] = React.useState<
+    Array<{ id: number; name: string; image_url: string; thumb_url?: string; game8_image_url?: string }>
+  >([])
+  const [loading, setLoading] = React.useState(true)
+  const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
+
+  React.useEffect(() => {
+    async function fetchCards() {
+      try {
+        const allCardIds = rows.flatMap((row) => row.cards.map((card) => Number.parseInt(card.id)))
+        if (allCardIds.length === 0) {
+          setLoading(false)
+          return
+        }
+
+        const { data } = await supabase
+          .from("cards")
+          .select("id, name, image_url, thumb_url, game8_image_url")
+          .in("id", allCardIds)
+        setCards(data || [])
+      } catch (error) {
+        console.error("Failed to fetch cards:", error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchCards()
+  }, [rows])
+
+  const getCardImageUrl = (cardId: string) => {
+    const card = cards.find((c) => c.id === Number.parseInt(cardId))
+    if (!card)
+      return "https://kidyrurtyvxqokhszgko.supabase.co/storage/v1/object/public/card-images/full/placeholder.webp"
+
+    if (card.game8_image_url) return card.game8_image_url
+    if (card.image_url) return card.image_url
+    return "https://kidyrurtyvxqokhszgko.supabase.co/storage/v1/object/public/card-images/full/placeholder.webp"
+  }
+
+  const getCardName = (cardId: string) => {
+    const card = cards.find((c) => c.id === Number.parseInt(cardId))
+    return card?.name || `Card ${cardId}`
+  }
+
+  if (loading) {
+    return (
+      <div className="bg-white border border-slate-200 rounded-lg overflow-hidden p-4">
+        <div className="text-center text-slate-500">カード情報を読み込み中...</div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="bg-white border border-slate-200 rounded-lg overflow-hidden my-4">
+      <table className="w-full border-collapse">
+        <tbody>
+          {rows.map((row, rowIndex) => (
+            <tr key={row.id} className={rowIndex % 2 === 0 ? "bg-white" : "bg-slate-50"}>
+              <td className="px-4 py-4 text-sm font-semibold text-slate-700 border-b border-slate-200 bg-slate-100 w-32 align-top">
+                {row.header}
+              </td>
+              <td className="px-4 py-4 border-b border-slate-200">
+                {row.cards.length > 0 ? (
+                  <div className="grid grid-cols-6 sm:grid-cols-8 md:grid-cols-10 lg:grid-cols-12 gap-2">
+                    {row.cards.map((card) => (
+                      <div key={card.id} className="flex flex-col items-center">
+                        <div className="aspect-[5/7] relative rounded border overflow-hidden bg-slate-100 w-full max-w-[60px]">
+                          <Image
+                            src={getCardImageUrl(card.id) || "/placeholder.svg"}
+                            alt={getCardName(card.id)}
+                            fill
+                            className="object-cover"
+                            sizes="60px"
+                          />
+                        </div>
+                        <div className="mt-1 text-[8px] text-slate-600 text-center truncate w-full max-w-[60px]">
+                          {getCardName(card.id)}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-slate-500 text-sm">カードが選択されていません</div>
+                )}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   )
 }
@@ -341,6 +599,9 @@ export default function RenderArticle({ blocks }: RenderArticleProps) {
               </p>
             )
 
+          case "rich-text":
+            return <div key={index}>{renderRichText(block)}</div>
+
           case "image":
             return (
               <div key={index} className="my-0">
@@ -384,8 +645,18 @@ export default function RenderArticle({ blocks }: RenderArticleProps) {
               </div>
             )
 
+          case "flexible-table":
+            return (
+              <div key={index} className="my-0">
+                {renderFlexibleTable(block)}
+              </div>
+            )
+
           case "callout":
             return <div key={index}>{renderCallout(block)}</div>
+
+          case "media-gallery":
+            return <div key={index}>{renderMediaGallery(block)}</div>
 
           case "divider":
             return <hr key={index} className="my-2 border-slate-200" />
@@ -459,6 +730,9 @@ export default function RenderArticle({ blocks }: RenderArticleProps) {
 
           case "cards-table":
             return <CardsTable key={index} items={block.data.items} headers={block.data.headers} />
+
+          case "card-display-table":
+            return <CardDisplayTable key={index} rows={block.data.rows} />
 
           default:
             return null
