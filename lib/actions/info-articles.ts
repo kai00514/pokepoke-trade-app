@@ -122,6 +122,24 @@ export type CardsTableBlock = BlockBase<
 >
 
 /**
+ * New: card display table block (table with headers and card selections)
+ */
+export type CardDisplayTableBlock = BlockBase<
+  "card-display-table",
+  {
+    rows: Array<{
+      id: string
+      header: string
+      cards: Array<{
+        id: string
+        name: string
+        imageUrl: string
+      }>
+    }>
+  }
+>
+
+/**
  * New: pickup info block (red-accent card with starred links/text list)
  */
 export type PickupBlock = BlockBase<
@@ -155,6 +173,7 @@ export type Block =
   | CalloutBlock
   | EvaluationBlock
   | CardsTableBlock
+  | CardDisplayTableBlock
   | PickupBlock
   | ButtonBlock
 
@@ -400,6 +419,44 @@ function validateBlocks(rawBlocks: RawDbBlock[]): Block[] {
             })
           } else {
             console.warn("[info-articles] Skip invalid cards-table block", { order, d })
+          }
+          break
+        }
+
+        case "card-display-table": {
+          const d = rb.data as any
+          const rowsRaw = Array.isArray(d?.rows) ? d.rows : []
+          const rows = rowsRaw
+            .map((row: any) => {
+              const id = typeof row?.id === "string" ? row.id : `row-${Math.random()}`
+              const header = typeof row?.header === "string" ? row.header.trim() : ""
+              const cardsRaw = Array.isArray(row?.cards) ? row.cards : []
+              const cards = cardsRaw
+                .map((card: any) => {
+                  const cardId =
+                    typeof card?.id === "string" ? card.id : typeof card?.id === "number" ? card.id.toString() : null
+                  const name = typeof card?.name === "string" ? card.name : ""
+                  const imageUrl = typeof card?.imageUrl === "string" ? card.imageUrl : ""
+                  return cardId && name ? { id: cardId, name, imageUrl } : null
+                })
+                .filter(Boolean) as Array<{ id: string; name: string; imageUrl: string }>
+
+              return header ? { id, header, cards } : null
+            })
+            .filter(Boolean) as Array<{
+            id: string
+            header: string
+            cards: Array<{ id: string; name: string; imageUrl: string }>
+          }>
+
+          if (rows.length > 0) {
+            safe.push({
+              type: "card-display-table",
+              display_order: order,
+              data: { rows },
+            })
+          } else {
+            console.warn("[info-articles] Skip invalid card-display-table block", { order, d })
           }
           break
         }
