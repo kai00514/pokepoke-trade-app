@@ -1,61 +1,68 @@
-import { type NextRequest, NextResponse } from "next/server"
-import { createClient } from "@/lib/supabase/server"
+import { NextResponse } from "next/server"
 import { cookies } from "next/headers"
+import { createClient } from "@/lib/supabase/server"
 
 const SESSION_COOKIE_NAME = "admin_session"
-const SESSION_DURATION = 8 * 60 * 60 * 1000 // 8時間
 
-export async function POST(request: NextRequest) {
+export async function POST(request: Request) {
   try {
     const { username, password } = await request.json()
 
     if (!username || !password) {
-      return NextResponse.json({ success: false, error: "Username and password are required" }, { status: 400 })
+      return NextResponse.json({ success: false, error: "ユーザー名とパスワードを入力してください" }, { status: 400 })
     }
 
     const supabase = await createClient()
 
-    // 管理者認証
+    // authenticate_admin RPC関数を呼び出し
     const { data, error } = await supabase.rpc("authenticate_admin", {
-      p_username: username,
-      p_password: password,
+      input_username: username,
+      input_password: password,
     })
 
     if (error) {
       console.error("Authentication error:", error)
-      return NextResponse.json({ success: false, error: "Authentication failed" }, { status: 500 })
+      return NextResponse.json({ success: false, error: "認証に失敗しました" }, { status: 500 })
     }
 
-    if (!data?.success) {
-      const errorMessage =
-        data?.error === "account_locked"
-          ? "Account is temporarily locked due to multiple failed attempts"
-          : "Invalid username or password"
-
-      return NextResponse.json({ success: false, error: errorMessage }, { status: 401 })
+    if (!data || !data.success) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: data?.message || "ユーザー名またはパスワードが正しくありません",
+        },
+        { status: 401 },
+      )
     }
 
-    // セッション作成
-    const session = {
-      user: data.user,
-      expiresAt: Date.now() + SESSION_DURATION,
+    // セッションCookieを設定
+    const sessionData = {
+      userId: data.user_id,
+      username: data.username,
+      email: data.email,
+      name: data.name,
+      loginTime: new Date().toISOString(),
     }
 
     const cookieStore = await cookies()
-    cookieStore.set(SESSION_COOKIE_NAME, JSON.stringify(session), {
+    cookieStore.set(SESSION_COOKIE_NAME, JSON.stringify(sessionData), {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
-      maxAge: SESSION_DURATION / 1000,
-      path: "/", // "/admin" から "/" に変更
+      maxAge: 60 * 60 * 8, // 8時間
+      path: "/",
     })
 
     return NextResponse.json({
       success: true,
-      user: data.user,
+      user: {
+        username: data.username,
+        email: data.email,
+        name: data.name,
+      },
     })
   } catch (error) {
-    console.error("Login error:", error)
-    return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 })
+    console.error("Login API error:", error)
+    return NextResponse.json({ success: false, error: "サーバーエラーが発生しました" }, { status: 500 })
   }
 }

@@ -9,26 +9,44 @@ export async function GET() {
     const sessionCookie = cookieStore.get(SESSION_COOKIE_NAME)
 
     if (!sessionCookie?.value) {
-      return NextResponse.json({ session: null })
+      return NextResponse.json({ authenticated: false }, { status: 401 })
     }
 
-    const session = JSON.parse(sessionCookie.value)
+    try {
+      const sessionData = JSON.parse(sessionCookie.value)
 
-    // セッション有効期限チェック
-    if (Date.now() > session.expiresAt) {
-      cookieStore.set(SESSION_COOKIE_NAME, "", {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
-        maxAge: 0,
-        path: "/", // pathを明示的に指定
+      // セッション有効期限チェック（8時間）
+      const loginTime = new Date(sessionData.loginTime)
+      const now = new Date()
+      const diffHours = (now.getTime() - loginTime.getTime()) / (1000 * 60 * 60)
+
+      if (diffHours > 8) {
+        // セッション期限切れ
+        cookieStore.set(SESSION_COOKIE_NAME, "", {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          sameSite: "lax",
+          maxAge: 0,
+          path: "/",
+        })
+        return NextResponse.json({ authenticated: false }, { status: 401 })
+      }
+
+      return NextResponse.json({
+        authenticated: true,
+        user: {
+          userId: sessionData.userId,
+          username: sessionData.username,
+          email: sessionData.email,
+          name: sessionData.name,
+        },
       })
-      return NextResponse.json({ session: null })
+    } catch (parseError) {
+      console.error("Session parse error:", parseError)
+      return NextResponse.json({ authenticated: false }, { status: 401 })
     }
-
-    return NextResponse.json({ session })
   } catch (error) {
     console.error("Session check error:", error)
-    return NextResponse.json({ session: null })
+    return NextResponse.json({ authenticated: false }, { status: 500 })
   }
 }

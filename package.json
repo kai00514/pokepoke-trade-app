@@ -60,7 +60,7 @@
     "react-hook-form": "latest",
     "react-resizable-panels": "latest",
     "react-swipeable": "latest",
-    "react-toastify": "latest",
+    "react-toastify": "11.0.5",
     "recharts": "latest",
     "server-only": "latest",
     "sonner": "latest",

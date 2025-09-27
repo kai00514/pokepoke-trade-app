@@ -162,7 +162,7 @@ importers:
         specifier: latest
         version: 7.0.2(react@19.0.0)
       react-toastify:
-        specifier: latest
+        specifier: 11.0.5
         version: 11.0.5(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
       recharts:
         specifier: latest
