@@ -331,7 +331,7 @@ function CardDisplayTable({
 
   const getCardImageUrl = (card: { id: string; name: string; imageUrl: string }) => {
     // 1. まず、管理画面で設定されたimageUrlを確認
-    if (card.imageUrl && card.imageUrl !== "") {
+    if (card.imageUrl && card.imageUrl !== "" && card.imageUrl !== "/placeholder.svg") {
       console.log(`カード${card.id}の管理画面設定URL:`, card.imageUrl)
       return card.imageUrl
     }
@@ -341,19 +341,33 @@ function CardDisplayTable({
     if (!isNaN(numericCardId)) {
       const dbCard = cards.find((c) => c.id === numericCardId)
       if (dbCard) {
-        // 優先順位: game8_image_url > image_url
-        if (dbCard.game8_image_url) {
+        // 優先順位: game8_image_url > image_url > thumb_url
+        if (dbCard.game8_image_url && dbCard.game8_image_url !== "") {
           console.log(`カード${card.id}のgame8 URL:`, dbCard.game8_image_url)
           return dbCard.game8_image_url
         }
-        if (dbCard.image_url) {
+        if (dbCard.image_url && dbCard.image_url !== "") {
           console.log(`カード${card.id}のimage URL:`, dbCard.image_url)
           return dbCard.image_url
         }
+        if (dbCard.thumb_url && dbCard.thumb_url !== "") {
+          console.log(`カード${card.id}のthumb URL:`, dbCard.thumb_url)
+          return dbCard.thumb_url
+        }
+      } else {
+        console.log(`カード${card.id}がデータベースに見つかりません`)
       }
     }
 
-    // 3. フォールバック
+    // 3. 汎用的なカード画像URLを生成（カードIDベース）
+    if (!isNaN(numericCardId)) {
+      // Game8のカード画像URL形式を試す
+      const game8Url = `https://img.game8.jp/pokemon/card/${numericCardId}.png`
+      console.log(`カード${card.id}のGame8 URL生成:`, game8Url)
+      return game8Url
+    }
+
+    // 4. 最終フォールバック
     console.log(`カード${card.id}はプレースホルダーを使用`)
     return "/placeholder.svg?height=280&width=200&text=Card"
   }
@@ -421,6 +435,25 @@ function CardDisplayTable({
                               onError={(e) => {
                                 console.error(`画像読み込みエラー (${card.id}):`, imageUrl)
                                 const target = e.target as HTMLImageElement
+
+                                // 別のURLを試す
+                                const numericCardId = Number.parseInt(card.id, 10)
+                                if (!isNaN(numericCardId)) {
+                                  const dbCard = cards.find((c) => c.id === numericCardId)
+                                  if (dbCard) {
+                                    // まだ試していないURLがあれば試す
+                                    if (target.src.includes("game8") && dbCard.image_url) {
+                                      target.src = dbCard.image_url
+                                      return
+                                    }
+                                    if (target.src.includes("image_url") && dbCard.thumb_url) {
+                                      target.src = dbCard.thumb_url
+                                      return
+                                    }
+                                  }
+                                }
+
+                                // 最終的にプレースホルダーを使用
                                 target.src = "/placeholder.svg?height=280&width=200&text=Error"
                               }}
                               onLoad={() => {
