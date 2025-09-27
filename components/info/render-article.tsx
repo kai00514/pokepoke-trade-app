@@ -267,7 +267,15 @@ function CardDisplayTable({
   React.useEffect(() => {
     async function fetchCards() {
       try {
-        const allCardIds = rows.flatMap((row) => row.cards.map((card) => Number.parseInt(card.id)))
+        const allCardIds = rows.flatMap((row) =>
+          row.cards
+            .map((card) => {
+              const cardId = Number.parseInt(card.id)
+              return !isNaN(cardId) ? cardId : null
+            })
+            .filter(Boolean),
+        )
+
         if (allCardIds.length === 0) {
           setLoading(false)
           return
@@ -286,20 +294,26 @@ function CardDisplayTable({
     }
 
     fetchCards()
-  }, [rows])
+  }, [rows, supabase])
 
   const getCardImageUrl = (cardId: string) => {
-    const card = cards.find((c) => c.id === Number.parseInt(cardId))
-    if (!card)
-      return "https://kidyrurtyvxqokhszgko.supabase.co/storage/v1/object/public/card-images/full/placeholder.webp"
+    const numericCardId = Number.parseInt(cardId)
+    if (isNaN(numericCardId)) return "/placeholder.svg"
 
+    const card = cards.find((c) => c.id === numericCardId)
+    if (!card) return "/placeholder.svg"
+
+    // 優先順位: game8_image_url > image_url > placeholder
     if (card.game8_image_url) return card.game8_image_url
     if (card.image_url) return card.image_url
-    return "https://kidyrurtyvxqokhszgko.supabase.co/storage/v1/object/public/card-images/full/placeholder.webp"
+    return "/placeholder.svg"
   }
 
   const getCardName = (cardId: string) => {
-    const card = cards.find((c) => c.id === Number.parseInt(cardId))
+    const numericCardId = Number.parseInt(cardId)
+    if (isNaN(numericCardId)) return `Card ${cardId}`
+
+    const card = cards.find((c) => c.id === numericCardId)
     return card?.name || `Card ${cardId}`
   }
 
@@ -317,24 +331,28 @@ function CardDisplayTable({
         <tbody>
           {rows.map((row, rowIndex) => (
             <tr key={row.id} className={rowIndex % 2 === 0 ? "bg-white" : "bg-slate-50"}>
-              <td className="px-4 py-4 text-sm font-semibold text-slate-700 border-b border-slate-200 bg-slate-100 w-32 align-top">
+              <td className="px-4 py-4 text-sm font-semibold text-slate-700 border-b border-slate-200 bg-slate-100 align-top whitespace-nowrap">
                 {row.header}
               </td>
-              <td className="px-4 py-4 border-b border-slate-200">
+              <td className="px-4 py-4 border-b border-slate-200 w-full">
                 {row.cards.length > 0 ? (
-                  <div className="grid grid-cols-6 sm:grid-cols-8 md:grid-cols-10 lg:grid-cols-12 gap-2">
+                  <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-3">
                     {row.cards.map((card) => (
                       <div key={card.id} className="flex flex-col items-center">
-                        <div className="aspect-[5/7] relative rounded border overflow-hidden bg-slate-100 w-full max-w-[60px]">
+                        <div className="aspect-[5/7] relative rounded border overflow-hidden bg-slate-100 w-full max-w-[80px]">
                           <Image
-                            src={card.imageUrl || getCardImageUrl(card.id) || "/placeholder.svg"}
+                            src={card.imageUrl || getCardImageUrl(card.id)}
                             alt={card.name || getCardName(card.id)}
                             fill
                             className="object-cover"
-                            sizes="60px"
+                            sizes="80px"
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement
+                              target.src = "/placeholder.svg"
+                            }}
                           />
                         </div>
-                        <div className="mt-1 text-[8px] text-slate-600 text-center truncate w-full max-w-[60px]">
+                        <div className="mt-1 text-[10px] text-slate-600 text-center truncate w-full max-w-[80px]">
                           {card.name || getCardName(card.id)}
                         </div>
                       </div>
@@ -386,7 +404,7 @@ function CardsTable({
     } else {
       setLoading(false)
     }
-  }, [items])
+  }, [items, supabase])
 
   // カードの画像URLを取得する関数
   const getCardImageUrl = (cardId: number, useThumb = false) => {
