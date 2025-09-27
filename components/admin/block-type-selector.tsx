@@ -8,7 +8,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { ScrollArea } from "@/components/ui/scroll-area"
 import {
   Plus,
   Type,
@@ -154,39 +153,46 @@ export function BlockTypeSelector({ onSelect }: BlockTypeSelectorProps) {
           ブロックを追加
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-96 max-h-[80vh]" align="start">
-        <ScrollArea className="h-full max-h-[70vh]">
-          <div className="p-1">
-            {blockTypes.map((category, categoryIndex) => (
-              <div key={category.category}>
-                {categoryIndex > 0 && <DropdownMenuSeparator />}
-                <DropdownMenuLabel className="text-xs font-semibold text-slate-500 uppercase tracking-wider px-2 py-2 sticky top-0 bg-white">
-                  {category.category}
-                </DropdownMenuLabel>
-                <div className="space-y-1">
-                  {category.items.map((item) => {
-                    const Icon = item.icon
-                    return (
-                      <DropdownMenuItem
-                        key={item.type}
-                        onClick={() => handleSelect(item.type)}
-                        className="flex items-start gap-3 p-3 cursor-pointer hover:bg-slate-50 focus:bg-slate-50 rounded-md mx-1"
-                      >
-                        <Icon className="h-4 w-4 mt-0.5 text-slate-500 flex-shrink-0" />
-                        <div className="flex-1 min-w-0">
-                          <div className="font-medium text-sm text-slate-900">{item.label}</div>
-                          <div className="text-xs text-slate-500 mt-0.5 line-clamp-2 leading-relaxed">
-                            {item.description}
-                          </div>
+      <DropdownMenuContent
+        className="w-96"
+        align="start"
+        side="bottom"
+        sideOffset={4}
+        style={{
+          maxHeight: "min(400px, calc(100vh - 100px))",
+          overflowY: "auto",
+        }}
+      >
+        <div className="p-1">
+          {blockTypes.map((category, categoryIndex) => (
+            <div key={category.category}>
+              {categoryIndex > 0 && <DropdownMenuSeparator />}
+              <DropdownMenuLabel className="text-xs font-semibold text-slate-500 uppercase tracking-wider px-2 py-2 sticky top-0 bg-white z-10">
+                {category.category}
+              </DropdownMenuLabel>
+              <div className="space-y-1">
+                {category.items.map((item) => {
+                  const Icon = item.icon
+                  return (
+                    <DropdownMenuItem
+                      key={item.type}
+                      onClick={() => handleSelect(item.type)}
+                      className="flex items-start gap-3 p-3 cursor-pointer hover:bg-slate-50 focus:bg-slate-50 rounded-md mx-1"
+                    >
+                      <Icon className="h-4 w-4 mt-0.5 text-slate-500 flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium text-sm text-slate-900">{item.label}</div>
+                        <div className="text-xs text-slate-500 mt-0.5 line-clamp-2 leading-relaxed">
+                          {item.description}
                         </div>
-                      </DropdownMenuItem>
-                    )
-                  })}
-                </div>
+                      </div>
+                    </DropdownMenuItem>
+                  )
+                })}
               </div>
-            ))}
-          </div>
-        </ScrollArea>
+            </div>
+          ))}
+        </div>
       </DropdownMenuContent>
     </DropdownMenu>
   )

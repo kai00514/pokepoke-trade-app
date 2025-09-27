@@ -1,17 +1,39 @@
 "use client"
-
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Textarea } from "@/components/ui/textarea"
+import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Eye, EyeOff, FileText, Code, Type, Bold, Italic, List, Link2, ImageIcon } from "lucide-react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Separator } from "@/components/ui/separator"
+import { Badge } from "@/components/ui/badge"
+import {
+  Bold,
+  Italic,
+  LinkIcon,
+  List,
+  ListOrdered,
+  Quote,
+  Code,
+  Heading1,
+  Heading2,
+  Heading3,
+  ImageIcon,
+  Eye,
+  EyeOff,
+} from "lucide-react"
 
 interface RichTextBlockData {
   content: string
   format: "markdown" | "html" | "plain"
+  style?: {
+    fontSize?: string
+    color?: string
+    backgroundColor?: string
+    textAlign?: "left" | "center" | "right" | "justify"
+  }
 }
 
 interface RichTextBlockEditorProps {
@@ -30,56 +52,80 @@ export function RichTextBlockEditor({ data, onChange }: RichTextBlockEditorProps
     onChange({ ...data, format })
   }
 
+  const handleStyleChange = (styleKey: string, value: string) => {
+    onChange({
+      ...data,
+      style: {
+        ...data.style,
+        [styleKey]: value,
+      },
+    })
+  }
+
   const insertMarkdown = (syntax: string, placeholder = "") => {
-    const textarea = document.querySelector("textarea[data-rich-text]") as HTMLTextAreaElement
+    const textarea = document.querySelector('textarea[name="content"]') as HTMLTextAreaElement
     if (!textarea) return
 
     const start = textarea.selectionStart
     const end = textarea.selectionEnd
-    const selectedText = data.content.substring(start, end)
+    const selectedText = textarea.value.substring(start, end)
     const replacement = selectedText || placeholder
 
-    let newContent = ""
+    let newText = ""
     switch (syntax) {
       case "bold":
-        newContent = data.content.substring(0, start) + `**${replacement}**` + data.content.substring(end)
+        newText = `**${replacement}**`
         break
       case "italic":
-        newContent = data.content.substring(0, start) + `*${replacement}*` + data.content.substring(end)
+        newText = `*${replacement}*`
         break
-      case "heading":
-        newContent = data.content.substring(0, start) + `## ${replacement}` + data.content.substring(end)
+      case "heading1":
+        newText = `# ${replacement}`
+        break
+      case "heading2":
+        newText = `## ${replacement}`
+        break
+      case "heading3":
+        newText = `### ${replacement}`
         break
       case "link":
-        newContent =
-          data.content.substring(0, start) + `[${replacement || "リンクテキスト"}](URL)` + data.content.substring(end)
+        newText = `[${replacement || "リンクテキスト"}](URL)`
         break
       case "image":
-        newContent =
-          data.content.substring(0, start) + `![${replacement || "画像の説明"}](画像URL)` + data.content.substring(end)
+        newText = `![${replacement || "画像の説明"}](画像URL)`
         break
       case "list":
-        newContent = data.content.substring(0, start) + `- ${replacement || "リスト項目"}` + data.content.substring(end)
+        newText = `- ${replacement || "リスト項目"}`
         break
-      case "code":
-        newContent = data.content.substring(0, start) + `\`${replacement}\`` + data.content.substring(end)
+      case "ordered-list":
+        newText = `1. ${replacement || "番号付きリスト項目"}`
         break
       case "quote":
-        newContent =
-          data.content.substring(0, start) + `{'>'}${" "}${replacement || "引用テキスト"}` + data.content.substring(end)
+        newText = `{'>'}${" "}${replacement || "引用文"}`
+        break
+      case "code":
+        newText = selectedText ? `\`${replacement}\`` : "```\n" + (replacement || "コード") + "\n```"
         break
       default:
         return
     }
 
+    const newContent = textarea.value.substring(0, start) + newText + textarea.value.substring(end)
     handleContentChange(newContent)
+
+    // カーソル位置を調整
+    setTimeout(() => {
+      const newCursorPos = start + newText.length
+      textarea.setSelectionRange(newCursorPos, newCursorPos)
+      textarea.focus()
+    }, 0)
   }
 
   const renderPreview = () => {
     if (data.format === "html") {
       return <div dangerouslySetInnerHTML={{ __html: data.content }} />
     } else if (data.format === "markdown") {
-      // 簡易的なMarkdownプレビュー
+      // 簡易的なMarkdownパーサー
       const html = data.content
         .replace(/^### (.*$)/gim, "<h3>$1</h3>")
         .replace(/^## (.*$)/gim, "<h2>$1</h2>")
@@ -88,28 +134,38 @@ export function RichTextBlockEditor({ data, onChange }: RichTextBlockEditorProps
         .replace(/\*(.*)\*/gim, "<em>$1</em>")
         .replace(/!\[([^\]]*)\]$$([^$$]*)\)/gim, '<img alt="$1" src="$2" />')
         .replace(/\[([^\]]*)\]$$([^$$]*)\)/gim, '<a href="$2">$1</a>')
-        .replace(/`([^`]*)`/gim, "<code>$1</code>")
         .replace(/^- (.*$)/gim, "<li>$1</li>")
-        .replace(/^> (.*$)/gim, "<blockquote>$1</blockquote>")
+        .replace(/^(\d+)\. (.*$)/gim, "<li>$2</li>")
+        .replace(/`([^`]*)`/gim, "<code>$1</code>")
+        .replace(/^{'>'}(.*)$/gim, "<blockquote>$1</blockquote>")
         .replace(/\n/gim, "<br>")
 
       return <div dangerouslySetInnerHTML={{ __html: html }} />
     } else {
-      return <div className="whitespace-pre-wrap">{data.content}</div>
+      return <div style={{ whiteSpace: "pre-wrap" }}>{data.content}</div>
     }
   }
 
   return (
     <Card>
       <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2">
-            <FileText className="h-4 w-4" />
-            リッチテキスト
-          </CardTitle>
+        <CardTitle className="flex items-center justify-between">
+          <span>リッチテキストブロック</span>
           <div className="flex items-center gap-2">
+            <Badge variant="outline">{data.format.toUpperCase()}</Badge>
+            <Button variant="outline" size="sm" onClick={() => setShowPreview(!showPreview)}>
+              {showPreview ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              {showPreview ? "編集" : "プレビュー"}
+            </Button>
+          </div>
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <Label htmlFor="format">形式</Label>
             <Select value={data.format} onValueChange={handleFormatChange}>
-              <SelectTrigger className="w-32">
+              <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -118,116 +174,147 @@ export function RichTextBlockEditor({ data, onChange }: RichTextBlockEditorProps
                 <SelectItem value="plain">プレーンテキスト</SelectItem>
               </SelectContent>
             </Select>
-            <Button variant="outline" size="sm" onClick={() => setShowPreview(!showPreview)}>
-              {showPreview ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-              {showPreview ? "編集" : "プレビュー"}
-            </Button>
+          </div>
+          <div>
+            <Label htmlFor="textAlign">テキスト配置</Label>
+            <Select
+              value={data.style?.textAlign || "left"}
+              onValueChange={(value) => handleStyleChange("textAlign", value)}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="left">左寄せ</SelectItem>
+                <SelectItem value="center">中央寄せ</SelectItem>
+                <SelectItem value="right">右寄せ</SelectItem>
+                <SelectItem value="justify">両端揃え</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
-      </CardHeader>
-      <CardContent className="space-y-4">
+
+        <div className="grid grid-cols-3 gap-4">
+          <div>
+            <Label htmlFor="fontSize">フォントサイズ</Label>
+            <Input
+              id="fontSize"
+              value={data.style?.fontSize || ""}
+              onChange={(e) => handleStyleChange("fontSize", e.target.value)}
+              placeholder="16px"
+            />
+          </div>
+          <div>
+            <Label htmlFor="color">文字色</Label>
+            <Input
+              id="color"
+              type="color"
+              value={data.style?.color || "#000000"}
+              onChange={(e) => handleStyleChange("color", e.target.value)}
+            />
+          </div>
+          <div>
+            <Label htmlFor="backgroundColor">背景色</Label>
+            <Input
+              id="backgroundColor"
+              type="color"
+              value={data.style?.backgroundColor || "#ffffff"}
+              onChange={(e) => handleStyleChange("backgroundColor", e.target.value)}
+            />
+          </div>
+        </div>
+
         {data.format === "markdown" && (
-          <div className="flex flex-wrap gap-1 p-2 bg-slate-50 rounded-md">
-            <Button variant="ghost" size="sm" onClick={() => insertMarkdown("bold", "太字")} className="h-8 px-2">
-              <Bold className="h-3 w-3" />
-            </Button>
-            <Button variant="ghost" size="sm" onClick={() => insertMarkdown("italic", "斜体")} className="h-8 px-2">
-              <Italic className="h-3 w-3" />
-            </Button>
-            <Button variant="ghost" size="sm" onClick={() => insertMarkdown("heading", "見出し")} className="h-8 px-2">
-              <Type className="h-3 w-3" />
-            </Button>
-            <Button variant="ghost" size="sm" onClick={() => insertMarkdown("link")} className="h-8 px-2">
-              <Link2 className="h-3 w-3" />
-            </Button>
-            <Button variant="ghost" size="sm" onClick={() => insertMarkdown("image")} className="h-8 px-2">
-              <ImageIcon className="h-3 w-3" />
-            </Button>
-            <Button variant="ghost" size="sm" onClick={() => insertMarkdown("list")} className="h-8 px-2">
-              <List className="h-3 w-3" />
-            </Button>
-            <Button variant="ghost" size="sm" onClick={() => insertMarkdown("code", "コード")} className="h-8 px-2">
-              <Code className="h-3 w-3" />
-            </Button>
-            <Button variant="ghost" size="sm" onClick={() => insertMarkdown("quote", "引用")} className="h-8 px-2">
-              {">"}
-            </Button>
+          <div>
+            <Label>Markdownツールバー</Label>
+            <div className="flex flex-wrap gap-1 p-2 border rounded-md bg-slate-50">
+              <Button variant="ghost" size="sm" onClick={() => insertMarkdown("bold", "太字")} title="太字">
+                <Bold className="h-4 w-4" />
+              </Button>
+              <Button variant="ghost" size="sm" onClick={() => insertMarkdown("italic", "斜体")} title="斜体">
+                <Italic className="h-4 w-4" />
+              </Button>
+              <Separator orientation="vertical" className="h-6" />
+              <Button variant="ghost" size="sm" onClick={() => insertMarkdown("heading1", "見出し1")} title="見出し1">
+                <Heading1 className="h-4 w-4" />
+              </Button>
+              <Button variant="ghost" size="sm" onClick={() => insertMarkdown("heading2", "見出し2")} title="見出し2">
+                <Heading2 className="h-4 w-4" />
+              </Button>
+              <Button variant="ghost" size="sm" onClick={() => insertMarkdown("heading3", "見出し3")} title="見出し3">
+                <Heading3 className="h-4 w-4" />
+              </Button>
+              <Separator orientation="vertical" className="h-6" />
+              <Button variant="ghost" size="sm" onClick={() => insertMarkdown("link")} title="リンク">
+                <LinkIcon className="h-4 w-4" />
+              </Button>
+              <Button variant="ghost" size="sm" onClick={() => insertMarkdown("image")} title="画像">
+                <ImageIcon className="h-4 w-4" />
+              </Button>
+              <Separator orientation="vertical" className="h-6" />
+              <Button variant="ghost" size="sm" onClick={() => insertMarkdown("list")} title="リスト">
+                <List className="h-4 w-4" />
+              </Button>
+              <Button variant="ghost" size="sm" onClick={() => insertMarkdown("ordered-list")} title="番号付きリスト">
+                <ListOrdered className="h-4 w-4" />
+              </Button>
+              <Button variant="ghost" size="sm" onClick={() => insertMarkdown("quote")} title="引用">
+                <Quote className="h-4 w-4" />
+              </Button>
+              <Button variant="ghost" size="sm" onClick={() => insertMarkdown("code")} title="コード">
+                <Code className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
         )}
 
-        <Tabs value={showPreview ? "preview" : "editor"} className="w-full">
+        <Tabs value={showPreview ? "preview" : "edit"} className="w-full">
           <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="editor" onClick={() => setShowPreview(false)}>
+            <TabsTrigger value="edit" onClick={() => setShowPreview(false)}>
               編集
             </TabsTrigger>
             <TabsTrigger value="preview" onClick={() => setShowPreview(true)}>
               プレビュー
             </TabsTrigger>
           </TabsList>
-
-          <TabsContent value="editor" className="space-y-2">
+          <TabsContent value="edit" className="space-y-2">
+            <Label htmlFor="content">コンテンツ</Label>
             <Textarea
-              data-rich-text
+              id="content"
+              name="content"
               value={data.content}
               onChange={(e) => handleContentChange(e.target.value)}
               placeholder={
                 data.format === "markdown"
-                  ? "Markdownで記述してください...\n\n# 見出し1\n## 見出し2\n**太字** *斜体*\n- リスト項目\n[リンク](URL)\n![画像](URL)"
+                  ? "# 見出し\n\n**太字**や*斜体*、[リンク](URL)などが使えます。"
                   : data.format === "html"
-                    ? "HTMLで記述してください...\n\n<h1>見出し1</h1>\n<p>段落テキスト</p>\n<strong>太字</strong>"
-                    : "プレーンテキストを入力してください..."
+                    ? "<h1>見出し</h1>\n<p>HTMLタグが使えます。</p>"
+                    : "プレーンテキストを入力してください。"
               }
-              className="min-h-[300px] font-mono text-sm"
+              className="min-h-[200px] font-mono"
+              style={{
+                fontSize: data.style?.fontSize,
+                color: data.style?.color,
+                backgroundColor: data.style?.backgroundColor,
+                textAlign: data.style?.textAlign,
+              }}
             />
-            <div className="text-xs text-slate-500">{data.content.length} 文字</div>
           </TabsContent>
-
           <TabsContent value="preview" className="space-y-2">
-            <div className="min-h-[300px] p-4 border rounded-md bg-white prose prose-sm max-w-none">
-              {data.content ? (
-                renderPreview()
-              ) : (
-                <div className="text-slate-400 italic">プレビューするコンテンツがありません</div>
-              )}
+            <Label>プレビュー</Label>
+            <div
+              className="min-h-[200px] p-4 border rounded-md bg-white prose prose-sm max-w-none"
+              style={{
+                fontSize: data.style?.fontSize,
+                color: data.style?.color,
+                backgroundColor: data.style?.backgroundColor,
+                textAlign: data.style?.textAlign,
+              }}
+            >
+              {data.content ? renderPreview() : <p className="text-slate-400">プレビューがここに表示されます</p>}
             </div>
           </TabsContent>
         </Tabs>
-
-        {data.format === "markdown" && (
-          <div className="space-y-2">
-            <Label className="text-xs font-medium text-slate-600">Markdownヘルプ</Label>
-            <div className="grid grid-cols-2 gap-2 text-xs">
-              <div className="space-y-1">
-                <div>
-                  <code># 見出し1</code>
-                </div>
-                <div>
-                  <code>## 見出し2</code>
-                </div>
-                <div>
-                  <code>**太字**</code>
-                </div>
-                <div>
-                  <code>*斜体*</code>
-                </div>
-              </div>
-              <div className="space-y-1">
-                <div>
-                  <code>- リスト</code>
-                </div>
-                <div>
-                  <code>[リンク](URL)</code>
-                </div>
-                <div>
-                  <code>`コード`</code>
-                </div>
-                <div>
-                  <code>{">"} 引用</code>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
       </CardContent>
     </Card>
   )
