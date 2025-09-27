@@ -1,13 +1,12 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Separator } from "@/components/ui/separator"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Trash2, ChevronDown, ChevronUp, Bold, Italic, Code, List, Quote } from "lucide-react"
+import { Bold, Italic, Underline, Link, List, ListOrdered, Quote, Code } from "lucide-react"
 
 interface RichTextData {
   content: string
@@ -17,164 +16,147 @@ interface RichTextData {
 interface RichTextBlockEditorProps {
   data: RichTextData
   onChange: (data: RichTextData) => void
-  onDelete: () => void
 }
 
-export function RichTextBlockEditor({ data, onChange, onDelete }: RichTextBlockEditorProps) {
-  const [isCollapsed, setIsCollapsed] = useState(false)
+export function RichTextBlockEditor({ data, onChange }: RichTextBlockEditorProps) {
+  const [isPreview, setIsPreview] = useState(false)
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
 
-  const insertMarkdown = (syntax: string, placeholder = "") => {
-    const textarea = document.getElementById("rich-text-content") as HTMLTextAreaElement
+  // データの初期化
+  const safeData = data || { content: "", format: "markdown" }
+
+  const insertText = (before: string, after = "") => {
+    const textarea = textareaRef.current
     if (!textarea) return
 
     const start = textarea.selectionStart
     const end = textarea.selectionEnd
-    const selectedText = data.content.substring(start, end)
-    const replacement = selectedText || placeholder
+    const selectedText = textarea.value.substring(start, end)
+    const newText = before + selectedText + after
 
-    let newContent = ""
-    switch (syntax) {
-      case "bold":
-        newContent = data.content.substring(0, start) + `**${replacement}**` + data.content.substring(end)
-        break
-      case "italic":
-        newContent = data.content.substring(0, start) + `*${replacement}*` + data.content.substring(end)
-        break
-      case "code":
-        newContent = data.content.substring(0, start) + `\`${replacement}\`` + data.content.substring(end)
-        break
-      case "list":
-        newContent = data.content.substring(0, start) + `- ${replacement}` + data.content.substring(end)
-        break
-      case "quote":
-        newContent = data.content.substring(0, start) + `> ${replacement}` + data.content.substring(end)
-        break
-      case "h2":
-        newContent = data.content.substring(0, start) + `## ${replacement}` + data.content.substring(end)
-        break
-      case "h3":
-        newContent = data.content.substring(0, start) + `### ${replacement}` + data.content.substring(end)
-        break
-    }
+    const newValue = textarea.value.substring(0, start) + newText + textarea.value.substring(end)
+    onChange({ ...safeData, content: newValue })
 
-    onChange({ ...data, content: newContent })
+    // カーソル位置を調整
+    setTimeout(() => {
+      textarea.focus()
+      textarea.setSelectionRange(start + before.length, start + before.length + selectedText.length)
+    }, 0)
   }
 
+  const formatButtons = [
+    { icon: Bold, label: "太字", action: () => insertText("**", "**") },
+    { icon: Italic, label: "斜体", action: () => insertText("*", "*") },
+    { icon: Underline, label: "下線", action: () => insertText("<u>", "</u>") },
+    { icon: Link, label: "リンク", action: () => insertText("[", "](URL)") },
+    { icon: List, label: "箇条書き", action: () => insertText("- ") },
+    { icon: ListOrdered, label: "番号付きリスト", action: () => insertText("1. ") },
+    { icon: Quote, label: "引用", action: () => insertText("> ") },
+    { icon: Code, label: "コード", action: () => insertText("`", "`") },
+  ]
+
   const renderPreview = () => {
-    if (data.format === "markdown") {
+    if (safeData.format === "markdown") {
       // 簡単なMarkdownプレビュー
-      const htmlContent = data.content
+      return safeData.content
         .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
         .replace(/\*(.*?)\*/g, "<em>$1</em>")
-        .replace(/`(.*?)`/g, "<code class='bg-slate-100 px-1 py-0.5 rounded text-sm'>$1</code>")
-        .replace(/^### (.+)$/gm, "<h3 class='text-lg font-semibold text-slate-900 mt-4 mb-2'>$1</h3>")
-        .replace(/^## (.+)$/gm, "<h2 class='text-xl font-bold text-slate-900 mt-6 mb-3'>$1</h2>")
-        .replace(
-          /^> (.+)$/gm,
-          "<blockquote class='border-l-4 border-slate-300 pl-4 italic text-slate-600'>$1</blockquote>",
-        )
+        .replace(/`(.*?)`/g, "<code>$1</code>")
+        .replace(/^> (.+)$/gm, "<blockquote>$1</blockquote>")
         .replace(/^- (.+)$/gm, "<li>$1</li>")
-        .replace(/(<li>.*<\/li>)/s, "<ul class='list-disc list-inside space-y-1'>$1</ul>")
-        .replace(/\n\n/g, "</p><p class='mb-4'>")
+        .replace(/(<li>.*<\/li>)/s, "<ul>$1</ul>")
         .replace(/\n/g, "<br>")
-
-      return (
-        <div
-          className="prose prose-slate max-w-none p-4 border rounded-lg bg-slate-50 min-h-[200px]"
-          dangerouslySetInnerHTML={{ __html: `<p class='mb-4'>${htmlContent}</p>` }}
-        />
-      )
     }
-
-    return (
-      <div
-        className="prose prose-slate max-w-none p-4 border rounded-lg bg-slate-50 min-h-[200px]"
-        dangerouslySetInnerHTML={{ __html: data.content }}
-      />
-    )
+    return safeData.content
   }
 
   return (
-    <Card className="w-full">
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <CardTitle className="text-sm font-medium">リッチテキスト</CardTitle>
-            <Button variant="ghost" size="sm" onClick={() => setIsCollapsed(!isCollapsed)}>
-              {isCollapsed ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
-            </Button>
-          </div>
-          <Button variant="destructive" size="sm" onClick={onDelete}>
-            <Trash2 className="h-4 w-4" />
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <Label className="text-sm font-medium">リッチテキスト</Label>
+        <div className="flex items-center gap-2">
+          <Select value={safeData.format} onValueChange={(value: any) => onChange({ ...safeData, format: value })}>
+            <SelectTrigger className="w-32">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="markdown">Markdown</SelectItem>
+              <SelectItem value="html">HTML</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button onClick={() => setIsPreview(!isPreview)} size="sm" variant={isPreview ? "default" : "outline"}>
+            {isPreview ? "編集" : "プレビュー"}
           </Button>
         </div>
-      </CardHeader>
+      </div>
 
-      {!isCollapsed && (
-        <CardContent className="space-y-4">
-          <div>
-            <Label className="text-sm font-medium">フォーマット</Label>
-            <Select value={data.format} onValueChange={(value: any) => onChange({ ...data, format: value })}>
-              <SelectTrigger className="mt-1">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="markdown">Markdown</SelectItem>
-                <SelectItem value="html">HTML</SelectItem>
-              </SelectContent>
-            </Select>
+      {!isPreview && (
+        <>
+          {/* ツールバー */}
+          <div className="flex flex-wrap items-center gap-1 p-2 bg-slate-50 rounded-lg border">
+            {formatButtons.map((button, index) => (
+              <Button
+                key={index}
+                onClick={button.action}
+                size="sm"
+                variant="ghost"
+                className="h-8 w-8 p-0"
+                title={button.label}
+              >
+                <button.icon className="h-4 w-4" />
+              </Button>
+            ))}
+            <Separator orientation="vertical" className="h-6 mx-1" />
+            <Button
+              onClick={() => insertText("## ")}
+              size="sm"
+              variant="ghost"
+              className="h-8 px-2 text-xs font-bold"
+              title="見出し2"
+            >
+              H2
+            </Button>
+            <Button
+              onClick={() => insertText("### ")}
+              size="sm"
+              variant="ghost"
+              className="h-8 px-2 text-xs font-bold"
+              title="見出し3"
+            >
+              H3
+            </Button>
           </div>
 
-          <Tabs defaultValue="editor" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="editor">エディター</TabsTrigger>
-              <TabsTrigger value="preview">プレビュー</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="editor" className="space-y-2">
-              {data.format === "markdown" && (
-                <div className="flex flex-wrap gap-1 p-2 border rounded-lg bg-slate-50">
-                  <Button variant="ghost" size="sm" onClick={() => insertMarkdown("bold", "太字テキスト")}>
-                    <Bold className="h-4 w-4" />
-                  </Button>
-                  <Button variant="ghost" size="sm" onClick={() => insertMarkdown("italic", "斜体テキスト")}>
-                    <Italic className="h-4 w-4" />
-                  </Button>
-                  <Button variant="ghost" size="sm" onClick={() => insertMarkdown("code", "コード")}>
-                    <Code className="h-4 w-4" />
-                  </Button>
-                  <Button variant="ghost" size="sm" onClick={() => insertMarkdown("list", "リスト項目")}>
-                    <List className="h-4 w-4" />
-                  </Button>
-                  <Button variant="ghost" size="sm" onClick={() => insertMarkdown("quote", "引用テキスト")}>
-                    <Quote className="h-4 w-4" />
-                  </Button>
-                  <Button variant="ghost" size="sm" onClick={() => insertMarkdown("h2", "見出し2")}>
-                    H2
-                  </Button>
-                  <Button variant="ghost" size="sm" onClick={() => insertMarkdown("h3", "見出し3")}>
-                    H3
-                  </Button>
-                </div>
-              )}
-
-              <Textarea
-                id="rich-text-content"
-                value={data.content}
-                onChange={(e) => onChange({ ...data, content: e.target.value })}
-                placeholder={
-                  data.format === "markdown"
-                    ? "Markdownで記述してください...\n\n例:\n## 見出し\n**太字** *斜体* `コード`\n- リスト項目\n> 引用"
-                    : "HTMLで記述してください..."
-                }
-                className="min-h-[300px] font-mono text-sm"
-              />
-            </TabsContent>
-
-            <TabsContent value="preview">{renderPreview()}</TabsContent>
-          </Tabs>
-        </CardContent>
+          {/* エディター */}
+          <Textarea
+            ref={textareaRef}
+            value={safeData.content}
+            onChange={(e) => onChange({ ...safeData, content: e.target.value })}
+            className="w-full min-h-[300px] p-4 border border-slate-200 rounded-lg resize-y font-mono text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder={
+              safeData.format === "markdown"
+                ? "Markdownで記述してください...\n\n**太字** *斜体* `コード`\n## 見出し\n- リスト項目"
+                : "HTMLで記述してください..."
+            }
+          />
+        </>
       )}
-    </Card>
+
+      {isPreview && (
+        <div className="min-h-[300px] p-4 border border-slate-200 rounded-lg bg-white">
+          <div className="prose prose-slate max-w-none" dangerouslySetInnerHTML={{ __html: renderPreview() }} />
+        </div>
+      )}
+
+      <div className="text-xs text-slate-500">
+        {safeData.format === "markdown" ? (
+          <p>Markdown記法を使用できます。**太字**、*斜体*、`コード`、## 見出し、- リスト、&gt; 引用</p>
+        ) : (
+          <p>
+            HTML記法を使用できます。&lt;strong&gt;、&lt;em&gt;、&lt;code&gt;、&lt;h2&gt;、&lt;ul&gt;、&lt;blockquote&gt;
+          </p>
+        )}
+      </div>
+    </div>
   )
 }

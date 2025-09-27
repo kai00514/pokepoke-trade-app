@@ -2,18 +2,20 @@
 
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Trash2, Plus, ChevronDown, ChevronUp, Upload, X } from "lucide-react"
+import { Card, CardContent } from "@/components/ui/card"
+import { Trash2, Upload, ExternalLink } from "lucide-react"
 import Image from "next/image"
+import { ImageUpload } from "../image-upload"
 
 interface MediaItem {
   id: string
+  type: "image" | "video" | "embed"
   url: string
-  alt: string
   caption?: string
+  alt?: string
 }
 
 interface MediaGalleryData {
@@ -25,237 +27,219 @@ interface MediaGalleryData {
 interface MediaGalleryBlockEditorProps {
   data: MediaGalleryData
   onChange: (data: MediaGalleryData) => void
-  onDelete: () => void
 }
 
-export function MediaGalleryBlockEditor({ data, onChange, onDelete }: MediaGalleryBlockEditorProps) {
-  const [isCollapsed, setIsCollapsed] = useState(false)
+export function MediaGalleryBlockEditor({ data, onChange }: MediaGalleryBlockEditorProps) {
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false)
+  const [editingItemId, setEditingItemId] = useState<string | null>(null)
 
-  const addMediaItem = () => {
+  // データの初期化
+  const safeData = data || { items: [], layout: "grid", columns: 3 }
+
+  const addImageItem = () => {
+    setEditingItemId("new")
+    setIsUploadModalOpen(true)
+  }
+
+  const addUrlItem = () => {
     const newItem: MediaItem = {
-      id: `media-${Date.now()}`,
+      id: `item-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      type: "image",
       url: "",
-      alt: "",
       caption: "",
+      alt: "",
     }
-
     onChange({
-      ...data,
-      items: [...data.items, newItem],
+      ...safeData,
+      items: [...safeData.items, newItem],
     })
   }
 
-  const updateMediaItem = (itemId: string, updates: Partial<MediaItem>) => {
+  const updateItem = (itemId: string, updates: Partial<MediaItem>) => {
     onChange({
-      ...data,
-      items: data.items.map((item) => (item.id === itemId ? { ...item, ...updates } : item)),
+      ...safeData,
+      items: safeData.items.map((item) => (item.id === itemId ? { ...item, ...updates } : item)),
     })
   }
 
-  const deleteMediaItem = (itemId: string) => {
+  const deleteItem = (itemId: string) => {
     onChange({
-      ...data,
-      items: data.items.filter((item) => item.id !== itemId),
+      ...safeData,
+      items: safeData.items.filter((item) => item.id !== itemId),
     })
   }
 
-  const handleImageUpload = async (itemId: string, file: File) => {
-    // 実際の実装では画像アップロード処理を行う
-    const formData = new FormData()
-    formData.append("file", file)
-
-    try {
-      const response = await fetch("/api/upload-image", {
-        method: "POST",
-        body: formData,
-      })
-
-      if (response.ok) {
-        const { url } = await response.json()
-        updateMediaItem(itemId, { url })
+  const handleImageUpload = (url: string) => {
+    if (editingItemId === "new") {
+      const newItem: MediaItem = {
+        id: `item-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        type: "image",
+        url,
+        caption: "",
+        alt: "",
       }
-    } catch (error) {
-      console.error("Image upload failed:", error)
+      onChange({
+        ...safeData,
+        items: [...safeData.items, newItem],
+      })
+    } else if (editingItemId) {
+      updateItem(editingItemId, { url })
     }
+    setIsUploadModalOpen(false)
+    setEditingItemId(null)
   }
 
   return (
-    <Card className="w-full">
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <CardTitle className="text-sm font-medium">メディアギャラリー</CardTitle>
-            <Button variant="ghost" size="sm" onClick={() => setIsCollapsed(!isCollapsed)}>
-              {isCollapsed ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
-            </Button>
-          </div>
-          <Button variant="destructive" size="sm" onClick={onDelete}>
-            <Trash2 className="h-4 w-4" />
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <Label className="text-sm font-medium">メディアギャラリー</Label>
+        <div className="flex items-center gap-2">
+          <Select value={safeData.layout} onValueChange={(value: any) => onChange({ ...safeData, layout: value })}>
+            <SelectTrigger className="w-32">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="grid">グリッド</SelectItem>
+              <SelectItem value="carousel">カルーセル</SelectItem>
+              <SelectItem value="masonry">マソンリー</SelectItem>
+            </SelectContent>
+          </Select>
+          {safeData.layout === "grid" && (
+            <Select
+              value={safeData.columns.toString()}
+              onValueChange={(value) => onChange({ ...safeData, columns: Number.parseInt(value) as any })}
+            >
+              <SelectTrigger className="w-20">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="2">2列</SelectItem>
+                <SelectItem value="3">3列</SelectItem>
+                <SelectItem value="4">4列</SelectItem>
+                <SelectItem value="5">5列</SelectItem>
+              </SelectContent>
+            </Select>
+          )}
+          <Button onClick={addImageItem} size="sm" variant="outline">
+            <Upload className="h-4 w-4 mr-1" />
+            画像追加
+          </Button>
+          <Button onClick={addUrlItem} size="sm" variant="outline">
+            <ExternalLink className="h-4 w-4 mr-1" />
+            URL追加
           </Button>
         </div>
-      </CardHeader>
+      </div>
 
-      {!isCollapsed && (
-        <CardContent className="space-y-4">
-          {/* レイアウト設定 */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label className="text-sm font-medium">レイアウト</Label>
-              <Select value={data.layout} onValueChange={(value: any) => onChange({ ...data, layout: value })}>
-                <SelectTrigger className="mt-1">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="grid">グリッド</SelectItem>
-                  <SelectItem value="carousel">カルーセル</SelectItem>
-                  <SelectItem value="masonry">マソンリー</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+      {safeData.items.length === 0 ? (
+        <div className="text-center py-8 text-gray-500 border-2 border-dashed border-gray-200 rounded-lg">
+          <p>メディアが追加されていません</p>
+          <p className="text-sm">「画像追加」または「URL追加」ボタンからメディアを追加してください</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {safeData.items.map((item) => (
+            <Card key={item.id} className="border border-slate-200">
+              <CardContent className="p-4">
+                <div className="flex items-start gap-4">
+                  {/* プレビュー */}
+                  <div className="flex-shrink-0 w-24 h-24 bg-slate-100 rounded-lg overflow-hidden">
+                    {item.url ? (
+                      <Image
+                        src={item.url || "/placeholder.svg"}
+                        alt={item.alt || ""}
+                        width={96}
+                        height={96}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-slate-400">
+                        <Upload className="h-8 w-8" />
+                      </div>
+                    )}
+                  </div>
 
-            {data.layout === "grid" && (
-              <div>
-                <Label className="text-sm font-medium">列数</Label>
-                <Select
-                  value={data.columns.toString()}
-                  onValueChange={(value) => onChange({ ...data, columns: Number.parseInt(value) as any })}
-                >
-                  <SelectTrigger className="mt-1">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="2">2列</SelectItem>
-                    <SelectItem value="3">3列</SelectItem>
-                    <SelectItem value="4">4列</SelectItem>
-                    <SelectItem value="5">5列</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-          </div>
+                  {/* 設定 */}
+                  <div className="flex-1 space-y-3">
+                    <div>
+                      <Label className="text-xs text-slate-600">URL</Label>
+                      <div className="flex gap-2">
+                        <Input
+                          value={item.url}
+                          onChange={(e) => updateItem(item.id, { url: e.target.value })}
+                          placeholder="画像URL"
+                          className="text-sm"
+                        />
+                        <Button
+                          onClick={() => {
+                            setEditingItemId(item.id)
+                            setIsUploadModalOpen(true)
+                          }}
+                          size="sm"
+                          variant="outline"
+                        >
+                          <Upload className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
 
-          {/* メディアアイテム */}
-          <div>
-            <div className="flex items-center justify-between mb-3">
-              <Label className="text-sm font-medium">メディアアイテム ({data.items.length})</Label>
-              <Button variant="outline" size="sm" onClick={addMediaItem}>
-                <Plus className="h-4 w-4 mr-1" />
-                アイテムを追加
+                    <div>
+                      <Label className="text-xs text-slate-600">キャプション</Label>
+                      <Input
+                        value={item.caption || ""}
+                        onChange={(e) => updateItem(item.id, { caption: e.target.value })}
+                        placeholder="キャプション"
+                        className="text-sm"
+                      />
+                    </div>
+
+                    <div>
+                      <Label className="text-xs text-slate-600">代替テキスト</Label>
+                      <Input
+                        value={item.alt || ""}
+                        onChange={(e) => updateItem(item.id, { alt: e.target.value })}
+                        placeholder="代替テキスト"
+                        className="text-sm"
+                      />
+                    </div>
+                  </div>
+
+                  {/* 削除ボタン */}
+                  <Button
+                    onClick={() => deleteItem(item.id)}
+                    size="sm"
+                    variant="ghost"
+                    className="flex-shrink-0 text-red-500 hover:text-red-700 hover:bg-red-50"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+
+      {/* 画像アップロードモーダル */}
+      {isUploadModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <h3 className="text-lg font-semibold mb-4">画像をアップロード</h3>
+            <ImageUpload value="" onChange={handleImageUpload} />
+            <div className="flex justify-end gap-2 mt-4">
+              <Button
+                onClick={() => {
+                  setIsUploadModalOpen(false)
+                  setEditingItemId(null)
+                }}
+                variant="outline"
+              >
+                キャンセル
               </Button>
             </div>
-
-            <div className="space-y-4">
-              {data.items.map((item, index) => (
-                <div key={item.id} className="border rounded-lg p-4 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">アイテム {index + 1}</span>
-                    <Button variant="destructive" size="sm" onClick={() => deleteMediaItem(item.id)}>
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* 画像プレビュー・アップロード */}
-                    <div>
-                      <Label className="text-sm font-medium">画像</Label>
-                      <div className="mt-1">
-                        {item.url ? (
-                          <div className="relative aspect-video rounded-lg overflow-hidden bg-slate-100">
-                            <Image
-                              src={item.url || "/placeholder.svg"}
-                              alt={item.alt || ""}
-                              fill
-                              className="object-cover"
-                            />
-                            <button
-                              onClick={() => updateMediaItem(item.id, { url: "" })}
-                              className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm hover:bg-red-600"
-                            >
-                              ×
-                            </button>
-                          </div>
-                        ) : (
-                          <div className="aspect-video border-2 border-dashed border-slate-300 rounded-lg flex flex-col items-center justify-center bg-slate-50">
-                            <Upload className="h-8 w-8 text-slate-400 mb-2" />
-                            <p className="text-sm text-slate-500 mb-2">画像をアップロード</p>
-                            <input
-                              type="file"
-                              accept="image/*"
-                              onChange={(e) => {
-                                const file = e.target.files?.[0]
-                                if (file) {
-                                  handleImageUpload(item.id, file)
-                                }
-                              }}
-                              className="hidden"
-                              id={`upload-${item.id}`}
-                            />
-                            <label
-                              htmlFor={`upload-${item.id}`}
-                              className="cursor-pointer bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600"
-                            >
-                              ファイルを選択
-                            </label>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* テキスト入力 */}
-                    <div className="space-y-3">
-                      <div>
-                        <Label htmlFor={`url-${item.id}`} className="text-sm font-medium">
-                          画像URL（直接入力）
-                        </Label>
-                        <Input
-                          id={`url-${item.id}`}
-                          value={item.url}
-                          onChange={(e) => updateMediaItem(item.id, { url: e.target.value })}
-                          placeholder="https://example.com/image.jpg"
-                          className="mt-1"
-                        />
-                      </div>
-
-                      <div>
-                        <Label htmlFor={`alt-${item.id}`} className="text-sm font-medium">
-                          代替テキスト
-                        </Label>
-                        <Input
-                          id={`alt-${item.id}`}
-                          value={item.alt}
-                          onChange={(e) => updateMediaItem(item.id, { alt: e.target.value })}
-                          placeholder="画像の説明"
-                          className="mt-1"
-                        />
-                      </div>
-
-                      <div>
-                        <Label htmlFor={`caption-${item.id}`} className="text-sm font-medium">
-                          キャプション（任意）
-                        </Label>
-                        <Input
-                          id={`caption-${item.id}`}
-                          value={item.caption || ""}
-                          onChange={(e) => updateMediaItem(item.id, { caption: e.target.value })}
-                          placeholder="画像の説明文"
-                          className="mt-1"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-
-              {data.items.length === 0 && (
-                <div className="text-center py-8 text-slate-500">
-                  <p className="text-sm">メディアアイテムがありません</p>
-                  <p className="text-xs text-slate-400 mt-1">「アイテムを追加」ボタンから追加してください</p>
-                </div>
-              )}
-            </div>
           </div>
-        </CardContent>
+        </div>
       )}
-    </Card>
+    </div>
   )
 }

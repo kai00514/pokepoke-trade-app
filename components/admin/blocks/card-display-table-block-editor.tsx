@@ -4,202 +4,191 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Trash2, Plus, Search, ChevronDown, ChevronUp } from "lucide-react"
-import { DetailedSearchModal } from "@/components/detailed-search-modal"
+import { Card, CardContent } from "@/components/ui/card"
+import { Trash2, Plus, Search } from "lucide-react"
 import Image from "next/image"
-
-interface CardData {
-  id: string
-  name: string
-  imageUrl: string
-  type?: string
-  rarity?: string
-  category?: string
-  pack_id?: number
-}
-
-interface TableRow {
-  id: string
-  header: string
-  cards: CardData[]
-}
+import DetailedSearchModal, { type Card as SearchCard } from "@/components/detailed-search-modal"
 
 interface CardDisplayTableData {
-  rows: TableRow[]
+  rows: Array<{
+    id: string
+    header: string
+    cards: SearchCard[]
+  }>
 }
 
 interface CardDisplayTableBlockEditorProps {
   data: CardDisplayTableData
   onChange: (data: CardDisplayTableData) => void
-  onDelete: () => void
 }
 
-export function CardDisplayTableBlockEditor({ data, onChange, onDelete }: CardDisplayTableBlockEditorProps) {
-  const [isCollapsed, setIsCollapsed] = useState(false)
-  const [searchModalOpen, setSearchModalOpen] = useState(false)
-  const [currentRowId, setCurrentRowId] = useState<string | null>(null)
+export function CardDisplayTableBlockEditor({ data, onChange }: CardDisplayTableBlockEditorProps) {
+  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false)
+  const [editingRowId, setEditingRowId] = useState<string | null>(null)
+
+  // データの初期化
+  const safeData = data || { rows: [] }
 
   const addRow = () => {
-    const newRow: TableRow = {
-      id: `row-${Date.now()}`,
+    const newRow = {
+      id: `row-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       header: "",
       cards: [],
     }
     onChange({
-      rows: [...data.rows, newRow],
+      rows: [...safeData.rows, newRow],
     })
   }
 
   const updateRowHeader = (rowId: string, header: string) => {
     onChange({
-      rows: data.rows.map((row) => (row.id === rowId ? { ...row, header } : row)),
+      rows: safeData.rows.map((row) => (row.id === rowId ? { ...row, header } : row)),
     })
   }
 
   const deleteRow = (rowId: string) => {
     onChange({
-      rows: data.rows.filter((row) => row.id !== rowId),
+      rows: safeData.rows.filter((row) => row.id !== rowId),
     })
   }
 
   const openCardSearch = (rowId: string) => {
-    setCurrentRowId(rowId)
-    setSearchModalOpen(true)
+    setEditingRowId(rowId)
+    setIsSearchModalOpen(true)
   }
 
-  const handleCardSelect = (selectedCards: any[]) => {
-    if (!currentRowId) return
-
-    const formattedCards: CardData[] = selectedCards.map((card) => ({
-      id: card.id.toString(),
-      name: card.name,
-      imageUrl: card.game8_image_url || card.image_url || "/placeholder.svg",
-      type: card.type,
-      rarity: card.rarity,
-      category: card.category,
-      pack_id: card.pack_id,
-    }))
-
-    onChange({
-      rows: data.rows.map((row) =>
-        row.id === currentRowId ? { ...row, cards: [...row.cards, ...formattedCards] } : row,
-      ),
-    })
-
-    setSearchModalOpen(false)
-    setCurrentRowId(null)
+  const handleCardSelection = (selectedCards: SearchCard[]) => {
+    if (editingRowId) {
+      onChange({
+        rows: safeData.rows.map((row) => (row.id === editingRowId ? { ...row, cards: selectedCards } : row)),
+      })
+    }
+    setIsSearchModalOpen(false)
+    setEditingRowId(null)
   }
 
   const removeCard = (rowId: string, cardId: string) => {
     onChange({
-      rows: data.rows.map((row) =>
+      rows: safeData.rows.map((row) =>
         row.id === rowId ? { ...row, cards: row.cards.filter((card) => card.id !== cardId) } : row,
       ),
     })
   }
 
-  return (
-    <>
-      <Card className="w-full">
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <CardTitle className="text-sm font-medium">カード表示テーブル</CardTitle>
-              <Button variant="ghost" size="sm" onClick={() => setIsCollapsed(!isCollapsed)}>
-                {isCollapsed ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
-              </Button>
-            </div>
-            <Button variant="destructive" size="sm" onClick={onDelete}>
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          </div>
-        </CardHeader>
+  const getCurrentRowCards = () => {
+    if (!editingRowId) return []
+    const row = safeData.rows.find((r) => r.id === editingRowId)
+    return row?.cards || []
+  }
 
-        {!isCollapsed && (
-          <CardContent className="space-y-4">
-            <div className="space-y-4">
-              {data.rows.map((row) => (
-                <div key={row.id} className="border rounded-lg p-4 space-y-3">
-                  <div className="flex items-center gap-2">
-                    <div className="flex-1">
-                      <Label htmlFor={`header-${row.id}`} className="text-sm font-medium">
-                        ヘッダー
-                      </Label>
-                      <Input
-                        id={`header-${row.id}`}
-                        value={row.header}
-                        onChange={(e) => updateRowHeader(row.id, e.target.value)}
-                        placeholder="例: 報酬、必要カード、おすすめカードなど"
-                        className="mt-1"
-                      />
-                    </div>
-                    <Button variant="destructive" size="sm" onClick={() => deleteRow(row.id)} className="mt-6">
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <Label className="text-sm font-medium">カード表示テーブル</Label>
+        <Button onClick={addRow} size="sm" variant="outline">
+          <Plus className="h-4 w-4 mr-1" />
+          行を追加
+        </Button>
+      </div>
+
+      {safeData.rows.length === 0 ? (
+        <div className="text-center py-8 text-gray-500 border-2 border-dashed border-gray-200 rounded-lg">
+          <p>行が追加されていません</p>
+          <p className="text-sm">「行を追加」ボタンから行を追加してください</p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {safeData.rows.map((row, index) => (
+            <Card key={row.id} className="border border-slate-200">
+              <CardContent className="p-4">
+                <div className="flex items-start gap-4">
+                  {/* 行番号 */}
+                  <div className="flex-shrink-0 w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center text-sm font-medium text-slate-600">
+                    {index + 1}
                   </div>
 
-                  <div>
+                  {/* ヘッダー入力 */}
+                  <div className="flex-shrink-0 w-32">
+                    <Label className="text-xs text-slate-600 mb-1 block">ヘッダー</Label>
+                    <Input
+                      value={row.header}
+                      onChange={(e) => updateRowHeader(row.id, e.target.value)}
+                      placeholder="ヘッダー名"
+                      className="text-sm"
+                    />
+                  </div>
+
+                  {/* カード表示エリア */}
+                  <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-2">
-                      <Label className="text-sm font-medium">カード ({row.cards.length}枚)</Label>
-                      <Button variant="outline" size="sm" onClick={() => openCardSearch(row.id)}>
-                        <Search className="h-4 w-4 mr-1" />
-                        カードを追加
+                      <Label className="text-xs text-slate-600">カード ({row.cards.length}枚)</Label>
+                      <Button
+                        onClick={() => openCardSearch(row.id)}
+                        size="sm"
+                        variant="outline"
+                        className="h-7 px-2 text-xs"
+                      >
+                        <Search className="h-3 w-3 mr-1" />
+                        カード選択
                       </Button>
                     </div>
 
                     {row.cards.length > 0 ? (
-                      <div className="grid grid-cols-6 sm:grid-cols-8 md:grid-cols-10 lg:grid-cols-12 gap-2 p-3 bg-slate-50 rounded-lg">
+                      <div className="grid grid-cols-6 sm:grid-cols-8 md:grid-cols-10 gap-2">
                         {row.cards.map((card) => (
                           <div key={card.id} className="relative group">
-                            <div className="aspect-[5/7] relative rounded border overflow-hidden bg-white">
+                            <div className="aspect-[5/7] relative rounded border overflow-hidden bg-slate-100">
                               <Image
                                 src={card.imageUrl || "/placeholder.svg"}
                                 alt={card.name}
                                 fill
                                 className="object-cover"
-                                sizes="60px"
+                                sizes="(max-width: 640px) 16vw, (max-width: 768px) 12vw, 10vw"
                               />
-                              <button
-                                onClick={() => removeCard(row.id, card.id)}
-                                className="absolute top-0 right-0 bg-red-500 text-white rounded-full w-4 h-4 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"
-                              >
-                                ×
-                              </button>
                             </div>
-                            <div className="mt-1 text-[8px] text-slate-600 text-center truncate">{card.name}</div>
+                            <button
+                              onClick={() => removeCard(row.id, card.id)}
+                              className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                              title="削除"
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </button>
+                            <div className="mt-1 text-[10px] text-slate-600 truncate" title={card.name}>
+                              {card.name}
+                            </div>
                           </div>
                         ))}
                       </div>
                     ) : (
-                      <div className="p-8 text-center text-slate-500 bg-slate-50 rounded-lg border-2 border-dashed">
-                        <Search className="h-8 w-8 mx-auto mb-2 text-slate-400" />
-                        <p className="text-sm">カードが選択されていません</p>
-                        <p className="text-xs text-slate-400 mt-1">「カードを追加」ボタンから選択してください</p>
+                      <div className="border-2 border-dashed border-slate-200 rounded-lg p-4 text-center text-slate-500 text-sm">
+                        カードが選択されていません
                       </div>
                     )}
                   </div>
-                </div>
-              ))}
-            </div>
 
-            <Button onClick={addRow} variant="outline" className="w-full bg-transparent">
-              <Plus className="h-4 w-4 mr-2" />
-              行を追加
-            </Button>
-          </CardContent>
-        )}
-      </Card>
+                  {/* 削除ボタン */}
+                  <Button
+                    onClick={() => deleteRow(row.id)}
+                    size="sm"
+                    variant="ghost"
+                    className="flex-shrink-0 text-red-500 hover:text-red-700 hover:bg-red-50"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
 
       <DetailedSearchModal
-        isOpen={searchModalOpen}
-        onClose={() => {
-          setSearchModalOpen(false)
-          setCurrentRowId(null)
-        }}
-        onSelect={handleCardSelect}
-        multiSelect={true}
+        isOpen={isSearchModalOpen}
+        onOpenChange={setIsSearchModalOpen}
+        onSelectionComplete={handleCardSelection}
+        initialSelectedCards={getCurrentRowCards()}
+        modalTitle="カードを選択"
       />
-    </>
+    </div>
   )
 }
