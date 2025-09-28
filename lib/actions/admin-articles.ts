@@ -3,35 +3,38 @@
 import { createClient } from "@/lib/supabase/server"
 import { revalidatePath } from "next/cache"
 
-export interface Block {
+export interface ArticleBlock {
   id?: string
   type: string
   data: any
   display_order: number
 }
 
-export interface Article {
-  id: string
+export interface CreateArticleData {
   title: string
   slug: string
   category: string
-  excerpt?: string
-  featured_image?: string
   is_published: boolean
-  published_at: string | null
   pinned: boolean
   priority: number
-  view_count: number
+  thumbnail_image_url?: string
+  hero_image_url?: string
+  excerpt?: string
+  subtitle?: string
+  tags?: string[]
+  blocks: ArticleBlock[]
+}
+
+export interface Article extends CreateArticleData {
+  id: string
   created_at: string
   updated_at: string
-  blocks?: Block[]
+  view_count: number
+  published_at?: string
 }
 
 // ブロックの順序を正規化する関数
-function normalizeBlockOrders(blocks: Block[]): Block[] {
-  if (!Array.isArray(blocks)) {
-    return []
-  }
+function normalizeBlockOrders(blocks: ArticleBlock[]): ArticleBlock[] {
   return blocks
     .sort((a, b) => (a.display_order || 0) - (b.display_order || 0))
     .map((block, index) => ({
@@ -40,54 +43,41 @@ function normalizeBlockOrders(blocks: Block[]): Block[] {
     }))
 }
 
-export async function createArticle(formData: FormData): Promise<{ success: boolean; error?: string; id?: string }> {
+export async function createArticle(articleData: CreateArticleData) {
   try {
     const supabase = await createClient()
 
-    const title = formData.get("title") as string
-    const slug = formData.get("slug") as string
-    const category = formData.get("category") as string
-    const excerpt = formData.get("excerpt") as string
-    const featuredImage = formData.get("featured_image") as string
-    const isPublished = formData.get("is_published") === "true"
-    const blocksData = formData.get("blocks") as string
-
-    if (!title || !slug || !category) {
-      return { success: false, error: "タイトル、スラッグ、カテゴリーは必須です" }
+    if (!articleData.title || !articleData.slug) {
+      return { success: false, error: "タイトルとスラッグは必須です" }
     }
 
     // スラッグの重複チェック
-    const { data: existingArticle } = await supabase.from("info_articles").select("id").eq("slug", slug).single()
+    const { data: existingArticle } = await supabase
+      .from("info_articles")
+      .select("id")
+      .eq("slug", articleData.slug)
+      .single()
 
     if (existingArticle) {
       return { success: false, error: "このスラッグは既に使用されています" }
-    }
-
-    let blocks: Block[] = []
-    if (blocksData) {
-      try {
-        blocks = JSON.parse(blocksData)
-        blocks = normalizeBlockOrders(blocks)
-      } catch (error) {
-        console.error("Error parsing blocks:", error)
-        return { success: false, error: "ブロックデータの解析に失敗しました" }
-      }
     }
 
     // 記事を作成
     const { data: article, error: articleError } = await supabase
       .from("info_articles")
       .insert({
-        title,
-        slug,
-        category,
-        excerpt: excerpt || null,
-        featured_image: featuredImage || null,
-        is_published: isPublished,
-        published_at: isPublished ? new Date().toISOString() : null,
-        pinned: false,
-        priority: 0,
-        view_count: 0,
+        title: articleData.title,
+        slug: articleData.slug,
+        category: articleData.category,
+        is_published: articleData.is_published,
+        pinned: articleData.pinned,
+        priority: articleData.priority,
+        thumbnail_image_url: articleData.thumbnail_image_url,
+        hero_image_url: articleData.hero_image_url,
+        excerpt: articleData.excerpt,
+        subtitle: articleData.subtitle,
+        tags: articleData.tags,
+        published_at: articleData.is_published ? new Date().toISOString() : null,
       })
       .select()
       .single()
@@ -98,8 +88,9 @@ export async function createArticle(formData: FormData): Promise<{ success: bool
     }
 
     // ブロックを作成
-    if (blocks.length > 0) {
-      const blocksToInsert = blocks.map((block, index) => ({
+    if (articleData.blocks && articleData.blocks.length > 0) {
+      const normalizedBlocks = normalizeBlockOrders(articleData.blocks)
+      const blocksToInsert = normalizedBlocks.map((block, index) => ({
         article_id: article.id,
         type: block.type,
         data: block.data,
@@ -119,34 +110,26 @@ export async function createArticle(formData: FormData): Promise<{ success: bool
     revalidatePath("/admin/articles")
     revalidatePath("/info")
 
-    return { success: true, id: article.id }
+    return { success: true, data: article }
   } catch (error) {
     console.error("Error in createArticle:", error)
     return { success: false, error: "予期しないエラーが発生しました" }
   }
 }
 
-export async function updateArticle(id: string, formData: FormData): Promise<{ success: boolean; error?: string }> {
+export async function updateArticle(id: string, articleData: CreateArticleData) {
   try {
     const supabase = await createClient()
 
-    const title = formData.get("title") as string
-    const slug = formData.get("slug") as string
-    const category = formData.get("category") as string
-    const excerpt = formData.get("excerpt") as string
-    const featuredImage = formData.get("featured_image") as string
-    const isPublished = formData.get("is_published") === "true"
-    const blocksData = formData.get("blocks") as string
-
-    if (!title || !slug || !category) {
-      return { success: false, error: "タイトル、スラッグ、カテゴリーは必須です" }
+    if (!articleData.title || !articleData.slug) {
+      return { success: false, error: "タイトルとスラッグは必須です" }
     }
 
     // スラッグの重複チェック（自分以外）
     const { data: existingArticle } = await supabase
       .from("info_articles")
       .select("id")
-      .eq("slug", slug)
+      .eq("slug", articleData.slug)
       .neq("id", id)
       .single()
 
@@ -154,28 +137,22 @@ export async function updateArticle(id: string, formData: FormData): Promise<{ s
       return { success: false, error: "このスラッグは既に使用されています" }
     }
 
-    let blocks: Block[] = []
-    if (blocksData) {
-      try {
-        blocks = JSON.parse(blocksData)
-        blocks = normalizeBlockOrders(blocks)
-      } catch (error) {
-        console.error("Error parsing blocks:", error)
-        return { success: false, error: "ブロックデータの解析に失敗しました" }
-      }
-    }
-
     // 記事を更新
     const { error: articleError } = await supabase
       .from("info_articles")
       .update({
-        title,
-        slug,
-        category,
-        excerpt: excerpt || null,
-        featured_image: featuredImage || null,
-        is_published: isPublished,
-        published_at: isPublished ? new Date().toISOString() : null,
+        title: articleData.title,
+        slug: articleData.slug,
+        category: articleData.category,
+        is_published: articleData.is_published,
+        pinned: articleData.pinned,
+        priority: articleData.priority,
+        thumbnail_image_url: articleData.thumbnail_image_url,
+        hero_image_url: articleData.hero_image_url,
+        excerpt: articleData.excerpt,
+        subtitle: articleData.subtitle,
+        tags: articleData.tags,
+        published_at: articleData.is_published ? new Date().toISOString() : null,
         updated_at: new Date().toISOString(),
       })
       .eq("id", id)
@@ -194,8 +171,9 @@ export async function updateArticle(id: string, formData: FormData): Promise<{ s
     }
 
     // 新しいブロックを作成
-    if (blocks.length > 0) {
-      const blocksToInsert = blocks.map((block, index) => ({
+    if (articleData.blocks && articleData.blocks.length > 0) {
+      const normalizedBlocks = normalizeBlockOrders(articleData.blocks)
+      const blocksToInsert = normalizedBlocks.map((block, index) => ({
         article_id: id,
         type: block.type,
         data: block.data,
@@ -221,7 +199,7 @@ export async function updateArticle(id: string, formData: FormData): Promise<{ s
   }
 }
 
-export async function deleteArticle(id: string): Promise<{ success: boolean; error?: string }> {
+export async function deleteArticle(id: string) {
   try {
     const supabase = await createClient()
 
@@ -251,7 +229,7 @@ export async function deleteArticle(id: string): Promise<{ success: boolean; err
   }
 }
 
-export async function getArticles(): Promise<{ success: boolean; data?: Article[]; error?: string }> {
+export async function getArticles() {
   try {
     const supabase = await createClient()
 
@@ -259,17 +237,17 @@ export async function getArticles(): Promise<{ success: boolean; data?: Article[
 
     if (error) {
       console.error("Error fetching articles:", error)
-      return { success: false, error: "記事の取得に失敗しました: " + error.message }
+      return { success: false, error: "記事の取得に失敗しました", data: [] }
     }
 
     return { success: true, data: data || [] }
   } catch (error) {
     console.error("Error in getArticles:", error)
-    return { success: false, error: "予期しないエラーが発生しました" }
+    return { success: false, error: "予期しないエラーが発生しました", data: [] }
   }
 }
 
-export async function getArticle(id: string): Promise<{ success: boolean; data?: Article; error?: string }> {
+export async function getArticle(id: string) {
   try {
     const supabase = await createClient()
 
@@ -281,7 +259,7 @@ export async function getArticle(id: string): Promise<{ success: boolean; data?:
 
     if (articleError) {
       console.error("Error fetching article:", articleError)
-      return { success: false, error: "記事の取得に失敗しました: " + articleError.message }
+      return { success: false, error: "記事の取得に失敗しました", data: null }
     }
 
     const { data: blocks, error: blocksError } = await supabase
@@ -292,7 +270,7 @@ export async function getArticle(id: string): Promise<{ success: boolean; data?:
 
     if (blocksError) {
       console.error("Error fetching blocks:", blocksError)
-      return { success: true, data: article }
+      return { success: false, error: "ブロックの取得に失敗しました", data: article }
     }
 
     return {
@@ -304,14 +282,11 @@ export async function getArticle(id: string): Promise<{ success: boolean; data?:
     }
   } catch (error) {
     console.error("Error in getArticle:", error)
-    return { success: false, error: "予期しないエラーが発生しました" }
+    return { success: false, error: "予期しないエラーが発生しました", data: null }
   }
 }
 
-export async function toggleArticlePublished(
-  id: string,
-  isPublished: boolean,
-): Promise<{ success: boolean; error?: string }> {
+export async function toggleArticlePublished(id: string, isPublished: boolean) {
   try {
     const supabase = await createClient()
 
@@ -326,7 +301,7 @@ export async function toggleArticlePublished(
 
     if (error) {
       console.error("Error toggling article published status:", error)
-      return { success: false, error: "公開状態の変更に失敗しました: " + error.message }
+      return { success: false, error: "公開状態の変更に失敗しました" }
     }
 
     revalidatePath("/admin/articles")
@@ -339,10 +314,7 @@ export async function toggleArticlePublished(
   }
 }
 
-export async function toggleArticlePinned(
-  id: string,
-  isPinned: boolean,
-): Promise<{ success: boolean; error?: string }> {
+export async function toggleArticlePinned(id: string, isPinned: boolean) {
   try {
     const supabase = await createClient()
 
@@ -356,15 +328,36 @@ export async function toggleArticlePinned(
 
     if (error) {
       console.error("Error toggling article pinned status:", error)
-      return { success: false, error: "ピン留め状態の変更に失敗しました: " + error.message }
+      return { success: false, error: "ピン留め状態の変更に失敗しました" }
     }
 
     revalidatePath("/admin/articles")
-    revalidatePath("/info")
 
     return { success: true }
   } catch (error) {
     console.error("Error in toggleArticlePinned:", error)
     return { success: false, error: "予期しないエラーが発生しました" }
+  }
+}
+
+export async function getPublishedArticles() {
+  try {
+    const supabase = await createClient()
+
+    const { data, error } = await supabase
+      .from("info_articles")
+      .select("*")
+      .eq("is_published", true)
+      .order("published_at", { ascending: false })
+
+    if (error) {
+      console.error("Error fetching published articles:", error)
+      return { success: false, error: "公開記事の取得に失敗しました", data: [] }
+    }
+
+    return { success: true, data: data || [] }
+  } catch (error) {
+    console.error("Error in getPublishedArticles:", error)
+    return { success: false, error: "予期しないエラーが発生しました", data: [] }
   }
 }
