@@ -5,7 +5,7 @@ import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Plus, Bell, User, Settings, Edit3, LogOut } from "lucide-react"
+import { Plus, Bell, User, Settings, Edit3, LogOut, MessageCircle } from "lucide-react"
 import { useAuth } from "@/contexts/auth-context"
 import { useState, useEffect, memo } from "react"
 import { getNotifications } from "@/lib/services/notification-service"
@@ -116,6 +116,11 @@ function Header() {
     // ここにユーザー名登録ページへの遷移ロジックなどを追加
   }
 
+  // お問い合わせのハンドラ
+  const handleContactClick = () => {
+    window.location.href = "/contact"
+  }
+
   return (
     <header className="bg-violet-500 text-white shadow-md">
       <div className="container mx-auto px-4 py-3 flex items-center justify-between">
@@ -223,6 +228,22 @@ function Header() {
                       <p className="text-xs text-gray-500 group-hover:text-emerald-600">表示名をカスタマイズ</p>
                     </div>
                     <div className="w-2 h-2 bg-emerald-400 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
+                  </DropdownMenuItem>
+
+                  <DropdownMenuItem
+                    onClick={handleContactClick}
+                    className="cursor-pointer rounded-xl px-4 py-3 text-sm hover:bg-gradient-to-r hover:from-orange-50 hover:to-amber-50 hover:text-orange-700 transition-all duration-200 flex items-center group border-0 focus:bg-gradient-to-r focus:from-orange-50 focus:to-amber-50"
+                  >
+                    <div className="w-10 h-10 bg-gradient-to-br from-orange-400 to-amber-600 rounded-xl flex items-center justify-center mr-4 group-hover:scale-110 transition-transform duration-200 shadow-lg">
+                      <MessageCircle className="w-5 h-5 text-white" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-semibold text-gray-900 group-hover:text-orange-700">お問い合わせ</p>
+                      <p className="text-xs text-gray-500 group-hover:text-orange-600">
+                        ご質問やご要望をお聞かせください
+                      </p>
+                    </div>
+                    <div className="w-2 h-2 bg-orange-400 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
                   </DropdownMenuItem>
 
                   {/* 区切り線 */}

@@ -1,14 +1,17 @@
 "use client"
 
+import type React from "react"
+
 import { useState, useEffect } from "react"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { Search, X } from "lucide-react"
+import { Label } from "@/components/ui/label"
+import { Search, Trash2, Plus } from "lucide-react"
 import { updateTradeOwnedList } from "@/lib/actions/trade-owned-lists"
 import { DetailedSearchModal } from "@/components/detailed-search-modal"
-import NotificationModal from "@/components/ui/notification-modal"
+import { NotificationModal } from "@/components/ui/notification-modal"
 
 interface SelectedCard {
   id: number
@@ -17,72 +20,86 @@ interface SelectedCard {
   packName?: string
 }
 
+interface TradeOwnedList {
+  id: number
+  list_name: string
+  description?: string
+  card_ids: number[]
+}
+
 interface ListEditorModalProps {
   isOpen: boolean
   onClose: () => void
-  list: {
-    id: string
-    list_name: string
-    description?: string
-    card_ids: number[]
-  } | null
+  list: TradeOwnedList | null
   onUpdate: () => void
 }
 
-export default function ListEditorModal({ isOpen, onClose, list, onUpdate }: ListEditorModalProps) {
+export function ListEditorModal({ isOpen, onClose, list, onUpdate }: ListEditorModalProps) {
   const [listName, setListName] = useState("")
   const [description, setDescription] = useState("")
   const [selectedCards, setSelectedCards] = useState<SelectedCard[]>([])
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false)
-  const [isUpdating, setIsUpdating] = useState(false)
-
-  // Notification modal state
-  const [notificationModal, setNotificationModal] = useState({
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [notification, setNotification] = useState<{
+    isOpen: boolean
+    type: "success" | "error" | "warning" | "info"
+    title: string
+    message: string
+  }>({
     isOpen: false,
-    type: "info" as "success" | "error" | "warning" | "info",
+    type: "info",
     title: "",
     message: "",
   })
+
+  const showNotification = (type: "success" | "error" | "warning" | "info", title: string, message: string) => {
+    setNotification({
+      isOpen: true,
+      type,
+      title,
+      message,
+    })
+  }
+
+  const closeNotification = () => {
+    setNotification((prev) => ({ ...prev, isOpen: false }))
+  }
 
   useEffect(() => {
     if (list) {
       setListName(list.list_name)
       setDescription(list.description || "")
-      // カード情報は実際のAPIから取得する必要があります
-      // ここでは仮のデータを設定
-      setSelectedCards([])
+      // カード情報を取得してselectedCardsに設定する処理が必要
+      // 今回は簡略化してcard_idsのみを使用
+      const cards = list.card_ids.map((id) => ({
+        id,
+        name: `Card ${id}`,
+        imageUrl: "/placeholder.svg",
+      }))
+      setSelectedCards(cards)
     }
   }, [list])
 
-  const handleCardSelect = (cards: any[]) => {
-    const newCards: SelectedCard[] = cards.map((card) => ({
-      id: card.id,
-      name: card.name,
-      imageUrl: card.game8_image_url || card.image_url,
-      packName: card.pack_name,
-    }))
-    setSelectedCards(newCards)
+  const handleCardSelect = (cards: SelectedCard[]) => {
+    setSelectedCards(cards)
     setIsSearchModalOpen(false)
   }
 
-  const removeCard = (cardId: number) => {
-    setSelectedCards(selectedCards.filter((card) => card.id !== cardId))
+  const handleRemoveCard = (cardId: number) => {
+    setSelectedCards((prev) => prev.filter((card) => card.id !== cardId))
   }
 
-  const handleUpdate = async () => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+
     if (!list) return
 
     if (!listName.trim()) {
-      setNotificationModal({
-        isOpen: true,
-        type: "warning",
-        title: "入力エラー",
-        message: "リスト名を入力してください。",
-      })
+      showNotification("warning", "入力エラー", "リスト名を入力してください。")
       return
     }
 
-    setIsUpdating(true)
+    setIsSubmitting(true)
 
     try {
       const cardIds = selectedCards.map((card) => card.id)
@@ -93,127 +110,110 @@ export default function ListEditorModal({ isOpen, onClose, list, onUpdate }: Lis
       })
 
       if (result.success) {
-        setNotificationModal({
-          isOpen: true,
-          type: "success",
-          title: "更新完了",
-          message: "リストが正常に更新されました。",
-        })
+        showNotification("success", "更新完了", "リストが正常に更新されました。")
         onUpdate()
         setTimeout(() => {
           onClose()
         }, 1500)
       } else {
-        setNotificationModal({
-          isOpen: true,
-          type: "error",
-          title: "更新エラー",
-          message: result.error || "リストの更新に失敗しました。",
-        })
+        showNotification("error", "エラーが発生しました", result.error || "リストの更新に失敗しました。")
       }
     } catch (error) {
-      console.error("Error updating list:", error)
-      setNotificationModal({
-        isOpen: true,
-        type: "error",
-        title: "システムエラー",
-        message: "予期しないエラーが発生しました。もう一度お試しください。",
-      })
+      console.error("List update error:", error)
+      showNotification("error", "エラーが発生しました", "リストの更新中に予期しないエラーが発生しました。")
     } finally {
-      setIsUpdating(false)
+      setIsSubmitting(false)
     }
   }
 
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>リストを編集</DialogTitle>
+            <DialogDescription>リストの情報とカードを編集できます</DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4">
-            <div>
-              <label htmlFor="editListName" className="block text-sm font-medium text-gray-700 mb-2">
-                リスト名 *
-              </label>
-              <Input
-                id="editListName"
-                value={listName}
-                onChange={(e) => setListName(e.target.value)}
-                placeholder="リスト名を入力"
-                className="w-full"
-              />
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="listName">リスト名 *</Label>
+                <Input
+                  id="listName"
+                  value={listName}
+                  onChange={(e) => setListName(e.target.value)}
+                  placeholder="リスト名を入力"
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="description">説明（任意）</Label>
+                <Textarea
+                  id="description"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="リストの説明"
+                  rows={2}
+                />
+              </div>
             </div>
 
             <div>
-              <label htmlFor="editDescription" className="block text-sm font-medium text-gray-700 mb-2">
-                説明（任意）
-              </label>
-              <Textarea
-                id="editDescription"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder="説明を入力"
-                rows={3}
-                className="w-full"
-              />
-            </div>
+              <div className="flex items-center justify-between mb-4">
+                <Label>カード選択</Label>
+                <Button
+                  type="button"
+                  onClick={() => setIsSearchModalOpen(true)}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  <Search className="w-4 h-4 mr-2" />
+                  カードを追加
+                </Button>
+              </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">カード選択</label>
-              <Button
-                onClick={() => setIsSearchModalOpen(true)}
-                className="mb-4 bg-blue-600 hover:bg-blue-700 text-white"
-              >
-                <Search className="w-4 h-4 mr-2" />
-                カードを検索・追加
-              </Button>
-
-              {selectedCards.length > 0 && (
-                <div>
-                  <p className="text-sm text-gray-600 mb-3">選択されたカード ({selectedCards.length}枚)</p>
-                  <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-8 gap-3 max-h-60 overflow-y-auto">
-                    {selectedCards.map((card) => (
-                      <div key={card.id} className="relative group">
-                        <div className="bg-white border border-gray-200 rounded-lg p-2 hover:shadow-md transition-shadow">
-                          <div className="aspect-[3/4] mb-1">
-                            <img
-                              src={card.imageUrl || "/placeholder.svg"}
-                              alt={card.name}
-                              className="w-full h-full object-cover rounded"
-                            />
-                          </div>
-                          <p className="text-xs text-gray-900 font-medium truncate">{card.name}</p>
-                          {card.packName && <p className="text-xs text-gray-500 truncate">{card.packName}</p>}
+              {selectedCards.length > 0 ? (
+                <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-3">
+                  {selectedCards.map((card) => (
+                    <div key={card.id} className="relative group">
+                      <div className="bg-white border border-gray-200 rounded-lg p-2 hover:shadow-md transition-shadow">
+                        <div className="aspect-[3/4] mb-1">
+                          <img
+                            src={card.imageUrl || "/placeholder.svg"}
+                            alt={card.name}
+                            className="w-full h-full object-cover rounded"
+                          />
                         </div>
-                        <button
-                          onClick={() => removeCard(card.id)}
-                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
-                          aria-label="カードを削除"
-                        >
-                          <X className="w-3 h-3" />
-                        </button>
+                        <p className="text-xs text-gray-900 font-medium truncate">{card.name}</p>
                       </div>
-                    ))}
-                  </div>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveCard(card.id)}
+                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-gray-500 border-2 border-dashed border-gray-300 rounded-lg">
+                  <Plus className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                  <p>カードが選択されていません</p>
+                  <p className="text-sm">上のボタンからカードを追加してください</p>
                 </div>
               )}
             </div>
 
-            <div className="flex justify-end space-x-3 pt-4">
-              <Button variant="outline" onClick={onClose} disabled={isUpdating}>
+            <div className="flex justify-end gap-3">
+              <Button type="button" variant="outline" onClick={onClose}>
                 キャンセル
               </Button>
-              <Button
-                onClick={handleUpdate}
-                disabled={isUpdating || !listName.trim()}
-                className="bg-green-600 hover:bg-green-700 text-white"
-              >
-                {isUpdating ? "更新中..." : "更新"}
+              <Button type="submit" disabled={isSubmitting} className="bg-violet-600 hover:bg-violet-700">
+                {isSubmitting ? "更新中..." : "リストを更新"}
               </Button>
             </div>
-          </div>
+          </form>
         </DialogContent>
       </Dialog>
 
@@ -222,16 +222,17 @@ export default function ListEditorModal({ isOpen, onClose, list, onUpdate }: Lis
         isOpen={isSearchModalOpen}
         onClose={() => setIsSearchModalOpen(false)}
         onSelectionComplete={handleCardSelect}
-        allowMultipleSelection={true}
+        multiSelect={true}
+        selectedCards={selectedCards}
       />
 
       {/* 通知モーダル */}
       <NotificationModal
-        isOpen={notificationModal.isOpen}
-        onOpenChange={(open) => setNotificationModal((prev) => ({ ...prev, isOpen: open }))}
-        type={notificationModal.type}
-        title={notificationModal.title}
-        message={notificationModal.message}
+        isOpen={notification.isOpen}
+        onClose={closeNotification}
+        type={notification.type}
+        title={notification.title}
+        message={notification.message}
       />
     </>
   )
