@@ -279,11 +279,10 @@ export default function CreateListPage() {
           <DetailedSearchModal
             isOpen={isSearchModalOpen}
             onOpenChange={setIsSearchModalOpen}
-            onCardSelect={handleCardSelect}
-            selectedCards={selectedCards}
+            onSelectionComplete={handleCardSelect}
+            initialSelectedCards={selectedCards}
             maxSelection={35}
-            title="カードを選択"
-            description={`リストに追加するカードを選択してください（最大35枚、現在${selectedCards.length}枚選択中）`}
+            modalTitle="カードを選択"
           />
         )}
 
