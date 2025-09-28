@@ -567,25 +567,33 @@ export default function RenderArticle({ blocks }: RenderArticleProps) {
       case "toc":
         return (
           <div key={index} className="my-6 p-4 bg-gradient-to-r from-blue-600 to-blue-500 rounded-lg shadow-lg">
-            <h3 className="font-bold text-white mb-3 text-lg flex items-center gap-2">
-              <Info className="h-5 w-5" />
-              {block.data.title || "目次"}
-            </h3>
-            <nav className="bg-white/10 backdrop-blur-sm rounded-md p-3">
-              <ul className="space-y-2">
-                {block.data.items.map((item: any, itemIndex: number) => (
-                  <li key={itemIndex}>
-                    <a
-                      href={item.href}
-                      className="text-white hover:text-blue-100 transition-colors duration-200 text-sm font-medium flex items-center gap-2 py-1 px-2 rounded hover:bg-white/10"
-                    >
-                      <div className="w-1.5 h-1.5 bg-white rounded-full flex-shrink-0"></div>
-                      {item.text}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </nav>
+            <div className="bg-white rounded-md p-4">
+              <h3 className="font-bold text-blue-900 mb-3 text-lg flex items-center gap-2 border-b-2 border-blue-200 pb-2">
+                <Info className="h-5 w-5 text-blue-600" />
+                目次
+              </h3>
+              {block.data.items && block.data.items.length > 0 ? (
+                <ul className="space-y-2">
+                  {block.data.items.map((item: any, itemIndex: number) => (
+                    <li key={itemIndex} className="flex items-start gap-2">
+                      <span className="text-blue-600 font-bold text-sm mt-0.5 flex-shrink-0">{itemIndex + 1}.</span>
+                      {item.href ? (
+                        <a
+                          href={item.href}
+                          className="text-slate-700 hover:text-blue-600 font-medium text-sm leading-relaxed transition-colors underline-offset-2 hover:underline"
+                        >
+                          {item.label}
+                        </a>
+                      ) : (
+                        <span className="text-slate-700 font-medium text-sm leading-relaxed">{item.label}</span>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-sm text-slate-500 italic">目次項目が設定されていません</p>
+              )}
+            </div>
           </div>
         )
 
