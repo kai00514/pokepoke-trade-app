@@ -17,14 +17,16 @@ export default function Footer() {
   const pathname = usePathname()
 
   useEffect(() => {
-    document.body.classList.add("pb-16") // フッターの高さ分の余白
+    document.body.style.paddingBottom = "64px" // フッターの高さ分の余白を確実に設定
+    document.body.style.position = "relative" // bodyの位置を相対位置に設定
     return () => {
-      document.body.classList.remove("pb-16")
+      document.body.style.paddingBottom = ""
+      document.body.style.position = ""
     }
   }, [])
 
   return (
-    <footer className="bg-blue-600 shadow-lg fixed bottom-0 left-0 right-0 z-50">
+    <footer className="bg-blue-600 shadow-lg fixed bottom-0 left-0 right-0 z-[9999] w-full">
       <nav className="container mx-auto px-2 py-1.5">
         <ul className="flex justify-around items-center">
           {navItems.map((item) => (

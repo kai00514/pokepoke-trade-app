@@ -62,11 +62,6 @@ export default function TradeBoardPage() {
     }
   }, [searchParams])
 
-  // 現在のページ番号をsessionStorageに保存
-  useEffect(() => {
-    sessionStorage.setItem("current-trade-list-page", currentPage.toString())
-  }, [currentPage])
-
   // スクロール位置の保存・復元用のuseEffect
   useEffect(() => {
     // ブラウザバック時のみスクロール位置を復元
