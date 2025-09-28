@@ -716,28 +716,34 @@ export default function RenderArticle({ blocks }: RenderArticleProps) {
               </h3>
             )}
             <div
-              className={`grid gap-4 ${block.data.layout === "carousel" ? "grid-cols-1" : "grid-cols-2 md:grid-cols-3"}`}
+              className={`grid gap-4 ${
+                block.data.layout === "carousel"
+                  ? "grid-cols-1"
+                  : `grid-cols-1 sm:grid-cols-2 md:grid-cols-${Math.min(block.data.columns || 3, 4)}`
+              }`}
             >
               {block.data.items.map((item: any, itemIndex: number) => (
                 <div
                   key={item.id || itemIndex}
-                  className="relative rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-shadow"
+                  className="relative rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-shadow bg-white"
                 >
-                  <Image
-                    src={item.url || "/placeholder.svg"}
-                    alt={item.alt || ""}
-                    width={300}
-                    height={200}
-                    className="object-cover w-full h-48"
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement
-                      target.src = "/placeholder.svg"
-                    }}
-                  />
+                  <div className="aspect-video w-full">
+                    <Image
+                      src={item.url || "/placeholder.svg"}
+                      alt={item.alt || ""}
+                      fill
+                      className="object-contain w-full h-full"
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement
+                        target.src = "/placeholder.svg"
+                      }}
+                    />
+                  </div>
                   {item.caption && (
-                    <p className="text-sm text-slate-600 text-center mt-2 p-2 bg-slate-50 rounded-b-lg font-medium">
-                      {item.caption}
-                    </p>
+                    <div className="p-3 bg-slate-50">
+                      <p className="text-sm text-slate-600 text-center font-medium">{item.caption}</p>
+                    </div>
                   )}
                 </div>
               ))}
