@@ -264,6 +264,7 @@ export default function DetailedSearchModal({
       return
     }
     onSelectionComplete([...currentSelectedCards])
+    onOpenChange(false)
   }
 
   const handlePreviewClose = () => {
@@ -282,7 +283,9 @@ export default function DetailedSearchModal({
       setPreviewImageUrl(null)
       setPreviewCardName(undefined)
     }
-    onOpenChange(open)
+    if (typeof onOpenChange === "function") {
+      onOpenChange(open)
+    }
   }
 
   useEffect(() => {
@@ -292,7 +295,7 @@ export default function DetailedSearchModal({
           event.preventDefault()
           event.stopPropagation()
           handlePreviewClose()
-        } else {
+        } else if (typeof onOpenChange === "function") {
           onOpenChange(false)
         }
       }
