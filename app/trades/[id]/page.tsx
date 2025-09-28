@@ -120,6 +120,17 @@ export default function TradeDetailPage() {
   const [loadingSource, setLoadingSource] = useState<"cache" | "fallback" | null>(null)
   const postId = params.id as string
 
+  // sessionStorageから現在のページ番号を取得する関数
+  const getCurrentPageFromStorage = useCallback(() => {
+    try {
+      const savedPage = sessionStorage.getItem("current-trade-list-page")
+      return savedPage ? Number.parseInt(savedPage, 10) : 1
+    } catch (error) {
+      console.error("Failed to get current page from storage:", error)
+      return 1
+    }
+  }, [])
+
   const handleCopyToClipboard = useCallback(() => {
     if (post?.originalPostId) {
       navigator.clipboard.writeText(post.originalPostId)
@@ -208,9 +219,14 @@ export default function TradeDetailPage() {
     (e: React.MouseEvent) => {
       e.preventDefault()
 
-      // 現在のスクロール位置を保存
-      const currentScrollY = window.scrollY
-      sessionStorage.setItem("trade-list-scroll-position", currentScrollY.toString())
+      // sessionStorageから現在のページ番号を取得
+      const currentPage = getCurrentPageFromStorage()
+
+      // 現在のスクロール位置をページ番号付きで保存
+      sessionStorage.setItem(`trade-list-scroll-position-page-${currentPage}`, window.scrollY.toString())
+
+      // ブラウザバック時のフラグを設定
+      sessionStorage.setItem(`trade-list-back-navigation-page-${currentPage}`, "true")
 
       // ブラウザの履歴を使用して戻る
       if (window.history.length > 1) {
@@ -219,7 +235,7 @@ export default function TradeDetailPage() {
         router.push("/")
       }
     },
-    [router],
+    [router, getCurrentPageFromStorage],
   )
 
   useEffect(() => {
@@ -322,16 +338,31 @@ export default function TradeDetailPage() {
   // ページ離脱時の処理
   useEffect(() => {
     const handleBeforeUnload = () => {
-      // 現在のスクロール位置を保存
-      sessionStorage.setItem("trade-list-scroll-position", window.scrollY.toString())
+      // sessionStorageから現在のページ番号を取得
+      const currentPage = getCurrentPageFromStorage()
+
+      // 現在のスクロール位置をページ番号付きで保存
+      sessionStorage.setItem(`trade-list-scroll-position-page-${currentPage}`, window.scrollY.toString())
+
+      // ブラウザバック時のフラグを設定
+      sessionStorage.setItem(`trade-list-back-navigation-page-${currentPage}`, "true")
+    }
+
+    // ブラウザバック/フォワード時の処理
+    const handlePopState = () => {
+      const currentPage = getCurrentPageFromStorage()
+      sessionStorage.setItem(`trade-list-scroll-position-page-${currentPage}`, window.scrollY.toString())
+      sessionStorage.setItem(`trade-list-back-navigation-page-${currentPage}`, "true")
     }
 
     window.addEventListener("beforeunload", handleBeforeUnload)
+    window.addEventListener("popstate", handlePopState)
 
     return () => {
       window.removeEventListener("beforeunload", handleBeforeUnload)
+      window.removeEventListener("popstate", handlePopState)
     }
-  }, [])
+  }, [getCurrentPageFromStorage])
 
   if (postId === "create") return null
 
