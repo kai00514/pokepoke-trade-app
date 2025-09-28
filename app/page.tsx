@@ -65,16 +65,18 @@ export default function TradeBoardPage() {
   // スクロール位置の保存・復元用のuseEffect
   useEffect(() => {
     // ページ読み込み時にスクロール位置を復元
-    const savedScrollPosition = sessionStorage.getItem("trade-list-scroll-position")
+    const savedScrollPosition = sessionStorage.getItem(`trade-list-scroll-position-page-${currentPage}`)
     if (savedScrollPosition) {
       const scrollY = Number.parseInt(savedScrollPosition, 10)
-      window.scrollTo(0, scrollY)
-      sessionStorage.removeItem("trade-list-scroll-position")
+      setTimeout(() => {
+        window.scrollTo(0, scrollY)
+      }, 100)
+      sessionStorage.removeItem(`trade-list-scroll-position-page-${currentPage}`)
     }
 
-    // スクロール位置を定期的に保存
+    // スクロール位置を定期的に保存（ページ番号付き）
     const saveScrollPosition = () => {
-      sessionStorage.setItem("trade-list-scroll-position", window.scrollY.toString())
+      sessionStorage.setItem(`trade-list-scroll-position-page-${currentPage}`, window.scrollY.toString())
     }
 
     window.addEventListener("scroll", saveScrollPosition)
@@ -82,18 +84,23 @@ export default function TradeBoardPage() {
     return () => {
       window.removeEventListener("scroll", saveScrollPosition)
     }
-  }, [])
+  }, [currentPage])
 
   // ブラウザバック/フォワード時の処理
   useEffect(() => {
     const handlePopState = (event: PopStateEvent) => {
+      // URLからページ番号を取得
+      const url = new URL(window.location.href)
+      const pageParam = url.searchParams.get("page")
+      const targetPage = pageParam ? Number.parseInt(pageParam, 10) : 1
+
       // ブラウザバック時にスクロール位置を復元
-      const savedScrollPosition = sessionStorage.getItem("trade-list-scroll-position")
+      const savedScrollPosition = sessionStorage.getItem(`trade-list-scroll-position-page-${targetPage}`)
       if (savedScrollPosition) {
         setTimeout(() => {
           const scrollY = Number.parseInt(savedScrollPosition, 10)
           window.scrollTo(0, scrollY)
-        }, 100)
+        }, 150)
       }
     }
 
@@ -251,9 +258,6 @@ export default function TradeBoardPage() {
       url.searchParams.set("page", page.toString())
     }
     window.history.pushState({}, "", url.toString())
-
-    // ページトップにスクロール
-    window.scrollTo({ top: 0, behavior: "smooth" })
   }
 
   const renderPagination = () => {
