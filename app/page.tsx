@@ -64,14 +64,17 @@ export default function TradeBoardPage() {
 
   // スクロール位置の保存・復元用のuseEffect
   useEffect(() => {
-    // ページ読み込み時にスクロール位置を復元
-    const savedScrollPosition = sessionStorage.getItem(`trade-list-scroll-position-page-${currentPage}`)
-    if (savedScrollPosition) {
-      const scrollY = Number.parseInt(savedScrollPosition, 10)
-      setTimeout(() => {
-        window.scrollTo(0, scrollY)
-      }, 100)
-      sessionStorage.removeItem(`trade-list-scroll-position-page-${currentPage}`)
+    // ブラウザバック時のみスクロール位置を復元
+    const isBackNavigation = sessionStorage.getItem(`trade-list-back-navigation-page-${currentPage}`)
+    if (isBackNavigation) {
+      const savedScrollPosition = sessionStorage.getItem(`trade-list-scroll-position-page-${currentPage}`)
+      if (savedScrollPosition) {
+        const scrollY = Number.parseInt(savedScrollPosition, 10)
+        setTimeout(() => {
+          window.scrollTo(0, scrollY)
+        }, 100)
+      }
+      sessionStorage.removeItem(`trade-list-back-navigation-page-${currentPage}`)
     }
 
     // スクロール位置を定期的に保存（ページ番号付き）
@@ -94,14 +97,8 @@ export default function TradeBoardPage() {
       const pageParam = url.searchParams.get("page")
       const targetPage = pageParam ? Number.parseInt(pageParam, 10) : 1
 
-      // ブラウザバック時にスクロール位置を復元
-      const savedScrollPosition = sessionStorage.getItem(`trade-list-scroll-position-page-${targetPage}`)
-      if (savedScrollPosition) {
-        setTimeout(() => {
-          const scrollY = Number.parseInt(savedScrollPosition, 10)
-          window.scrollTo(0, scrollY)
-        }, 150)
-      }
+      // ブラウザバック時のフラグを設定
+      sessionStorage.setItem(`trade-list-back-navigation-page-${targetPage}`, "true")
     }
 
     window.addEventListener("popstate", handlePopState)
@@ -258,6 +255,9 @@ export default function TradeBoardPage() {
       url.searchParams.set("page", page.toString())
     }
     window.history.pushState({}, "", url.toString())
+
+    // ページネーション時は明示的にトップにスクロール
+    window.scrollTo({ top: 0, behavior: "smooth" })
   }
 
   const renderPagination = () => {
