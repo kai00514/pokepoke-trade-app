@@ -204,7 +204,6 @@ export default function DetailedSearchModal({
   }
 
   const handleTouchStart = (card: Card, e: React.TouchEvent) => {
-    e.preventDefault()
     const touch = e.touches[0]
     touchStartTimeRef.current = Date.now()
     touchStartPositionRef.current = { x: touch.clientX, y: touch.clientY }
@@ -224,7 +223,6 @@ export default function DetailedSearchModal({
   }
 
   const handleTouchEnd = (card: Card, e: React.TouchEvent) => {
-    e.preventDefault()
     clearLongPressTimer()
     const touchDuration = Date.now() - touchStartTimeRef.current
     if (!isLongPressTriggeredRef.current && touchDuration < 500) {
@@ -242,13 +240,11 @@ export default function DetailedSearchModal({
 
   const handleMouseDown = (card: Card, e: React.MouseEvent) => {
     if ("ontouchstart" in window) return
-    e.preventDefault()
     startLongPressTimer(card)
   }
 
   const handleMouseUp = (card: Card, e: React.MouseEvent) => {
     if ("ontouchstart" in window) return
-    e.preventDefault()
     clearLongPressTimer()
     if (!isLongPressTriggeredRef.current) {
       toggleCardSelection(card)
@@ -459,12 +455,6 @@ export default function DetailedSearchModal({
                             : "border-transparent hover:border-blue-300",
                         )}
                         aria-label={`Select card ${card.name}`}
-                        style={{
-                          touchAction: "none",
-                          WebkitTouchCallout: "none",
-                          WebkitUserSelect: "none",
-                          userSelect: "none",
-                        }}
                       >
                         <Image
                           src={
