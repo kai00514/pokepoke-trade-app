@@ -236,6 +236,17 @@ export type RichTextBlock = BlockBase<
   }
 >
 
+/**
+ * Latest info block (red-bordered news section)
+ */
+export type LatestInfoBlock = BlockBase<
+  "latest-info",
+  {
+    title?: string
+    items: { label: string; href?: string }[]
+  }
+>
+
 export type Block =
   | HeadingBlock
   | ParagraphBlock
@@ -255,6 +266,7 @@ export type Block =
   | FlexibleTableBlock
   | MediaGalleryBlock
   | RichTextBlock
+  | LatestInfoBlock
 
 type RawDbBlock = {
   display_order: number | null
@@ -399,6 +411,28 @@ function validateBlocks(rawBlocks: RawDbBlock[]): Block[] {
             display_order: order,
             data: { items },
           })
+          break
+        }
+
+        case "latest-info": {
+          const d = rb.data as any
+          const itemsRaw = Array.isArray(d?.items) ? d.items : []
+          const items = itemsRaw
+            .map((it: any) => {
+              const label = typeof it?.label === "string" ? it.label.trim() : ""
+              const href = typeof it?.href === "string" ? it.href : undefined
+              return label ? { label, href } : null
+            })
+            .filter(Boolean) as { label: string; href?: string }[]
+          if (items.length > 0) {
+            safe.push({
+              type: "latest-info",
+              display_order: order,
+              data: { title: typeof d?.title === "string" ? d.title : undefined, items },
+            })
+          } else {
+            console.warn("[info-articles] Skip invalid latest-info block", { order, d })
+          }
           break
         }
 

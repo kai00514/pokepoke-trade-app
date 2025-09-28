@@ -58,6 +58,7 @@ const blockTypes = [
       { type: "button", label: "ボタン", description: "CTA・リンクボタン" },
       { type: "callout", label: "コールアウト", description: "注意・情報ボックス" },
       { type: "pickup", label: "ピックアップ", description: "重要情報の強調表示" },
+      { type: "latest-info", label: "最新情報", description: "赤枠の最新情報ボックス" },
     ],
   },
   {

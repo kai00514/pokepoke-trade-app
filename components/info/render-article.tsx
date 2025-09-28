@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Separator } from "@/components/ui/separator"
-import { Star, ExternalLink, Info, AlertTriangle, CheckCircle } from "lucide-react"
+import { Star, ExternalLink, Info, AlertTriangle, CheckCircle, List, FileText } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import type { Block } from "@/lib/actions/info-articles"
 
@@ -310,6 +310,40 @@ export default function RenderArticle({ blocks }: RenderArticleProps) {
           </Card>
         )
 
+      case "latest-info":
+        return (
+          <div key={index} className="my-6 border-2 border-red-400 rounded-lg bg-red-50 shadow-md">
+            <div className="bg-red-500 text-white px-4 py-2 rounded-t-lg">
+              <h3 className="font-bold text-base">{block.data.title || "最新情報"}</h3>
+            </div>
+            <div className="p-4 bg-white rounded-b-lg">
+              {block.data.items && block.data.items.length > 0 ? (
+                <ul className="space-y-2">
+                  {block.data.items.map((item: any, itemIndex: number) => (
+                    <li key={itemIndex} className="flex items-start gap-2">
+                      <span className="bg-blue-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">
+                        {itemIndex + 1}
+                      </span>
+                      {item.href ? (
+                        <a
+                          href={item.href}
+                          className="text-blue-600 hover:text-blue-800 font-medium text-sm leading-relaxed transition-colors hover:underline"
+                        >
+                          {item.label}
+                        </a>
+                      ) : (
+                        <span className="text-blue-600 font-medium text-sm leading-relaxed">{item.label}</span>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-sm text-slate-500 italic">情報項目が設定されていません</p>
+              )}
+            </div>
+          </div>
+        )
+
       case "cards-table":
         return (
           <div key={index} className="my-6 border-2 border-slate-200 rounded-lg overflow-hidden bg-white shadow-lg">
@@ -566,33 +600,44 @@ export default function RenderArticle({ blocks }: RenderArticleProps) {
 
       case "toc":
         return (
-          <div key={index} className="my-6 border-2 border-red-400 rounded-lg bg-red-50 shadow-md">
-            <div className="bg-red-500 text-white px-4 py-2 rounded-t-lg">
-              <h3 className="font-bold text-base">最新情報</h3>
+          <div
+            key={index}
+            className="my-6 bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-lg shadow-lg"
+          >
+            <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-4 rounded-t-lg">
+              <h3 className="font-bold text-lg flex items-center gap-3">
+                <List className="h-6 w-6" />
+                目次
+              </h3>
             </div>
-            <div className="p-4 bg-white rounded-b-lg">
+            <div className="p-6 bg-white rounded-b-lg">
               {block.data.items && block.data.items.length > 0 ? (
-                <ul className="space-y-2">
+                <nav className="space-y-3">
                   {block.data.items.map((item: any, itemIndex: number) => (
-                    <li key={itemIndex} className="flex items-start gap-2">
-                      <span className="bg-blue-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">
+                    <div key={itemIndex} className="flex items-start gap-3 group">
+                      <div className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-lg w-8 h-8 flex items-center justify-center text-sm font-bold flex-shrink-0 shadow-md group-hover:shadow-lg transition-shadow">
                         {itemIndex + 1}
-                      </span>
+                      </div>
                       {item.href ? (
                         <a
                           href={item.href}
-                          className="text-blue-600 hover:text-blue-800 font-medium text-sm leading-relaxed transition-colors hover:underline"
+                          className="text-slate-700 hover:text-blue-600 font-medium text-base leading-relaxed transition-colors hover:underline decoration-2 underline-offset-2 flex-1 py-1"
                         >
                           {item.label}
                         </a>
                       ) : (
-                        <span className="text-blue-600 font-medium text-sm leading-relaxed">{item.label}</span>
+                        <span className="text-slate-700 font-medium text-base leading-relaxed flex-1 py-1">
+                          {item.label}
+                        </span>
                       )}
-                    </li>
+                    </div>
                   ))}
-                </ul>
+                </nav>
               ) : (
-                <p className="text-sm text-slate-500 italic">目次項目が設定されていません</p>
+                <div className="text-center py-8 text-slate-500">
+                  <FileText className="h-12 w-12 mx-auto mb-3 text-slate-300" />
+                  <p className="text-sm">目次項目が設定されていません</p>
+                </div>
               )}
             </div>
           </div>
