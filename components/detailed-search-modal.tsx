@@ -92,10 +92,6 @@ export default function DetailedSearchModal({
   const touchStartPositionRef = useRef<{ x: number; y: number } | null>(null)
   const { toast } = useToast()
 
-  const [containerHeight, setContainerHeight] = useState(400)
-  const [scrollTop, setScrollTop] = useState(0)
-  const [containerRef, setContainerRef] = useState<HTMLDivElement | null>(null)
-
   useEffect(() => {
     if (isOpen && !isInitializedRef.current) {
       setCurrentSelectedCards([...initialSelectedCards])
@@ -297,9 +293,9 @@ export default function DetailedSearchModal({
     const handleEscapeKey = (event: KeyboardEvent) => {
       if (event.key === "Escape" && isOpen) {
         if (isPreviewOverlayOpen) {
-          handlePreviewClose()
           event.preventDefault()
           event.stopPropagation()
+          handlePreviewClose()
         } else {
           onOpenChange(false)
         }
@@ -319,15 +315,6 @@ export default function DetailedSearchModal({
     if (maxSelection) text += ` (最大${maxSelection}枚)`
     return text
   }, [currentSelectedCards, maxSelection])
-
-  const ITEM_HEIGHT = 140 // カード1枚の高さ（aspect-ratio 5:7 + gap）
-  const ITEMS_PER_ROW = 5 // 1行あたりのアイテム数
-  const VISIBLE_ROWS = Math.ceil(containerHeight / ITEM_HEIGHT) + 2 // バッファ含む
-  const TOTAL_ROWS = Math.ceil(fetchedCards.length / ITEMS_PER_ROW)
-  const START_ROW = Math.max(0, Math.floor(scrollTop / ITEM_HEIGHT) - 1)
-  const END_ROW = Math.min(TOTAL_ROWS, START_ROW + VISIBLE_ROWS)
-  const VISIBLE_ITEMS = fetchedCards.slice(START_ROW * ITEMS_PER_ROW, END_ROW * ITEMS_PER_ROW)
-  const OFFSET_Y = START_ROW * ITEM_HEIGHT
 
   return (
     <>
@@ -454,68 +441,49 @@ export default function DetailedSearchModal({
               )}
               <div className={cn("transition-opacity duration-300", isLoading ? "opacity-50" : "opacity-100")}>
                 {fetchedCards.length > 0 ? (
-                  <div
-                    ref={setContainerRef}
-                    className="relative overflow-auto"
-                    style={{ height: containerHeight }}
-                    onScroll={(e) => setScrollTop(e.currentTarget.scrollTop)}
-                  >
-                    <div style={{ height: TOTAL_ROWS * ITEM_HEIGHT, position: "relative" }}>
-                      <div
+                  <div className="grid grid-cols-5 sm:grid-cols-6 md:grid-cols-7 lg:grid-cols-8 gap-2">
+                    {fetchedCards.map((card) => (
+                      <button
+                        key={card.id}
+                        onMouseDown={(e) => handleMouseDown(card, e)}
+                        onMouseUp={(e) => handleMouseUp(card, e)}
+                        onMouseLeave={handleMouseLeave}
+                        onTouchStart={(e) => handleTouchStart(card, e)}
+                        onTouchMove={handleTouchMove}
+                        onTouchEnd={(e) => handleTouchEnd(card, e)}
+                        onTouchCancel={handleTouchCancel}
+                        className={cn(
+                          "aspect-[5/7] relative rounded-md overflow-hidden border-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 transition-all cursor-pointer select-none",
+                          currentSelectedCards.find((sc) => sc.id === card.id)
+                            ? "border-blue-600 shadow-lg scale-105"
+                            : "border-transparent hover:border-blue-300",
+                        )}
+                        aria-label={`Select card ${card.name}`}
                         style={{
-                          transform: `translateY(${OFFSET_Y}px)`,
-                          position: "absolute",
-                          top: 0,
-                          left: 0,
-                          right: 0,
+                          touchAction: "none",
+                          WebkitTouchCallout: "none",
+                          WebkitUserSelect: "none",
+                          userSelect: "none",
                         }}
                       >
-                        <div className="grid grid-cols-5 sm:grid-cols-6 md:grid-cols-7 lg:grid-cols-8 gap-2">
-                          {VISIBLE_ITEMS.map((card) => (
-                            <button
-                              key={card.id}
-                              onMouseDown={(e) => handleMouseDown(card, e)}
-                              onMouseUp={(e) => handleMouseUp(card, e)}
-                              onMouseLeave={handleMouseLeave}
-                              onTouchStart={(e) => handleTouchStart(card, e)}
-                              onTouchMove={handleTouchMove}
-                              onTouchEnd={(e) => handleTouchEnd(card, e)}
-                              onTouchCancel={handleTouchCancel}
-                              className={cn(
-                                "aspect-[5/7] relative rounded-md overflow-hidden border-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 transition-all cursor-pointer select-none",
-                                currentSelectedCards.find((sc) => sc.id === card.id)
-                                  ? "border-blue-600 shadow-lg scale-105"
-                                  : "border-transparent hover:border-blue-300",
-                              )}
-                              aria-label={`Select card ${card.name}`}
-                              style={{
-                                touchAction: "none",
-                                WebkitTouchCallout: "none",
-                                WebkitUserSelect: "none",
-                                userSelect: "none",
-                              }}
-                            >
-                              <Image
-                                src={
-                                  card.imageUrl ||
-                                  `/placeholder.svg?width=150&height=210&query=${encodeURIComponent(card.name) || "card"}`
-                                }
-                                alt={card.name}
-                                fill
-                                sizes="(max-width: 640px) 20vw, (max-width: 768px) 16vw, (max-width: 1024px) 14vw, 12vw"
-                                className="object-cover bg-slate-100 pointer-events-none"
-                                draggable={false}
-                              />
-                              {currentSelectedCards.find((sc) => sc.id === card.id) && (
-                                <div className="absolute inset-0 bg-blue-700 bg-opacity-60 flex items-center justify-center">
-                                  <Check className="h-10 w-10 text-white stroke-[3px]" />
-                                </div>
-                              )}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
+                        <Image
+                          src={
+                            card.imageUrl ||
+                            `/placeholder.svg?width=150&height=210&query=${encodeURIComponent(card.name) || "card"}`
+                          }
+                          alt={card.name}
+                          fill
+                          sizes="(max-width: 640px) 20vw, (max-width: 768px) 16vw, (max-width: 1024px) 14vw, 12vw"
+                          className="object-cover bg-slate-100 pointer-events-none"
+                          draggable={false}
+                        />
+                        {currentSelectedCards.find((sc) => sc.id === card.id) && (
+                          <div className="absolute inset-0 bg-blue-700 bg-opacity-60 flex items-center justify-center">
+                            <Check className="h-10 w-10 text-white stroke-[3px]" />
+                          </div>
+                        )}
+                      </button>
+                    ))}
                   </div>
                 ) : (
                   <p className="col-span-full text-center text-slate-500 py-10">該当するカードが見つかりません。</p>

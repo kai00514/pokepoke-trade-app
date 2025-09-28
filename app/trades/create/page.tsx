@@ -1,6 +1,7 @@
 "use client"
 
 import type React from "react"
+
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import Image from "next/image"
@@ -20,7 +21,6 @@ import { createTradePost } from "@/lib/actions/trade-actions"
 import { supabase } from "@/lib/supabase/client"
 import LoginPromptModal from "@/components/ui/login-prompt-modal"
 import { checkTimeSync, formatTimeSkew, type TimeSync } from "@/lib/utils/time-sync"
-import { ScrollArea } from "@/components/ui/scroll-area"
 
 type SelectionContextType = "wanted" | "offered" | null
 
@@ -44,8 +44,6 @@ export default function CreateTradePage() {
   const [isLoading, setIsLoading] = useState(false)
   const [showListSelector, setShowListSelector] = useState(false)
   const [hasRegisteredPokepokeId, setHasRegisteredPokepokeId] = useState(false)
-  const [scrollTop, setScrollTop] = useState(0)
-  const [containerHeight] = useState(500)
   const { toast } = useToast()
   const router = useRouter()
 
@@ -284,46 +282,6 @@ export default function CreateTradePage() {
     )
   }
 
-  const renderCardSearchSection = (searchedCards: SelectedCardType[]) => {
-    const ITEM_HEIGHT = 140
-    const ITEMS_PER_ROW = 5
-    const VISIBLE_ROWS = Math.ceil(containerHeight / ITEM_HEIGHT) + 2
-    const TOTAL_ROWS = Math.ceil(searchedCards.length / ITEMS_PER_ROW)
-    const START_ROW = Math.max(0, Math.floor(scrollTop / ITEM_HEIGHT) - 1)
-    const END_ROW = Math.min(TOTAL_ROWS, START_ROW + VISIBLE_ROWS)
-    const VISIBLE_ITEMS = searchedCards.slice(START_ROW * ITEMS_PER_ROW, END_ROW * ITEMS_PER_ROW)
-    const OFFSET_Y = START_ROW * ITEM_HEIGHT
-
-    return (
-      <ScrollArea className="h-[400px] sm:h-[500px] border rounded-md p-2 bg-slate-50">
-        <div
-          className="relative overflow-auto"
-          style={{ height: containerHeight }}
-          onScroll={(e) => setScrollTop(e.currentTarget.scrollTop)}
-        >
-          <div style={{ height: TOTAL_ROWS * ITEM_HEIGHT, position: "relative" }}>
-            <div style={{ transform: `translateY(${OFFSET_Y}px)`, position: "absolute", top: 0, left: 0, right: 0 }}>
-              <div className="grid grid-cols-5 xs:grid-cols-5 sm:grid-cols-6 md:grid-cols-7 lg:grid-cols-5 xl:grid-cols-6 gap-2">
-                {VISIBLE_ITEMS.map((card) => (
-                  <div key={card.id} className="relative group border rounded-md p-0 bg-slate-50 mx-0">
-                    <Image
-                      src={card.imageUrl || "/placeholder.svg"}
-                      alt={card.name}
-                      width={80}
-                      height={112}
-                      className="rounded object-contain aspect-[5/7] mx-auto"
-                    />
-                    <p className="text-xs text-center mt-1 truncate">{card.name}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      </ScrollArea>
-    )
-  }
-
   if (isLoading) {
     return (
       <div className="flex flex-col min-h-screen bg-gradient-to-b from-blue-50 via-blue-100 to-white">
@@ -395,7 +353,14 @@ export default function CreateTradePage() {
               <label className="block text-sm font-medium text-slate-700 mb-1">
                 求めるカード <span className="text-red-500">*</span>
               </label>
-              {renderCardSearchSection(wantedCards)}
+              <Button
+                type="button"
+                onClick={() => openModal("wanted", 20, "求めるカードを選択")}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                disabled={isSubmitting}
+              >
+                カードを選択 (最大20枚)
+              </Button>
               {renderSelectedCards(wantedCards, "wanted")}
             </div>
             <div>
@@ -419,7 +384,14 @@ export default function CreateTradePage() {
                 </div>
               </div>
 
-              {renderCardSearchSection(offeredCards)}
+              <Button
+                type="button"
+                onClick={() => openModal("offered", 20, "譲れるカードを選択")}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                disabled={isSubmitting}
+              >
+                カードを選択 (最大20枚)
+              </Button>
               {renderSelectedCards(offeredCards, "offered")}
             </div>
             <div>
