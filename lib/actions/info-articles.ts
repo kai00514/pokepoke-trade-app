@@ -172,12 +172,67 @@ export type KeyValueTableBlock = BlockBase<
       key: string
       valueType: "text" | "card"
       textValue?: string
-      cardValue?: {
+      cardValues?: {
         id: string
         name: string
         imageUrl: string
-      }
+      }[]
     }>
+  }
+>
+
+/**
+ * Flexible table block
+ */
+export type FlexibleTableBlock = BlockBase<
+  "flexible-table",
+  {
+    title?: string
+    columns: Array<{
+      id: string
+      header: string
+      type: "text" | "image" | "link"
+      width: string
+    }>
+    rows: Array<{
+      id: string
+      cells: { [columnId: string]: string }
+    }>
+    style?: "striped" | "bordered" | "compact"
+  }
+>
+
+/**
+ * Media gallery block
+ */
+export type MediaGalleryBlock = BlockBase<
+  "media-gallery",
+  {
+    title?: string
+    items: Array<{
+      id: string
+      url: string
+      caption?: string
+      alt?: string
+    }>
+    layout?: "grid" | "carousel"
+  }
+>
+
+/**
+ * Rich text block
+ */
+export type RichTextBlock = BlockBase<
+  "rich-text",
+  {
+    content: string
+    format?: "html" | "markdown" | "plain"
+    style?: {
+      fontSize?: string
+      color?: string
+      backgroundColor?: string
+      textAlign?: "left" | "center" | "right"
+    }
   }
 >
 
@@ -197,6 +252,9 @@ export type Block =
   | PickupBlock
   | ButtonBlock
   | KeyValueTableBlock
+  | FlexibleTableBlock
+  | MediaGalleryBlock
+  | RichTextBlock
 
 type RawDbBlock = {
   display_order: number | null
@@ -525,23 +583,26 @@ function validateBlocks(rawBlocks: RawDbBlock[]): Block[] {
               const key = typeof row?.key === "string" ? row.key.trim() : ""
               const valueType = row?.valueType === "card" ? "card" : "text"
               const textValue = typeof row?.textValue === "string" ? row.textValue : undefined
-              const cardValue =
-                row?.cardValue && typeof row.cardValue === "object"
-                  ? {
-                      id: typeof row.cardValue.id === "string" ? row.cardValue.id : "",
-                      name: typeof row.cardValue.name === "string" ? row.cardValue.name : "",
-                      imageUrl: typeof row.cardValue.imageUrl === "string" ? row.cardValue.imageUrl : "",
-                    }
+              const cardValues =
+                Array.isArray(row?.cardValues) && row.cardValues.length > 0
+                  ? row.cardValues
+                      .map((card: any) => {
+                        const cardId = typeof card?.id === "string" ? card.id : ""
+                        const name = typeof card?.name === "string" ? card.name : ""
+                        const imageUrl = typeof card?.imageUrl === "string" ? card.imageUrl : ""
+                        return cardId && name ? { id: cardId, name, imageUrl } : null
+                      })
+                      .filter(Boolean)
                   : undefined
 
-              return key ? { id, key, valueType, textValue, cardValue } : null
+              return key ? { id, key, valueType, textValue, cardValues } : null
             })
             .filter(Boolean) as Array<{
             id: string
             key: string
             valueType: "text" | "card"
             textValue?: string
-            cardValue?: { id: string; name: string; imageUrl: string }
+            cardValues?: { id: string; name: string; imageUrl: string }[]
           }>
 
           if (rows.length > 0) {
@@ -552,6 +613,62 @@ function validateBlocks(rawBlocks: RawDbBlock[]): Block[] {
             })
           } else {
             console.warn("[info-articles] Skip invalid key-value-table block", { order, d })
+          }
+          break
+        }
+
+        case "flexible-table": {
+          const d = rb.data as any
+          const title = typeof d?.title === "string" ? d.title : undefined
+          const columns = Array.isArray(d?.columns) ? d.columns : []
+          const rows = Array.isArray(d?.rows) ? d.rows : []
+          const style =
+            d?.style === "striped" || d?.style === "bordered" || d?.style === "compact" ? d.style : undefined
+
+          if (columns.length > 0 && rows.length > 0) {
+            safe.push({
+              type: "flexible-table",
+              display_order: order,
+              data: { title, columns, rows, style },
+            })
+          } else {
+            console.warn("[info-articles] Skip invalid flexible-table block", { order, d })
+          }
+          break
+        }
+
+        case "media-gallery": {
+          const d = rb.data as any
+          const title = typeof d?.title === "string" ? d.title : undefined
+          const items = Array.isArray(d?.items) ? d.items : []
+          const layout = d?.layout === "carousel" ? "carousel" : "grid"
+
+          if (items.length > 0) {
+            safe.push({
+              type: "media-gallery",
+              display_order: order,
+              data: { title, items, layout },
+            })
+          } else {
+            console.warn("[info-articles] Skip invalid media-gallery block", { order, d })
+          }
+          break
+        }
+
+        case "rich-text": {
+          const d = rb.data as any
+          const content = typeof d?.content === "string" ? d.content : ""
+          const format = d?.format === "markdown" || d?.format === "html" ? d.format : "plain"
+          const style = d?.style && typeof d.style === "object" ? d.style : undefined
+
+          if (content.trim()) {
+            safe.push({
+              type: "rich-text",
+              display_order: order,
+              data: { content, format, style },
+            })
+          } else {
+            console.warn("[info-articles] Skip invalid rich-text block", { order, d })
           }
           break
         }
