@@ -250,15 +250,7 @@ export default function CreateListPage() {
                       <Plus className="h-12 w-12 mx-auto" />
                     </div>
                     <p className="text-gray-500 mb-4">カードが選択されていません</p>
-                    <Button
-                      type="button"
-                      onClick={() => setIsSearchModalOpen(true)}
-                      variant="outline"
-                      className="border-blue-300 text-blue-600 hover:bg-blue-50"
-                    >
-                      <Search className="h-4 w-4 mr-2" />
-                      カードを検索して追加
-                    </Button>
+                    <p className="text-gray-500 text-sm">上部の「カードを検索」ボタンからカードを選択してください</p>
                   </div>
                 )}
               </div>
@@ -286,10 +278,12 @@ export default function CreateListPage() {
         {isSearchModalOpen && (
           <DetailedSearchModal
             isOpen={isSearchModalOpen}
-            onClose={() => setIsSearchModalOpen(false)}
+            onOpenChange={setIsSearchModalOpen}
             onCardSelect={handleCardSelect}
             selectedCards={selectedCards}
             maxSelection={35}
+            title="カードを選択"
+            description={`リストに追加するカードを選択してください（最大35枚、現在${selectedCards.length}枚選択中）`}
           />
         )}
 
