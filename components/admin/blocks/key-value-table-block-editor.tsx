@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Plus, Trash2, Search, Type, ImageIcon } from "lucide-react"
+import { Plus, Trash2, Search, Type, ImageIcon, X } from "lucide-react"
 import Image from "next/image"
 import DetailedSearchModal from "@/components/detailed-search-modal"
 
@@ -16,11 +16,11 @@ interface KeyValueRow {
   key: string
   valueType: "text" | "card"
   textValue?: string
-  cardValue?: {
+  cardValues?: {
     id: string
     name: string
     imageUrl: string
-  }
+  }[]
 }
 
 interface KeyValueTableBlockData {
@@ -70,24 +70,31 @@ export function KeyValueTableBlockEditor({ data, onChange }: KeyValueTableBlockE
   }
 
   const handleCardSelectionComplete = (selectedCards: any[]) => {
-    if (!editingRowId || selectedCards.length === 0) return
+    if (!editingRowId) return
 
-    const selectedCard = selectedCards[0] // 1枚だけ選択
-    const cardValue = {
-      id: selectedCard.id.toString(),
-      name: selectedCard.name,
-      imageUrl: selectedCard.game8_image_url || selectedCard.image_url || "/placeholder.svg",
-    }
+    const cardValues = selectedCards.map((card) => ({
+      id: card.id.toString(),
+      name: card.name,
+      imageUrl: card.game8_image_url || card.image_url || "/placeholder.svg",
+    }))
 
-    updateRow(editingRowId, { cardValue })
+    updateRow(editingRowId, { cardValues })
     setSearchModalOpen(false)
     setEditingRowId(null)
+  }
+
+  const removeCard = (rowId: string, cardId: string) => {
+    const row = safeData.rows.find((r) => r.id === rowId)
+    if (row && row.cardValues) {
+      const updatedCards = row.cardValues.filter((card) => card.id !== cardId)
+      updateRow(rowId, { cardValues: updatedCards })
+    }
   }
 
   const getCurrentRowCards = () => {
     if (!editingRowId) return []
     const row = safeData.rows.find((r) => r.id === editingRowId)
-    return row?.cardValue ? [row.cardValue] : []
+    return row?.cardValues || []
   }
 
   return (
@@ -132,7 +139,7 @@ export function KeyValueTableBlockEditor({ data, onChange }: KeyValueTableBlockE
                           updateRow(row.id, {
                             valueType: value,
                             textValue: value === "text" ? row.textValue || "" : undefined,
-                            cardValue: value === "card" ? row.cardValue : undefined,
+                            cardValues: value === "card" ? row.cardValues || [] : undefined,
                           })
                         }}
                       >
@@ -175,35 +182,46 @@ export function KeyValueTableBlockEditor({ data, onChange }: KeyValueTableBlockE
                   ) : (
                     <div>
                       <Label className="text-sm font-medium mb-2 block">カード:</Label>
-                      {row.cardValue ? (
-                        <div className="flex items-center gap-4 p-3 bg-slate-50 rounded-lg">
-                          <div className="flex-shrink-0">
-                            <Image
-                              src={row.cardValue.imageUrl || "/placeholder.svg"}
-                              alt={row.cardValue.name}
-                              width={60}
-                              height={84}
-                              className="rounded border border-slate-200 object-cover"
-                            />
+                      <div className="space-y-3">
+                        <Button onClick={() => openCardSearch(row.id)} variant="outline" size="sm">
+                          <Search className="h-4 w-4 mr-2" />
+                          カードを選択
+                        </Button>
+
+                        {row.cardValues && row.cardValues.length > 0 ? (
+                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                            {row.cardValues.map((card) => (
+                              <div key={card.id} className="relative p-3 bg-slate-50 rounded-lg border">
+                                <Button
+                                  onClick={() => removeCard(row.id, card.id)}
+                                  size="sm"
+                                  variant="destructive"
+                                  className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0"
+                                >
+                                  <X className="h-3 w-3" />
+                                </Button>
+                                <div className="flex flex-col items-center space-y-2">
+                                  <Image
+                                    src={card.imageUrl || "/placeholder.svg"}
+                                    alt={card.name}
+                                    width={80}
+                                    height={112}
+                                    className="rounded border border-slate-200 object-cover"
+                                  />
+                                  <div className="text-center">
+                                    <p className="font-medium text-sm text-slate-900 line-clamp-2">{card.name}</p>
+                                    <p className="text-xs text-slate-500">ID: {card.id}</p>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
                           </div>
-                          <div className="flex-1">
-                            <p className="font-medium text-slate-900">{row.cardValue.name}</p>
-                            <p className="text-sm text-slate-500">ID: {row.cardValue.id}</p>
+                        ) : (
+                          <div className="text-center py-4 text-slate-500 border-2 border-dashed border-slate-200 rounded-lg">
+                            <p>カードが選択されていません</p>
                           </div>
-                          <Button onClick={() => openCardSearch(row.id)} size="sm" variant="outline">
-                            <Search className="h-4 w-4 mr-2" />
-                            変更
-                          </Button>
-                        </div>
-                      ) : (
-                        <div className="text-center py-4 text-slate-500 border-2 border-dashed border-slate-200 rounded-lg">
-                          <p>カードが選択されていません</p>
-                          <Button onClick={() => openCardSearch(row.id)} variant="outline" size="sm" className="mt-2">
-                            <Search className="h-4 w-4 mr-2" />
-                            カードを選択
-                          </Button>
-                        </div>
-                      )}
+                        )}
+                      </div>
                     </div>
                   )}
                 </CardContent>
@@ -232,19 +250,22 @@ export function KeyValueTableBlockEditor({ data, onChange }: KeyValueTableBlockE
                             <div className="text-sm text-slate-600 whitespace-pre-wrap">
                               {row.textValue || "（内容なし）"}
                             </div>
-                          ) : row.cardValue ? (
-                            <div className="flex items-center gap-3">
-                              <Image
-                                src={row.cardValue.imageUrl || "/placeholder.svg"}
-                                alt={row.cardValue.name}
-                                width={50}
-                                height={70}
-                                className="rounded border border-slate-200 object-cover"
-                              />
-                              <div>
-                                <p className="text-sm font-medium text-slate-900">{row.cardValue.name}</p>
-                                <p className="text-xs text-slate-500">ID: {row.cardValue.id}</p>
-                              </div>
+                          ) : row.cardValues && row.cardValues.length > 0 ? (
+                            <div className="flex flex-wrap gap-3">
+                              {row.cardValues.map((card) => (
+                                <div key={card.id} className="flex flex-col items-center space-y-1">
+                                  <Image
+                                    src={card.imageUrl || "/placeholder.svg"}
+                                    alt={card.name}
+                                    width={60}
+                                    height={84}
+                                    className="rounded border border-slate-200 object-cover"
+                                  />
+                                  <p className="text-xs font-medium text-slate-900 text-center line-clamp-2 max-w-[60px]">
+                                    {card.name}
+                                  </p>
+                                </div>
+                              ))}
                             </div>
                           ) : (
                             <div className="text-sm text-slate-500">（カード未選択）</div>
@@ -266,7 +287,6 @@ export function KeyValueTableBlockEditor({ data, onChange }: KeyValueTableBlockE
           onSelectionComplete={handleCardSelectionComplete}
           initialSelectedCards={getCurrentRowCards()}
           modalTitle="カードを選択"
-          maxSelection={1}
         />
       </CardContent>
     </Card>
