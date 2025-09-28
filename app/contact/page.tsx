@@ -1,51 +1,58 @@
 "use client"
 
+import type React from "react"
+
 import { useState } from "react"
+import { useAuth } from "@/contexts/auth-context"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Label } from "@/components/ui/label"
-import { ArrowLeft, Send, Mail, MessageCircle, User, FileText } from "lucide-react"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { ArrowLeft, Mail, MessageCircle, Clock, CheckCircle, AlertCircle } from "lucide-react"
 import Link from "next/link"
-import { submitContactForm } from "@/lib/actions/contact"
-import { useAuth } from "@/contexts/auth-context"
+import { submitContactForm, type ContactFormData } from "@/lib/actions/contact"
 
 export default function ContactPage() {
   const { user, userProfile } = useAuth()
+  const [formData, setFormData] = useState<ContactFormData>({
+    name: userProfile?.display_name || "",
+    email: user?.email || "",
+    subject: "",
+    message: "",
+  })
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [submitStatus, setSubmitStatus] = useState<{
-    type: "success" | "error" | null
-    message: string
-  }>({ type: null, message: "" })
+  const [submitResult, setSubmitResult] = useState<{ success: boolean; message?: string; error?: string } | null>(null)
 
-  const handleSubmit = async (formData: FormData) => {
+  const handleInputChange = (field: keyof ContactFormData, value: string) => {
+    setFormData((prev) => ({ ...prev, [field]: value }))
+    // エラーメッセージをクリア
+    if (submitResult && !submitResult.success) {
+      setSubmitResult(null)
+    }
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
     setIsSubmitting(true)
-    setSubmitStatus({ type: null, message: "" })
+    setSubmitResult(null)
 
     try {
       const result = await submitContactForm(formData)
+      setSubmitResult(result)
 
       if (result.success) {
-        setSubmitStatus({
-          type: "success",
-          message: result.message || "お問い合わせを受け付けました。",
-        })
-        // フォームをリセット
-        const form = document.getElementById("contact-form") as HTMLFormElement
-        if (form) {
-          form.reset()
-        }
-      } else {
-        setSubmitStatus({
-          type: "error",
-          message: result.error || "お問い合わせの送信に失敗しました。",
-        })
+        // フォームをリセット（名前とメールは保持）
+        setFormData((prev) => ({
+          ...prev,
+          subject: "",
+          message: "",
+        }))
       }
     } catch (error) {
-      setSubmitStatus({
-        type: "error",
-        message: "お問い合わせの送信中にエラーが発生しました。",
+      setSubmitResult({
+        success: false,
+        error: "システムエラーが発生しました。しばらく時間をおいて再度お試しください。",
       })
     } finally {
       setIsSubmitting(false)
@@ -53,7 +60,7 @@ export default function ContactPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-violet-50">
       <div className="container mx-auto px-4 py-8">
         {/* ヘッダー */}
         <div className="mb-8">
@@ -64,141 +71,117 @@ export default function ContactPage() {
             <ArrowLeft className="w-4 h-4 mr-2" />
             ホームに戻る
           </Link>
-          <div className="text-center">
-            <h1 className="text-4xl font-bold text-gray-900 mb-4">お問い合わせ</h1>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              ご質問、ご要望、不具合報告など、お気軽にお問い合わせください。 できる限り迅速にご対応いたします。
-            </p>
-          </div>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">お問い合わせ</h1>
+          <p className="text-gray-600">ご質問やご要望がございましたら、お気軽にお問い合わせください。</p>
         </div>
 
-        <div className="max-w-4xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* お問い合わせフォーム */}
+        <div className="grid lg:grid-cols-3 gap-8">
+          {/* メインフォーム */}
           <div className="lg:col-span-2">
-            <Card className="shadow-xl border-0 bg-white/80 backdrop-blur-sm">
+            <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
               <CardHeader className="bg-gradient-to-r from-violet-500 to-purple-600 text-white rounded-t-lg">
-                <CardTitle className="flex items-center text-2xl">
-                  <MessageCircle className="w-6 h-6 mr-3" />
+                <CardTitle className="flex items-center">
+                  <MessageCircle className="w-5 h-5 mr-2" />
                   お問い合わせフォーム
                 </CardTitle>
                 <CardDescription className="text-violet-100">
-                  下記のフォームにご記入の上、送信してください
+                  以下のフォームにご記入の上、送信してください。
                 </CardDescription>
               </CardHeader>
-              <CardContent className="p-8">
-                {submitStatus.type && (
-                  <div
-                    className={`mb-6 p-4 rounded-lg border ${
-                      submitStatus.type === "success"
-                        ? "bg-green-50 border-green-200 text-green-800"
-                        : "bg-red-50 border-red-200 text-red-800"
-                    }`}
+              <CardContent className="p-6">
+                {submitResult && (
+                  <Alert
+                    className={`mb-6 ${submitResult.success ? "border-green-200 bg-green-50" : "border-red-200 bg-red-50"}`}
                   >
                     <div className="flex items-center">
-                      {submitStatus.type === "success" ? (
-                        <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center mr-3">
-                          <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                            <path
-                              fillRule="evenodd"
-                              d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                              clipRule="evenodd"
-                            />
-                          </svg>
-                        </div>
+                      {submitResult.success ? (
+                        <CheckCircle className="w-4 h-4 text-green-600 mr-2" />
                       ) : (
-                        <div className="w-5 h-5 bg-red-500 rounded-full flex items-center justify-center mr-3">
-                          <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                            <path
-                              fillRule="evenodd"
-                              d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                              clipRule="evenodd"
-                            />
-                          </svg>
-                        </div>
+                        <AlertCircle className="w-4 h-4 text-red-600 mr-2" />
                       )}
-                      <p className="font-medium">{submitStatus.message}</p>
+                      <AlertDescription className={submitResult.success ? "text-green-800" : "text-red-800"}>
+                        {submitResult.success ? submitResult.message : submitResult.error}
+                      </AlertDescription>
                     </div>
-                  </div>
+                  </Alert>
                 )}
 
-                <form id="contact-form" action={handleSubmit} className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <Label htmlFor="name" className="flex items-center text-sm font-medium text-gray-700">
-                        <User className="w-4 h-4 mr-2" />
-                        お名前 <span className="text-red-500 ml-1">*</span>
-                      </Label>
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+                        お名前 <span className="text-red-500">*</span>
+                      </label>
                       <Input
                         id="name"
-                        name="name"
                         type="text"
+                        value={formData.name}
+                        onChange={(e) => handleInputChange("name", e.target.value)}
+                        placeholder="山田 太郎"
                         required
-                        defaultValue={userProfile?.display_name || ""}
-                        className="border-gray-300 focus:border-violet-500 focus:ring-violet-500"
-                        placeholder="山田太郎"
+                        className="transition-all duration-200 focus:ring-2 focus:ring-violet-500"
                       />
                     </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="email" className="flex items-center text-sm font-medium text-gray-700">
-                        <Mail className="w-4 h-4 mr-2" />
-                        メールアドレス <span className="text-red-500 ml-1">*</span>
-                      </Label>
+                    <div>
+                      <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                        メールアドレス <span className="text-red-500">*</span>
+                      </label>
                       <Input
                         id="email"
-                        name="email"
                         type="email"
-                        required
-                        defaultValue={user?.email || ""}
-                        className="border-gray-300 focus:border-violet-500 focus:ring-violet-500"
+                        value={formData.email}
+                        onChange={(e) => handleInputChange("email", e.target.value)}
                         placeholder="example@email.com"
+                        required
+                        className="transition-all duration-200 focus:ring-2 focus:ring-violet-500"
                       />
                     </div>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="subject" className="flex items-center text-sm font-medium text-gray-700">
-                      <FileText className="w-4 h-4 mr-2" />
-                      件名 <span className="text-red-500 ml-1">*</span>
-                    </Label>
+                  <div>
+                    <label htmlFor="subject" className="block text-sm font-medium text-gray-700 mb-2">
+                      件名 <span className="text-red-500">*</span>
+                    </label>
                     <Input
                       id="subject"
-                      name="subject"
                       type="text"
-                      required
-                      className="border-gray-300 focus:border-violet-500 focus:ring-violet-500"
+                      value={formData.subject}
+                      onChange={(e) => handleInputChange("subject", e.target.value)}
                       placeholder="お問い合わせの件名を入力してください"
+                      required
+                      className="transition-all duration-200 focus:ring-2 focus:ring-violet-500"
                     />
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="message" className="flex items-center text-sm font-medium text-gray-700">
-                      <MessageCircle className="w-4 h-4 mr-2" />
-                      メッセージ <span className="text-red-500 ml-1">*</span>
-                    </Label>
+                  <div>
+                    <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-2">
+                      メッセージ <span className="text-red-500">*</span>
+                    </label>
                     <Textarea
                       id="message"
-                      name="message"
+                      value={formData.message}
+                      onChange={(e) => handleInputChange("message", e.target.value)}
+                      placeholder="お問い合わせ内容を詳しくご記入ください"
                       required
                       rows={6}
-                      className="border-gray-300 focus:border-violet-500 focus:ring-violet-500 resize-none"
-                      placeholder="お問い合わせ内容を詳しくご記入ください..."
+                      className="transition-all duration-200 focus:ring-2 focus:ring-violet-500 resize-none"
                     />
                   </div>
 
                   <Button
                     type="submit"
                     disabled={isSubmitting}
-                    className="w-full bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                    className="w-full bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 text-white font-medium py-3 rounded-lg transition-all duration-200 transform hover:scale-[1.02] disabled:transform-none disabled:opacity-50"
                   >
                     {isSubmitting ? (
                       <div className="flex items-center justify-center">
-                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-3"></div>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                         送信中...
                       </div>
                     ) : (
                       <div className="flex items-center justify-center">
-                        <Send className="w-5 h-5 mr-2" />
-                        お問い合わせを送信
+                        <Mail className="w-4 h-4 mr-2" />
+                        送信する
                       </div>
                     )}
                   </Button>
@@ -207,49 +190,69 @@ export default function ContactPage() {
             </Card>
           </div>
 
-          {/* サイドバー情報 */}
+          {/* サイドバー */}
           <div className="space-y-6">
+            {/* よくある質問 */}
             <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
               <CardHeader className="bg-gradient-to-r from-blue-500 to-cyan-600 text-white rounded-t-lg">
-                <CardTitle className="text-lg">お問い合わせについて</CardTitle>
+                <CardTitle className="text-lg">よくある質問</CardTitle>
               </CardHeader>
-              <CardContent className="p-6">
-                <div className="space-y-4 text-sm text-gray-600">
-                  <div className="flex items-start">
-                    <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 mr-3 flex-shrink-0"></div>
-                    <p>通常、1-2営業日以内にご返信いたします</p>
+              <CardContent className="p-4 space-y-4">
+                <div>
+                  <h4 className="font-medium text-gray-900 mb-1">アカウントについて</h4>
+                  <p className="text-sm text-gray-600">
+                    ログインできない、パスワードを忘れた場合は、ログイン画面の「パスワードをお忘れですか？」からリセットできます。
+                  </p>
+                </div>
+                <div>
+                  <h4 className="font-medium text-gray-900 mb-1">トレード機能について</h4>
+                  <p className="text-sm text-gray-600">
+                    トレード投稿の作成・編集方法や、マッチング機能の使い方についてご不明な点がございましたらお問い合わせください。
+                  </p>
+                </div>
+                <div>
+                  <h4 className="font-medium text-gray-900 mb-1">技術的な問題</h4>
+                  <p className="text-sm text-gray-600">
+                    サイトの表示に問題がある場合は、ブラウザの種類とバージョンを併せてお知らせください。
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* 連絡先情報 */}
+            <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+              <CardHeader className="bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-t-lg">
+                <CardTitle className="text-lg">その他の連絡方法</CardTitle>
+              </CardHeader>
+              <CardContent className="p-4 space-y-4">
+                <div className="flex items-center text-sm text-gray-600">
+                  <Mail className="w-4 h-4 mr-3 text-emerald-600" />
+                  <div>
+                    <div className="font-medium">メール</div>
+                    <div>support@pokelnk.com</div>
                   </div>
-                  <div className="flex items-start">
-                    <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 mr-3 flex-shrink-0"></div>
-                    <p>緊急の場合は件名に「緊急」と記載してください</p>
-                  </div>
-                  <div className="flex items-start">
-                    <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 mr-3 flex-shrink-0"></div>
-                    <p>不具合報告の際は、詳細な状況をお教えください</p>
+                </div>
+                <div className="flex items-center text-sm text-gray-600">
+                  <Clock className="w-4 h-4 mr-3 text-emerald-600" />
+                  <div>
+                    <div className="font-medium">対応時間</div>
+                    <div>平日 10:00-18:00</div>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
+            {/* 注意事項 */}
             <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
-              <CardHeader className="bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-t-lg">
-                <CardTitle className="text-lg">よくある質問</CardTitle>
+              <CardHeader className="bg-gradient-to-r from-amber-500 to-orange-600 text-white rounded-t-lg">
+                <CardTitle className="text-lg">ご注意</CardTitle>
               </CardHeader>
-              <CardContent className="p-6">
-                <div className="space-y-3 text-sm">
-                  <div>
-                    <p className="font-medium text-gray-900 mb-1">Q. アカウントの削除方法は？</p>
-                    <p className="text-gray-600">A. 設定画面からアカウント削除が可能です</p>
-                  </div>
-                  <div>
-                    <p className="font-medium text-gray-900 mb-1">Q. パスワードを忘れました</p>
-                    <p className="text-gray-600">A. ログイン画面の「パスワードを忘れた方」をクリック</p>
-                  </div>
-                  <div>
-                    <p className="font-medium text-gray-900 mb-1">Q. 機能の要望はできますか？</p>
-                    <p className="text-gray-600">A. はい、お気軽にご要望をお聞かせください</p>
-                  </div>
-                </div>
+              <CardContent className="p-4">
+                <ul className="text-sm text-gray-600 space-y-2">
+                  <li>• お返事まで1-3営業日いただく場合があります</li>
+                  <li>• 迷惑メールフォルダもご確認ください</li>
+                  <li>• 緊急の場合は直接メールでご連絡ください</li>
+                </ul>
               </CardContent>
             </Card>
           </div>

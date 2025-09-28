@@ -2,78 +2,82 @@
 
 import { createClient } from "@/lib/supabase/server"
 
-interface ContactFormData {
+export interface ContactFormData {
   name: string
   email: string
   subject: string
   message: string
-  userId?: string
 }
 
-export async function submitContactForm(formData: FormData) {
+export async function submitContactForm(formData: ContactFormData) {
   try {
-    const supabase = createClient()
-
-    // 現在のユーザーを取得（ログインしている場合）
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
-
-    const contactData: ContactFormData = {
-      name: formData.get("name") as string,
-      email: formData.get("email") as string,
-      subject: formData.get("subject") as string,
-      message: formData.get("message") as string,
-      userId: user?.id || undefined,
-    }
+    const supabase = await createClient()
 
     // バリデーション
-    if (!contactData.name || !contactData.email || !contactData.subject || !contactData.message) {
+    if (!formData.name || formData.name.trim().length < 2) {
       return {
         success: false,
-        error: "全ての項目を入力してください。",
+        error: "お名前は2文字以上で入力してください。",
       }
     }
 
-    // メールアドレスの簡単なバリデーション
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(contactData.email)) {
+    if (!formData.email || !formData.email.includes("@")) {
       return {
         success: false,
         error: "有効なメールアドレスを入力してください。",
       }
     }
 
-    // お問い合わせデータをデータベースに保存
-    const { error } = await supabase.from("contact_submissions").insert([
-      {
-        name: contactData.name,
-        email: contactData.email,
-        subject: contactData.subject,
-        message: contactData.message,
-        user_id: contactData.userId,
-        created_at: new Date().toISOString(),
-        status: "pending",
-      },
-    ])
+    if (!formData.subject || formData.subject.trim().length < 5) {
+      return {
+        success: false,
+        error: "件名は5文字以上で入力してください。",
+      }
+    }
 
-    if (error) {
-      console.error("Contact form submission error:", error)
+    if (!formData.message || formData.message.trim().length < 10) {
+      return {
+        success: false,
+        error: "メッセージは10文字以上で入力してください。",
+      }
+    }
+
+    // 現在のユーザーを取得
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+
+    // お問い合わせをデータベースに保存
+    const { error: insertError } = await supabase.from("contact_submissions").insert({
+      user_id: user?.id || null,
+      name: formData.name.trim(),
+      email: formData.email.trim(),
+      subject: formData.subject.trim(),
+      message: formData.message.trim(),
+      status: "pending",
+      created_at: new Date().toISOString(),
+    })
+
+    if (insertError) {
+      console.error("Contact form submission error:", insertError)
       return {
         success: false,
         error: "お問い合わせの送信に失敗しました。しばらく時間をおいて再度お試しください。",
       }
     }
 
+    // 管理者に通知を送信（実装は後で）
+    // await sendNotificationToAdmin(formData)
+
     return {
       success: true,
       message: "お問い合わせを受け付けました。ご連絡いただきありがとうございます。",
     }
   } catch (error) {
-    console.error("Contact form submission error:", error)
+    console.error("Contact form error:", error)
     return {
       success: false,
-      error: "お問い合わせの送信中にエラーが発生しました。",
+      error: "システムエラーが発生しました。しばらく時間をおいて再度お試しください。",
     }
   }
 }
