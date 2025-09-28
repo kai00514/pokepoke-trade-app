@@ -220,11 +220,11 @@ export default function CreateListPage() {
 
                 {/* 選択されたカード一覧 */}
                 {selectedCards.length > 0 ? (
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                  <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-8 gap-3">
                     {selectedCards.map((card) => (
                       <div key={card.id} className="relative group">
-                        <div className="bg-white border border-gray-200 rounded-lg p-3 hover:shadow-md transition-shadow">
-                          <div className="aspect-[3/4] mb-2">
+                        <div className="bg-white border border-gray-200 rounded-lg p-2 hover:shadow-md transition-shadow">
+                          <div className="aspect-[3/4] mb-1">
                             <img
                               src={card.imageUrl || "/placeholder.svg"}
                               alt={card.name}
@@ -237,7 +237,7 @@ export default function CreateListPage() {
                         <button
                           type="button"
                           onClick={() => handleRemoveCard(card.id)}
-                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
+                          className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
                         >
                           <X className="h-3 w-3" />
                         </button>
