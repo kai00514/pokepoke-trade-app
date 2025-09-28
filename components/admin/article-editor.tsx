@@ -25,67 +25,40 @@ interface ArticleEditorProps {
 
 export function ArticleEditor({ article, isEditing = false }: ArticleEditorProps) {
   const router = useRouter()
-  const [title, setTitle] = useState(article?.title || "")
-  const [slug, setSlug] = useState(article?.slug || "")
-  const [category, setCategory] = useState(article?.category || "news")
-  const [excerpt, setExcerpt] = useState(article?.excerpt || "")
-  const [featuredImage, setFeaturedImage] = useState(article?.featured_image || "")
-  const [isPublished, setIsPublished] = useState(article?.is_published || false)
-  const [blocks, setBlocks] = useState<Block[]>(article?.blocks || [])
+  const [formData, setFormData] = useState({
+    title: article?.title || "",
+    slug: article?.slug || "",
+    category: article?.category || "news",
+    excerpt: article?.excerpt || "",
+    thumbnail_image_url: article?.featured_image || "",
+    is_published: article?.is_published || false,
+    blocks: article?.blocks || [],
+  })
   const [isPreviewOpen, setIsPreviewOpen] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
 
   // タイトルからスラッグを自動生成
   useEffect(() => {
-    if (!isEditing && title && !slug) {
-      const generatedSlug = title
+    if (!isEditing && formData.title && !formData.slug) {
+      const generatedSlug = formData.title
         .toLowerCase()
         .replace(/[^a-z0-9\u3040-\u309f\u30a0-\u30ff\u4e00-\u9faf]/g, "-")
         .replace(/-+/g, "-")
         .replace(/^-|-$/g, "")
-      setSlug(generatedSlug)
+      setFormData({ ...formData, slug: generatedSlug })
     }
-  }, [title, slug, isEditing])
+  }, [isEditing, formData.title]) // Updated dependency array
 
-  const handleAddBlock = (type: string) => {
-    const newBlock: Block = {
-      id: `block-${Date.now()}`,
-      type,
-      data: {},
-      display_order: (blocks.length + 1) * 10,
-    }
-    setBlocks([...blocks, newBlock])
+  const handleInputChange = (field: string, value: string) => {
+    setFormData({ ...formData, [field]: value })
   }
 
-  const handleUpdateBlock = (blockId: string, data: any) => {
-    setBlocks(blocks.map((block) => (block.id === blockId ? { ...block, data } : block)))
+  const handleBlocksChange = (newBlocks: Block[]) => {
+    setFormData({ ...formData, blocks: newBlocks })
   }
 
-  const handleDeleteBlock = (blockId: string) => {
-    setBlocks(blocks.filter((block) => block.id !== blockId))
-  }
-
-  const handleMoveBlock = (blockId: string, direction: "up" | "down") => {
-    const blockIndex = blocks.findIndex((block) => block.id === blockId)
-    if (blockIndex === -1) return
-
-    const newBlocks = [...blocks]
-    if (direction === "up" && blockIndex > 0) {
-      ;[newBlocks[blockIndex], newBlocks[blockIndex - 1]] = [newBlocks[blockIndex - 1], newBlocks[blockIndex]]
-    } else if (direction === "down" && blockIndex < blocks.length - 1) {
-      ;[newBlocks[blockIndex], newBlocks[blockIndex + 1]] = [newBlocks[blockIndex + 1], newBlocks[blockIndex]]
-    }
-
-    // display_orderを再設定
-    newBlocks.forEach((block, index) => {
-      block.display_order = (index + 1) * 10
-    })
-
-    setBlocks(newBlocks)
-  }
-
-  const handleSave = async () => {
-    if (!title || !slug || !category) {
+  const handleSave = async (silent = false) => {
+    if (!formData.title || !formData.slug || !formData.category) {
       toast({
         title: "エラー",
         description: "タイトル、スラッグ、カテゴリーは必須です",
@@ -97,20 +70,20 @@ export function ArticleEditor({ article, isEditing = false }: ArticleEditorProps
     setIsSaving(true)
 
     try {
-      const formData = new FormData()
-      formData.append("title", title)
-      formData.append("slug", slug)
-      formData.append("category", category)
-      formData.append("excerpt", excerpt)
-      formData.append("featured_image", featuredImage)
-      formData.append("is_published", isPublished.toString())
-      formData.append("blocks", JSON.stringify(blocks))
+      const formDataToSend = new FormData()
+      formDataToSend.append("title", formData.title)
+      formDataToSend.append("slug", formData.slug)
+      formDataToSend.append("category", formData.category)
+      formDataToSend.append("excerpt", formData.excerpt || "")
+      formDataToSend.append("featured_image", formData.thumbnail_image_url || "")
+      formDataToSend.append("is_published", formData.is_published.toString())
+      formDataToSend.append("blocks", JSON.stringify(formData.blocks))
 
       let result
       if (isEditing && article?.id) {
-        result = await updateArticle(article.id, formData)
+        result = await updateArticle(article.id, formDataToSend)
       } else {
-        result = await createArticle(formData)
+        result = await createArticle(formDataToSend)
       }
 
       if (result.success) {
@@ -140,19 +113,19 @@ export function ArticleEditor({ article, isEditing = false }: ArticleEditorProps
 
   const previewArticle: Article = {
     id: article?.id || "preview",
-    title,
-    slug,
-    category,
-    excerpt,
-    featured_image: featuredImage,
-    is_published: isPublished,
+    title: formData.title,
+    slug: formData.slug,
+    category: formData.category,
+    excerpt: formData.excerpt,
+    featured_image: formData.thumbnail_image_url,
+    is_published: formData.is_published,
     published_at: new Date().toISOString(),
     pinned: false,
     priority: 0,
     view_count: 0,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
-    blocks,
+    blocks: formData.blocks,
   }
 
   return (
@@ -172,7 +145,7 @@ export function ArticleEditor({ article, isEditing = false }: ArticleEditorProps
             <Eye className="h-4 w-4 mr-2" />
             プレビュー
           </Button>
-          <Button onClick={handleSave} disabled={isSaving}>
+          <Button onClick={() => handleSave()} disabled={isSaving}>
             <Save className="h-4 w-4 mr-2" />
             {isSaving ? "保存中..." : "保存"}
           </Button>
@@ -192,8 +165,8 @@ export function ArticleEditor({ article, isEditing = false }: ArticleEditorProps
                 <Label htmlFor="title">タイトル *</Label>
                 <Input
                   id="title"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
+                  value={formData.title}
+                  onChange={(e) => handleInputChange("title", e.target.value)}
                   placeholder="記事のタイトルを入力"
                 />
               </div>
@@ -201,8 +174,8 @@ export function ArticleEditor({ article, isEditing = false }: ArticleEditorProps
                 <Label htmlFor="slug">スラッグ *</Label>
                 <Input
                   id="slug"
-                  value={slug}
-                  onChange={(e) => setSlug(e.target.value)}
+                  value={formData.slug}
+                  onChange={(e) => handleInputChange("slug", e.target.value)}
                   placeholder="記事のスラッグを入力"
                 />
               </div>
@@ -210,8 +183,8 @@ export function ArticleEditor({ article, isEditing = false }: ArticleEditorProps
                 <Label htmlFor="excerpt">概要</Label>
                 <Textarea
                   id="excerpt"
-                  value={excerpt}
-                  onChange={(e) => setExcerpt(e.target.value)}
+                  value={formData.excerpt}
+                  onChange={(e) => handleInputChange("excerpt", e.target.value)}
                   placeholder="記事の概要を入力"
                   rows={3}
                 />
@@ -225,19 +198,53 @@ export function ArticleEditor({ article, isEditing = false }: ArticleEditorProps
               <CardTitle>コンテンツブロック</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {blocks.map((block, index) => (
+              {formData.blocks.map((block, index) => (
                 <div key={block.id}>
                   <BlockEditor
                     block={block}
-                    onUpdate={(data) => handleUpdateBlock(block.id!, data)}
-                    onDelete={() => handleDeleteBlock(block.id!)}
-                    onMoveUp={index > 0 ? () => handleMoveBlock(block.id!, "up") : undefined}
-                    onMoveDown={index < blocks.length - 1 ? () => handleMoveBlock(block.id!, "down") : undefined}
+                    onUpdate={(data) =>
+                      handleBlocksChange(formData.blocks.map((b) => (b.id === block.id ? { ...b, data } : b)))
+                    }
+                    onDelete={() => handleBlocksChange(formData.blocks.filter((b) => b.id !== block.id))}
+                    onMoveUp={
+                      index > 0
+                        ? () =>
+                            handleBlocksChange([
+                              ...formData.blocks.slice(0, index - 1),
+                              formData.blocks[index],
+                              formData.blocks[index - 1],
+                              ...formData.blocks.slice(index + 1),
+                            ])
+                        : undefined
+                    }
+                    onMoveDown={
+                      index < formData.blocks.length - 1
+                        ? () =>
+                            handleBlocksChange([
+                              ...formData.blocks.slice(0, index),
+                              formData.blocks[index + 1],
+                              formData.blocks[index],
+                              ...formData.blocks.slice(index + 2),
+                            ])
+                        : undefined
+                    }
                   />
-                  {index < blocks.length - 1 && <Separator className="my-4" />}
+                  {index < formData.blocks.length - 1 && <Separator className="my-4" />}
                 </div>
               ))}
-              <BlockTypeSelector onSelectType={handleAddBlock} />
+              <BlockTypeSelector
+                onSelectType={(type) =>
+                  handleBlocksChange([
+                    ...formData.blocks,
+                    {
+                      id: `block-${Date.now()}`,
+                      type,
+                      data: {},
+                      display_order: (formData.blocks.length + 1) * 10,
+                    },
+                  ])
+                }
+              />
             </CardContent>
           </Card>
         </div>
@@ -252,7 +259,7 @@ export function ArticleEditor({ article, isEditing = false }: ArticleEditorProps
             <CardContent className="space-y-4">
               <div>
                 <Label htmlFor="category">カテゴリー *</Label>
-                <Select value={category} onValueChange={setCategory}>
+                <Select value={formData.category} onValueChange={(value) => handleInputChange("category", value)}>
                   <SelectTrigger>
                     <SelectValue placeholder="カテゴリーを選択" />
                   </SelectTrigger>
@@ -265,7 +272,11 @@ export function ArticleEditor({ article, isEditing = false }: ArticleEditorProps
                 </Select>
               </div>
               <div className="flex items-center space-x-2">
-                <Switch id="published" checked={isPublished} onCheckedChange={setIsPublished} />
+                <Switch
+                  id="published"
+                  checked={formData.is_published}
+                  onCheckedChange={(value) => handleInputChange("is_published", value)}
+                />
                 <Label htmlFor="published">公開する</Label>
               </div>
             </CardContent>
@@ -281,15 +292,15 @@ export function ArticleEditor({ article, isEditing = false }: ArticleEditorProps
                 <Label htmlFor="featured-image">画像URL</Label>
                 <Input
                   id="featured-image"
-                  value={featuredImage}
-                  onChange={(e) => setFeaturedImage(e.target.value)}
+                  value={formData.thumbnail_image_url}
+                  onChange={(e) => handleInputChange("thumbnail_image_url", e.target.value)}
                   placeholder="画像のURLを入力"
                 />
               </div>
-              {featuredImage && (
+              {formData.thumbnail_image_url && (
                 <div className="mt-2">
                   <img
-                    src={featuredImage || "/placeholder.svg"}
+                    src={formData.thumbnail_image_url || "/placeholder.svg"}
                     alt="アイキャッチ画像"
                     className="w-full h-32 object-cover rounded"
                   />
