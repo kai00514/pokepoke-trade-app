@@ -122,7 +122,7 @@ export default function RenderArticle({ blocks }: RenderArticleProps) {
             <div key={index} className="my-4">
               <h1
                 id={block.data.anchorId}
-                className="text-2xl sm:text-3xl font-bold text-slate-900 mb-3 pb-2 border-l-4 border-blue-500 pl-4 bg-gradient-to-r from-blue-50 to-transparent py-2 rounded-r-lg"
+                className="text-lg sm:text-xl font-bold text-white mb-3 px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-500 rounded-lg shadow-md"
               >
                 {block.data.text}
               </h1>
@@ -133,9 +133,8 @@ export default function RenderArticle({ blocks }: RenderArticleProps) {
             <div key={index} className="my-3">
               <h2
                 id={block.data.anchorId}
-                className="text-xl sm:text-2xl font-bold text-slate-900 mb-2 mt-6 pb-2 border-b-2 border-blue-300 bg-blue-25 px-3 py-2 rounded-t-md flex items-center gap-2"
+                className="text-base sm:text-lg font-bold text-white mb-2 mt-6 px-5 py-2.5 bg-gradient-to-r from-blue-500 to-blue-400 rounded-md shadow-sm"
               >
-                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                 {block.data.text}
               </h2>
             </div>
@@ -145,9 +144,8 @@ export default function RenderArticle({ blocks }: RenderArticleProps) {
             <div key={index} className="my-2">
               <h3
                 id={block.data.anchorId}
-                className="text-lg sm:text-xl font-bold text-slate-900 mb-2 mt-4 pb-1 border-l-3 border-blue-400 pl-3 bg-blue-25 py-1 rounded-r-sm flex items-center gap-2"
+                className="text-sm sm:text-base font-bold text-white mb-2 mt-4 px-4 py-2 bg-gradient-to-r from-blue-400 to-blue-300 rounded shadow-sm"
               >
-                <div className="w-1.5 h-1.5 bg-blue-400 rounded-full"></div>
                 {block.data.text}
               </h3>
             </div>
