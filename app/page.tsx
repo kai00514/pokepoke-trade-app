@@ -23,6 +23,7 @@ const notoSansJP = Noto_Sans_JP({
 })
 
 const POSTS_PER_PAGE = 50
+const CACHE_DURATION = 30 * 60 * 1000 // 30分に延長
 
 export default function TradeBoardPage() {
   const [isDetailedSearchOpen, setIsDetailedSearchOpen] = useState(false)
@@ -70,6 +71,7 @@ export default function TradeBoardPage() {
       const savedScrollPosition = sessionStorage.getItem(`trade-list-scroll-position-page-${currentPage}`)
       if (savedScrollPosition) {
         const scrollY = Number.parseInt(savedScrollPosition, 10)
+        // データが既に表示されている場合のみスクロール位置を復元
         setTimeout(() => {
           window.scrollTo(0, scrollY)
         }, 100)
@@ -87,7 +89,7 @@ export default function TradeBoardPage() {
     return () => {
       window.removeEventListener("scroll", saveScrollPosition)
     }
-  }, [currentPage])
+  }, [currentPage, isLoading])
 
   // ブラウザバック/フォワード時の処理
   useEffect(() => {
@@ -133,7 +135,7 @@ export default function TradeBoardPage() {
           setTradePosts(result.posts)
           setTotalCount(result.totalCount || 0)
 
-          // データをキャッシュに保存
+          // データをキャッシュに保存（30分間有効）
           const cacheData = {
             posts: result.posts,
             totalCount: result.totalCount || 0,
@@ -171,39 +173,70 @@ export default function TradeBoardPage() {
     [toast],
   )
 
-  // データ取得のuseEffect - 修正版
+  // データ取得のuseEffect - キャッシュ優先版
   useEffect(() => {
-    // 初回マウント時またはページが変更された時のみ実行
-    // ただし、sessionStorageにデータがある場合は初回ロードをスキップ
     const hasCache = sessionStorage.getItem(`trade-posts-cache-page-${currentPage}`)
+    const isBackNavigation = sessionStorage.getItem(`trade-list-back-navigation-page-${currentPage}`)
+
+    // キャッシュからデータを復元する関数
+    const loadFromCache = () => {
+      if (!hasCache) return false
+
+      try {
+        const cachedData = JSON.parse(hasCache)
+        const cacheAge = Date.now() - (cachedData.timestamp || 0)
+
+        // キャッシュが30分以内なら使用
+        if (cacheAge < CACHE_DURATION) {
+          setTradePosts(cachedData.posts)
+          setTotalCount(cachedData.totalCount)
+          setIsLoading(false)
+          return true
+        } else {
+          // 期限切れキャッシュを削除
+          sessionStorage.removeItem(`trade-posts-cache-page-${currentPage}`)
+          return false
+        }
+      } catch (error) {
+        console.error("Failed to parse cached data:", error)
+        sessionStorage.removeItem(`trade-posts-cache-page-${currentPage}`)
+        return false
+      }
+    }
 
     if (isInitialMount.current) {
       isInitialMount.current = false
-      if (!hasCache) {
+
+      // 初回マウント時はキャッシュを優先的に使用
+      if (!loadFromCache()) {
         fetchTradePosts(currentPage)
-      } else {
-        // キャッシュからデータを復元
+      }
+    } else if (isBackNavigation) {
+      // ブラウザバック時は必ずキャッシュを使用（期限切れでも一時的に使用）
+      if (hasCache) {
         try {
           const cachedData = JSON.parse(hasCache)
-          const cacheAge = Date.now() - (cachedData.timestamp || 0)
+          setTradePosts(cachedData.posts)
+          setTotalCount(cachedData.totalCount)
+          setIsLoading(false)
 
-          // キャッシュが5分以内なら使用
-          if (cacheAge < 5 * 60 * 1000) {
-            setTradePosts(cachedData.posts)
-            setTotalCount(cachedData.totalCount)
-            setIsLoading(false)
-            return
-          } else {
-            sessionStorage.removeItem(`trade-posts-cache-page-${currentPage}`)
+          // 期限切れの場合はバックグラウンドで更新
+          const cacheAge = Date.now() - (cachedData.timestamp || 0)
+          if (cacheAge >= CACHE_DURATION) {
+            setTimeout(() => fetchTradePosts(currentPage), 1000)
           }
         } catch (error) {
           console.error("Failed to parse cached data:", error)
-          sessionStorage.removeItem(`trade-posts-cache-page-${currentPage}`)
+          fetchTradePosts(currentPage)
         }
+      } else {
         fetchTradePosts(currentPage)
       }
-    } else if (currentPage) {
-      fetchTradePosts(currentPage)
+    } else {
+      // 通常のページ変更時
+      if (!loadFromCache()) {
+        fetchTradePosts(currentPage)
+      }
     }
 
     // クリーンアップ関数
