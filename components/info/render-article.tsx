@@ -302,8 +302,8 @@ export default function RenderArticle({ blocks }: RenderArticleProps) {
                               <Image
                                 src={getCardImageUrl(card) || "/placeholder.svg"}
                                 alt={card.name}
-                                width={60}
-                                height={84}
+                                width={50}
+                                height={70}
                                 className="rounded-md object-cover border border-gray-200 shadow-sm"
                                 onError={(e) => {
                                   const target = e.target as HTMLImageElement
@@ -311,7 +311,7 @@ export default function RenderArticle({ blocks }: RenderArticleProps) {
                                 }}
                               />
                             ) : (
-                              <div className="w-[60px] h-[84px] bg-gray-200 rounded-md flex items-center justify-center border border-gray-200">
+                              <div className="w-[50px] h-[70px] bg-gray-200 rounded-md flex items-center justify-center border border-gray-200">
                                 <span className="text-xs text-gray-500 text-center px-1">
                                   {loading ? "読み込み中..." : "カード未取得"}
                                 </span>
@@ -319,7 +319,7 @@ export default function RenderArticle({ blocks }: RenderArticleProps) {
                             )}
                           </div>
                           <div className="min-w-0 flex-1">
-                            <p className="font-medium text-slate-900 text-sm leading-tight">
+                            <p className="font-medium text-slate-900 text-xs leading-tight">
                               {card?.name || item.name || `カードID: ${item.card_id}`}
                             </p>
                           </div>
@@ -356,14 +356,14 @@ export default function RenderArticle({ blocks }: RenderArticleProps) {
 
                             return (
                               <div key={cardIndex} className="flex flex-col items-center">
-                                <div className="aspect-[5/7] relative rounded border overflow-hidden bg-gray-100 w-full max-w-[50px] shadow-sm">
+                                <div className="aspect-[5/7] relative rounded border overflow-hidden bg-gray-100 w-full max-w-[40px] shadow-sm">
                                   {card ? (
                                     <Image
                                       src={getCardImageUrl(card) || "/placeholder.svg"}
                                       alt={card.name}
                                       fill
                                       className="object-cover"
-                                      sizes="50px"
+                                      sizes="40px"
                                       onError={(e) => {
                                         const target = e.target as HTMLImageElement
                                         target.src = "/no-card.png"
@@ -377,7 +377,7 @@ export default function RenderArticle({ blocks }: RenderArticleProps) {
                                     </div>
                                   )}
                                 </div>
-                                <div className="mt-1 text-[9px] text-gray-600 text-center truncate w-full max-w-[50px]">
+                                <div className="mt-1 text-[8px] text-gray-600 text-center truncate w-full max-w-[40px]">
                                   {card?.name || cardRef.name || `ID:${cardRef.id}`}
                                 </div>
                               </div>
@@ -422,8 +422,8 @@ export default function RenderArticle({ blocks }: RenderArticleProps) {
                                     <Image
                                       src={getCardImageUrl(card) || "/placeholder.svg"}
                                       alt={card.name}
-                                      width={60}
-                                      height={84}
+                                      width={50}
+                                      height={70}
                                       className="rounded border border-gray-200 object-cover shadow-sm"
                                       onError={(e) => {
                                         const target = e.target as HTMLImageElement
@@ -431,14 +431,14 @@ export default function RenderArticle({ blocks }: RenderArticleProps) {
                                       }}
                                     />
                                   ) : (
-                                    <div className="w-[60px] h-[84px] bg-gray-200 rounded border border-gray-200 flex items-center justify-center">
+                                    <div className="w-[50px] h-[70px] bg-gray-200 rounded border border-gray-200 flex items-center justify-center">
                                       <span className="text-xs text-gray-500 text-center px-1">
                                         {loading ? "読み込み中..." : "未取得"}
                                       </span>
                                     </div>
                                   )}
                                 </div>
-                                <p className="text-xs font-medium text-gray-900 text-center line-clamp-2 max-w-[60px]">
+                                <p className="text-[10px] font-medium text-gray-900 text-center line-clamp-2 max-w-[50px]">
                                   {card?.name || cardValue.name || `ID:${cardValue.id}`}
                                 </p>
                               </div>
