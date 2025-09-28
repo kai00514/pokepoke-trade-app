@@ -369,27 +369,27 @@ export default function RenderArticle({ blocks }: RenderArticleProps) {
                       <TableCell className="py-4 px-4 border-r border-slate-100">
                         <div className="flex items-center gap-3 justify-center">
                           <div className="flex-shrink-0">
-                            {card ? (
-                              <div className="aspect-[5/7] relative rounded-md border-2 border-gray-200 overflow-hidden bg-gray-100 w-[60px] shadow-md">
+                            <div className="aspect-[5/7] relative rounded-md border-2 border-gray-200 overflow-hidden bg-gray-100 w-[50px] sm:w-[60px] md:w-[70px] shadow-md">
+                              {card ? (
                                 <Image
                                   src={getCardImageUrl(card) || "/placeholder.svg"}
                                   alt={card.name}
                                   fill
                                   className="object-cover"
-                                  sizes="60px"
+                                  sizes="(max-width: 640px) 50px, (max-width: 768px) 60px, 70px"
                                   onError={(e) => {
                                     const target = e.target as HTMLImageElement
                                     target.src = "/no-card.png"
                                   }}
                                 />
-                              </div>
-                            ) : (
-                              <div className="w-[60px] h-[84px] bg-gray-200 rounded-md flex items-center justify-center border-2 border-gray-200">
-                                <span className="text-xs text-gray-500 text-center px-1">
-                                  {loading ? "読み込み中..." : "カード未取得"}
-                                </span>
-                              </div>
-                            )}
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center">
+                                  <span className="text-[8px] text-gray-500 text-center px-1">
+                                    {loading ? "読み込み中..." : "カード未取得"}
+                                  </span>
+                                </div>
+                              )}
+                            </div>
                           </div>
                           <div className="min-w-0 flex-1">
                             <p className="font-medium text-slate-900 text-sm leading-tight truncate max-w-[120px]">
@@ -423,7 +423,7 @@ export default function RenderArticle({ blocks }: RenderArticleProps) {
                       {row.header}
                     </TableCell>
                     <TableCell className="py-4 px-4">
-                      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2">
+                      <div className="flex flex-wrap gap-2 justify-start">
                         {row.cards && row.cards.length > 0 ? (
                           row.cards.map((cardRef: any, cardIndex: number) => {
                             const cardId = typeof cardRef.id === "string" ? Number.parseInt(cardRef.id, 10) : cardRef.id
@@ -431,14 +431,14 @@ export default function RenderArticle({ blocks }: RenderArticleProps) {
 
                             return (
                               <div key={cardIndex} className="flex flex-col items-center">
-                                <div className="aspect-[5/7] relative rounded-md border-2 border-gray-200 overflow-hidden bg-gray-100 w-full max-w-[60px] shadow-md hover:shadow-lg transition-shadow">
+                                <div className="aspect-[5/7] relative rounded-md border-2 border-gray-200 overflow-hidden bg-gray-100 w-[50px] sm:w-[60px] md:w-[70px] shadow-md hover:shadow-lg transition-shadow">
                                   {card ? (
                                     <Image
                                       src={getCardImageUrl(card) || "/placeholder.svg"}
                                       alt={card.name}
                                       fill
                                       className="object-cover"
-                                      sizes="60px"
+                                      sizes="(max-width: 640px) 50px, (max-width: 768px) 60px, 70px"
                                       onError={(e) => {
                                         const target = e.target as HTMLImageElement
                                         target.src = "/no-card.png"
@@ -452,14 +452,14 @@ export default function RenderArticle({ blocks }: RenderArticleProps) {
                                     </div>
                                   )}
                                 </div>
-                                <div className="mt-1 text-[8px] text-gray-700 text-center truncate w-full max-w-[60px] leading-tight font-medium">
+                                <div className="mt-1 text-[8px] text-gray-700 text-center truncate w-[50px] sm:w-[60px] md:w-[70px] leading-tight font-medium">
                                   {card?.name || cardRef.name || `ID:${cardRef.id}`}
                                 </div>
                               </div>
                             )
                           })
                         ) : (
-                          <div className="col-span-full text-gray-500 text-sm py-4 text-center italic">
+                          <div className="w-full text-gray-500 text-sm py-4 text-center italic">
                             カードが選択されていません
                           </div>
                         )}
@@ -486,7 +486,7 @@ export default function RenderArticle({ blocks }: RenderArticleProps) {
                       {row.valueType === "text" ? (
                         <span className="text-slate-700 whitespace-pre-wrap text-sm">{row.textValue || "-"}</span>
                       ) : row.valueType === "card" && row.cardValues && Array.isArray(row.cardValues) ? (
-                        <div className="flex flex-wrap gap-2">
+                        <div className="flex flex-wrap gap-2 justify-start">
                           {row.cardValues.map((cardValue: any, cardIndex: number) => {
                             const cardId =
                               typeof cardValue.id === "string" ? Number.parseInt(cardValue.id, 10) : cardValue.id
@@ -494,14 +494,14 @@ export default function RenderArticle({ blocks }: RenderArticleProps) {
 
                             return (
                               <div key={cardIndex} className="flex flex-col items-center space-y-1">
-                                <div className="aspect-[5/7] relative rounded-md border-2 border-gray-200 overflow-hidden bg-gray-100 w-[60px] shadow-md hover:shadow-lg transition-shadow">
+                                <div className="aspect-[5/7] relative rounded-md border-2 border-gray-200 overflow-hidden bg-gray-100 w-[50px] sm:w-[60px] md:w-[70px] shadow-md hover:shadow-lg transition-shadow">
                                   {card ? (
                                     <Image
                                       src={getCardImageUrl(card) || "/placeholder.svg"}
                                       alt={card.name}
                                       fill
                                       className="object-cover"
-                                      sizes="60px"
+                                      sizes="(max-width: 640px) 50px, (max-width: 768px) 60px, 70px"
                                       onError={(e) => {
                                         const target = e.target as HTMLImageElement
                                         target.src = "/no-card.png"
@@ -515,7 +515,7 @@ export default function RenderArticle({ blocks }: RenderArticleProps) {
                                     </div>
                                   )}
                                 </div>
-                                <p className="text-[8px] font-medium text-gray-900 text-center line-clamp-2 max-w-[60px] leading-tight">
+                                <p className="text-[8px] font-medium text-gray-900 text-center line-clamp-2 w-[50px] sm:w-[60px] md:w-[70px] leading-tight">
                                   {card?.name || cardValue.name || `ID:${cardValue.id}`}
                                 </p>
                               </div>
