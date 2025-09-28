@@ -79,6 +79,8 @@ export default function CreateDeckPage() {
   const { toast } = useToast()
   const [user, setUser] = useState<any>(null)
   const [isLoadingAuth, setIsLoadingAuth] = useState(true)
+  const [scrollTop, setScrollTop] = useState(0)
+  const [containerHeight] = useState(500)
 
   const totalCardsInDeck = useMemo(() => deckCards.reduce((sum, card) => sum + card.quantity, 0), [deckCards])
   const maxDeckSize = 20
@@ -108,7 +110,6 @@ export default function CreateDeckPage() {
         .from("cards")
         .select("id, name, image_url, type_code, rarity_code, category, thumb_url, pack_id")
         .eq("is_visible", true)
-        .limit(100)
       if (searchKeyword.trim()) query = query.ilike("name", `%${searchKeyword.trim()}%`)
       if (searchCategory !== "全て") {
         let dbCategory: string | undefined
@@ -460,123 +461,147 @@ export default function CreateDeckPage() {
     </div>
   )
 
-  const renderCardSearchSection = () => (
-    <div className="space-y-4">
-      <Input
-        type="text"
-        placeholder="カード名で検索..."
-        value={searchKeyword}
-        onChange={(e) => setSearchKeyword(e.target.value)}
-        className="w-full"
-      />
-      <div className="flex flex-wrap gap-2">
-        {cardCategoriesForFilter.map((category) => (
-          <Button
-            key={category}
-            variant={searchCategory === category ? "default" : "outline"}
-            size="sm"
-            onClick={() => setSearchCategory(category)}
-            className={cn(
-              searchCategory === category && "bg-purple-600 hover:bg-purple-700 text-white",
-              "text-xs px-3 py-1 h-auto",
-            )}
-          >
-            {category}
-          </Button>
-        ))}
-      </div>
-      <div className="flex flex-wrap gap-2 items-center">
-        {rarityOptions.map((option) => (
-          <Button
-            key={option.dbValue}
-            variant={selectedRarity === option.dbValue ? "default" : "outline"}
-            size="sm"
-            onClick={() => setSelectedRarity(option.dbValue)}
-            className={cn(
-              selectedRarity === option.dbValue && "bg-purple-600 hover:bg-purple-700 text-white",
-              "text-xs px-3 py-1 h-auto flex items-center gap-1",
-            )}
-          >
-            {option.iconPath && (
-              <Image
-                src={option.iconPath || "/placeholder.svg"}
-                alt={option.uiLabel}
-                width={option.dbValue.includes("ダイヤ") || option.dbValue.includes("星") ? 16 : 20}
-                height={option.dbValue.includes("ダイヤ") || option.dbValue.includes("星") ? 16 : 20}
-                className="object-contain"
-              />
-            )}
-            {option.uiLabel}
-          </Button>
-        ))}
-      </div>
-      <div className="flex flex-wrap gap-2">
-        {packOptions.map((pack) => (
-          <Button
-            key={pack.id || "all"}
-            variant={selectedPackId === pack.id ? "default" : "outline"}
-            size="sm"
-            onClick={() => setSelectedPackId(pack.id)}
-            className={cn(
-              selectedPackId === pack.id && "bg-purple-600 hover:bg-purple-700 text-white",
-              "text-xs px-3 py-1 h-auto",
-            )}
-          >
-            {pack.name}
-          </Button>
-        ))}
-      </div>
-      {isLoadingSearch && (
-        <div className="flex justify-center items-center py-10">
-          <Loader2 className="h-8 w-8 animate-spin text-purple-600" />
+  const renderCardSearchSection = () => {
+    const ITEM_HEIGHT = 140
+    const ITEMS_PER_ROW = 5
+    const VISIBLE_ROWS = Math.ceil(containerHeight / ITEM_HEIGHT) + 2
+    const TOTAL_ROWS = Math.ceil(searchedCards.length / ITEMS_PER_ROW)
+    const START_ROW = Math.max(0, Math.floor(scrollTop / ITEM_HEIGHT) - 1)
+    const END_ROW = Math.min(TOTAL_ROWS, START_ROW + VISIBLE_ROWS)
+    const VISIBLE_ITEMS = searchedCards.slice(START_ROW * ITEMS_PER_ROW, END_ROW * ITEMS_PER_ROW)
+    const OFFSET_Y = START_ROW * ITEM_HEIGHT
+
+    return (
+      <div className="space-y-4">
+        <Input
+          type="text"
+          placeholder="カード名で検索..."
+          value={searchKeyword}
+          onChange={(e) => setSearchKeyword(e.target.value)}
+          className="w-full"
+        />
+        <div className="flex flex-wrap gap-2">
+          {cardCategoriesForFilter.map((category) => (
+            <Button
+              key={category}
+              variant={searchCategory === category ? "default" : "outline"}
+              size="sm"
+              onClick={() => setSearchCategory(category)}
+              className={cn(
+                searchCategory === category && "bg-purple-600 hover:bg-purple-700 text-white",
+                "text-xs px-3 py-1 h-auto",
+              )}
+            >
+              {category}
+            </Button>
+          ))}
         </div>
-      )}
-      {!isLoadingSearch && searchedCards.length === 0 && (
-        <p className="text-center text-slate-500 py-10">該当するカードが見つかりません。</p>
-      )}
-      {!isLoadingSearch && searchedCards.length > 0 && (
-        <ScrollArea className="h-[400px] sm:h-[500px] border rounded-md p-2 bg-slate-50">
-          <div className="grid grid-cols-5 xs:grid-cols-5 sm:grid-cols-6 md:grid-cols-7 lg:grid-cols-5 xl:grid-cols-6 gap-2">
-            {searchedCards.map((card) => {
-              const cardInDeck = deckCards.find((c) => c.id === card.id)
-              const quantity = cardInDeck?.quantity || 0
-              return (
-                <button
-                  key={card.id}
-                  onClick={() => addCardToDeck(card)}
-                  className={cn(
-                    "aspect-[5/7] relative rounded-md overflow-hidden border-2 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-1 transition-all cursor-pointer group",
-                    quantity > 0 ? "border-purple-400" : "border-transparent hover:border-purple-300",
-                  )}
-                  aria-label={`Add card ${card.name}`}
-                >
-                  <Image
-                    src={
-                      card.imageUrl || `/placeholder.svg?width=100&height=140&query=${encodeURIComponent(card.name)}`
-                    }
-                    alt={card.name}
-                    fill
-                    sizes="(max-width: 400px) 30vw, (max-width: 640px) 22vw, (max-width: 768px) 18vw, (max-width: 1024px) 15vw, 12vw"
-                    className="object-cover bg-slate-100"
-                  />
-                  {quantity > 0 && (
-                    <div className="absolute inset-0 bg-purple-700/60 group-hover:bg-purple-700/80 flex items-center justify-center">
-                      <Check className="h-6 w-6 sm:h-8 sm:h-8 text-white stroke-[3px]" />
-                    </div>
-                  )}
-                  {quantity > 0 && (
-                    <div className="absolute top-1 right-1 bg-black/70 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
-                      {quantity}
-                    </div>
-                  )}
-                </button>
-              )
-            })}
+        <div className="flex flex-wrap gap-2 items-center">
+          {rarityOptions.map((option) => (
+            <Button
+              key={option.dbValue}
+              variant={selectedRarity === option.dbValue ? "default" : "outline"}
+              size="sm"
+              onClick={() => setSelectedRarity(option.dbValue)}
+              className={cn(
+                selectedRarity === option.dbValue && "bg-purple-600 hover:bg-purple-700 text-white",
+                "text-xs px-3 py-1 h-auto flex items-center gap-1",
+              )}
+            >
+              {option.iconPath && (
+                <Image
+                  src={option.iconPath || "/placeholder.svg"}
+                  alt={option.uiLabel}
+                  width={option.dbValue.includes("ダイヤ") || option.dbValue.includes("星") ? 16 : 20}
+                  height={option.dbValue.includes("ダイヤ") || option.dbValue.includes("星") ? 16 : 20}
+                  className="object-contain"
+                />
+              )}
+              {option.uiLabel}
+            </Button>
+          ))}
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {packOptions.map((pack) => (
+            <Button
+              key={pack.id || "all"}
+              variant={selectedPackId === pack.id ? "default" : "outline"}
+              size="sm"
+              onClick={() => setSelectedPackId(pack.id)}
+              className={cn(
+                selectedPackId === pack.id && "bg-purple-600 hover:bg-purple-700 text-white",
+                "text-xs px-3 py-1 h-auto",
+              )}
+            >
+              {pack.name}
+            </Button>
+          ))}
+        </div>
+        {isLoadingSearch && (
+          <div className="flex justify-center items-center py-10">
+            <Loader2 className="h-8 w-8 animate-spin text-purple-600" />
           </div>
-        </ScrollArea>
-      )}
-    </div>
-  )
+        )}
+        {!isLoadingSearch && searchedCards.length === 0 && (
+          <p className="text-center text-slate-500 py-10">該当するカードが見つかりません。</p>
+        )}
+        {!isLoadingSearch && searchedCards.length > 0 && (
+          <ScrollArea className="h-[400px] sm:h-[500px] border rounded-md p-2 bg-slate-50">
+            <div
+              className="relative overflow-auto"
+              style={{ height: containerHeight }}
+              onScroll={(e) => setScrollTop(e.currentTarget.scrollTop)}
+            >
+              <div style={{ height: TOTAL_ROWS * ITEM_HEIGHT, position: "relative" }}>
+                <div
+                  style={{ transform: `translateY(${OFFSET_Y}px)`, position: "absolute", top: 0, left: 0, right: 0 }}
+                >
+                  <div className="grid grid-cols-5 xs:grid-cols-5 sm:grid-cols-6 md:grid-cols-7 lg:grid-cols-5 xl:grid-cols-6 gap-2">
+                    {VISIBLE_ITEMS.map((card) => {
+                      const cardInDeck = deckCards.find((c) => c.id === card.id)
+                      const quantity = cardInDeck?.quantity || 0
+                      return (
+                        <button
+                          key={card.id}
+                          onClick={() => addCardToDeck(card)}
+                          className={cn(
+                            "aspect-[5/7] relative rounded-md overflow-hidden border-2 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-1 transition-all cursor-pointer group",
+                            quantity > 0 ? "border-purple-400" : "border-transparent hover:border-purple-300",
+                          )}
+                          aria-label={`Add card ${card.name}`}
+                        >
+                          <Image
+                            src={
+                              card.imageUrl ||
+                              `/placeholder.svg?width=100&height=140&query=${encodeURIComponent(card.name)}`
+                            }
+                            alt={card.name}
+                            fill
+                            sizes="(max-width: 400px) 30vw, (max-width: 640px) 22vw, (max-width: 768px) 18vw, (max-width: 1024px) 15vw, 12vw"
+                            className="object-cover bg-slate-100"
+                          />
+                          {quantity > 0 && (
+                            <div className="absolute inset-0 bg-purple-700/60 group-hover:bg-purple-700/80 flex items-center justify-center">
+                              <Check className="h-6 w-6 sm:h-8 sm:h-8 text-white stroke-[3px]" />
+                            </div>
+                          )}
+                          {quantity > 0 && (
+                            <div className="absolute top-1 right-1 bg-black/70 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                              {quantity}
+                            </div>
+                          )}
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </ScrollArea>
+        )}
+      </div>
+    )
+  }
 
   return (
     <div className="flex flex-col min-h-screen">
