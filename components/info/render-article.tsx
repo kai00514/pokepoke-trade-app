@@ -119,10 +119,10 @@ export default function RenderArticle({ blocks }: RenderArticleProps) {
       case "heading":
         if (block.data.level === 1) {
           return (
-            <div key={index} className="my-8">
+            <div key={index} className="my-4">
               <h1
                 id={block.data.anchorId}
-                className="text-3xl sm:text-4xl font-bold text-slate-900 mb-6 pb-4 border-b-2 border-blue-200 bg-gradient-to-r from-blue-50 to-transparent p-4 rounded-lg"
+                className="text-2xl sm:text-3xl font-bold text-slate-900 mb-3 pb-2 border-l-4 border-blue-500 pl-4 bg-gradient-to-r from-blue-50 to-transparent py-2 rounded-r-lg"
               >
                 {block.data.text}
               </h1>
@@ -130,22 +130,24 @@ export default function RenderArticle({ blocks }: RenderArticleProps) {
           )
         } else if (block.data.level === 2) {
           return (
-            <div key={index} className="my-6">
+            <div key={index} className="my-3">
               <h2
                 id={block.data.anchorId}
-                className="text-2xl sm:text-3xl font-bold text-slate-900 mb-4 mt-8 pb-3 border-b border-blue-100 bg-gradient-to-r from-blue-25 to-transparent p-3 rounded-md"
+                className="text-xl sm:text-2xl font-bold text-slate-900 mb-2 mt-6 pb-2 border-b-2 border-blue-300 bg-blue-25 px-3 py-2 rounded-t-md flex items-center gap-2"
               >
+                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                 {block.data.text}
               </h2>
             </div>
           )
         } else {
           return (
-            <div key={index} className="my-4">
+            <div key={index} className="my-2">
               <h3
                 id={block.data.anchorId}
-                className="text-xl sm:text-2xl font-bold text-slate-900 mb-3 mt-6 pb-2 border-l-4 border-blue-400 pl-4 bg-blue-25 rounded-r-md"
+                className="text-lg sm:text-xl font-bold text-slate-900 mb-2 mt-4 pb-1 border-l-3 border-blue-400 pl-3 bg-blue-25 py-1 rounded-r-sm flex items-center gap-2"
               >
+                <div className="w-1.5 h-1.5 bg-blue-400 rounded-full"></div>
                 {block.data.text}
               </h3>
             </div>
