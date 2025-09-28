@@ -319,7 +319,7 @@ export default function RenderArticle({ blocks }: RenderArticleProps) {
                             )}
                           </div>
                           <div className="min-w-0 flex-1">
-                            <p className="font-medium text-slate-900 text-xs leading-tight">
+                            <p className="font-medium text-slate-900 text-[10px] leading-tight">
                               {card?.name || item.name || `カードID: ${item.card_id}`}
                             </p>
                           </div>
@@ -344,7 +344,7 @@ export default function RenderArticle({ blocks }: RenderArticleProps) {
               <TableBody>
                 {block.data.rows.map((row: any, rowIndex: number) => (
                   <TableRow key={row.id || rowIndex} className="border-b border-slate-100 hover:bg-slate-50">
-                    <TableCell className="font-medium text-slate-900 bg-blue-50 py-4 px-4 border-r border-slate-200 w-1/4 align-top text-sm">
+                    <TableCell className="font-medium text-slate-900 bg-blue-50 py-4 px-4 border-r border-slate-200 w-auto whitespace-nowrap align-top text-sm">
                       {row.header}
                     </TableCell>
                     <TableCell className="py-4 px-4">
@@ -402,7 +402,7 @@ export default function RenderArticle({ blocks }: RenderArticleProps) {
               <TableBody>
                 {block.data.rows.map((row: any, rowIndex: number) => (
                   <TableRow key={row.id || rowIndex} className="border-b border-slate-100 hover:bg-slate-50">
-                    <TableCell className="font-medium text-slate-900 bg-blue-50 py-4 px-4 border-r border-slate-200 w-1/3 align-top text-sm">
+                    <TableCell className="font-medium text-slate-900 bg-blue-50 py-4 px-4 border-r border-slate-200 w-auto whitespace-nowrap align-top text-sm">
                       {row.key}
                     </TableCell>
                     <TableCell className="py-4 px-4">
@@ -438,7 +438,7 @@ export default function RenderArticle({ blocks }: RenderArticleProps) {
                                     </div>
                                   )}
                                 </div>
-                                <p className="text-[10px] font-medium text-gray-900 text-center line-clamp-2 max-w-[50px]">
+                                <p className="text-[8px] font-medium text-gray-900 text-center line-clamp-2 max-w-[50px]">
                                   {card?.name || cardValue.name || `ID:${cardValue.id}`}
                                 </p>
                               </div>
