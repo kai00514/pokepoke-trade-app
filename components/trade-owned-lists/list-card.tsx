@@ -15,7 +15,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { Edit, Trash2, Calendar } from "lucide-react"
-import { useToast } from "@/components/ui/use-toast"
+import NotificationModal from "@/components/ui/notification-modal"
 import { deleteTradeOwnedList, type TradeOwnedList } from "@/lib/actions/trade-owned-lists"
 import { ListEditorModal } from "./list-editor-modal"
 
@@ -30,7 +30,12 @@ export default function ListCard({ list, userId, onUpdate, onDelete }: ListCardP
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
-  const { toast } = useToast()
+  const [notificationModal, setNotificationModal] = useState({
+    isOpen: false,
+    type: "info" as "success" | "error" | "warning" | "info",
+    title: "",
+    message: "",
+  })
 
   // 削除処理
   const handleDelete = async () => {
@@ -41,11 +46,7 @@ export default function ListCard({ list, userId, onUpdate, onDelete }: ListCardP
     if (result.success) {
       onDelete(list.id)
     } else {
-      toast({
-        title: "エラー",
-        description: result.error,
-        variant: "destructive",
-      })
+      showNotification("error", "エラー", result.error)
     }
 
     setIsDeleting(false)
@@ -59,6 +60,15 @@ export default function ListCard({ list, userId, onUpdate, onDelete }: ListCardP
       year: "numeric",
       month: "2-digit",
       day: "2-digit",
+    })
+  }
+
+  const showNotification = (type: "success" | "error" | "warning" | "info", title: string, message: string) => {
+    setNotificationModal({
+      isOpen: true,
+      type,
+      title,
+      message,
     })
   }
 
@@ -131,6 +141,15 @@ export default function ListCard({ list, userId, onUpdate, onDelete }: ListCardP
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* 通知モーダル */}
+      <NotificationModal
+        isOpen={notificationModal.isOpen}
+        onOpenChange={(open) => setNotificationModal((prev) => ({ ...prev, isOpen: open }))}
+        type={notificationModal.type}
+        title={notificationModal.title}
+        message={notificationModal.message}
+      />
     </>
   )
 }

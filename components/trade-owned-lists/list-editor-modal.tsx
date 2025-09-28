@@ -6,11 +6,11 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { X, Plus, Loader2 } from "lucide-react"
-import { useToast } from "@/components/ui/use-toast"
 import DetailedSearchModal from "@/components/detailed-search-modal"
 import type { Card as SelectedCardType } from "@/components/detailed-search-modal"
 import { getCardsByIds } from "@/lib/card-api"
 import { updateTradeOwnedList, type TradeOwnedList } from "@/lib/actions/trade-owned-lists"
+import NotificationModal from "@/components/ui/notification-modal"
 
 interface ListEditorModalProps {
   isOpen: boolean
@@ -32,7 +32,21 @@ export default function ListEditorModal({ isOpen, onOpenChange, list, userId, on
   const [isCardSearchOpen, setIsCardSearchOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
-  const { toast } = useToast()
+  const [notificationModal, setNotificationModal] = useState({
+    isOpen: false,
+    type: "info" as "success" | "error" | "warning" | "info",
+    title: "",
+    message: "",
+  })
+
+  const showNotification = (type: "success" | "error" | "warning" | "info", title: string, message: string) => {
+    setNotificationModal({
+      isOpen: true,
+      type,
+      title,
+      message,
+    })
+  }
 
   // カード情報を取得
   useEffect(() => {
@@ -86,11 +100,7 @@ export default function ListEditorModal({ isOpen, onOpenChange, list, userId, on
 
     const totalCards = cards.length + newCards.length
     if (totalCards > 35) {
-      toast({
-        title: "エラー",
-        description: `カードは最大35枚まで登録できます。（現在: ${cards.length}枚）`,
-        variant: "destructive",
-      })
+      showNotification("error", "エラー", `カードは最大35枚まで登録できます。（現在: ${cards.length}枚）`)
       return
     }
 
@@ -98,10 +108,7 @@ export default function ListEditorModal({ isOpen, onOpenChange, list, userId, on
     setIsCardSearchOpen(false)
 
     if (newCards.length > 0) {
-      toast({
-        title: "成功",
-        description: `${newCards.length}枚のカードを追加しました。`,
-      })
+      showNotification("success", "成功", `${newCards.length}枚のカードを追加しました。`)
     }
   }
 
@@ -111,11 +118,7 @@ export default function ListEditorModal({ isOpen, onOpenChange, list, userId, on
 
   const handleSave = async () => {
     if (!listName.trim()) {
-      toast({
-        title: "エラー",
-        description: "リスト名を入力してください。",
-        variant: "destructive",
-      })
+      showNotification("error", "エラー", "リスト名を入力してください。")
       return
     }
 
@@ -130,11 +133,7 @@ export default function ListEditorModal({ isOpen, onOpenChange, list, userId, on
     if (result.success) {
       onSave(result.list)
     } else {
-      toast({
-        title: "エラー",
-        description: result.error,
-        variant: "destructive",
-      })
+      showNotification("error", "エラー", result.error)
     }
     setIsSaving(false)
   }
@@ -237,6 +236,15 @@ export default function ListEditorModal({ isOpen, onOpenChange, list, userId, on
         onSelectionComplete={handleAddCards}
         modalTitle="カードを選択"
         allowMultipleSelection={true}
+      />
+
+      {/* Notification Modal */}
+      <NotificationModal
+        isOpen={notificationModal.isOpen}
+        onOpenChange={(open) => setNotificationModal((prev) => ({ ...prev, isOpen: open }))}
+        type={notificationModal.type}
+        title={notificationModal.title}
+        message={notificationModal.message}
       />
     </>
   )
