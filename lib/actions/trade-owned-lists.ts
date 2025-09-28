@@ -34,9 +34,15 @@ export async function getTradeOwnedLists(userId: string) {
   }
 }
 
-export async function createTradeOwnedList(userId: string, listName: string) {
+export async function createTradeOwnedList(params: {
+  userId: string
+  listName: string
+  description?: string
+  cardIds: number[]
+}) {
   try {
     const supabase = await createServerClient()
+    const { userId, listName, description, cardIds } = params
 
     if (!listName.trim()) {
       return { success: false, error: "リスト名を入力してください。" }
@@ -47,7 +53,7 @@ export async function createTradeOwnedList(userId: string, listName: string) {
       .insert({
         user_id: userId,
         list_name: listName.trim(),
-        card_ids: [],
+        card_ids: cardIds || [],
       })
       .select()
       .single()

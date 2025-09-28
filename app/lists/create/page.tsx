@@ -220,10 +220,10 @@ export default function CreateListPage() {
 
                 {/* 選択されたカード一覧 */}
                 {selectedCards.length > 0 ? (
-                  <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-8 gap-3">
+                  <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-8 gap-1">
                     {selectedCards.map((card) => (
                       <div key={card.id} className="relative group">
-                        <div className="bg-white border border-gray-200 rounded-lg p-2 hover:shadow-md transition-shadow">
+                        <div className="bg-white border border-gray-200 rounded-lg hover:shadow-md transition-shadow">
                           <div className="aspect-[3/4] mb-1">
                             <img
                               src={card.imageUrl || "/placeholder.svg"}
