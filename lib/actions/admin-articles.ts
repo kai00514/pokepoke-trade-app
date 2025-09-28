@@ -48,6 +48,16 @@ async function generateUniqueSlug(supabase: any, baseSlug: string, excludeId?: s
   }
 }
 
+// ブロックの display_order を確実にユニークにする関数
+function normalizeBlockOrders(blocks: ArticleBlock[]): ArticleBlock[] {
+  return blocks
+    .sort((a, b) => (a.display_order || 0) - (b.display_order || 0))
+    .map((block, index) => ({
+      ...block,
+      display_order: (index + 1) * 10, // 10, 20, 30, ... の順序で設定
+    }))
+}
+
 export async function createArticle(articleData: CreateArticleData) {
   console.log("[SERVER] === DEBUG: createArticle function started ===")
   console.log("[SERVER] Input article data:", JSON.stringify(articleData, null, 2))
@@ -119,11 +129,17 @@ export async function createArticle(articleData: CreateArticleData) {
     // ブロックを挿入
     if (blocks && blocks.length > 0) {
       console.log("[SERVER] === DEBUG: Inserting blocks ===")
-      const blockData = blocks.map((block, index) => ({
+
+      // ブロックの順序を正規化
+      const normalizedBlocks = normalizeBlockOrders(blocks)
+      console.log("[SERVER] === DEBUG: Normalized blocks ===")
+      console.log("[SERVER] Normalized blocks:", JSON.stringify(normalizedBlocks, null, 2))
+
+      const blockData = normalizedBlocks.map((block) => ({
         article_id: article.id,
         type: block.type,
         data: block.data,
-        display_order: block.display_order || (index + 1) * 10,
+        display_order: block.display_order,
       }))
 
       console.log("[SERVER] Block data:", JSON.stringify(blockData, null, 2))
@@ -214,11 +230,18 @@ export async function updateArticle(id: string, articleData: CreateArticleData) 
 
     // 新しいブロックを挿入
     if (blocks && blocks.length > 0) {
-      const blockData = blocks.map((block, index) => ({
+      console.log("[SERVER] === DEBUG: Updating blocks ===")
+
+      // ブロックの順序を正規化
+      const normalizedBlocks = normalizeBlockOrders(blocks)
+      console.log("[SERVER] === DEBUG: Normalized blocks for update ===")
+      console.log("[SERVER] Normalized blocks:", JSON.stringify(normalizedBlocks, null, 2))
+
+      const blockData = normalizedBlocks.map((block) => ({
         article_id: id,
         type: block.type,
         data: block.data,
-        display_order: block.display_order || (index + 1) * 10,
+        display_order: block.display_order,
       }))
 
       const { error: blocksError } = await supabase.from("info_article_blocks").insert(blockData)

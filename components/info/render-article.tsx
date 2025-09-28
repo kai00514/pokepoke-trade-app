@@ -1,14 +1,10 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import Image from "next/image"
-import Link from "next/link"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Separator } from "@/components/ui/separator"
-import { Star, ExternalLink, Info, AlertTriangle, CheckCircle } from "lucide-react"
+import { ExternalLink, Star } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import type { Block } from "@/lib/actions/info-articles"
 import type { JSX } from "react"
@@ -20,100 +16,112 @@ interface RenderArticleProps {
 interface CardData {
   id: number
   name: string
-  image_url?: string
   game8_image_url?: string
 }
 
-export default function RenderArticle({ blocks }: RenderArticleProps) {
-  const [cardData, setCardData] = useState<{ [key: number]: CardData }>({})
-  const [loading, setLoading] = useState(true)
+export function RenderArticle({ blocks }: RenderArticleProps) {
+  const [cardData, setCardData] = useState<Record<number, CardData>>({})
+  const [loadingCards, setLoadingCards] = useState(true)
 
-  // カードデータを取得する関数
+  // カード画像のフォールバック処理
+  const getCardImageUrl = (card: CardData | undefined) => {
+    if (!card) return "/no-card.png"
+    return card.game8_image_url || "/no-card.png"
+  }
+
+  // 全ブロックからカードIDを収集
   useEffect(() => {
-    const fetchCardData = async () => {
-      const supabase = createClient()
+    const collectCardIds = (): number[] => {
       const cardIds = new Set<number>()
 
-      // すべてのブロックからカードIDを収集
       blocks.forEach((block) => {
-        if (block.type === "cards-table" && block.data?.items) {
-          block.data.items.forEach((item: any) => {
-            if (item.card_id) {
-              const id = typeof item.card_id === "string" ? Number.parseInt(item.card_id, 10) : item.card_id
-              if (!isNaN(id)) {
-                cardIds.add(id)
+        switch (block.type) {
+          case "cards-table":
+            block.data.items?.forEach((item) => {
+              const cardId = typeof item.card_id === "string" ? Number.parseInt(item.card_id, 10) : item.card_id
+              if (!isNaN(cardId)) {
+                cardIds.add(cardId)
               }
-            }
-          })
-        }
-        if (block.type === "card-display-table" && block.data?.rows) {
-          block.data.rows.forEach((row: any) => {
-            if (row.cards && Array.isArray(row.cards)) {
-              row.cards.forEach((card: any) => {
-                if (card.id) {
-                  const id = typeof card.id === "string" ? Number.parseInt(card.id, 10) : card.id
-                  if (!isNaN(id)) {
-                    cardIds.add(id)
+            })
+            break
+
+          case "card-display-table":
+            block.data.rows?.forEach((row) => {
+              row.cards?.forEach((card) => {
+                const cardId = Number.parseInt(card.id, 10)
+                if (!isNaN(cardId)) {
+                  cardIds.add(cardId)
+                }
+              })
+            })
+            break
+
+          case "key-value-table":
+            block.data.rows?.forEach((row) => {
+              if (row.valueType === "card" && row.cardValues) {
+                row.cardValues.forEach((card) => {
+                  const cardId = Number.parseInt(card.id, 10)
+                  if (!isNaN(cardId)) {
+                    cardIds.add(cardId)
+                  }
+                })
+              }
+            })
+            break
+
+          case "flexible-table":
+            block.data.rows?.forEach((row) => {
+              Object.values(row.cells || {}).forEach((cellValue) => {
+                if (typeof cellValue === "string") {
+                  const cardId = Number.parseInt(cellValue, 10)
+                  if (!isNaN(cardId)) {
+                    cardIds.add(cardId)
                   }
                 }
               })
-            }
-          })
-        }
-        if (block.type === "key-value-table" && block.data?.rows) {
-          block.data.rows.forEach((row: any) => {
-            if (row.valueType === "card" && row.cardValues && Array.isArray(row.cardValues)) {
-              row.cardValues.forEach((cardValue: any) => {
-                if (cardValue.id) {
-                  const id = typeof cardValue.id === "string" ? Number.parseInt(cardValue.id, 10) : cardValue.id
-                  if (!isNaN(id)) {
-                    cardIds.add(id)
-                  }
-                }
-              })
-            }
-          })
+            })
+            break
         }
       })
 
-      if (cardIds.size > 0) {
-        try {
-          console.log("Fetching cards with IDs:", Array.from(cardIds))
+      return Array.from(cardIds)
+    }
 
-          const { data: cards, error } = await supabase
-            .from("cards")
-            .select("id, name, image_url, game8_image_url")
-            .in("id", Array.from(cardIds))
+    const fetchCardData = async () => {
+      const cardIds = collectCardIds()
+      console.log("Collected card IDs:", cardIds)
 
-          if (error) {
-            console.error("Error fetching cards:", error)
-          } else if (cards) {
-            console.log("Fetched card data:", cards)
-            const cardMap: { [key: number]: CardData } = {}
-            cards.forEach((card) => {
-              cardMap[card.id] = card
-            })
-            setCardData(cardMap)
-          }
-        } catch (error) {
-          console.error("Error loading card data:", error)
-        }
+      if (cardIds.length === 0) {
+        setLoadingCards(false)
+        return
       }
-      setLoading(false)
+
+      try {
+        const supabase = createClient()
+        const { data, error } = await supabase.from("cards").select("id, name, game8_image_url").in("id", cardIds)
+
+        if (error) {
+          console.error("Error fetching card data:", error)
+        } else {
+          console.log("Fetched card data:", data)
+          const cardMap = (data || []).reduce(
+            (acc, card) => {
+              acc[card.id] = card
+              return acc
+            },
+            {} as Record<number, CardData>,
+          )
+          setCardData(cardMap)
+        }
+      } catch (error) {
+        console.error("Error in fetchCardData:", error)
+      } finally {
+        setLoadingCards(false)
+      }
     }
 
     fetchCardData()
   }, [blocks])
-
-  const getCardImageUrl = (card: CardData): string => {
-    if (card.game8_image_url) {
-      return card.game8_image_url
-    }
-    if (card.image_url) {
-      return card.image_url
-    }
-    return "/no-card.png"
-  }
 
   const renderBlock = (block: Block, index: number) => {
     switch (block.type) {
@@ -125,10 +133,10 @@ export default function RenderArticle({ blocks }: RenderArticleProps) {
             id={block.data.anchorId}
             className={`font-bold text-slate-900 ${
               block.data.level === 1
-                ? "text-3xl sm:text-4xl mb-6"
+                ? "text-3xl mb-6"
                 : block.data.level === 2
-                  ? "text-2xl sm:text-3xl mb-4 mt-8"
-                  : "text-xl sm:text-2xl mb-3 mt-6"
+                  ? "text-2xl mb-4 mt-8"
+                  : "text-xl mb-3 mt-6"
             }`}
           >
             {block.data.text}
@@ -145,16 +153,18 @@ export default function RenderArticle({ blocks }: RenderArticleProps) {
       case "image":
         return (
           <div key={index} className="my-6">
-            <div className="relative w-full">
-              <Image
-                src={block.data.url || "/placeholder.svg"}
-                alt={block.data.alt || ""}
-                width={800}
-                height={400}
-                className="rounded-lg w-full h-auto"
-              />
-            </div>
-            {block.data.caption && <p className="text-sm text-slate-600 text-center mt-2">{block.data.caption}</p>}
+            <img
+              src={block.data.url || "/placeholder.svg"}
+              alt={block.data.alt || ""}
+              className="w-full rounded-lg shadow-sm"
+              style={{
+                aspectRatio: block.data.aspect || "auto",
+              }}
+              onError={(e) => {
+                e.currentTarget.src = "/placeholder.svg?height=400&width=600"
+              }}
+            />
+            {block.data.caption && <p className="text-sm text-slate-500 text-center mt-2">{block.data.caption}</p>}
           </div>
         )
 
@@ -163,108 +173,319 @@ export default function RenderArticle({ blocks }: RenderArticleProps) {
         return (
           <ListTag
             key={index}
-            className={`mb-4 space-y-2 ${
-              block.data.style === "numbered" ? "list-decimal list-inside" : "list-disc list-inside"
-            }`}
+            className={`mb-4 pl-6 space-y-1 ${
+              block.data.style === "numbered" ? "list-decimal" : "list-disc"
+            } text-slate-700`}
           >
             {block.data.items.map((item, itemIndex) => (
-              <li key={itemIndex} className="text-slate-700">
-                {item}
-              </li>
+              <li key={itemIndex}>{item}</li>
             ))}
           </ListTag>
         )
 
       case "table":
         return (
-          <div key={index} className="my-6 overflow-x-auto">
-            <Table>
+          <div key={index} className="my-6 overflow-x-auto bg-white rounded-lg shadow-sm border border-slate-200">
+            <table className="w-full">
               {block.data.headers && (
-                <TableHeader>
-                  <TableRow className="bg-blue-50">
+                <thead>
+                  <tr className="bg-blue-100 border-b border-slate-200">
                     {block.data.headers.map((header, headerIndex) => (
-                      <TableHead key={headerIndex} className="font-semibold text-slate-900">
+                      <th
+                        key={headerIndex}
+                        className="px-4 py-3 text-left text-xs font-medium text-slate-700 uppercase tracking-wider border-r border-slate-200 last:border-r-0"
+                      >
                         {header}
-                      </TableHead>
+                      </th>
                     ))}
-                  </TableRow>
-                </TableHeader>
+                  </tr>
+                </thead>
               )}
-              <TableBody>
+              <tbody>
                 {block.data.rows.map((row, rowIndex) => (
-                  <TableRow key={rowIndex}>
+                  <tr key={rowIndex} className="hover:bg-slate-50 border-b border-slate-100 last:border-b-0">
                     {row.map((cell, cellIndex) => (
-                      <TableCell key={cellIndex} className="text-slate-700">
+                      <td
+                        key={cellIndex}
+                        className="px-4 py-3 text-xs text-slate-700 border-r border-slate-200 last:border-r-0"
+                      >
                         {cell}
-                      </TableCell>
+                      </td>
                     ))}
-                  </TableRow>
+                  </tr>
                 ))}
-              </TableBody>
-            </Table>
+              </tbody>
+            </table>
           </div>
         )
 
       case "callout":
-        const calloutIcons = {
-          info: Info,
-          warning: AlertTriangle,
-          success: CheckCircle,
+        const calloutStyles = {
+          info: "bg-blue-50 border-blue-200 text-blue-800",
+          warning: "bg-yellow-50 border-yellow-200 text-yellow-800",
+          success: "bg-green-50 border-green-200 text-green-800",
         }
-        const CalloutIcon = calloutIcons[block.data.tone || "info"]
-
         return (
-          <Alert
-            key={index}
-            className={`my-6 ${
-              block.data.tone === "warning"
-                ? "border-yellow-200 bg-yellow-50"
-                : block.data.tone === "success"
-                  ? "border-green-200 bg-green-50"
-                  : "border-blue-200 bg-blue-50"
-            }`}
-          >
-            <CalloutIcon className="h-4 w-4" />
-            {block.data.title && <AlertTitle>{block.data.title}</AlertTitle>}
-            <AlertDescription>{block.data.text}</AlertDescription>
-          </Alert>
+          <div key={index} className={`p-4 rounded-lg border-l-4 mb-4 ${calloutStyles[block.data.tone || "info"]}`}>
+            {block.data.title && <h4 className="font-semibold mb-2">{block.data.title}</h4>}
+            <p>{block.data.text}</p>
+          </div>
         )
 
-      case "divider":
-        return <Separator key={index} className="my-8" />
+      case "cards-table":
+        if (loadingCards) {
+          return (
+            <div key={index} className="my-6 p-4 text-center text-slate-500">
+              カードデータを読み込み中...
+            </div>
+          )
+        }
 
-      case "button":
         return (
-          <div key={index} className="my-6">
-            <Button asChild variant="outline" className="border-blue-600 text-blue-600 hover:bg-blue-50 bg-transparent">
-              <Link href={block.data.href}>
-                {block.data.label}
-                <ExternalLink className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
+          <div key={index} className="my-6 overflow-x-auto bg-white rounded-lg shadow-sm border border-slate-200">
+            <table className="w-full">
+              <thead>
+                <tr className="bg-blue-100 border-b border-slate-200">
+                  <th className="px-3 py-2 text-left text-xs font-medium text-slate-700 uppercase tracking-wider border-r border-slate-200 w-16">
+                    {block.data.headers?.id || "番号"}
+                  </th>
+                  <th className="px-3 py-2 text-left text-xs font-medium text-slate-700 uppercase tracking-wider border-r border-slate-200">
+                    {block.data.headers?.card || "ポケモンカード"}
+                  </th>
+                  <th className="px-3 py-2 text-left text-xs font-medium text-slate-700 uppercase tracking-wider border-r border-slate-200 w-20">
+                    {block.data.headers?.quantity || "使用枚数"}
+                  </th>
+                  <th className="px-3 py-2 text-left text-xs font-medium text-slate-700 uppercase tracking-wider">
+                    {block.data.headers?.explanation || "役割"}
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {block.data.items.map((item, itemIndex) => {
+                  const cardId = typeof item.card_id === "string" ? Number.parseInt(item.card_id, 10) : item.card_id
+                  const card = cardData[cardId]
+
+                  return (
+                    <tr key={itemIndex} className="hover:bg-slate-50 border-b border-slate-100 last:border-b-0">
+                      <td className="px-3 py-2 text-xs text-slate-700 border-r border-slate-200 text-center">
+                        {item.id || itemIndex + 1}
+                      </td>
+                      <td className="px-3 py-2 border-r border-slate-200">
+                        <div className="flex items-center gap-2">
+                          <img
+                            src={getCardImageUrl(card) || "/placeholder.svg"}
+                            alt={card?.name || `カード${cardId}`}
+                            className="w-10 h-14 object-cover rounded shadow-sm flex-shrink-0"
+                            onError={(e) => {
+                              e.currentTarget.src = "/no-card.png"
+                            }}
+                          />
+                          <span className="text-xs text-slate-700 truncate max-w-32">
+                            {card?.name || item.name || `カードID: ${cardId}`}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-3 py-2 text-xs text-slate-700 border-r border-slate-200 text-center">
+                        {item.quantity || 1}
+                      </td>
+                      <td className="px-3 py-2 text-xs text-slate-700">{item.explanation || ""}</td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        )
+
+      case "card-display-table":
+        if (loadingCards) {
+          return (
+            <div key={index} className="my-6 p-4 text-center text-slate-500">
+              カードデータを読み込み中...
+            </div>
+          )
+        }
+
+        return (
+          <div key={index} className="my-6 overflow-x-auto bg-white rounded-lg shadow-sm border border-slate-200">
+            <table className="w-full">
+              <tbody>
+                {block.data.rows.map((row, rowIndex) => (
+                  <tr key={rowIndex} className="hover:bg-slate-50 border-b border-slate-100 last:border-b-0">
+                    <td className="px-3 py-3 text-xs font-medium text-slate-700 bg-blue-100 border-r border-slate-200 w-auto whitespace-nowrap">
+                      {row.header}
+                    </td>
+                    <td className="px-3 py-3">
+                      <div className="flex flex-wrap gap-2">
+                        {row.cards.map((card, cardIndex) => {
+                          const cardId = Number.parseInt(card.id, 10)
+                          const cardInfo = cardData[cardId]
+
+                          return (
+                            <div key={cardIndex} className="flex flex-col items-center">
+                              <img
+                                src={getCardImageUrl(cardInfo) || "/placeholder.svg"}
+                                alt={cardInfo?.name || card.name}
+                                className="w-10 h-14 object-cover rounded shadow-sm"
+                                onError={(e) => {
+                                  e.currentTarget.src = "/no-card.png"
+                                }}
+                              />
+                              <span className="text-xs text-slate-600 mt-1 text-center truncate max-w-16">
+                                {cardInfo?.name || card.name}
+                              </span>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )
+
+      case "key-value-table":
+        if (loadingCards) {
+          return (
+            <div key={index} className="my-6 p-4 text-center text-slate-500">
+              カードデータを読み込み中...
+            </div>
+          )
+        }
+
+        return (
+          <div key={index} className="my-6 overflow-x-auto bg-white rounded-lg shadow-sm border border-slate-200">
+            <table className="w-full">
+              <tbody>
+                {block.data.rows.map((row, rowIndex) => (
+                  <tr key={rowIndex} className="hover:bg-slate-50 border-b border-slate-100 last:border-b-0">
+                    <td className="px-3 py-3 text-xs font-medium text-slate-700 bg-blue-100 border-r border-slate-200 w-auto whitespace-nowrap">
+                      {row.key}
+                    </td>
+                    <td className="px-3 py-3">
+                      {row.valueType === "card" && row.cardValues ? (
+                        <div className="flex flex-wrap gap-2">
+                          {row.cardValues.map((card, cardIndex) => {
+                            const cardId = Number.parseInt(card.id, 10)
+                            const cardInfo = cardData[cardId]
+
+                            return (
+                              <div key={cardIndex} className="flex flex-col items-center">
+                                <img
+                                  src={getCardImageUrl(cardInfo) || "/placeholder.svg"}
+                                  alt={cardInfo?.name || card.name}
+                                  className="w-10 h-14 object-cover rounded shadow-sm"
+                                  onError={(e) => {
+                                    e.currentTarget.src = "/no-card.png"
+                                  }}
+                                />
+                                <span className="text-xs text-slate-600 mt-1 text-center truncate max-w-16">
+                                  {cardInfo?.name || card.name}
+                                </span>
+                              </div>
+                            )
+                          })}
+                        </div>
+                      ) : (
+                        <span className="text-xs text-slate-700">{row.textValue || ""}</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )
+
+      case "flexible-table":
+        return (
+          <div key={index} className="my-6 overflow-x-auto bg-white rounded-lg shadow-sm border border-slate-200">
+            {block.data.title && (
+              <div className="px-4 py-3 bg-slate-50 border-b border-slate-200">
+                <h3 className="text-sm font-medium text-slate-900">{block.data.title}</h3>
+              </div>
+            )}
+            <table className="w-full">
+              <thead>
+                <tr className="bg-blue-100 border-b border-slate-200">
+                  {block.data.columns.map((column, colIndex) => (
+                    <th
+                      key={colIndex}
+                      className="px-3 py-2 text-left text-xs font-medium text-slate-700 uppercase tracking-wider border-r border-slate-200 last:border-r-0"
+                      style={{ width: column.width !== "auto" ? column.width : undefined }}
+                    >
+                      {column.header}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {block.data.rows.map((row, rowIndex) => (
+                  <tr key={rowIndex} className="hover:bg-slate-50 border-b border-slate-100 last:border-b-0">
+                    {block.data.columns.map((column, colIndex) => {
+                      const cellValue = row.cells[column.id] || ""
+
+                      return (
+                        <td
+                          key={colIndex}
+                          className="px-3 py-2 text-xs text-slate-700 border-r border-slate-200 last:border-r-0"
+                        >
+                          {column.type === "image" ? (
+                            <img
+                              src={cellValue || "/placeholder.svg"}
+                              alt=""
+                              className="w-12 h-12 object-cover rounded"
+                              onError={(e) => {
+                                e.currentTarget.src = "/placeholder.svg?height=48&width=48"
+                              }}
+                            />
+                          ) : column.type === "link" ? (
+                            <a
+                              href={cellValue}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-blue-600 hover:text-blue-800 underline"
+                            >
+                              {cellValue}
+                            </a>
+                          ) : (
+                            cellValue
+                          )}
+                        </td>
+                      )
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         )
 
       case "pickup":
         return (
           <Card key={index} className="my-6 border-red-200 bg-red-50">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-red-800">
-                <Star className="h-5 w-5 fill-current" />
-                {block.data.title || "ピックアップ情報"}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <Star className="h-4 w-4 text-red-600" />
+                <h3 className="font-semibold text-red-900">{block.data.title || "ピックアップ情報"}</h3>
+              </div>
               <ul className="space-y-2">
                 {block.data.items.map((item, itemIndex) => (
                   <li key={itemIndex} className="flex items-center gap-2">
-                    <Star className="h-3 w-3 fill-current text-red-600" />
+                    <div className="w-1 h-1 bg-red-600 rounded-full flex-shrink-0" />
                     {item.href ? (
-                      <Link href={item.href} className="text-red-700 hover:underline">
+                      <a
+                        href={item.href}
+                        className="text-red-800 hover:text-red-900 underline text-sm"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
                         {item.label}
-                      </Link>
+                      </a>
                     ) : (
-                      <span className="text-red-700">{item.label}</span>
+                      <span className="text-red-800 text-sm">{item.label}</span>
                     )}
                   </li>
                 ))}
@@ -273,275 +494,97 @@ export default function RenderArticle({ blocks }: RenderArticleProps) {
           </Card>
         )
 
-      case "cards-table":
+      case "button":
         return (
-          <div key={index} className="my-6 border border-slate-200 rounded-lg overflow-hidden bg-white shadow-sm">
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-blue-100 border-b border-slate-300">
-                  <TableHead className="font-semibold text-slate-900 py-3 px-4 border-r border-slate-200">
-                    カード
-                  </TableHead>
-                  <TableHead className="font-semibold text-slate-900 py-3 px-4 border-r border-slate-200">
-                    説明
-                  </TableHead>
-                  <TableHead className="font-semibold text-slate-900 py-3 px-4 text-center">枚数</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {block.data.items.map((item: any, itemIndex: number) => {
-                  const cardId = typeof item.card_id === "string" ? Number.parseInt(item.card_id, 10) : item.card_id
-                  const card = cardData[cardId]
-
-                  return (
-                    <TableRow key={itemIndex} className="border-b border-slate-100 hover:bg-slate-50">
-                      <TableCell className="py-4 px-4 border-r border-slate-100">
-                        <div className="flex items-center gap-3">
-                          <div className="flex-shrink-0">
-                            {card ? (
-                              <Image
-                                src={getCardImageUrl(card) || "/placeholder.svg"}
-                                alt={card.name}
-                                width={50}
-                                height={70}
-                                className="rounded-md object-cover border border-gray-200 shadow-sm"
-                                onError={(e) => {
-                                  const target = e.target as HTMLImageElement
-                                  target.src = "/no-card.png"
-                                }}
-                              />
-                            ) : (
-                              <div className="w-[50px] h-[70px] bg-gray-200 rounded-md flex items-center justify-center border border-gray-200">
-                                <span className="text-xs text-gray-500 text-center px-1">
-                                  {loading ? "読み込み中..." : "カード未取得"}
-                                </span>
-                              </div>
-                            )}
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <p className="font-medium text-slate-900 text-[10px] leading-tight truncate max-w-[120px]">
-                              {card?.name || item.name || `カードID: ${item.card_id}`}
-                            </p>
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-slate-700 py-4 px-4 border-r border-slate-100 text-sm">
-                        {item.explanation || "-"}
-                      </TableCell>
-                      <TableCell className="text-center py-4 px-4 font-medium text-sm">{item.quantity || 1}</TableCell>
-                    </TableRow>
-                  )
-                })}
-              </TableBody>
-            </Table>
+          <div key={index} className="my-6 text-center">
+            <Button asChild variant="outline" className="border-blue-500 text-blue-600 hover:bg-blue-50 bg-transparent">
+              <a href={block.data.href} target="_blank" rel="noopener noreferrer">
+                {block.data.label}
+                <ExternalLink className="ml-2 h-4 w-4" />
+              </a>
+            </Button>
           </div>
         )
 
-      case "card-display-table":
-        return (
-          <div key={index} className="my-6 border border-slate-200 rounded-lg overflow-hidden bg-white shadow-sm">
-            <Table>
-              <TableBody>
-                {block.data.rows.map((row: any, rowIndex: number) => (
-                  <TableRow key={row.id || rowIndex} className="border-b border-slate-100 hover:bg-slate-50">
-                    <TableCell className="font-medium text-slate-900 bg-blue-50 py-4 px-4 border-r border-slate-200 w-auto whitespace-nowrap align-top text-sm">
-                      {row.header}
-                    </TableCell>
-                    <TableCell className="py-4 px-4">
-                      <div className="grid grid-cols-6 sm:grid-cols-8 md:grid-cols-10 lg:grid-cols-12 gap-2">
-                        {row.cards && row.cards.length > 0 ? (
-                          row.cards.map((cardRef: any, cardIndex: number) => {
-                            const cardId = typeof cardRef.id === "string" ? Number.parseInt(cardRef.id, 10) : cardRef.id
-                            const card = cardData[cardId]
+      case "divider":
+        return <hr key={index} className="my-8 border-slate-200" />
 
-                            return (
-                              <div key={cardIndex} className="flex flex-col items-center">
-                                <div className="aspect-[5/7] relative rounded border overflow-hidden bg-gray-100 w-full max-w-[40px] shadow-sm">
-                                  {card ? (
-                                    <Image
-                                      src={getCardImageUrl(card) || "/placeholder.svg"}
-                                      alt={card.name}
-                                      fill
-                                      className="object-cover"
-                                      sizes="40px"
-                                      onError={(e) => {
-                                        const target = e.target as HTMLImageElement
-                                        target.src = "/no-card.png"
-                                      }}
-                                    />
-                                  ) : (
-                                    <div className="w-full h-full flex items-center justify-center">
-                                      <span className="text-[8px] text-gray-500 text-center px-1">
-                                        {loading ? "読み込み中..." : "未取得"}
-                                      </span>
-                                    </div>
-                                  )}
-                                </div>
-                                <div className="mt-1 text-[8px] text-gray-600 text-center truncate w-full max-w-[40px] leading-tight">
-                                  {card?.name || cardRef.name || `ID:${cardRef.id}`}
-                                </div>
-                              </div>
-                            )
-                          })
-                        ) : (
-                          <div className="col-span-full text-gray-500 text-sm py-2">カードが選択されていません</div>
-                        )}
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+      case "toc":
+        // TOC implementation would go here
+        return (
+          <div key={index} className="my-6 p-4 bg-slate-50 rounded-lg">
+            <h3 className="font-semibold text-slate-900 mb-2">目次</h3>
+            <p className="text-sm text-slate-600">目次は見出しから自動生成されます</p>
           </div>
         )
 
-      case "key-value-table":
-        return (
-          <div key={index} className="my-6 border border-slate-200 rounded-lg overflow-hidden bg-white shadow-sm">
-            <Table>
-              <TableBody>
-                {block.data.rows.map((row: any, rowIndex: number) => (
-                  <TableRow key={row.id || rowIndex} className="border-b border-slate-100 hover:bg-slate-50">
-                    <TableCell className="font-medium text-slate-900 bg-blue-50 py-4 px-4 border-r border-slate-200 w-auto whitespace-nowrap align-top text-sm">
-                      {row.key}
-                    </TableCell>
-                    <TableCell className="py-4 px-4">
-                      {row.valueType === "text" ? (
-                        <span className="text-slate-700 whitespace-pre-wrap text-sm">{row.textValue || "-"}</span>
-                      ) : row.valueType === "card" && row.cardValues && Array.isArray(row.cardValues) ? (
-                        <div className="flex flex-wrap gap-2">
-                          {row.cardValues.map((cardValue: any, cardIndex: number) => {
-                            const cardId =
-                              typeof cardValue.id === "string" ? Number.parseInt(cardValue.id, 10) : cardValue.id
-                            const card = cardData[cardId]
-
-                            return (
-                              <div key={cardIndex} className="flex flex-col items-center space-y-1">
-                                <div className="relative">
-                                  {card ? (
-                                    <Image
-                                      src={getCardImageUrl(card) || "/placeholder.svg"}
-                                      alt={card.name}
-                                      width={50}
-                                      height={70}
-                                      className="rounded border border-gray-200 object-cover shadow-sm"
-                                      onError={(e) => {
-                                        const target = e.target as HTMLImageElement
-                                        target.src = "/no-card.png"
-                                      }}
-                                    />
-                                  ) : (
-                                    <div className="w-[50px] h-[70px] bg-gray-200 rounded border border-gray-200 flex items-center justify-center">
-                                      <span className="text-xs text-gray-500 text-center px-1">
-                                        {loading ? "読み込み中..." : "未取得"}
-                                      </span>
-                                    </div>
-                                  )}
-                                </div>
-                                <p className="text-[8px] font-medium text-gray-900 text-center line-clamp-2 max-w-[50px] leading-tight">
-                                  {card?.name || cardValue.name || `ID:${cardValue.id}`}
-                                </p>
-                              </div>
-                            )
-                          })}
-                        </div>
-                      ) : (
-                        <span className="text-slate-500 text-sm">-</span>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        )
-
-      case "flexible-table":
+      case "related-links":
         return (
           <div key={index} className="my-6">
-            {block.data.title && <h3 className="text-lg font-semibold text-slate-900 mb-4">{block.data.title}</h3>}
-            <div className="border border-slate-200 rounded-lg overflow-hidden bg-white shadow-sm">
-              <Table>
-                <TableHeader>
-                  <TableRow className="bg-blue-100 border-b border-slate-300">
-                    {block.data.columns.map((column: any, colIndex: number) => (
-                      <TableHead
-                        key={column.id || colIndex}
-                        className="font-semibold text-slate-900 py-3 px-4 border-r border-slate-200 last:border-r-0"
-                        style={{ width: column.width }}
-                      >
-                        {column.header}
-                      </TableHead>
-                    ))}
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {block.data.rows.map((row: any, rowIndex: number) => (
-                    <TableRow key={row.id || rowIndex} className="border-b border-slate-100 hover:bg-slate-50">
-                      {block.data.columns.map((column: any, colIndex: number) => {
-                        const cellValue = row.cells?.[column.id] || ""
-
-                        return (
-                          <TableCell
-                            key={column.id || colIndex}
-                            className="text-slate-700 py-3 px-4 border-r border-slate-100 last:border-r-0 text-sm"
-                          >
-                            {column.type === "image" && cellValue ? (
-                              <Image
-                                src={cellValue || "/placeholder.svg"}
-                                alt=""
-                                width={50}
-                                height={50}
-                                className="rounded object-cover shadow-sm"
-                                onError={(e) => {
-                                  const target = e.target as HTMLImageElement
-                                  target.src = "/placeholder.svg"
-                                }}
-                              />
-                            ) : column.type === "link" && cellValue ? (
-                              <Link href={cellValue} className="text-blue-600 hover:underline text-sm">
-                                {cellValue}
-                              </Link>
-                            ) : (
-                              cellValue
-                            )}
-                          </TableCell>
-                        )
-                      })}
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+            <h3 className="font-semibold text-slate-900 mb-3">関連リンク</h3>
+            <ul className="space-y-2">
+              {block.data.items.map((item, itemIndex) => (
+                <li key={itemIndex}>
+                  <a
+                    href={item.href}
+                    className="text-blue-600 hover:text-blue-800 underline flex items-center gap-1"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {item.label}
+                    <ExternalLink className="h-3 w-3" />
+                  </a>
+                </li>
+              ))}
+            </ul>
           </div>
+        )
+
+      case "evaluation":
+        return (
+          <Card key={index} className="my-6">
+            <CardContent className="p-4">
+              <h3 className="font-semibold text-slate-900 mb-3">デッキ評価</h3>
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                {block.data.tier_rank && (
+                  <div>
+                    <span className="text-slate-600">ティアランク:</span>
+                    <Badge variant="secondary" className="ml-2">
+                      {block.data.tier_rank}
+                    </Badge>
+                  </div>
+                )}
+                {block.data.max_damage && (
+                  <div>
+                    <span className="text-slate-600">最大ダメージ:</span>
+                    <span className="ml-2 font-medium">{block.data.max_damage}</span>
+                  </div>
+                )}
+                {block.data.build_difficulty && (
+                  <div>
+                    <span className="text-slate-600">構築難易度:</span>
+                    <span className="ml-2 font-medium">{block.data.build_difficulty}</span>
+                  </div>
+                )}
+                {block.data.stat_accessibility && (
+                  <div>
+                    <span className="text-slate-600">アクセス性:</span>
+                    <span className="ml-2 font-medium">{block.data.stat_accessibility}</span>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
         )
 
       default:
-        console.warn(`Unknown block type: ${(block as any).type}`)
         return (
-          <div key={index} className="my-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-            <p className="text-yellow-800">
-              未対応のブロックタイプ: <code className="bg-yellow-100 px-2 py-1 rounded">{(block as any).type}</code>
-            </p>
-            <pre className="mt-2 text-xs text-yellow-700 overflow-auto">
-              {JSON.stringify((block as any).data, null, 2)}
-            </pre>
+          <div key={index} className="my-4 p-4 bg-slate-100 rounded-lg">
+            <p className="text-slate-600">未対応のブロックタイプ: {(block as any).type}</p>
           </div>
         )
     }
   }
 
-  if (loading) {
-    return (
-      <div className="max-w-4xl mx-auto space-y-6">
-        <div className="animate-pulse">
-          <div className="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
-          <div className="h-4 bg-gray-200 rounded w-1/2 mb-4"></div>
-          <div className="h-32 bg-gray-200 rounded mb-4"></div>
-        </div>
-      </div>
-    )
-  }
-
-  return <div className="max-w-4xl mx-auto space-y-6">{blocks.map((block, index) => renderBlock(block, index))}</div>
+  return <div className="max-w-4xl mx-auto space-y-4">{blocks.map((block, index) => renderBlock(block, index))}</div>
 }

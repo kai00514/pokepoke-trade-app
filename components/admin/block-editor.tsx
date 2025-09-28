@@ -41,10 +41,10 @@ export function BlockEditor({ blocks, onChange }: BlockEditorProps) {
     const [reorderedItem] = items.splice(result.source.index, 1)
     items.splice(result.destination.index, 0, reorderedItem)
 
-    // Update order property
+    // Update display_order property to ensure uniqueness
     const updatedItems = items.map((item, index) => ({
       ...item,
-      order: index,
+      display_order: (index + 1) * 10, // 10, 20, 30, ... の順序で設定
     }))
 
     onChange(updatedItems)
@@ -57,7 +57,12 @@ export function BlockEditor({ blocks, onChange }: BlockEditorProps) {
 
   const handleBlockDelete = (blockId: string) => {
     const updatedBlocks = blocks.filter((block) => block.id !== blockId)
-    onChange(updatedBlocks)
+    // 削除後に順序を再設定
+    const reorderedBlocks = updatedBlocks.map((block, index) => ({
+      ...block,
+      display_order: (index + 1) * 10,
+    }))
+    onChange(reorderedBlocks)
   }
 
   const handleBlockDuplicate = (blockId: string) => {
@@ -67,17 +72,16 @@ export function BlockEditor({ blocks, onChange }: BlockEditorProps) {
     const newBlock = {
       ...blockToDuplicate,
       id: `block-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      order: blockToDuplicate.order + 1,
     }
 
     const updatedBlocks = [...blocks]
     const insertIndex = blocks.findIndex((block) => block.id === blockId) + 1
     updatedBlocks.splice(insertIndex, 0, newBlock)
 
-    // Update order for subsequent blocks
+    // 全ブロックの順序を再設定してユニークにする
     const reorderedBlocks = updatedBlocks.map((block, index) => ({
       ...block,
-      order: index,
+      display_order: (index + 1) * 10,
     }))
 
     onChange(reorderedBlocks)
