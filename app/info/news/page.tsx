@@ -1,12 +1,13 @@
 import Header from "@/components/layout/header"
 import Footer from "@/components/footer"
 import { getInfoList } from "@/lib/actions/info-articles"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
+import Image from "next/image"
 
 export default async function NewsPage() {
-  const articles = await getInfoList()
+  const articles = await getInfoList(50, 0) // より多くの記事を取得
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -24,42 +25,70 @@ export default async function NewsPage() {
             {articles.map((article) => (
               <Card key={article.id} className="hover:shadow-lg transition-shadow duration-200">
                 <CardHeader>
-                  <div className="flex items-start justify-between gap-4">
-                    <CardTitle className="text-xl font-bold text-slate-900 hover:text-blue-600 transition-colors">
-                      <Link href={`/info/${article.id}`}>{article.title}</Link>
-                    </CardTitle>
-                    <div className="flex flex-wrap gap-2">
-                      <Badge variant="secondary" className="text-xs">
-                        {article.category}
-                      </Badge>
-                      {article.is_published ? (
-                        <Badge className="bg-green-100 text-green-800 text-xs">公開中</Badge>
-                      ) : (
-                        <Badge variant="outline" className="text-xs">
-                          下書き
-                        </Badge>
+                  <div className="flex items-start gap-4">
+                    {/* サムネイル画像 */}
+                    {article.thumbnail_image_url && (
+                      <div className="flex-shrink-0">
+                        <Image
+                          src={article.thumbnail_image_url || "/placeholder.svg"}
+                          alt={article.title}
+                          width={120}
+                          height={80}
+                          className="rounded-lg object-cover"
+                          sizes="120px"
+                        />
+                      </div>
+                    )}
+
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between gap-4 mb-2">
+                        <CardTitle className="text-xl font-bold text-slate-900 hover:text-blue-600 transition-colors">
+                          <Link href={`/info/${article.id}`}>{article.title}</Link>
+                        </CardTitle>
+                        <div className="flex flex-wrap gap-2 flex-shrink-0">
+                          {article.category && (
+                            <Badge variant="secondary" className="text-xs">
+                              {article.category}
+                            </Badge>
+                          )}
+                          {article.pinned && <Badge className="bg-red-100 text-red-800 text-xs">ピン留め</Badge>}
+                        </div>
+                      </div>
+
+                      {/* 記事の概要 */}
+                      {article.excerpt && <p className="text-slate-600 mb-3 line-clamp-2 text-sm">{article.excerpt}</p>}
+
+                      {/* タグ */}
+                      {article.tags && article.tags.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mb-3">
+                          {article.tags.map((tag, index) => (
+                            <Badge key={index} variant="outline" className="text-xs">
+                              {tag}
+                            </Badge>
+                          ))}
+                        </div>
                       )}
+
+                      <div className="flex items-center justify-between text-sm text-slate-500">
+                        <span>公開日: {new Date(article.published_at).toLocaleDateString("ja-JP")}</span>
+                        <Link
+                          href={`/info/${article.id}`}
+                          className="text-blue-600 hover:text-blue-800 font-medium hover:underline"
+                        >
+                          詳細を見る →
+                        </Link>
+                      </div>
                     </div>
                   </div>
                 </CardHeader>
-                <CardContent>
-                  <p className="text-slate-600 mb-4 line-clamp-3">
-                    {article.summary || "記事の概要がここに表示されます。"}
-                  </p>
-                  <div className="flex items-center justify-between text-sm text-slate-500">
-                    <span>
-                      公開日: {new Date(article.published_at || article.created_at).toLocaleDateString("ja-JP")}
-                    </span>
-                    <Link
-                      href={`/info/${article.id}`}
-                      className="text-blue-600 hover:text-blue-800 font-medium hover:underline"
-                    >
-                      詳細を見る →
-                    </Link>
-                  </div>
-                </CardContent>
               </Card>
             ))}
+
+            {articles.length === 0 && (
+              <div className="text-center py-12">
+                <p className="text-slate-500 text-lg">最新情報はまだありません。</p>
+              </div>
+            )}
           </div>
         </main>
       </div>
