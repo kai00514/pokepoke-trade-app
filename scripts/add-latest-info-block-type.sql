@@ -1,4 +1,4 @@
--- Add latest-info to the allowed block types
+-- Add latest-info block type to the allowed types constraint
 ALTER TABLE info_article_blocks 
 DROP CONSTRAINT IF EXISTS info_blocks_type_allowed;
 
@@ -7,21 +7,21 @@ ADD CONSTRAINT info_blocks_type_allowed
 CHECK (type IN (
   'heading', 
   'paragraph', 
-  'rich-text', 
   'image', 
   'list', 
   'table', 
-  'flexible-table',
-  'key-value-table',
   'callout', 
-  'toc', 
-  'latest-info',
   'divider', 
+  'button', 
+  'pickup', 
+  'cards-table', 
+  'card-display-table', 
+  'key-value-table', 
+  'flexible-table', 
+  'toc', 
   'related-links', 
   'evaluation', 
-  'cards-table', 
-  'card-display-table',
-  'media-gallery',
-  'pickup', 
-  'button'
+  'media-gallery', 
+  'rich-text',
+  'latest-info'
 ));
