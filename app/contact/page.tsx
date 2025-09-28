@@ -1,7 +1,6 @@
 "use client"
 
-import type React from "react"
-import { useEffect, useState } from "react"
+import { useActionState } from "react"
 import { useAuth } from "@/contexts/auth-context"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -10,76 +9,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { ArrowLeft, Mail, MessageCircle, Clock, CheckCircle, AlertCircle } from "lucide-react"
 import Link from "next/link"
-import { submitContactForm, type ContactFormData } from "@/lib/actions/contact"
+import { submitContactForm } from "@/lib/actions/contact"
+
+const initialState = {
+  success: false,
+  message: "",
+}
 
 export default function ContactPage() {
   const { user, userProfile } = useAuth()
-  const [formData, setFormData] = useState<ContactFormData>({
-    name: userProfile?.display_name || "",
-    email: user?.email || "",
-    subject: "",
-    message: "",
-  })
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [submitResult, setSubmitResult] = useState<{ success: boolean; message: string } | null>(null)
-
-  useEffect(() => {
-    if (user && userProfile) {
-      setFormData((prev) => ({
-        ...prev,
-        name: userProfile.display_name || prev.name,
-        email: user.email || prev.email,
-      }))
-    }
-  }, [user, userProfile])
-
-  const handleInputChange = (field: keyof ContactFormData, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }))
-    // エラーメッセージをクリア
-    if (submitResult && !submitResult.success) {
-      setSubmitResult(null)
-    }
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-
-    if (isSubmitting) return // 重複送信を防ぐ
-
-    setIsSubmitting(true)
-    setSubmitResult(null)
-
-    try {
-      // フォームデータの検証
-      if (!formData.name.trim() || !formData.email.trim() || !formData.subject.trim() || !formData.message.trim()) {
-        setSubmitResult({
-          success: false,
-          message: "全ての項目を入力してください。",
-        })
-        return
-      }
-
-      const result = await submitContactForm(formData)
-      setSubmitResult(result)
-
-      if (result.success) {
-        // 成功時はフォームをリセット（名前とメールは保持）
-        setFormData((prev) => ({
-          ...prev,
-          subject: "",
-          message: "",
-        }))
-      }
-    } catch (error) {
-      console.error("Form submission error:", error)
-      setSubmitResult({
-        success: false,
-        message: "送信中にエラーが発生しました。ページを再読み込みして再度お試しください。",
-      })
-    } finally {
-      setIsSubmitting(false)
-    }
-  }
+  const [state, formAction, isPending] = useActionState(submitContactForm, initialState)
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
@@ -117,24 +56,24 @@ export default function ContactPage() {
                   <CardDescription className="text-blue-100">必要事項をご入力の上、送信してください</CardDescription>
                 </CardHeader>
                 <CardContent className="p-6">
-                  {submitResult && (
+                  {state?.message && (
                     <Alert
-                      className={`mb-6 ${submitResult.success ? "border-green-200 bg-green-50" : "border-red-200 bg-red-50"}`}
+                      className={`mb-6 ${state.success ? "border-green-200 bg-green-50" : "border-red-200 bg-red-50"}`}
                     >
                       <div className="flex items-center gap-2">
-                        {submitResult.success ? (
+                        {state.success ? (
                           <CheckCircle className="w-5 h-5 text-green-600" />
                         ) : (
                           <AlertCircle className="w-5 h-5 text-red-600" />
                         )}
-                        <AlertDescription className={submitResult.success ? "text-green-800" : "text-red-800"}>
-                          {submitResult.message}
+                        <AlertDescription className={state.success ? "text-green-800" : "text-red-800"}>
+                          {state.message}
                         </AlertDescription>
                       </div>
                     </Alert>
                   )}
 
-                  <form onSubmit={handleSubmit} className="space-y-6">
+                  <form action={formAction} className="space-y-6">
                     <div className="grid md:grid-cols-2 gap-4">
                       <div>
                         <label htmlFor="name" className="block text-sm font-semibold text-gray-700 mb-2">
@@ -142,9 +81,9 @@ export default function ContactPage() {
                         </label>
                         <Input
                           id="name"
+                          name="name"
                           type="text"
-                          value={formData.name}
-                          onChange={(e) => handleInputChange("name", e.target.value)}
+                          defaultValue={userProfile?.display_name || ""}
                           placeholder="山田 太郎"
                           required
                           className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
@@ -156,9 +95,9 @@ export default function ContactPage() {
                         </label>
                         <Input
                           id="email"
+                          name="email"
                           type="email"
-                          value={formData.email}
-                          onChange={(e) => handleInputChange("email", e.target.value)}
+                          defaultValue={user?.email || ""}
                           placeholder="example@email.com"
                           required
                           className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
@@ -172,9 +111,8 @@ export default function ContactPage() {
                       </label>
                       <Input
                         id="subject"
+                        name="subject"
                         type="text"
-                        value={formData.subject}
-                        onChange={(e) => handleInputChange("subject", e.target.value)}
                         placeholder="お問い合わせの件名をご入力ください"
                         required
                         className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
@@ -187,8 +125,7 @@ export default function ContactPage() {
                       </label>
                       <Textarea
                         id="message"
-                        value={formData.message}
-                        onChange={(e) => handleInputChange("message", e.target.value)}
+                        name="message"
                         placeholder="お問い合わせ内容を詳しくご記入ください"
                         required
                         rows={6}
@@ -198,10 +135,10 @@ export default function ContactPage() {
 
                     <Button
                       type="submit"
-                      disabled={isSubmitting}
+                      disabled={isPending}
                       className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                     >
-                      {isSubmitting ? (
+                      {isPending ? (
                         <div className="flex items-center gap-2">
                           <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                           送信中...

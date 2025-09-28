@@ -8,8 +8,7 @@ CREATE TABLE IF NOT EXISTS contact_submissions (
   message TEXT NOT NULL,
   status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'in_progress', 'resolved', 'closed')),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  admin_notes TEXT
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
 -- インデックスの作成
@@ -17,24 +16,23 @@ CREATE INDEX IF NOT EXISTS idx_contact_submissions_user_id ON contact_submission
 CREATE INDEX IF NOT EXISTS idx_contact_submissions_status ON contact_submissions(status);
 CREATE INDEX IF NOT EXISTS idx_contact_submissions_created_at ON contact_submissions(created_at DESC);
 
--- RLSポリシーの有効化
+-- RLSポリシーの設定
 ALTER TABLE contact_submissions ENABLE ROW LEVEL SECURITY;
 
--- ユーザーは自分の投稿のみ閲覧可能
-CREATE POLICY "Users can view own submissions" ON contact_submissions
+-- ユーザーは自分のお問い合わせのみ閲覧可能
+CREATE POLICY "Users can view their own submissions" ON contact_submissions
   FOR SELECT USING (auth.uid() = user_id);
 
--- ユーザーは自分の投稿を作成可能
-CREATE POLICY "Users can create own submissions" ON contact_submissions
+-- ユーザーは自分のお問い合わせを作成可能
+CREATE POLICY "Users can create their own submissions" ON contact_submissions
   FOR INSERT WITH CHECK (auth.uid() = user_id OR user_id IS NULL);
 
--- 管理者は全ての投稿を閲覧・更新可能
+-- 管理者は全てのお問い合わせを閲覧・管理可能
 CREATE POLICY "Admins can view all submissions" ON contact_submissions
   FOR ALL USING (
     EXISTS (
       SELECT 1 FROM admin_users 
-      WHERE user_id = auth.uid() 
-      AND is_active = true
+      WHERE user_id = auth.uid() AND is_active = true
     )
   );
 
@@ -53,6 +51,5 @@ CREATE TRIGGER update_contact_submissions_updated_at
   EXECUTE FUNCTION update_contact_submissions_updated_at();
 
 -- コメント
-COMMENT ON TABLE contact_submissions IS 'ユーザーからのお問い合わせ投稿';
-COMMENT ON COLUMN contact_submissions.status IS 'お問い合わせの処理状況';
-COMMENT ON COLUMN contact_submissions.admin_notes IS '管理者用メモ';
+COMMENT ON TABLE contact_submissions IS 'ユーザーからのお問い合わせを管理するテーブル';
+COMMENT ON COLUMN contact_submissions.status IS 'お問い合わせの処理状況 (pending: 未対応, in_progress: 対応中, resolved: 解決済み, closed: 終了)';
