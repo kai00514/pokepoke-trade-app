@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@emotion/is-prop-valid": "latest",
-    "@hello-pangea/dnd": "18.0.1",
+    "@hello-pangea/dnd": "latest",
     "@hookform/resolvers": "^3.9.1",
     "@radix-ui/react-accordion": "latest",
     "@radix-ui/react-alert-dialog": "latest",
@@ -57,7 +57,7 @@
     "react-day-picker": "latest",
     "react-dom": "^19",
     "react-dropzone": "latest",
-    "react-feather": "latest",
+    "react-feather": "2.0.10",
     "react-hook-form": "latest",
     "react-resizable-panels": "latest",
     "react-swipeable": "latest",
