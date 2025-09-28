@@ -566,12 +566,26 @@ export default function RenderArticle({ blocks }: RenderArticleProps) {
 
       case "toc":
         return (
-          <div key={index} className="my-6 p-6 bg-blue-50 rounded-lg border-2 border-blue-200 shadow-md">
-            <h3 className="font-bold text-slate-900 mb-3 text-lg flex items-center gap-2">
-              <Info className="h-5 w-5 text-blue-600" />
-              目次
+          <div key={index} className="my-6 p-4 bg-gradient-to-r from-blue-600 to-blue-500 rounded-lg shadow-lg">
+            <h3 className="font-bold text-white mb-3 text-lg flex items-center gap-2">
+              <Info className="h-5 w-5" />
+              {block.data.title || "目次"}
             </h3>
-            <p className="text-sm text-slate-600">目次は見出しから自動生成されます</p>
+            <nav className="bg-white/10 backdrop-blur-sm rounded-md p-3">
+              <ul className="space-y-2">
+                {block.data.items.map((item: any, itemIndex: number) => (
+                  <li key={itemIndex}>
+                    <a
+                      href={item.href}
+                      className="text-white hover:text-blue-100 transition-colors duration-200 text-sm font-medium flex items-center gap-2 py-1 px-2 rounded hover:bg-white/10"
+                    >
+                      <div className="w-1.5 h-1.5 bg-white rounded-full flex-shrink-0"></div>
+                      {item.text}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </nav>
           </div>
         )
 

@@ -217,7 +217,13 @@ export function ArticleEditor({ article, isEditing = false }: ArticleEditorProps
         }
         break
       case "toc":
-        defaultData = { fromHeadings: true }
+        defaultData = {
+          title: "目次",
+          items: [
+            { text: "見出し1", href: "#heading1" },
+            { text: "見出し2", href: "#heading2" },
+          ],
+        }
         break
       case "evaluation":
         defaultData = {

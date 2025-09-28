@@ -62,7 +62,11 @@ export type ImageBlock = BlockBase<
 export type TocBlock = BlockBase<
   "toc",
   {
-    fromHeadings?: boolean
+    title?: string
+    items: Array<{
+      text: string
+      href: string
+    }>
   }
 >
 
@@ -385,8 +389,18 @@ function validateBlocks(rawBlocks: RawDbBlock[]): Block[] {
 
         case "toc": {
           const d = rb.data as any
-          const fromHeadings = typeof d?.fromHeadings === "boolean" ? d.fromHeadings : true
-          safe.push({ type: "toc", display_order: order, data: { fromHeadings } })
+          const title = typeof d?.title === "string" ? d.title : "目次"
+          const itemsRaw = Array.isArray(d?.items) ? d.items : []
+          const items = itemsRaw
+            .filter((it: any) => it && typeof it.text === "string" && typeof it.href === "string")
+            .map((it: any) => ({ text: it.text.trim(), href: it.href.trim() }))
+            .filter((it) => it.text && it.href)
+
+          if (items.length > 0) {
+            safe.push({ type: "toc", display_order: order, data: { title, items } })
+          } else {
+            console.warn("[info-articles] Skip invalid toc block", { order, d })
+          }
           break
         }
 
