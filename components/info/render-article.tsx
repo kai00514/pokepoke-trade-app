@@ -319,7 +319,7 @@ export default function RenderArticle({ blocks }: RenderArticleProps) {
                             )}
                           </div>
                           <div className="min-w-0 flex-1">
-                            <p className="font-medium text-slate-900 text-[10px] leading-tight">
+                            <p className="font-medium text-slate-900 text-[10px] leading-tight truncate max-w-[120px]">
                               {card?.name || item.name || `カードID: ${item.card_id}`}
                             </p>
                           </div>
@@ -377,7 +377,7 @@ export default function RenderArticle({ blocks }: RenderArticleProps) {
                                     </div>
                                   )}
                                 </div>
-                                <div className="mt-1 text-[8px] text-gray-600 text-center truncate w-full max-w-[40px]">
+                                <div className="mt-1 text-[8px] text-gray-600 text-center truncate w-full max-w-[40px] leading-tight">
                                   {card?.name || cardRef.name || `ID:${cardRef.id}`}
                                 </div>
                               </div>
@@ -438,7 +438,7 @@ export default function RenderArticle({ blocks }: RenderArticleProps) {
                                     </div>
                                   )}
                                 </div>
-                                <p className="text-[8px] font-medium text-gray-900 text-center line-clamp-2 max-w-[50px]">
+                                <p className="text-[8px] font-medium text-gray-900 text-center line-clamp-2 max-w-[50px] leading-tight">
                                   {card?.name || cardValue.name || `ID:${cardValue.id}`}
                                 </p>
                               </div>
