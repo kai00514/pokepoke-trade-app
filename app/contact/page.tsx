@@ -1,8 +1,7 @@
 "use client"
 
 import type React from "react"
-
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useAuth } from "@/contexts/auth-context"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -24,6 +23,16 @@ export default function ContactPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitResult, setSubmitResult] = useState<{ success: boolean; message: string } | null>(null)
 
+  useEffect(() => {
+    if (user && userProfile) {
+      setFormData((prev) => ({
+        ...prev,
+        name: userProfile.display_name || prev.name,
+        email: user.email || prev.email,
+      }))
+    }
+  }, [user, userProfile])
+
   const handleInputChange = (field: keyof ContactFormData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
     // エラーメッセージをクリア
@@ -34,10 +43,22 @@ export default function ContactPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    if (isSubmitting) return // 重複送信を防ぐ
+
     setIsSubmitting(true)
     setSubmitResult(null)
 
     try {
+      // フォームデータの検証
+      if (!formData.name.trim() || !formData.email.trim() || !formData.subject.trim() || !formData.message.trim()) {
+        setSubmitResult({
+          success: false,
+          message: "全ての項目を入力してください。",
+        })
+        return
+      }
+
       const result = await submitContactForm(formData)
       setSubmitResult(result)
 
@@ -50,9 +71,10 @@ export default function ContactPage() {
         }))
       }
     } catch (error) {
+      console.error("Form submission error:", error)
       setSubmitResult({
         success: false,
-        message: "予期しないエラーが発生しました。しばらく時間をおいて再度お試しください。",
+        message: "送信中にエラーが発生しました。ページを再読み込みして再度お試しください。",
       })
     } finally {
       setIsSubmitting(false)
