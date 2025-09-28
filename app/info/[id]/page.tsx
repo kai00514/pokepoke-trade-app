@@ -2,7 +2,6 @@ import { notFound } from "next/navigation"
 import Header from "@/components/layout/header"
 import Footer from "@/components/footer"
 import { getInfoDetailById } from "@/lib/actions/info-articles"
-import { getInfoPageById } from "@/lib/actions/info-pages"
 import RenderArticle from "@/components/info/render-article"
 
 interface InfoDetailPageProps {
@@ -14,15 +13,7 @@ export default async function InfoDetailPage({ params }: InfoDetailPageProps) {
 
   try {
     // 記事詳細を取得
-    const article = await getInfoDetailById(id)
-
-    // デッキページ詳細も取得（エラーは無視）
-    let deckPageData = null
-    try {
-      deckPageData = await getInfoPageById(id)
-    } catch (error) {
-      console.warn("Deck page data not found:", error)
-    }
+    const { meta, blocks } = await getInfoDetailById(id)
 
     return (
       <div className="flex flex-col min-h-screen">
@@ -34,7 +25,7 @@ export default async function InfoDetailPage({ params }: InfoDetailPageProps) {
           }}
         >
           <main className="flex-grow container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-            <RenderArticle blocks={article.blocks} />
+            <RenderArticle blocks={blocks} />
           </main>
         </div>
         <Footer />

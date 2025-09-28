@@ -62,6 +62,48 @@ export default function TradeBoardPage() {
     }
   }, [searchParams])
 
+  // スクロール位置の保存・復元用のuseEffect
+  useEffect(() => {
+    // ページ読み込み時にスクロール位置を復元
+    const savedScrollPosition = sessionStorage.getItem("trade-list-scroll-position")
+    if (savedScrollPosition) {
+      const scrollY = Number.parseInt(savedScrollPosition, 10)
+      window.scrollTo(0, scrollY)
+      sessionStorage.removeItem("trade-list-scroll-position")
+    }
+
+    // スクロール位置を定期的に保存
+    const saveScrollPosition = () => {
+      sessionStorage.setItem("trade-list-scroll-position", window.scrollY.toString())
+    }
+
+    window.addEventListener("scroll", saveScrollPosition)
+
+    return () => {
+      window.removeEventListener("scroll", saveScrollPosition)
+    }
+  }, [])
+
+  // ブラウザバック/フォワード時の処理
+  useEffect(() => {
+    const handlePopState = (event: PopStateEvent) => {
+      // ブラウザバック時にスクロール位置を復元
+      const savedScrollPosition = sessionStorage.getItem("trade-list-scroll-position")
+      if (savedScrollPosition) {
+        setTimeout(() => {
+          const scrollY = Number.parseInt(savedScrollPosition, 10)
+          window.scrollTo(0, scrollY)
+        }, 100)
+      }
+    }
+
+    window.addEventListener("popstate", handlePopState)
+
+    return () => {
+      window.removeEventListener("popstate", handlePopState)
+    }
+  }, [])
+
   const fetchTradePosts = useCallback(
     async (page: number) => {
       // 既存のリクエストをキャンセル
@@ -86,6 +128,14 @@ export default function TradeBoardPage() {
         if (result.success) {
           setTradePosts(result.posts)
           setTotalCount(result.totalCount || 0)
+
+          // データをキャッシュに保存
+          const cacheData = {
+            posts: result.posts,
+            totalCount: result.totalCount || 0,
+            timestamp: Date.now(),
+          }
+          sessionStorage.setItem(`trade-posts-cache-page-${page}`, JSON.stringify(cacheData))
         } else {
           toast({
             title: "データ取得エラー",
@@ -117,11 +167,38 @@ export default function TradeBoardPage() {
     [toast],
   )
 
-  // データ取得のuseEffect
+  // データ取得のuseEffect - 修正版
   useEffect(() => {
     // 初回マウント時またはページが変更された時のみ実行
-    if (isInitialMount.current || currentPage) {
+    // ただし、sessionStorageにデータがある場合は初回ロードをスキップ
+    const hasCache = sessionStorage.getItem(`trade-posts-cache-page-${currentPage}`)
+
+    if (isInitialMount.current) {
       isInitialMount.current = false
+      if (!hasCache) {
+        fetchTradePosts(currentPage)
+      } else {
+        // キャッシュからデータを復元
+        try {
+          const cachedData = JSON.parse(hasCache)
+          const cacheAge = Date.now() - (cachedData.timestamp || 0)
+
+          // キャッシュが5分以内なら使用
+          if (cacheAge < 5 * 60 * 1000) {
+            setTradePosts(cachedData.posts)
+            setTotalCount(cachedData.totalCount)
+            setIsLoading(false)
+            return
+          } else {
+            sessionStorage.removeItem(`trade-posts-cache-page-${currentPage}`)
+          }
+        } catch (error) {
+          console.error("Failed to parse cached data:", error)
+          sessionStorage.removeItem(`trade-posts-cache-page-${currentPage}`)
+        }
+        fetchTradePosts(currentPage)
+      }
+    } else if (currentPage) {
       fetchTradePosts(currentPage)
     }
 

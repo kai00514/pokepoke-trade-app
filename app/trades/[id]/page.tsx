@@ -3,7 +3,6 @@ import { useState, useEffect, useCallback } from "react"
 import type React from "react"
 
 import { useParams, useRouter } from "next/navigation"
-import Link from "next/link"
 import Image from "next/image"
 import Header from "@/components/layout/header"
 import Footer from "@/components/footer"
@@ -205,6 +204,24 @@ export default function TradeDetailPage() {
     [handleCommentSubmitClick],
   )
 
+  const handleBackToTimeline = useCallback(
+    (e: React.MouseEvent) => {
+      e.preventDefault()
+
+      // 現在のスクロール位置を保存
+      const currentScrollY = window.scrollY
+      sessionStorage.setItem("trade-list-scroll-position", currentScrollY.toString())
+
+      // ブラウザの履歴を使用して戻る
+      if (window.history.length > 1) {
+        window.history.back()
+      } else {
+        router.push("/")
+      }
+    },
+    [router],
+  )
+
   useEffect(() => {
     const checkAuth = async () => {
       const { data } = await supabase.auth.getSession()
@@ -302,6 +319,20 @@ export default function TradeDetailPage() {
     fetchPostDetails()
   }, [fetchPostDetails])
 
+  // ページ離脱時の処理
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      // 現在のスクロール位置を保存
+      sessionStorage.setItem("trade-list-scroll-position", window.scrollY.toString())
+    }
+
+    window.addEventListener("beforeunload", handleBeforeUnload)
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload)
+    }
+  }, [])
+
   if (postId === "create") return null
 
   if (isLoading) {
@@ -362,10 +393,13 @@ export default function TradeDetailPage() {
     <div className="flex flex-col min-h-screen bg-gradient-to-b from-blue-50 via-blue-100 to-white">
       <Header />
       <main className="flex-grow container mx-auto px-4 py-8">
-        <Link href="/" className="inline-flex items-center text-sm text-blue-600 hover:text-blue-700 mb-6 group">
+        <button
+          onClick={handleBackToTimeline}
+          className="inline-flex items-center text-sm text-blue-600 hover:text-blue-700 mb-6 group cursor-pointer border-none bg-transparent"
+        >
           <ArrowLeft className="h-4 w-4 mr-1 transition-transform group-hover:-translate-x-1" />
           タイムラインに戻る
-        </Link>
+        </button>
         <div className="bg-white p-6 sm:p-8 rounded-lg shadow-xl mb-8">
           <div className="flex justify-between items-start mb-4">
             <div>
