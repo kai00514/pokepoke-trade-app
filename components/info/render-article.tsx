@@ -320,19 +320,19 @@ export default function RenderArticle({ blocks }: RenderArticleProps) {
               {block.data.items && block.data.items.length > 0 ? (
                 <ul className="space-y-1">
                   {block.data.items.map((item: any, itemIndex: number) => (
-                    <li key={itemIndex} className="flex items-start gap-1.5">
+                    <li key={itemIndex} className="flex items-center gap-1.5">
                       <span className="bg-blue-500 text-white rounded-full w-4 h-4 flex items-center justify-center text-[10px] font-bold flex-shrink-0 mt-0.5">
                         {itemIndex + 1}
                       </span>
                       {item.href ? (
                         <a
                           href={item.href}
-                          className="text-blue-600 hover:text-blue-800 font-medium text-xs leading-tight transition-colors hover:underline"
+                          className="text-blue-600 hover:text-blue-800 font-medium text-xs leading-tight transition-colors hover:underline decoration-1 underline-offset-1 flex-1"
                         >
                           {item.label}
                         </a>
                       ) : (
-                        <span className="text-blue-600 font-medium text-xs leading-tight">{item.label}</span>
+                        <span className="text-blue-600 font-medium text-xs leading-tight flex-1">{item.label}</span>
                       )}
                     </li>
                   ))}
@@ -614,7 +614,7 @@ export default function RenderArticle({ blocks }: RenderArticleProps) {
               {block.data.items && block.data.items.length > 0 ? (
                 <nav className="space-y-1.5">
                   {block.data.items.map((item: any, itemIndex: number) => (
-                    <div key={itemIndex} className="flex items-start gap-2 group">
+                    <div key={itemIndex} className="flex items-center gap-2 group">
                       <div className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-md w-5 h-5 flex items-center justify-center text-[10px] font-bold flex-shrink-0 shadow-sm group-hover:shadow-md transition-shadow">
                         {itemIndex + 1}
                       </div>

@@ -18,10 +18,10 @@ CHECK (type IN (
   'card-display-table', 
   'key-value-table', 
   'flexible-table', 
+  'media-gallery', 
+  'rich-text', 
   'toc', 
   'related-links', 
-  'evaluation', 
-  'media-gallery', 
-  'rich-text',
+  'evaluation',
   'latest-info'
 ));
