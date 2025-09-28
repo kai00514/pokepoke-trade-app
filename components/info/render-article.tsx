@@ -122,7 +122,7 @@ export default function RenderArticle({ blocks }: RenderArticleProps) {
             <div key={index} className="my-4">
               <h1
                 id={block.data.anchorId}
-                className="text-lg sm:text-xl font-bold text-white mb-3 px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-500 rounded-lg shadow-md"
+                className="text-lg sm:text-xl font-bold text-slate-900 mb-3 pb-2 border-b-4 border-blue-600 bg-gradient-to-r from-blue-50 to-transparent pl-4 pr-2 py-2 rounded-l-lg shadow-sm"
               >
                 {block.data.text}
               </h1>
@@ -133,7 +133,7 @@ export default function RenderArticle({ blocks }: RenderArticleProps) {
             <div key={index} className="my-3">
               <h2
                 id={block.data.anchorId}
-                className="text-base sm:text-lg font-bold text-white mb-2 mt-6 px-5 py-2.5 bg-gradient-to-r from-blue-500 to-blue-400 rounded-md shadow-sm"
+                className="text-base sm:text-lg font-bold text-white mb-2 mt-4 relative pl-6 py-2 before:content-[''] before:absolute before:left-0 before:top-0 before:bottom-0 before:w-1 before:bg-orange-600 before:rounded-r-sm bg-orange-500 border-l-4 border-orange-600 rounded-r-md shadow-md"
               >
                 {block.data.text}
               </h2>
@@ -144,7 +144,7 @@ export default function RenderArticle({ blocks }: RenderArticleProps) {
             <div key={index} className="my-2">
               <h3
                 id={block.data.anchorId}
-                className="text-sm sm:text-base font-bold text-white mb-2 mt-4 px-4 py-2 bg-gradient-to-r from-blue-400 to-blue-300 rounded shadow-sm"
+                className="text-sm sm:text-base font-semibold text-white mb-2 mt-3 relative pl-4 py-1.5 before:content-[''] before:absolute before:left-0 before:top-0 before:bottom-0 before:w-1 before:bg-green-600 before:rounded-r-sm bg-green-500 border-l-4 border-green-600 rounded-r shadow-sm"
               >
                 {block.data.text}
               </h3>

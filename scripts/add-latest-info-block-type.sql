@@ -1,4 +1,4 @@
--- Add latest-info block type to the allowed types constraint
+-- Add latest-info block type to the allowed block types constraint
 ALTER TABLE info_article_blocks 
 DROP CONSTRAINT IF EXISTS info_blocks_type_allowed;
 
