@@ -119,31 +119,42 @@ export default function RenderArticle({ blocks }: RenderArticleProps) {
       case "heading":
         if (block.data.level === 1) {
           return (
-            <h1 key={index} id={block.data.anchorId} className="text-3xl sm:text-4xl font-bold text-slate-900 mb-6">
-              {block.data.text}
-            </h1>
+            <div key={index} className="my-8">
+              <h1
+                id={block.data.anchorId}
+                className="text-3xl sm:text-4xl font-bold text-slate-900 mb-6 pb-4 border-b-2 border-blue-200 bg-gradient-to-r from-blue-50 to-transparent p-4 rounded-lg"
+              >
+                {block.data.text}
+              </h1>
+            </div>
           )
         } else if (block.data.level === 2) {
           return (
-            <h2
-              key={index}
-              id={block.data.anchorId}
-              className="text-2xl sm:text-3xl font-bold text-slate-900 mb-4 mt-8"
-            >
-              {block.data.text}
-            </h2>
+            <div key={index} className="my-6">
+              <h2
+                id={block.data.anchorId}
+                className="text-2xl sm:text-3xl font-bold text-slate-900 mb-4 mt-8 pb-3 border-b border-blue-100 bg-gradient-to-r from-blue-25 to-transparent p-3 rounded-md"
+              >
+                {block.data.text}
+              </h2>
+            </div>
           )
         } else {
           return (
-            <h3 key={index} id={block.data.anchorId} className="text-xl sm:text-2xl font-bold text-slate-900 mb-3 mt-6">
-              {block.data.text}
-            </h3>
+            <div key={index} className="my-4">
+              <h3
+                id={block.data.anchorId}
+                className="text-xl sm:text-2xl font-bold text-slate-900 mb-3 mt-6 pb-2 border-l-4 border-blue-400 pl-4 bg-blue-25 rounded-r-md"
+              >
+                {block.data.text}
+              </h3>
+            </div>
           )
         }
 
       case "paragraph":
         return (
-          <p key={index} className="text-slate-700 leading-relaxed mb-4">
+          <p key={index} className="text-slate-700 leading-relaxed mb-4 text-base">
             {block.data.text}
           </p>
         )
@@ -151,25 +162,32 @@ export default function RenderArticle({ blocks }: RenderArticleProps) {
       case "image":
         return (
           <div key={index} className="my-6">
-            <div className="relative w-full">
+            <div className="relative w-full rounded-lg overflow-hidden shadow-md">
               <Image
                 src={block.data.url || "/placeholder.svg"}
                 alt={block.data.alt || ""}
                 width={800}
                 height={400}
-                className="rounded-lg w-full h-auto"
+                className="w-full h-auto"
               />
             </div>
-            {block.data.caption && <p className="text-sm text-slate-600 text-center mt-2">{block.data.caption}</p>}
+            {block.data.caption && (
+              <p className="text-sm text-slate-600 text-center mt-3 italic bg-slate-50 p-2 rounded">
+                {block.data.caption}
+              </p>
+            )}
           </div>
         )
 
       case "list":
         if (block.data.style === "numbered") {
           return (
-            <ol key={index} className="mb-4 space-y-2 list-decimal list-inside">
+            <ol
+              key={index}
+              className="mb-6 space-y-2 list-decimal list-inside bg-slate-50 p-4 rounded-lg border-l-4 border-blue-300"
+            >
               {block.data.items.map((item, itemIndex) => (
-                <li key={itemIndex} className="text-slate-700">
+                <li key={itemIndex} className="text-slate-700 pl-2">
                   {item}
                 </li>
               ))}
@@ -177,9 +195,12 @@ export default function RenderArticle({ blocks }: RenderArticleProps) {
           )
         } else {
           return (
-            <ul key={index} className="mb-4 space-y-2 list-disc list-inside">
+            <ul
+              key={index}
+              className="mb-6 space-y-2 list-disc list-inside bg-slate-50 p-4 rounded-lg border-l-4 border-blue-300"
+            >
               {block.data.items.map((item, itemIndex) => (
-                <li key={itemIndex} className="text-slate-700">
+                <li key={itemIndex} className="text-slate-700 pl-2">
                   {item}
                 </li>
               ))}
@@ -189,13 +210,13 @@ export default function RenderArticle({ blocks }: RenderArticleProps) {
 
       case "table":
         return (
-          <div key={index} className="my-6 overflow-x-auto">
-            <Table>
+          <div key={index} className="my-6 overflow-x-auto rounded-lg shadow-md">
+            <Table className="border border-slate-200">
               {block.data.headers && (
                 <TableHeader>
-                  <TableRow className="bg-blue-50">
+                  <TableRow className="bg-blue-100 border-b-2 border-blue-200">
                     {block.data.headers.map((header, headerIndex) => (
-                      <TableHead key={headerIndex} className="font-semibold text-slate-900">
+                      <TableHead key={headerIndex} className="font-semibold text-slate-900 py-4 px-4 text-center">
                         {header}
                       </TableHead>
                     ))}
@@ -204,9 +225,9 @@ export default function RenderArticle({ blocks }: RenderArticleProps) {
               )}
               <TableBody>
                 {block.data.rows.map((row, rowIndex) => (
-                  <TableRow key={rowIndex}>
+                  <TableRow key={rowIndex} className="hover:bg-blue-25 border-b border-slate-100">
                     {row.map((cell, cellIndex) => (
-                      <TableCell key={cellIndex} className="text-slate-700">
+                      <TableCell key={cellIndex} className="text-slate-700 py-3 px-4 text-center">
                         {cell}
                       </TableCell>
                     ))}
@@ -228,30 +249,34 @@ export default function RenderArticle({ blocks }: RenderArticleProps) {
         return (
           <Alert
             key={index}
-            className={`my-6 ${
+            className={`my-6 border-l-4 shadow-md ${
               block.data.tone === "warning"
-                ? "border-yellow-200 bg-yellow-50"
+                ? "border-yellow-400 bg-yellow-50 border-l-yellow-400"
                 : block.data.tone === "success"
-                  ? "border-green-200 bg-green-50"
-                  : "border-blue-200 bg-blue-50"
+                  ? "border-green-400 bg-green-50 border-l-green-400"
+                  : "border-blue-400 bg-blue-50 border-l-blue-400"
             }`}
           >
-            <CalloutIcon className="h-4 w-4" />
-            {block.data.title && <AlertTitle>{block.data.title}</AlertTitle>}
-            <AlertDescription>{block.data.text}</AlertDescription>
+            <CalloutIcon className="h-5 w-5" />
+            {block.data.title && <AlertTitle className="text-lg font-semibold">{block.data.title}</AlertTitle>}
+            <AlertDescription className="text-base mt-2">{block.data.text}</AlertDescription>
           </Alert>
         )
 
       case "divider":
-        return <Separator key={index} className="my-8" />
+        return <Separator key={index} className="my-8 border-t-2 border-blue-200" />
 
       case "button":
         return (
-          <div key={index} className="my-6">
-            <Button asChild variant="outline" className="border-blue-600 text-blue-600 hover:bg-blue-50 bg-transparent">
+          <div key={index} className="my-6 text-center">
+            <Button
+              asChild
+              variant="outline"
+              className="border-2 border-blue-600 text-blue-600 hover:bg-blue-50 bg-transparent px-6 py-3 text-lg font-semibold rounded-lg shadow-md hover:shadow-lg transition-all"
+            >
               <Link href={block.data.href}>
                 {block.data.label}
-                <ExternalLink className="ml-2 h-4 w-4" />
+                <ExternalLink className="ml-2 h-5 w-5" />
               </Link>
             </Button>
           </div>
@@ -259,24 +284,24 @@ export default function RenderArticle({ blocks }: RenderArticleProps) {
 
       case "pickup":
         return (
-          <Card key={index} className="my-6 border-red-200 bg-red-50">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-red-800">
-                <Star className="h-5 w-5 fill-current" />
+          <Card key={index} className="my-6 border-2 border-red-300 bg-gradient-to-r from-red-50 to-red-25 shadow-lg">
+            <CardHeader className="bg-red-100 border-b border-red-200">
+              <CardTitle className="flex items-center gap-3 text-red-900 text-xl">
+                <Star className="h-6 w-6 fill-current text-red-600" />
                 {block.data.title || "ピックアップ情報"}
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <ul className="space-y-2">
+            <CardContent className="p-6">
+              <ul className="space-y-3">
                 {block.data.items.map((item, itemIndex) => (
-                  <li key={itemIndex} className="flex items-center gap-2">
-                    <Star className="h-3 w-3 fill-current text-red-600" />
+                  <li key={itemIndex} className="flex items-center gap-3">
+                    <Star className="h-4 w-4 fill-current text-red-600 flex-shrink-0" />
                     {item.href ? (
-                      <Link href={item.href} className="text-red-700 hover:underline">
+                      <Link href={item.href} className="text-red-800 hover:text-red-900 underline font-medium">
                         {item.label}
                       </Link>
                     ) : (
-                      <span className="text-red-700">{item.label}</span>
+                      <span className="text-red-800 font-medium">{item.label}</span>
                     )}
                   </li>
                 ))}
@@ -287,17 +312,17 @@ export default function RenderArticle({ blocks }: RenderArticleProps) {
 
       case "cards-table":
         return (
-          <div key={index} className="my-6 border border-slate-200 rounded-lg overflow-hidden bg-white shadow-sm">
+          <div key={index} className="my-6 border-2 border-slate-200 rounded-lg overflow-hidden bg-white shadow-lg">
             <Table>
               <TableHeader>
-                <TableRow className="bg-blue-100 border-b border-slate-300">
-                  <TableHead className="font-semibold text-slate-900 py-3 px-4 border-r border-slate-200">
+                <TableRow className="bg-blue-100 border-b-2 border-blue-200">
+                  <TableHead className="font-bold text-slate-900 py-4 px-4 border-r border-blue-200 text-center">
                     カード
                   </TableHead>
-                  <TableHead className="font-semibold text-slate-900 py-3 px-4 border-r border-slate-200">
+                  <TableHead className="font-bold text-slate-900 py-4 px-4 border-r border-blue-200 text-center">
                     説明
                   </TableHead>
-                  <TableHead className="font-semibold text-slate-900 py-3 px-4 text-center">枚数</TableHead>
+                  <TableHead className="font-bold text-slate-900 py-4 px-4 text-center">枚数</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -306,9 +331,9 @@ export default function RenderArticle({ blocks }: RenderArticleProps) {
                   const card = cardData[cardId]
 
                   return (
-                    <TableRow key={itemIndex} className="border-b border-slate-100 hover:bg-slate-50">
+                    <TableRow key={itemIndex} className="border-b border-slate-100 hover:bg-blue-25">
                       <TableCell className="py-4 px-4 border-r border-slate-100">
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-3 justify-center">
                           <div className="flex-shrink-0">
                             {card ? (
                               <Image
@@ -316,14 +341,14 @@ export default function RenderArticle({ blocks }: RenderArticleProps) {
                                 alt={card.name}
                                 width={50}
                                 height={70}
-                                className="rounded-md object-cover border border-gray-200 shadow-sm"
+                                className="rounded-md object-cover border-2 border-gray-200 shadow-md"
                                 onError={(e) => {
                                   const target = e.target as HTMLImageElement
                                   target.src = "/no-card.png"
                                 }}
                               />
                             ) : (
-                              <div className="w-[50px] h-[70px] bg-gray-200 rounded-md flex items-center justify-center border border-gray-200">
+                              <div className="w-[50px] h-[70px] bg-gray-200 rounded-md flex items-center justify-center border-2 border-gray-200">
                                 <span className="text-xs text-gray-500 text-center px-1">
                                   {loading ? "読み込み中..." : "カード未取得"}
                                 </span>
@@ -331,16 +356,18 @@ export default function RenderArticle({ blocks }: RenderArticleProps) {
                             )}
                           </div>
                           <div className="min-w-0 flex-1">
-                            <p className="font-medium text-slate-900 text-[10px] leading-tight truncate max-w-[120px]">
+                            <p className="font-medium text-slate-900 text-sm leading-tight truncate max-w-[120px]">
                               {card?.name || item.name || `カードID: ${item.card_id}`}
                             </p>
                           </div>
                         </div>
                       </TableCell>
-                      <TableCell className="text-slate-700 py-4 px-4 border-r border-slate-100 text-sm">
+                      <TableCell className="text-slate-700 py-4 px-4 border-r border-slate-100 text-sm text-center">
                         {item.explanation || "-"}
                       </TableCell>
-                      <TableCell className="text-center py-4 px-4 font-medium text-sm">{item.quantity || 1}</TableCell>
+                      <TableCell className="text-center py-4 px-4 font-bold text-lg text-blue-600">
+                        {item.quantity || 1}
+                      </TableCell>
                     </TableRow>
                   )
                 })}
@@ -351,16 +378,16 @@ export default function RenderArticle({ blocks }: RenderArticleProps) {
 
       case "card-display-table":
         return (
-          <div key={index} className="my-6 border border-slate-200 rounded-lg overflow-hidden bg-white shadow-sm">
+          <div key={index} className="my-6 border-2 border-slate-200 rounded-lg overflow-hidden bg-white shadow-lg">
             <Table>
               <TableBody>
                 {block.data.rows.map((row: any, rowIndex: number) => (
-                  <TableRow key={row.id || rowIndex} className="border-b border-slate-100 hover:bg-slate-50">
-                    <TableCell className="font-medium text-slate-900 bg-blue-50 py-4 px-4 border-r border-slate-200 w-auto whitespace-nowrap align-top text-sm">
+                  <TableRow key={row.id || rowIndex} className="border-b border-slate-100 hover:bg-blue-25">
+                    <TableCell className="font-bold text-slate-900 bg-blue-100 py-4 px-4 border-r-2 border-blue-200 w-auto whitespace-nowrap align-top text-sm">
                       {row.header}
                     </TableCell>
                     <TableCell className="py-4 px-4">
-                      <div className="grid grid-cols-6 sm:grid-cols-8 md:grid-cols-10 lg:grid-cols-12 gap-2">
+                      <div className="grid grid-cols-6 sm:grid-cols-8 md:grid-cols-10 lg:grid-cols-12 gap-3">
                         {row.cards && row.cards.length > 0 ? (
                           row.cards.map((cardRef: any, cardIndex: number) => {
                             const cardId = typeof cardRef.id === "string" ? Number.parseInt(cardRef.id, 10) : cardRef.id
@@ -368,14 +395,14 @@ export default function RenderArticle({ blocks }: RenderArticleProps) {
 
                             return (
                               <div key={cardIndex} className="flex flex-col items-center">
-                                <div className="aspect-[5/7] relative rounded border overflow-hidden bg-gray-100 w-full max-w-[40px] shadow-sm">
+                                <div className="aspect-[5/7] relative rounded-md border-2 overflow-hidden bg-gray-100 w-full max-w-[45px] shadow-md hover:shadow-lg transition-shadow">
                                   {card ? (
                                     <Image
                                       src={getCardImageUrl(card) || "/placeholder.svg"}
                                       alt={card.name}
                                       fill
                                       className="object-cover"
-                                      sizes="40px"
+                                      sizes="45px"
                                       onError={(e) => {
                                         const target = e.target as HTMLImageElement
                                         target.src = "/no-card.png"
@@ -389,14 +416,16 @@ export default function RenderArticle({ blocks }: RenderArticleProps) {
                                     </div>
                                   )}
                                 </div>
-                                <div className="mt-1 text-[8px] text-gray-600 text-center truncate w-full max-w-[40px] leading-tight">
+                                <div className="mt-1 text-[8px] text-gray-700 text-center truncate w-full max-w-[45px] leading-tight font-medium">
                                   {card?.name || cardRef.name || `ID:${cardRef.id}`}
                                 </div>
                               </div>
                             )
                           })
                         ) : (
-                          <div className="col-span-full text-gray-500 text-sm py-2">カードが選択されていません</div>
+                          <div className="col-span-full text-gray-500 text-sm py-4 text-center italic">
+                            カードが選択されていません
+                          </div>
                         )}
                       </div>
                     </TableCell>
@@ -409,19 +438,19 @@ export default function RenderArticle({ blocks }: RenderArticleProps) {
 
       case "key-value-table":
         return (
-          <div key={index} className="my-6 border border-slate-200 rounded-lg overflow-hidden bg-white shadow-sm">
+          <div key={index} className="my-6 border-2 border-slate-200 rounded-lg overflow-hidden bg-white shadow-lg">
             <Table>
               <TableBody>
                 {block.data.rows.map((row: any, rowIndex: number) => (
-                  <TableRow key={row.id || rowIndex} className="border-b border-slate-100 hover:bg-slate-50">
-                    <TableCell className="font-medium text-slate-900 bg-blue-50 py-4 px-4 border-r border-slate-200 w-auto whitespace-nowrap align-top text-sm">
+                  <TableRow key={row.id || rowIndex} className="border-b border-slate-100 hover:bg-blue-25">
+                    <TableCell className="font-bold text-slate-900 bg-blue-100 py-4 px-4 border-r-2 border-blue-200 w-auto whitespace-nowrap align-top text-sm">
                       {row.key}
                     </TableCell>
                     <TableCell className="py-4 px-4">
                       {row.valueType === "text" ? (
                         <span className="text-slate-700 whitespace-pre-wrap text-sm">{row.textValue || "-"}</span>
                       ) : row.valueType === "card" && row.cardValues && Array.isArray(row.cardValues) ? (
-                        <div className="flex flex-wrap gap-2">
+                        <div className="flex flex-wrap gap-3">
                           {row.cardValues.map((cardValue: any, cardIndex: number) => {
                             const cardId =
                               typeof cardValue.id === "string" ? Number.parseInt(cardValue.id, 10) : cardValue.id
@@ -436,14 +465,14 @@ export default function RenderArticle({ blocks }: RenderArticleProps) {
                                       alt={card.name}
                                       width={50}
                                       height={70}
-                                      className="rounded border border-gray-200 object-cover shadow-sm"
+                                      className="rounded-md border-2 border-gray-200 object-cover shadow-md hover:shadow-lg transition-shadow"
                                       onError={(e) => {
                                         const target = e.target as HTMLImageElement
                                         target.src = "/no-card.png"
                                       }}
                                     />
                                   ) : (
-                                    <div className="w-[50px] h-[70px] bg-gray-200 rounded border border-gray-200 flex items-center justify-center">
+                                    <div className="w-[50px] h-[70px] bg-gray-200 rounded-md border-2 border-gray-200 flex items-center justify-center">
                                       <span className="text-xs text-gray-500 text-center px-1">
                                         {loading ? "読み込み中..." : "未取得"}
                                       </span>
@@ -458,7 +487,7 @@ export default function RenderArticle({ blocks }: RenderArticleProps) {
                           })}
                         </div>
                       ) : (
-                        <span className="text-slate-500 text-sm">-</span>
+                        <span className="text-slate-500 text-sm italic">-</span>
                       )}
                     </TableCell>
                   </TableRow>
@@ -471,15 +500,19 @@ export default function RenderArticle({ blocks }: RenderArticleProps) {
       case "flexible-table":
         return (
           <div key={index} className="my-6">
-            {block.data.title && <h3 className="text-lg font-semibold text-slate-900 mb-4">{block.data.title}</h3>}
-            <div className="border border-slate-200 rounded-lg overflow-hidden bg-white shadow-sm">
+            {block.data.title && (
+              <h3 className="text-lg font-semibold text-slate-900 mb-4 pb-2 border-b border-blue-200 bg-blue-50 p-3 rounded-t-lg">
+                {block.data.title}
+              </h3>
+            )}
+            <div className="border-2 border-slate-200 rounded-lg overflow-hidden bg-white shadow-lg">
               <Table>
                 <TableHeader>
-                  <TableRow className="bg-blue-100 border-b border-slate-300">
+                  <TableRow className="bg-blue-100 border-b-2 border-blue-200">
                     {block.data.columns.map((column: any, colIndex: number) => (
                       <TableHead
                         key={column.id || colIndex}
-                        className="font-semibold text-slate-900 py-3 px-4 border-r border-slate-200 last:border-r-0"
+                        className="font-bold text-slate-900 py-4 px-4 border-r border-blue-200 last:border-r-0 text-center"
                         style={{ width: column.width }}
                       >
                         {column.header}
@@ -489,14 +522,14 @@ export default function RenderArticle({ blocks }: RenderArticleProps) {
                 </TableHeader>
                 <TableBody>
                   {block.data.rows.map((row: any, rowIndex: number) => (
-                    <TableRow key={row.id || rowIndex} className="border-b border-slate-100 hover:bg-slate-50">
+                    <TableRow key={row.id || rowIndex} className="border-b border-slate-100 hover:bg-blue-25">
                       {block.data.columns.map((column: any, colIndex: number) => {
                         const cellValue = row.cells?.[column.id] || ""
 
                         return (
                           <TableCell
                             key={column.id || colIndex}
-                            className="text-slate-700 py-3 px-4 border-r border-slate-100 last:border-r-0 text-sm"
+                            className="text-slate-700 py-3 px-4 border-r border-slate-100 last:border-r-0 text-sm text-center"
                           >
                             {column.type === "image" && cellValue ? (
                               <Image
@@ -504,14 +537,17 @@ export default function RenderArticle({ blocks }: RenderArticleProps) {
                                 alt=""
                                 width={50}
                                 height={50}
-                                className="rounded object-cover shadow-sm"
+                                className="rounded-md object-cover shadow-md mx-auto"
                                 onError={(e) => {
                                   const target = e.target as HTMLImageElement
                                   target.src = "/placeholder.svg"
                                 }}
                               />
                             ) : column.type === "link" && cellValue ? (
-                              <Link href={cellValue} className="text-blue-600 hover:underline text-sm">
+                              <Link
+                                href={cellValue}
+                                className="text-blue-600 hover:text-blue-800 underline text-sm font-medium"
+                              >
                                 {cellValue}
                               </Link>
                             ) : (
@@ -530,25 +566,31 @@ export default function RenderArticle({ blocks }: RenderArticleProps) {
 
       case "toc":
         return (
-          <div key={index} className="my-6 p-4 bg-slate-50 rounded-lg border border-slate-200">
-            <h3 className="font-semibold text-slate-900 mb-2">目次</h3>
+          <div key={index} className="my-6 p-6 bg-blue-50 rounded-lg border-2 border-blue-200 shadow-md">
+            <h3 className="font-bold text-slate-900 mb-3 text-lg flex items-center gap-2">
+              <Info className="h-5 w-5 text-blue-600" />
+              目次
+            </h3>
             <p className="text-sm text-slate-600">目次は見出しから自動生成されます</p>
           </div>
         )
 
       case "related-links":
         return (
-          <div key={index} className="my-6">
-            <h3 className="font-semibold text-slate-900 mb-3">関連リンク</h3>
-            <ul className="space-y-2">
+          <div key={index} className="my-6 p-6 bg-slate-50 rounded-lg border-2 border-slate-200 shadow-md">
+            <h3 className="font-bold text-slate-900 mb-4 text-lg flex items-center gap-2">
+              <ExternalLink className="h-5 w-5 text-blue-600" />
+              関連リンク
+            </h3>
+            <ul className="space-y-3">
               {block.data.items.map((item, itemIndex) => (
                 <li key={itemIndex}>
                   <Link
                     href={item.href}
-                    className="text-blue-600 hover:text-blue-800 underline flex items-center gap-1"
+                    className="text-blue-600 hover:text-blue-800 underline flex items-center gap-2 font-medium transition-colors"
                   >
+                    <ExternalLink className="h-4 w-4" />
                     {item.label}
-                    <ExternalLink className="h-3 w-3" />
                   </Link>
                 </li>
               ))}
@@ -558,40 +600,40 @@ export default function RenderArticle({ blocks }: RenderArticleProps) {
 
       case "evaluation":
         return (
-          <Card key={index} className="my-6">
-            <CardHeader>
-              <CardTitle>デッキ評価</CardTitle>
+          <Card key={index} className="my-6 border-2 border-blue-300 shadow-lg">
+            <CardHeader className="bg-blue-100 border-b-2 border-blue-200">
+              <CardTitle className="text-xl font-bold text-blue-900">デッキ評価</CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 gap-4 text-sm">
+            <CardContent className="p-6">
+              <div className="grid grid-cols-2 gap-6 text-sm">
                 {block.data.tier_rank && (
-                  <div>
-                    <span className="text-slate-600">ティアランク:</span>
-                    <span className="ml-2 font-medium">{block.data.tier_rank}</span>
+                  <div className="flex justify-between items-center p-3 bg-blue-50 rounded-lg">
+                    <span className="text-slate-700 font-medium">ティアランク:</span>
+                    <span className="font-bold text-blue-700 text-lg">{block.data.tier_rank}</span>
                   </div>
                 )}
                 {block.data.max_damage && (
-                  <div>
-                    <span className="text-slate-600">最大ダメージ:</span>
-                    <span className="ml-2 font-medium">{block.data.max_damage}</span>
+                  <div className="flex justify-between items-center p-3 bg-red-50 rounded-lg">
+                    <span className="text-slate-700 font-medium">最大ダメージ:</span>
+                    <span className="font-bold text-red-700 text-lg">{block.data.max_damage}</span>
                   </div>
                 )}
                 {block.data.build_difficulty && (
-                  <div>
-                    <span className="text-slate-600">構築難易度:</span>
-                    <span className="ml-2 font-medium">{block.data.build_difficulty}</span>
+                  <div className="flex justify-between items-center p-3 bg-yellow-50 rounded-lg">
+                    <span className="text-slate-700 font-medium">構築難易度:</span>
+                    <span className="font-bold text-yellow-700 text-lg">{block.data.build_difficulty}</span>
                   </div>
                 )}
                 {block.data.stat_accessibility && (
-                  <div>
-                    <span className="text-slate-600">アクセス性:</span>
-                    <span className="ml-2 font-medium">{block.data.stat_accessibility}</span>
+                  <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg">
+                    <span className="text-slate-700 font-medium">アクセス性:</span>
+                    <span className="font-bold text-green-700 text-lg">{block.data.stat_accessibility}</span>
                   </div>
                 )}
                 {block.data.stat_stability && (
-                  <div>
-                    <span className="text-slate-600">安定性:</span>
-                    <span className="ml-2 font-medium">{block.data.stat_stability}</span>
+                  <div className="flex justify-between items-center p-3 bg-purple-50 rounded-lg">
+                    <span className="text-slate-700 font-medium">安定性:</span>
+                    <span className="font-bold text-purple-700 text-lg">{block.data.stat_stability}</span>
                   </div>
                 )}
               </div>
@@ -602,24 +644,35 @@ export default function RenderArticle({ blocks }: RenderArticleProps) {
       case "media-gallery":
         return (
           <div key={index} className="my-6">
-            {block.data.title && <h3 className="text-lg font-semibold text-slate-900 mb-4">{block.data.title}</h3>}
+            {block.data.title && (
+              <h3 className="text-lg font-bold text-slate-900 mb-4 pb-2 border-b border-blue-200 bg-blue-50 p-3 rounded-t-lg">
+                {block.data.title}
+              </h3>
+            )}
             <div
               className={`grid gap-4 ${block.data.layout === "carousel" ? "grid-cols-1" : "grid-cols-2 md:grid-cols-3"}`}
             >
               {block.data.items.map((item: any, itemIndex: number) => (
-                <div key={item.id || itemIndex} className="relative">
+                <div
+                  key={item.id || itemIndex}
+                  className="relative rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-shadow"
+                >
                   <Image
                     src={item.url || "/placeholder.svg"}
                     alt={item.alt || ""}
                     width={300}
                     height={200}
-                    className="rounded-lg object-cover w-full h-48"
+                    className="object-cover w-full h-48"
                     onError={(e) => {
                       const target = e.target as HTMLImageElement
                       target.src = "/placeholder.svg"
                     }}
                   />
-                  {item.caption && <p className="text-sm text-slate-600 text-center mt-2">{item.caption}</p>}
+                  {item.caption && (
+                    <p className="text-sm text-slate-600 text-center mt-2 p-2 bg-slate-50 rounded-b-lg font-medium">
+                      {item.caption}
+                    </p>
+                  )}
                 </div>
               ))}
             </div>
@@ -630,7 +683,7 @@ export default function RenderArticle({ blocks }: RenderArticleProps) {
         return (
           <div
             key={index}
-            className="my-6"
+            className="my-6 p-4 rounded-lg border border-slate-200 bg-white shadow-sm"
             style={{
               fontSize: block.data.style?.fontSize,
               color: block.data.style?.color,
@@ -649,11 +702,12 @@ export default function RenderArticle({ blocks }: RenderArticleProps) {
       default:
         console.warn(`Unknown block type: ${(block as any).type}`)
         return (
-          <div key={index} className="my-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-            <p className="text-yellow-800">
-              未対応のブロックタイプ: <code className="bg-yellow-100 px-2 py-1 rounded">{(block as any).type}</code>
+          <div key={index} className="my-4 p-4 bg-yellow-50 border-2 border-yellow-200 rounded-lg shadow-md">
+            <p className="text-yellow-800 font-semibold">
+              未対応のブロックタイプ:{" "}
+              <code className="bg-yellow-100 px-2 py-1 rounded font-mono">{(block as any).type}</code>
             </p>
-            <pre className="mt-2 text-xs text-yellow-700 overflow-auto">
+            <pre className="mt-2 text-xs text-yellow-700 overflow-auto bg-yellow-100 p-2 rounded">
               {JSON.stringify((block as any).data, null, 2)}
             </pre>
           </div>
@@ -665,7 +719,7 @@ export default function RenderArticle({ blocks }: RenderArticleProps) {
     return (
       <div className="max-w-4xl mx-auto space-y-6">
         <div className="animate-pulse">
-          <div className="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
+          <div className="h-6 bg-blue-200 rounded w-3/4 mb-4"></div>
           <div className="h-4 bg-gray-200 rounded w-1/2 mb-4"></div>
           <div className="h-32 bg-gray-200 rounded mb-4"></div>
         </div>
