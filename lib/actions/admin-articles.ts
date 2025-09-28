@@ -1,544 +1,256 @@
 "use server"
 
-import { createClient } from "@/lib/supabase/server"
+import "server-only"
+import { createServerClient } from "@/lib/supabase/server"
 import { revalidatePath } from "next/cache"
 
-export interface ArticleBlock {
-  id?: string
-  type: string
-  data: any
-  display_order: number
-}
-
-export interface CreateArticleData {
+export type ArticleFormData = {
   title: string
-  slug?: string
-  subtitle?: string
   excerpt?: string
   thumbnail_image_url?: string
-  hero_image_url?: string
-  category: string
   tags?: string[]
+  category?: string
   is_published: boolean
+  published_at?: string
   pinned?: boolean
   priority?: number
-  blocks: ArticleBlock[]
+  slug?: string
+  blocks: Array<{
+    type: string
+    display_order: number
+    data: any
+  }>
 }
 
-// スラッグの重複チェックと自動生成
-async function generateUniqueSlug(supabase: any, baseSlug: string, excludeId?: string): Promise<string> {
-  let slug = baseSlug
-  let counter = 1
-
-  while (true) {
-    const query = supabase.from("info_articles").select("id").eq("slug", slug)
-
-    if (excludeId) {
-      query.neq("id", excludeId)
-    }
-
-    const { data: existing } = await query.single()
-
-    if (!existing) {
-      return slug
-    }
-
-    slug = `${baseSlug}-${counter}`
-    counter++
-  }
+async function supabaseServer() {
+  return await createServerClient()
 }
 
-// ブロックの display_order を確実にユニークにする関数
-function normalizeBlockOrders(blocks: ArticleBlock[]): ArticleBlock[] {
+// ブロックの順序を正規化する関数
+function normalizeBlockOrders(blocks: Array<{ type: string; display_order: number; data: any }>) {
   return blocks
-    .sort((a, b) => (a.display_order || 0) - (b.display_order || 0))
+    .sort((a, b) => a.display_order - b.display_order)
     .map((block, index) => ({
       ...block,
       display_order: (index + 1) * 10, // 10, 20, 30, ... の順序で設定
     }))
 }
 
-export async function createArticle(articleData: CreateArticleData) {
-  console.log("[SERVER] === DEBUG: createArticle function started ===")
-  console.log("[SERVER] Input article data:", JSON.stringify(articleData, null, 2))
-
+export async function createArticle(
+  formData: ArticleFormData,
+): Promise<{ success: boolean; error?: string; id?: string }> {
   try {
-    const supabase = await createClient()
-    console.log("[SERVER] === DEBUG: Supabase client created ===")
+    const supabase = await supabaseServer()
 
-    // 現在のユーザーを取得
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser()
+    // ブロックの順序を正規化
+    const normalizedBlocks = normalizeBlockOrders(formData.blocks)
 
-    console.log("[SERVER] === DEBUG: Current user info ===")
-    console.log("[SERVER] User ID:", user?.id)
-    console.log("[SERVER] User email:", user?.email)
-    console.log("[SERVER] User error:", userError)
-
-    if (userError) {
-      console.log("[SERVER] ERROR: User authentication error:", userError)
-      throw new Error("認証エラーが発生しました")
-    }
-
-    if (!user) {
-      console.log("[SERVER] ERROR: No authenticated user found")
-      throw new Error("認証されていません")
-    }
-
-    // 記事データの準備
-    const { blocks, ...articleFields } = articleData
-
-    // スラッグの生成と重複チェック
-    const baseSlug = articleData.slug || articleData.title.toLowerCase().replace(/\s+/g, "-")
-    const uniqueSlug = await generateUniqueSlug(supabase, baseSlug)
-
-    const insertData = {
-      ...articleFields,
-      author_id: user.id,
-      slug: uniqueSlug,
-      tags: articleData.tags || [],
-      pinned: articleData.pinned || false,
-      priority: articleData.priority || 0,
-    }
-
-    console.log("[SERVER] === DEBUG: Prepared insert data ===")
-    console.log("[SERVER] Insert data:", JSON.stringify(insertData, null, 2))
-
-    // 記事を挿入
-    console.log("[SERVER] === DEBUG: Inserting article ===")
+    // 記事を作成
     const { data: article, error: articleError } = await supabase
       .from("info_articles")
-      .insert(insertData)
-      .select()
+      .insert({
+        title: formData.title,
+        excerpt: formData.excerpt,
+        thumbnail_image_url: formData.thumbnail_image_url,
+        tags: formData.tags,
+        category: formData.category,
+        is_published: formData.is_published,
+        published_at: formData.published_at || new Date().toISOString(),
+        pinned: formData.pinned || false,
+        priority: formData.priority || 0,
+        slug: formData.slug,
+      })
+      .select("id")
       .single()
 
     if (articleError) {
-      console.log("[SERVER] === DEBUG: Article insertion failed ===")
-      console.log("[SERVER] Error code:", articleError.code)
-      console.log("[SERVER] Error message:", articleError.message)
-      console.log("[SERVER] Error details:", articleError.details)
-      console.log("[SERVER] Error hint:", articleError.hint)
-      throw new Error(`記事の作成に失敗しました: ${articleError.message}`)
+      console.error("Article creation error:", articleError)
+      return { success: false, error: `記事の作成に失敗しました: ${articleError.message}` }
     }
 
-    console.log("[SERVER] === DEBUG: Article created successfully ===")
-    console.log("[SERVER] Article ID:", article.id)
-
-    // ブロックを挿入
-    if (blocks && blocks.length > 0) {
-      console.log("[SERVER] === DEBUG: Inserting blocks ===")
-
-      // ブロックの順序を正規化
-      const normalizedBlocks = normalizeBlockOrders(blocks)
-      console.log("[SERVER] === DEBUG: Normalized blocks ===")
-      console.log("[SERVER] Normalized blocks:", JSON.stringify(normalizedBlocks, null, 2))
-
-      const blockData = normalizedBlocks.map((block) => ({
+    // ブロックを作成
+    if (normalizedBlocks.length > 0) {
+      const blocksToInsert = normalizedBlocks.map((block) => ({
         article_id: article.id,
         type: block.type,
-        data: block.data,
         display_order: block.display_order,
+        data: block.data,
       }))
 
-      console.log("[SERVER] Block data:", JSON.stringify(blockData, null, 2))
-
-      const { error: blocksError } = await supabase.from("info_article_blocks").insert(blockData)
+      const { error: blocksError } = await supabase.from("info_article_blocks").insert(blocksToInsert)
 
       if (blocksError) {
-        console.log("[SERVER] === DEBUG: Block insertion failed ===")
-        console.log("[SERVER] Blocks error:", blocksError)
-        // 記事は作成されたが、ブロックの挿入に失敗した場合は記事を削除
+        console.error("Blocks creation error:", blocksError)
+        // 記事を削除してロールバック
         await supabase.from("info_articles").delete().eq("id", article.id)
-        throw new Error(`ブロックの作成に失敗しました: ${blocksError.message}`)
+        return { success: false, error: `ブロックの作成に失敗しました: ${blocksError.message}` }
       }
-
-      console.log("[SERVER] === DEBUG: Blocks created successfully ===")
     }
 
-    // キャッシュを更新
     revalidatePath("/admin/articles")
     revalidatePath("/info")
 
-    console.log("[SERVER] === DEBUG: Article creation completed ===")
-    return { success: true, data: article }
+    return { success: true, id: article.id }
   } catch (error) {
-    console.log("[SERVER] === DEBUG: Error in createArticle ===")
-    console.log("[SERVER] Error message:", error instanceof Error ? error.message : String(error))
-    console.log("[SERVER] Error stack:", error instanceof Error ? error.stack : "No stack trace")
-    console.log("[SERVER] Full error object:", error)
-
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : "記事の作成に失敗しました",
-    }
+    console.error("Unexpected error in createArticle:", error)
+    return { success: false, error: "予期しないエラーが発生しました" }
   }
 }
 
-export async function updateArticle(id: string, articleData: CreateArticleData) {
-  console.log("[SERVER] === DEBUG: updateArticle function started ===")
-  console.log("[SERVER] Article ID:", id)
-  console.log("[SERVER] Update data:", JSON.stringify(articleData, null, 2))
-
+export async function updateArticle(
+  id: string,
+  formData: ArticleFormData,
+): Promise<{ success: boolean; error?: string }> {
   try {
-    const supabase = await createClient()
+    const supabase = await supabaseServer()
 
-    // 現在のユーザーを取得
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser()
-
-    if (userError || !user) {
-      throw new Error("認証されていません")
-    }
-
-    const { blocks, ...articleFields } = articleData
-
-    // スラッグの重複チェック（更新時は自分自身を除外）
-    const baseSlug = articleData.slug || articleData.title.toLowerCase().replace(/\s+/g, "-")
-    const uniqueSlug = await generateUniqueSlug(supabase, baseSlug, id)
-
-    const updateData = {
-      ...articleFields,
-      slug: uniqueSlug,
-      tags: articleData.tags || [],
-      pinned: articleData.pinned || false,
-      priority: articleData.priority || 0,
-      updated_at: new Date().toISOString(),
-    }
+    // ブロックの順序を正規化
+    const normalizedBlocks = normalizeBlockOrders(formData.blocks)
 
     // 記事を更新
-    const { data: article, error: articleError } = await supabase
+    const { error: articleError } = await supabase
       .from("info_articles")
-      .update(updateData)
+      .update({
+        title: formData.title,
+        excerpt: formData.excerpt,
+        thumbnail_image_url: formData.thumbnail_image_url,
+        tags: formData.tags,
+        category: formData.category,
+        is_published: formData.is_published,
+        published_at: formData.published_at,
+        pinned: formData.pinned || false,
+        priority: formData.priority || 0,
+        slug: formData.slug,
+        updated_at: new Date().toISOString(),
+      })
       .eq("id", id)
-      .select()
-      .single()
 
     if (articleError) {
-      throw new Error(`記事の更新に失敗しました: ${articleError.message}`)
+      console.error("Article update error:", articleError)
+      return { success: false, error: `記事の更新に失敗しました: ${articleError.message}` }
     }
 
     // 既存のブロックを削除
     const { error: deleteError } = await supabase.from("info_article_blocks").delete().eq("article_id", id)
 
     if (deleteError) {
-      throw new Error(`既存ブロックの削除に失敗しました: ${deleteError.message}`)
+      console.error("Blocks deletion error:", deleteError)
+      return { success: false, error: `既存ブロックの削除に失敗しました: ${deleteError.message}` }
     }
 
-    // 新しいブロックを挿入
-    if (blocks && blocks.length > 0) {
-      console.log("[SERVER] === DEBUG: Updating blocks ===")
-
-      // ブロックの順序を正規化
-      const normalizedBlocks = normalizeBlockOrders(blocks)
-      console.log("[SERVER] === DEBUG: Normalized blocks for update ===")
-      console.log("[SERVER] Normalized blocks:", JSON.stringify(normalizedBlocks, null, 2))
-
-      const blockData = normalizedBlocks.map((block) => ({
+    // 新しいブロックを作成
+    if (normalizedBlocks.length > 0) {
+      const blocksToInsert = normalizedBlocks.map((block) => ({
         article_id: id,
         type: block.type,
-        data: block.data,
         display_order: block.display_order,
+        data: block.data,
       }))
 
-      const { error: blocksError } = await supabase.from("info_article_blocks").insert(blockData)
+      const { error: blocksError } = await supabase.from("info_article_blocks").insert(blocksToInsert)
 
       if (blocksError) {
-        throw new Error(`ブロックの更新に失敗しました: ${blocksError.message}`)
+        console.error("Blocks creation error:", blocksError)
+        return { success: false, error: `ブロックの作成に失敗しました: ${blocksError.message}` }
       }
     }
 
-    // キャッシュを更新
     revalidatePath("/admin/articles")
     revalidatePath("/info")
-    revalidatePath(`/info/${article.id}`)
+    revalidatePath(`/info/${id}`)
 
-    return { success: true, data: article }
-  } catch (error) {
-    console.log("[SERVER] === DEBUG: Error in updateArticle ===")
-    console.log("[SERVER] Error:", error)
-
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : "記事の更新に失敗しました",
-    }
-  }
-}
-
-export async function deleteArticle(id: string) {
-  console.log("[SERVER] === DEBUG: deleteArticle function started ===")
-  console.log("[SERVER] Article ID:", id)
-
-  try {
-    const supabase = await createClient()
-
-    // 現在のユーザーを取得
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser()
-
-    console.log("[SERVER] === DEBUG: Current user for delete ===")
-    console.log("[SERVER] User ID:", user?.id)
-    console.log("[SERVER] User error:", userError)
-
-    if (userError || !user) {
-      throw new Error("認証されていません")
-    }
-
-    // 記事を削除（ブロックはCASCADEで自動削除される）
-    const { error } = await supabase.from("info_articles").delete().eq("id", id)
-
-    console.log("[SERVER] === DEBUG: Delete operation result ===")
-    console.log("[SERVER] Delete error:", error)
-
-    if (error) {
-      throw new Error(`記事の削除に失敗しました: ${error.message}`)
-    }
-
-    // キャッシュを更新
-    revalidatePath("/admin/articles")
-    revalidatePath("/info")
-
-    console.log("[SERVER] === DEBUG: Article deleted successfully ===")
     return { success: true }
   } catch (error) {
-    console.log("[SERVER] === DEBUG: Error in deleteArticle ===")
-    console.log("[SERVER] Error:", error)
-
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : "記事の削除に失敗しました",
-    }
+    console.error("Unexpected error in updateArticle:", error)
+    return { success: false, error: "予期しないエラーが発生しました" }
   }
 }
 
-export async function getArticles() {
-  console.log("[SERVER] === DEBUG: getArticles function started ===")
-
+export async function deleteArticle(id: string): Promise<{ success: boolean; error?: string }> {
   try {
-    const supabase = await createClient()
+    const supabase = await supabaseServer()
 
-    // 現在のユーザーを取得
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser()
+    // ブロックを削除
+    const { error: blocksError } = await supabase.from("info_article_blocks").delete().eq("article_id", id)
 
-    console.log("[SERVER] === DEBUG: Current user for getArticles ===")
-    console.log("[SERVER] User ID:", user?.id)
-    console.log("[SERVER] User error:", userError)
-
-    if (userError) {
-      console.log("[SERVER] WARNING: User authentication error in getArticles:", userError)
-      // 記事一覧の取得は認証なしでも許可する場合があるので、エラーにしない
+    if (blocksError) {
+      console.error("Blocks deletion error:", blocksError)
+      return { success: false, error: `ブロックの削除に失敗しました: ${blocksError.message}` }
     }
 
-    console.log("[SERVER] === DEBUG: Fetching articles ===")
-    const { data: articles, error } = await supabase
-      .from("info_articles")
-      .select(`
-        id,
-        title,
-        slug,
-        category,
-        is_published,
-        published_at,
-        pinned,
-        priority,
-        view_count,
-        created_at,
-        updated_at
-      `)
-      .order("created_at", { ascending: false })
+    // 記事を削除
+    const { error: articleError } = await supabase.from("info_articles").delete().eq("id", id)
 
-    console.log("[SERVER] === DEBUG: Articles fetch result ===")
-    console.log("[SERVER] Articles count:", articles?.length || 0)
-    console.log("[SERVER] Fetch error:", error)
-
-    if (error) {
-      console.log("[SERVER] === DEBUG: Articles fetch failed ===")
-      console.log("[SERVER] Error code:", error.code)
-      console.log("[SERVER] Error message:", error.message)
-      console.log("[SERVER] Error details:", error.details)
-      throw new Error(`記事の取得に失敗しました: ${error.message}`)
+    if (articleError) {
+      console.error("Article deletion error:", articleError)
+      return { success: false, error: `記事の削除に失敗しました: ${articleError.message}` }
     }
 
-    console.log("[SERVER] === DEBUG: Articles fetched successfully ===")
-    return { success: true, data: articles || [] }
+    revalidatePath("/admin/articles")
+    revalidatePath("/info")
+
+    return { success: true }
   } catch (error) {
-    console.log("[SERVER] === DEBUG: Error in getArticles ===")
-    console.log("[SERVER] Error message:", error instanceof Error ? error.message : String(error))
-    console.log("[SERVER] Error stack:", error instanceof Error ? error.stack : "No stack trace")
-
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : "記事の取得に失敗しました",
-    }
+    console.error("Unexpected error in deleteArticle:", error)
+    return { success: false, error: "予期しないエラーが発生しました" }
   }
 }
 
 export async function getArticleById(id: string) {
-  console.log("[SERVER] === DEBUG: getArticleById function started ===")
-  console.log("[SERVER] Article ID:", id)
+  const supabase = await supabaseServer()
 
-  try {
-    const supabase = await createClient()
+  const { data: article, error: articleError } = await supabase.from("info_articles").select("*").eq("id", id).single()
 
-    const { data: article, error: articleError } = await supabase
-      .from("info_articles")
-      .select("*")
-      .eq("id", id)
-      .single()
+  if (articleError) {
+    throw new Error(`記事の取得に失敗しました: ${articleError.message}`)
+  }
 
-    console.log("[SERVER] === DEBUG: Article fetch result ===")
-    console.log("[SERVER] Article data:", article ? "found" : "not found")
-    console.log("[SERVER] Article error:", articleError)
+  const { data: blocks, error: blocksError } = await supabase
+    .from("info_article_blocks")
+    .select("*")
+    .eq("article_id", id)
+    .order("display_order", { ascending: true })
 
-    if (articleError) {
-      throw new Error(`記事の取得に失敗しました: ${articleError.message}`)
-    }
+  if (blocksError) {
+    throw new Error(`ブロックの取得に失敗しました: ${blocksError.message}`)
+  }
 
-    const { data: blocks, error: blocksError } = await supabase
-      .from("info_article_blocks")
-      .select("*")
-      .eq("article_id", id)
-      .order("display_order")
-
-    console.log("[SERVER] === DEBUG: Blocks fetch result ===")
-    console.log("[SERVER] Blocks count:", blocks?.length || 0)
-    console.log("[SERVER] Blocks error:", blocksError)
-
-    if (blocksError) {
-      throw new Error(`ブロックの取得に失敗しました: ${blocksError.message}`)
-    }
-
-    console.log("[SERVER] === DEBUG: Article with blocks fetched successfully ===")
-    return {
-      success: true,
-      data: {
-        ...article,
-        blocks: blocks || [],
-      },
-    }
-  } catch (error) {
-    console.log("[SERVER] === DEBUG: Error in getArticleById ===")
-    console.log("[SERVER] Error:", error)
-
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : "記事の取得に失敗しました",
-    }
+  return {
+    ...article,
+    blocks: blocks || [],
   }
 }
 
-export async function toggleArticlePublished(id: string, isPublished: boolean) {
-  console.log("[SERVER] === DEBUG: toggleArticlePublished function started ===")
-  console.log("[SERVER] Article ID:", id)
-  console.log("[SERVER] New published status:", isPublished)
+export async function getArticlesList(limit = 20, offset = 0) {
+  const supabase = await supabaseServer()
 
-  try {
-    const supabase = await createClient()
+  const { data, error } = await supabase
+    .from("info_articles")
+    .select(
+      "id, title, excerpt, thumbnail_image_url, tags, category, is_published, published_at, pinned, priority, created_at, updated_at",
+    )
+    .order("created_at", { ascending: false })
+    .range(offset, offset + limit - 1)
 
-    // 現在のユーザーを取得
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser()
-
-    console.log("[SERVER] === DEBUG: Current user for toggle published ===")
-    console.log("[SERVER] User ID:", user?.id)
-    console.log("[SERVER] User error:", userError)
-
-    if (userError || !user) {
-      throw new Error("認証されていません")
-    }
-
-    const { data, error } = await supabase
-      .from("info_articles")
-      .update({ is_published: isPublished })
-      .eq("id", id)
-      .select()
-      .single()
-
-    console.log("[SERVER] === DEBUG: Toggle published result ===")
-    console.log("[SERVER] Updated data:", data ? "success" : "failed")
-    console.log("[SERVER] Update error:", error)
-
-    if (error) {
-      throw new Error(`公開状態の変更に失敗しました: ${error.message}`)
-    }
-
-    // キャッシュを更新
-    revalidatePath("/admin/articles")
-    revalidatePath("/info")
-
-    console.log("[SERVER] === DEBUG: Article published status toggled successfully ===")
-    return { success: true, data }
-  } catch (error) {
-    console.log("[SERVER] === DEBUG: Error in toggleArticlePublished ===")
-    console.log("[SERVER] Error:", error)
-
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : "公開状態の変更に失敗しました",
-    }
+  if (error) {
+    throw new Error(`記事一覧の取得に失敗しました: ${error.message}`)
   }
+
+  return data || []
 }
 
-export async function toggleArticlePinned(id: string, isPinned: boolean) {
-  console.log("[SERVER] === DEBUG: toggleArticlePinned function started ===")
-  console.log("[SERVER] Article ID:", id)
-  console.log("[SERVER] New pinned status:", isPinned)
-
+export async function logoutAdmin(): Promise<{ success: boolean; error?: string }> {
   try {
-    const supabase = await createClient()
-
-    // 現在のユーザーを取得
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser()
-
-    console.log("[SERVER] === DEBUG: Current user for toggle pinned ===")
-    console.log("[SERVER] User ID:", user?.id)
-    console.log("[SERVER] User error:", userError)
-
-    if (userError || !user) {
-      throw new Error("認証されていません")
-    }
-
-    const { data, error } = await supabase
-      .from("info_articles")
-      .update({ pinned: isPinned })
-      .eq("id", id)
-      .select()
-      .single()
-
-    console.log("[SERVER] === DEBUG: Toggle pinned result ===")
-    console.log("[SERVER] Updated data:", data ? "success" : "failed")
-    console.log("[SERVER] Update error:", error)
+    const supabase = await supabaseServer()
+    const { error } = await supabase.auth.signOut()
 
     if (error) {
-      throw new Error(`ピン留め状態の変更に失敗しました: ${error.message}`)
+      return { success: false, error: error.message }
     }
 
-    // キャッシュを更新
-    revalidatePath("/admin/articles")
-    revalidatePath("/info")
-
-    console.log("[SERVER] === DEBUG: Article pinned status toggled successfully ===")
-    return { success: true, data }
+    return { success: true }
   } catch (error) {
-    console.log("[SERVER] === DEBUG: Error in toggleArticlePinned ===")
-    console.log("[SERVER] Error:", error)
-
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : "ピン留め状態の変更に失敗しました",
-    }
+    console.error("Logout error:", error)
+    return { success: false, error: "ログアウトに失敗しました" }
   }
 }
