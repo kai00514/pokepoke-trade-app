@@ -566,26 +566,27 @@ export default function RenderArticle({ blocks }: RenderArticleProps) {
 
       case "toc":
         return (
-          <div key={index} className="my-6 p-4 bg-gradient-to-r from-blue-600 to-blue-500 rounded-lg shadow-lg">
-            <div className="bg-white rounded-md p-4">
-              <h3 className="font-bold text-blue-900 mb-3 text-lg flex items-center gap-2 border-b-2 border-blue-200 pb-2">
-                <Info className="h-5 w-5 text-blue-600" />
-                目次
-              </h3>
+          <div key={index} className="my-6 border-2 border-red-400 rounded-lg bg-red-50 shadow-md">
+            <div className="bg-red-500 text-white px-4 py-2 rounded-t-lg">
+              <h3 className="font-bold text-base">最新情報</h3>
+            </div>
+            <div className="p-4 bg-white rounded-b-lg">
               {block.data.items && block.data.items.length > 0 ? (
                 <ul className="space-y-2">
                   {block.data.items.map((item: any, itemIndex: number) => (
                     <li key={itemIndex} className="flex items-start gap-2">
-                      <span className="text-blue-600 font-bold text-sm mt-0.5 flex-shrink-0">{itemIndex + 1}.</span>
+                      <span className="bg-blue-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">
+                        {itemIndex + 1}
+                      </span>
                       {item.href ? (
                         <a
                           href={item.href}
-                          className="text-slate-700 hover:text-blue-600 font-medium text-sm leading-relaxed transition-colors underline-offset-2 hover:underline"
+                          className="text-blue-600 hover:text-blue-800 font-medium text-sm leading-relaxed transition-colors hover:underline"
                         >
                           {item.label}
                         </a>
                       ) : (
-                        <span className="text-slate-700 font-medium text-sm leading-relaxed">{item.label}</span>
+                        <span className="text-blue-600 font-medium text-sm leading-relaxed">{item.label}</span>
                       )}
                     </li>
                   ))}
