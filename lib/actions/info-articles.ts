@@ -140,28 +140,6 @@ export type CardDisplayTableBlock = BlockBase<
 >
 
 /**
- * New: flexible table block (cell-based flexible table)
- */
-export type FlexibleTableBlock = BlockBase<
-  "flexible-table",
-  {
-    rows: Array<{
-      id: string
-      cells: Array<{
-        id: string
-        type: "text" | "number" | "image" | "link" | "empty"
-        value: string
-        cardId?: string
-        cardName?: string
-        cardImageUrl?: string
-      }>
-    }>
-    style: "default" | "striped" | "bordered" | "compact"
-    maxColumns: number
-  }
->
-
-/**
  * New: pickup info block (red-accent card with starred links/text list)
  */
 export type PickupBlock = BlockBase<
@@ -183,6 +161,26 @@ export type ButtonBlock = BlockBase<
   }
 >
 
+/**
+ * New: key-value table block (2-column table with header and content)
+ */
+export type KeyValueTableBlock = BlockBase<
+  "key-value-table",
+  {
+    rows: Array<{
+      id: string
+      key: string
+      valueType: "text" | "card"
+      textValue?: string
+      cardValue?: {
+        id: string
+        name: string
+        imageUrl: string
+      }
+    }>
+  }
+>
+
 export type Block =
   | HeadingBlock
   | ParagraphBlock
@@ -196,9 +194,9 @@ export type Block =
   | EvaluationBlock
   | CardsTableBlock
   | CardDisplayTableBlock
-  | FlexibleTableBlock
   | PickupBlock
   | ButtonBlock
+  | KeyValueTableBlock
 
 type RawDbBlock = {
   display_order: number | null
@@ -484,44 +482,6 @@ function validateBlocks(rawBlocks: RawDbBlock[]): Block[] {
           break
         }
 
-        case "flexible-table": {
-          const d = rb.data as any
-          const rowsRaw = Array.isArray(d?.rows) ? d.rows : []
-          const rows = rowsRaw
-            .map((row: any) => {
-              const id = typeof row?.id === "string" ? row.id : `row-${Math.random()}`
-              const cellsRaw = Array.isArray(row?.cells) ? row.cells : []
-              const cells = cellsRaw
-                .map((cell: any) => {
-                  const cellId = typeof cell?.id === "string" ? cell.id : `cell-${Math.random()}`
-                  const type = ["text", "number", "image", "link", "empty"].includes(cell?.type) ? cell.type : "text"
-                  const value = typeof cell?.value === "string" ? cell.value : ""
-                  const cardId = typeof cell?.cardId === "string" ? cell.cardId : undefined
-                  const cardName = typeof cell?.cardName === "string" ? cell.cardName : undefined
-                  const cardImageUrl = typeof cell?.cardImageUrl === "string" ? cell.cardImageUrl : undefined
-                  return { id: cellId, type, value, cardId, cardName, cardImageUrl }
-                })
-                .filter(Boolean)
-
-              return cells.length > 0 ? { id, cells } : null
-            })
-            .filter(Boolean)
-
-          const style = ["striped", "bordered", "compact"].includes(d?.style) ? d.style : "default"
-          const maxColumns = typeof d?.maxColumns === "number" && d.maxColumns > 0 ? d.maxColumns : 2
-
-          if (rows.length > 0) {
-            safe.push({
-              type: "flexible-table",
-              display_order: order,
-              data: { rows, style, maxColumns },
-            })
-          } else {
-            console.warn("[info-articles] Skip invalid flexible-table block", { order, d })
-          }
-          break
-        }
-
         case "pickup": {
           const d = rb.data as any
           const itemsRaw = Array.isArray(d?.items) ? d.items : []
@@ -552,6 +512,46 @@ function validateBlocks(rawBlocks: RawDbBlock[]): Block[] {
             safe.push({ type: "button", display_order: order, data: { label, href } })
           } else {
             console.warn("[info-articles] Skip invalid button block", { order, d })
+          }
+          break
+        }
+
+        case "key-value-table": {
+          const d = rb.data as any
+          const rowsRaw = Array.isArray(d?.rows) ? d.rows : []
+          const rows = rowsRaw
+            .map((row: any) => {
+              const id = typeof row?.id === "string" ? row.id : `row-${Math.random()}`
+              const key = typeof row?.key === "string" ? row.key.trim() : ""
+              const valueType = row?.valueType === "card" ? "card" : "text"
+              const textValue = typeof row?.textValue === "string" ? row.textValue : undefined
+              const cardValue =
+                row?.cardValue && typeof row.cardValue === "object"
+                  ? {
+                      id: typeof row.cardValue.id === "string" ? row.cardValue.id : "",
+                      name: typeof row.cardValue.name === "string" ? row.cardValue.name : "",
+                      imageUrl: typeof row.cardValue.imageUrl === "string" ? row.cardValue.imageUrl : "",
+                    }
+                  : undefined
+
+              return key ? { id, key, valueType, textValue, cardValue } : null
+            })
+            .filter(Boolean) as Array<{
+            id: string
+            key: string
+            valueType: "text" | "card"
+            textValue?: string
+            cardValue?: { id: string; name: string; imageUrl: string }
+          }>
+
+          if (rows.length > 0) {
+            safe.push({
+              type: "key-value-table",
+              display_order: order,
+              data: { rows },
+            })
+          } else {
+            console.warn("[info-articles] Skip invalid key-value-table block", { order, d })
           }
           break
         }

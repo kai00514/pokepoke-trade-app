@@ -12,7 +12,7 @@ importers:
         specifier: latest
         version: 1.4.0
       '@hello-pangea/dnd':
-        specifier: latest
+        specifier: 18.0.1
         version: 18.0.1(@types/react@19.0.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
       '@hookform/resolvers':
         specifier: ^3.9.1
@@ -152,6 +152,9 @@ importers:
       react-dropzone:
         specifier: latest
         version: 14.3.8(react@19.0.0)
+      react-feather:
+        specifier: latest
+        version: 2.0.10(react@19.0.0)
       react-hook-form:
         specifier: latest
         version: 7.63.0(react@19.0.0)
@@ -1708,6 +1711,11 @@ packages:
     engines: {node: '>= 10.13'}
     peerDependencies:
       react: '>= 16.8 || 18.0.0'
+
+  react-feather@2.0.10:
+    resolution: {integrity: sha512-BLhukwJ+Z92Nmdcs+EMw6dy1Z/VLiJTzEQACDUEnWMClhYnFykJCGWQx+NmwP/qQHGX/5CzQ+TGi8ofg2+HzVQ==}
+    peerDependencies:
+      react: '>=16.8.6'
 
   react-hook-form@7.63.0:
     resolution: {integrity: sha512-ZwueDMvUeucovM2VjkCf7zIHcs1aAlDimZu2Hvel5C5907gUzMpm4xCrQXtRzCvsBqFjonB4m3x4LzCFI1ZKWA==}
@@ -3498,6 +3506,11 @@ snapshots:
     dependencies:
       attr-accept: 2.2.5
       file-selector: 2.1.2
+      prop-types: 15.8.1
+      react: 19.0.0
+
+  react-feather@2.0.10(react@19.0.0):
+    dependencies:
       prop-types: 15.8.1
       react: 19.0.0
 
