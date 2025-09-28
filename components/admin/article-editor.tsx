@@ -141,6 +141,12 @@ export function ArticleEditor({ article, isEditing = false }: ArticleEditorProps
 
     let defaultData
     switch (type) {
+      case "latest-info":
+        defaultData = {
+          title: "最新情報",
+          items: [{ label: "新しい情報", href: "" }],
+        }
+        break
       case "heading":
         defaultData = { text: "", level: 2 }
         break

@@ -1,117 +1,43 @@
-"use client"
+import type React from "react"
+import { Star } from "lucide-react"
 
-import { Button } from "@/components/ui/button"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Plus } from "lucide-react"
-
-interface BlockTypeSelectorProps {
-  onSelect: (type: string) => void
-}
-
-const blockTypes = [
-  {
-    category: "基本コンテンツ",
-    items: [
-      { type: "heading", label: "見出し", description: "H1, H2, H3の見出し" },
-      { type: "paragraph", label: "段落", description: "通常のテキスト段落" },
-      { type: "rich-text", label: "リッチテキスト", description: "Markdown/HTML対応テキスト" },
-    ],
-  },
-  {
-    category: "メディア",
-    items: [
-      { type: "image", label: "画像", description: "単一画像の表示" },
-      { type: "media-gallery", label: "メディアギャラリー", description: "複数画像のギャラリー" },
-    ],
-  },
-  {
-    category: "リスト・テーブル",
-    items: [
-      { type: "list", label: "リスト", description: "箇条書き・番号付きリスト" },
-      { type: "table", label: "テーブル", description: "基本的な表" },
-      { type: "flexible-table", label: "柔軟テーブル", description: "高度な表機能" },
-      {
-        type: "key-value-table",
-        label: "キー・バリューテーブル",
-        description: "1列目がヘッダー、2列目にテキストやカードを表示",
-      },
-    ],
-  },
-  {
-    category: "ポケモンカード専用",
-    items: [
-      { type: "cards-table", label: "カードテーブル", description: "カード情報の表" },
-      { type: "card-display-table", label: "カード表示テーブル", description: "カード画像の表示テーブル" },
-      { type: "evaluation", label: "評価", description: "デッキ評価情報" },
-    ],
-  },
-  {
-    category: "インタラクティブ",
-    items: [
-      { type: "button", label: "ボタン", description: "CTA・リンクボタン" },
-      { type: "callout", label: "コールアウト", description: "注意・情報ボックス" },
-      { type: "pickup", label: "ピックアップ", description: "重要情報の強調表示" },
-      { type: "latest-info", label: "最新情報", description: "赤枠の最新情報ボックス" },
-    ],
-  },
-  {
-    category: "ナビゲーション",
-    items: [
-      { type: "toc", label: "目次", description: "記事の目次" },
-      { type: "related-links", label: "関連リンク", description: "関連記事・外部リンク" },
-      { type: "divider", label: "区切り線", description: "セクション区切り" },
-    ],
-  },
-]
-
-export function BlockTypeSelector({ onSelect }: BlockTypeSelectorProps) {
-  const handleSelect = (type: string) => {
-    if (typeof onSelect === "function") {
-      onSelect(type)
-    } else {
-      console.error("onSelect is not a function:", onSelect)
-    }
-  }
+const BlockTypeSelector: React.FC = () => {
+  const blockTypes = [
+    {
+      type: "text",
+      label: "テキスト",
+      description: "シンプルなテキストブロック",
+      icon: "TextIcon",
+      category: "content",
+    },
+    {
+      type: "image",
+      label: "画像",
+      description: "画像を表示するブロック",
+      icon: "ImageIcon",
+      category: "content",
+    },
+    {
+      type: "latest-info",
+      label: "最新情報",
+      description: "赤い枠線の最新情報ブロック",
+      icon: Star,
+      category: "content",
+    },
+    //** rest of code here **/
+  ]
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
-          <Plus className="h-4 w-4 mr-2" />
-          ブロックを追加
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent
-        className="w-80"
-        style={{
-          maxHeight: "min(400px, calc(100vh - 100px))",
-          overflowY: "auto",
-        }}
-      >
-        {blockTypes.map((category, categoryIndex) => (
-          <div key={category.category}>
-            <DropdownMenuLabel className="sticky top-0 bg-white z-10 border-b">{category.category}</DropdownMenuLabel>
-            {category.items.map((item) => (
-              <DropdownMenuItem
-                key={item.type}
-                onClick={() => handleSelect(item.type)}
-                className="flex flex-col items-start p-3 cursor-pointer hover:bg-slate-50"
-              >
-                <div className="font-medium text-sm">{item.label}</div>
-                <div className="text-xs text-slate-500 mt-1">{item.description}</div>
-              </DropdownMenuItem>
-            ))}
-            {categoryIndex < blockTypes.length - 1 && <DropdownMenuSeparator />}
-          </div>
-        ))}
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <div>
+      {blockTypes.map((blockType) => (
+        <div key={blockType.type}>
+          <h2>{blockType.label}</h2>
+          <p>{blockType.description}</p>
+          <div>{blockType.icon}</div>
+        </div>
+      ))}
+    </div>
   )
 }
+
+export default BlockTypeSelector
