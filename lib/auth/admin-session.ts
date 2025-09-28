@@ -35,3 +35,19 @@ export async function checkAdminSession(): Promise<AdminSession | null> {
     return null
   }
 }
+
+export async function logoutAdmin(): Promise<void> {
+  try {
+    const response = await fetch("/api/admin/logout", {
+      method: "POST",
+      credentials: "include",
+    })
+
+    if (!response.ok) {
+      throw new Error("Logout failed")
+    }
+  } catch (error) {
+    console.error("Logout failed:", error)
+    throw error
+  }
+}
