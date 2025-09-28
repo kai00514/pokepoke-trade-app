@@ -1,6 +1,7 @@
 "use server"
 
 import { createClient } from "@/lib/supabase/server"
+import { revalidatePath } from "next/cache"
 
 export interface ContactFormData {
   name: string
@@ -9,75 +10,88 @@ export interface ContactFormData {
   message: string
 }
 
-export async function submitContactForm(formData: ContactFormData) {
-  try {
-    const supabase = await createClient()
+export interface ContactSubmissionResult {
+  success: boolean
+  message: string
+  error?: string
+}
 
+export async function submitContactForm(formData: ContactFormData): Promise<ContactSubmissionResult> {
+  try {
     // バリデーション
     if (!formData.name || formData.name.trim().length < 2) {
       return {
         success: false,
-        error: "お名前は2文字以上で入力してください。",
+        message: "お名前は2文字以上で入力してください。",
       }
     }
 
-    if (!formData.email || !formData.email.includes("@")) {
+    if (!formData.email || !isValidEmail(formData.email)) {
       return {
         success: false,
-        error: "有効なメールアドレスを入力してください。",
+        message: "有効なメールアドレスを入力してください。",
       }
     }
 
     if (!formData.subject || formData.subject.trim().length < 5) {
       return {
         success: false,
-        error: "件名は5文字以上で入力してください。",
+        message: "件名は5文字以上で入力してください。",
       }
     }
 
     if (!formData.message || formData.message.trim().length < 10) {
       return {
         success: false,
-        error: "メッセージは10文字以上で入力してください。",
+        message: "メッセージは10文字以上で入力してください。",
       }
     }
+
+    const supabase = createClient()
 
     // 現在のユーザーを取得
     const {
       data: { user },
     } = await supabase.auth.getUser()
 
-    // お問い合わせをデータベースに保存
-    const { error: insertError } = await supabase.from("contact_submissions").insert({
-      user_id: user?.id || null,
+    // データベースに保存
+    const { error } = await supabase.from("contact_submissions").insert({
       name: formData.name.trim(),
       email: formData.email.trim(),
       subject: formData.subject.trim(),
       message: formData.message.trim(),
+      user_id: user?.id || null,
       status: "pending",
-      created_at: new Date().toISOString(),
     })
 
-    if (insertError) {
-      console.error("Contact form submission error:", insertError)
+    if (error) {
+      console.error("Contact form submission error:", error)
       return {
         success: false,
-        error: "お問い合わせの送信に失敗しました。しばらく時間をおいて再度お試しください。",
+        message: "お問い合わせの送信中にエラーが発生しました。しばらく時間をおいて再度お試しください。",
+        error: error.message,
       }
     }
 
-    // 管理者に通知を送信（実装は後で）
-    // await sendNotificationToAdmin(formData)
+    // 成功時はページを再検証
+    revalidatePath("/contact")
 
     return {
       success: true,
-      message: "お問い合わせを受け付けました。ご連絡いただきありがとうございます。",
+      message:
+        "お問い合わせを受け付けました。ご連絡いただきありがとうございます。内容を確認の上、後日ご返信いたします。",
     }
   } catch (error) {
-    console.error("Contact form error:", error)
+    console.error("Unexpected error in contact form submission:", error)
     return {
       success: false,
-      error: "システムエラーが発生しました。しばらく時間をおいて再度お試しください。",
+      message: "予期しないエラーが発生しました。しばらく時間をおいて再度お試しください。",
+      error: error instanceof Error ? error.message : "Unknown error",
     }
   }
+}
+
+function isValidEmail(email: string): boolean {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  return emailRegex.test(email)
 }

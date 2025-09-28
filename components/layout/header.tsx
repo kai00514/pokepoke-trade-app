@@ -11,6 +11,7 @@ import { useState } from "react"
 import { PokepokeIdRegistrationModal } from "@/components/pokepoke-id-registration-modal"
 import { UsernameRegistrationModal } from "@/components/username-registration-modal"
 import { updateUserProfile } from "@/lib/services/user-service"
+import { MessageCircle } from "lucide-react"
 
 export default function Header() {
   const { user, userProfile, loading, signOut, displayName } = useAuth()
@@ -34,6 +35,11 @@ export default function Header() {
   // ユーザー名登録のハンドラ
   const handleUsernameRegistration = () => {
     setIsUsernameModalOpen(true)
+  }
+
+  // お問い合わせのハンドラ
+  const handleContactClick = () => {
+    router.push("/contact")
   }
 
   // ポケポケID保存のハンドラ
@@ -99,16 +105,125 @@ export default function Header() {
                   <span className="text-white text-sm font-medium hidden sm:inline">{displayName}</span>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuItem onClick={handlePokepokeIdRegistration} className="cursor-pointer">
-                  ポケポケID登録
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleUsernameRegistration} className="cursor-pointer">
-                  ユーザー名登録
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer">
-                  ログアウト
-                </DropdownMenuItem>
+              <DropdownMenuContent
+                align="end"
+                className="w-80 bg-white border-0 shadow-2xl rounded-3xl p-0 overflow-hidden backdrop-blur-sm"
+                style={{
+                  background: "linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)",
+                  boxShadow: "0 32px 64px -12px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.1)",
+                }}
+              >
+                {/* ヘッダー部分 */}
+                <div className="relative px-8 py-6 bg-gradient-to-br from-sky-500 via-blue-600 to-indigo-600 text-white overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-br from-black/10 to-black/20"></div>
+                  <div className="absolute -top-10 -right-10 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
+                  <div className="absolute -bottom-10 -left-10 w-24 h-24 bg-white/5 rounded-full blur-xl"></div>
+                  <div className="relative flex items-center space-x-4">
+                    <div className="relative">
+                      {userProfile?.avatar_url ? (
+                        <Image
+                          src={userProfile.avatar_url || "/placeholder.svg"}
+                          alt="ユーザーアバター"
+                          width={56}
+                          height={56}
+                          className="rounded-full object-cover w-14 h-14 ring-4 ring-white/30 shadow-lg"
+                        />
+                      ) : (
+                        <div className="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center ring-4 ring-white/30 shadow-lg backdrop-blur-sm">
+                          <div className="w-7 h-7 bg-white rounded-full" />
+                        </div>
+                      )}
+                      <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-emerald-400 rounded-full border-3 border-white shadow-lg animate-pulse"></div>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xl font-bold text-white truncate drop-shadow-sm">{displayName}</p>
+                      <p className="text-sm text-white/90 font-medium">オンライン</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* メニュー項目 */}
+                <div className="p-3">
+                  <DropdownMenuItem
+                    onClick={handlePokepokeIdRegistration}
+                    className="cursor-pointer rounded-2xl px-5 py-4 text-sm hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 hover:text-blue-700 transition-all duration-300 flex items-center group border-0 focus:bg-gradient-to-r focus:from-blue-50 focus:to-indigo-50 hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]"
+                  >
+                    <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-blue-600 rounded-2xl flex items-center justify-center mr-4 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 shadow-lg group-hover:shadow-xl">
+                      <div className="w-6 h-6 bg-white rounded-full" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-bold text-gray-900 group-hover:text-blue-700 transition-colors duration-200">
+                        ポケポケID登録
+                      </p>
+                      <p className="text-xs text-gray-500 group-hover:text-blue-600 transition-colors duration-200">
+                        あなた専用のIDを設定
+                      </p>
+                    </div>
+                    <div className="w-3 h-3 bg-blue-400 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:scale-125"></div>
+                  </DropdownMenuItem>
+
+                  <DropdownMenuItem
+                    onClick={handleUsernameRegistration}
+                    className="cursor-pointer rounded-2xl px-5 py-4 text-sm hover:bg-gradient-to-r hover:from-emerald-50 hover:to-green-50 hover:text-emerald-700 transition-all duration-300 flex items-center group border-0 focus:bg-gradient-to-r focus:from-emerald-50 focus:to-green-50 hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]"
+                  >
+                    <div className="w-12 h-12 bg-gradient-to-br from-emerald-400 to-green-600 rounded-2xl flex items-center justify-center mr-4 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 shadow-lg group-hover:shadow-xl">
+                      <div className="w-6 h-6 bg-white rounded-full" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-bold text-gray-900 group-hover:text-emerald-700 transition-colors duration-200">
+                        ユーザー名登録
+                      </p>
+                      <p className="text-xs text-gray-500 group-hover:text-emerald-600 transition-colors duration-200">
+                        表示名をカスタマイズ
+                      </p>
+                    </div>
+                    <div className="w-3 h-3 bg-emerald-400 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:scale-125"></div>
+                  </DropdownMenuItem>
+
+                  <DropdownMenuItem
+                    onClick={handleContactClick}
+                    className="cursor-pointer rounded-2xl px-5 py-4 text-sm hover:bg-gradient-to-r hover:from-orange-50 hover:to-amber-50 hover:text-orange-700 transition-all duration-300 flex items-center group border-0 focus:bg-gradient-to-r focus:from-orange-50 focus:to-amber-50 hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]"
+                  >
+                    <div className="w-12 h-12 bg-gradient-to-br from-orange-400 to-amber-600 rounded-2xl flex items-center justify-center mr-4 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 shadow-lg group-hover:shadow-xl">
+                      <MessageCircle className="w-6 h-6 text-white" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-bold text-gray-900 group-hover:text-orange-700 transition-colors duration-200">
+                        お問い合わせ
+                      </p>
+                      <p className="text-xs text-gray-500 group-hover:text-orange-600 transition-colors duration-200">
+                        ご質問やご要望をお聞かせください
+                      </p>
+                    </div>
+                    <div className="w-3 h-3 bg-orange-400 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:scale-125"></div>
+                  </DropdownMenuItem>
+
+                  {/* 区切り線 */}
+                  <div className="my-4 mx-5 h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent"></div>
+
+                  <DropdownMenuItem
+                    onClick={handleSignOut}
+                    className="cursor-pointer rounded-2xl px-5 py-4 text-sm hover:bg-gradient-to-r hover:from-red-50 hover:to-rose-50 hover:text-red-700 transition-all duration-300 flex items-center group border-0 focus:bg-gradient-to-r focus:from-red-50 focus:to-rose-50 hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]"
+                  >
+                    <div className="w-12 h-12 bg-gradient-to-br from-red-400 to-rose-600 rounded-2xl flex items-center justify-center mr-4 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 shadow-lg group-hover:shadow-xl">
+                      <div className="w-6 h-6 bg-white rounded-full" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-bold text-gray-900 group-hover:text-red-700 transition-colors duration-200">
+                        ログアウト
+                      </p>
+                      <p className="text-xs text-gray-500 group-hover:text-red-600 transition-colors duration-200">
+                        アカウントから安全に退出
+                      </p>
+                    </div>
+                    <div className="w-3 h-3 bg-red-400 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:scale-125"></div>
+                  </DropdownMenuItem>
+                </div>
+
+                {/* フッター */}
+                <div className="px-8 py-4 bg-gradient-to-r from-gray-50 to-gray-100 border-t border-gray-100">
+                  <p className="text-xs text-gray-400 text-center font-medium">PokeLink v2.0</p>
+                </div>
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
