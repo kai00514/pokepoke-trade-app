@@ -173,7 +173,7 @@ export function ArticleEditor({ article, isEditing = false }: ArticleEditorProps
         }
         break
       case "callout":
-        defaultData = { body: "", tone: "info", title: "" }
+        defaultData = { text: "", tone: "info", title: "" }
         break
       case "cards-table":
         defaultData = {
@@ -209,17 +209,11 @@ export function ArticleEditor({ article, isEditing = false }: ArticleEditorProps
           rows: [
             {
               id: `row-${Date.now()}`,
-              header: "ヘッダー1",
-              cards: [],
+              key: "新しいキー",
+              valueType: "text",
+              textValue: "",
             },
           ],
-        }
-        break
-      case "media-gallery":
-        defaultData = {
-          items: [],
-          layout: "grid",
-          columns: 3,
         }
         break
       case "toc":
@@ -244,14 +238,14 @@ export function ArticleEditor({ article, isEditing = false }: ArticleEditorProps
       case "pickup":
         defaultData = {
           title: "",
-          items: [{ title: "", url: "" }],
+          items: [{ label: "", href: "" }],
         }
         break
       case "button":
         defaultData = {
-          text: "ボタン",
-          url: "",
-          style: "primary",
+          label: "ボタン",
+          href: "",
+          variant: "primary",
         }
         break
       case "divider":
