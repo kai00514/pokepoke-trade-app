@@ -1,146 +1,146 @@
 "use client"
 
 import { useState } from "react"
-import { Card, CardContent } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
-import { Edit, Trash2, Calendar } from "lucide-react"
+import { Edit, Trash2, Eye } from "lucide-react"
+import { deleteTradeOwnedList } from "@/lib/actions/trade-owned-lists"
+import ListEditorModal from "./list-editor-modal"
 import NotificationModal from "@/components/ui/notification-modal"
-import { deleteTradeOwnedList, type TradeOwnedList } from "@/lib/actions/trade-owned-lists"
-import { ListEditorModal } from "./list-editor-modal"
 
 interface ListCardProps {
-  list: TradeOwnedList
-  userId: string
-  onUpdate: (list: TradeOwnedList) => void
-  onDelete: (listId: number) => void
+  list: {
+    id: string
+    list_name: string
+    description?: string
+    card_ids: number[]
+    created_at: string
+  }
+  onUpdate: () => void
 }
 
-export default function ListCard({ list, userId, onUpdate, onDelete }: ListCardProps) {
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+export default function ListCard({ list, onUpdate }: ListCardProps) {
+  const [isEditorOpen, setIsEditorOpen] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
+
+  // Notification modal state
   const [notificationModal, setNotificationModal] = useState({
     isOpen: false,
     type: "info" as "success" | "error" | "warning" | "info",
     title: "",
     message: "",
+    onConfirm: undefined as (() => void) | undefined,
+    showCancel: false,
   })
 
-  // 削除処理
   const handleDelete = async () => {
-    setIsDeleting(true)
-
-    const result = await deleteTradeOwnedList(list.id, userId)
-
-    if (result.success) {
-      onDelete(list.id)
-    } else {
-      showNotification("error", "エラー", result.error)
-    }
-
-    setIsDeleting(false)
-    setIsDeleteDialogOpen(false)
-  }
-
-  // 日付フォーマット
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    return date.toLocaleDateString("ja-JP", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-    })
-  }
-
-  const showNotification = (type: "success" | "error" | "warning" | "info", title: string, message: string) => {
     setNotificationModal({
       isOpen: true,
-      type,
-      title,
-      message,
+      type: "warning",
+      title: "削除確認",
+      message: `「${list.list_name}」を削除してもよろしいですか？この操作は取り消せません。`,
+      onConfirm: confirmDelete,
+      showCancel: true,
     })
+  }
+
+  const confirmDelete = async () => {
+    setIsDeleting(true)
+
+    try {
+      const result = await deleteTradeOwnedList(list.id)
+
+      if (result.success) {
+        setNotificationModal({
+          isOpen: true,
+          type: "success",
+          title: "削除完了",
+          message: "リストが正常に削除されました。",
+          onConfirm: undefined,
+          showCancel: false,
+        })
+        onUpdate()
+      } else {
+        setNotificationModal({
+          isOpen: true,
+          type: "error",
+          title: "削除エラー",
+          message: result.error || "リストの削除に失敗しました。",
+          onConfirm: undefined,
+          showCancel: false,
+        })
+      }
+    } catch (error) {
+      console.error("Error deleting list:", error)
+      setNotificationModal({
+        isOpen: true,
+        type: "error",
+        title: "システムエラー",
+        message: "予期しないエラーが発生しました。もう一度お試しください。",
+        onConfirm: undefined,
+        showCancel: false,
+      })
+    } finally {
+      setIsDeleting(false)
+    }
+  }
+
+  const handleView = () => {
+    window.location.href = `/lists/${list.id}`
   }
 
   return (
     <>
       <Card className="hover:shadow-md transition-shadow">
-        <CardContent className="p-6">
-          {/* ヘッダー */}
-          <div className="flex justify-between items-start mb-4">
-            <div className="flex-1 min-w-0">
-              <h3 className="font-semibold text-lg text-gray-900 truncate">{list.list_name}</h3>
-              <div className="flex items-center text-sm text-gray-500 mt-1">
-                <Calendar className="h-4 w-4 mr-1" />
-                {formatDate(list.updated_at)}
-              </div>
-            </div>
-            <div className="flex space-x-2 ml-4">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setIsEditModalOpen(true)}
-                className="text-gray-600 hover:text-blue-600"
-              >
-                <Edit className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setIsDeleteDialogOpen(true)}
-                className="text-gray-600 hover:text-red-600"
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-
-          {/* カード枚数 */}
-          <div className="flex justify-between items-center">
-            <Badge variant={list.card_ids.length >= 35 ? "destructive" : "secondary"} className="text-sm">
+        <CardHeader className="pb-3">
+          <div className="flex justify-between items-start">
+            <CardTitle className="text-lg font-semibold text-gray-900 truncate">{list.list_name}</CardTitle>
+            <Badge variant="secondary" className="ml-2">
               {list.card_ids.length}枚
             </Badge>
-            {list.card_ids.length >= 35 && <span className="text-xs text-orange-600 font-medium">上限達成</span>}
+          </div>
+          {list.description && <p className="text-sm text-gray-600 line-clamp-2">{list.description}</p>}
+        </CardHeader>
+        <CardContent>
+          <div className="flex justify-between items-center">
+            <p className="text-xs text-gray-500">作成日: {new Date(list.created_at).toLocaleDateString("ja-JP")}</p>
+            <div className="flex space-x-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleView}
+                className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 bg-transparent"
+              >
+                <Eye className="w-4 h-4 mr-1" />
+                表示
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsEditorOpen(true)}
+                className="text-green-600 hover:text-green-700 hover:bg-green-50"
+              >
+                <Edit className="w-4 h-4 mr-1" />
+                編集
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleDelete}
+                disabled={isDeleting}
+                className="text-red-600 hover:text-red-700 hover:bg-red-50 bg-transparent"
+              >
+                <Trash2 className="w-4 h-4 mr-1" />
+                {isDeleting ? "削除中..." : "削除"}
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
 
       {/* 編集モーダル */}
-      <ListEditorModal
-        isOpen={isEditModalOpen}
-        onOpenChange={setIsEditModalOpen}
-        list={list}
-        userId={userId}
-        onSuccess={onUpdate}
-      />
-
-      {/* 削除確認ダイアログ */}
-      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>リストを削除しますか？</AlertDialogTitle>
-            <AlertDialogDescription>
-              「{list.list_name}」を削除します。この操作は取り消せません。
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>キャンセル</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} disabled={isDeleting} className="bg-red-600 hover:bg-red-700">
-              {isDeleting ? "削除中..." : "削除"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ListEditorModal isOpen={isEditorOpen} onClose={() => setIsEditorOpen(false)} list={list} onUpdate={onUpdate} />
 
       {/* 通知モーダル */}
       <NotificationModal
@@ -149,6 +149,8 @@ export default function ListCard({ list, userId, onUpdate, onDelete }: ListCardP
         type={notificationModal.type}
         title={notificationModal.title}
         message={notificationModal.message}
+        onConfirm={notificationModal.onConfirm}
+        showCancel={notificationModal.showCancel}
       />
     </>
   )
