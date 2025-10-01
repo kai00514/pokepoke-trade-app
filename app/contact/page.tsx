@@ -2,183 +2,221 @@
 
 import { useActionState } from "react"
 import { useAuth } from "@/contexts/auth-context"
-import { submitContact } from "@/lib/actions/contact"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { ArrowLeft, Mail, Clock, CheckCircle, AlertCircle } from "lucide-react"
+import { ArrowLeft, Mail, MessageCircle, Clock, CheckCircle, AlertCircle } from "lucide-react"
 import Link from "next/link"
+import { submitContactForm } from "@/lib/actions/contact"
+
+const initialState = {
+  success: false,
+  message: "",
+}
 
 export default function ContactPage() {
-  const { user } = useAuth()
-  const [state, formAction, isPending] = useActionState(submitContact, null)
+  const { user, userProfile } = useAuth()
+  const [state, formAction, isPending] = useActionState(submitContactForm, initialState)
 
   return (
-    <div className="min-h-screen bg-blue-50">
-      <div className="container mx-auto px-4 py-8">
-        {/* ヘッダー */}
-        <div className="mb-8">
-          <Link href="/" className="inline-flex items-center text-blue-600 hover:text-blue-800 transition-colors mb-4">
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            ホームに戻る
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+      {/* ヘッダー */}
+      <div className="bg-white shadow-sm border-b">
+        <div className="container mx-auto px-4 py-4">
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 transition-colors duration-200"
+          >
+            <ArrowLeft className="w-5 h-5" />
+            <span className="font-medium">タイムラインに戻る</span>
           </Link>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">お問い合わせ</h1>
-          <p className="text-gray-600">ご質問やご要望がございましたら、お気軽にお問い合わせください。</p>
         </div>
+      </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* お問い合わせフォーム */}
-          <div className="lg:col-span-2">
-            <Card>
-              <CardHeader>
-                <CardTitle>お問い合わせフォーム</CardTitle>
-                <CardDescription>以下のフォームにご記入いただき、送信してください。</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {state?.message && (
-                  <Alert
-                    className={`mb-6 ${state.success ? "border-green-200 bg-green-50" : "border-red-200 bg-red-50"}`}
-                  >
-                    {state.success ? (
-                      <CheckCircle className="h-4 w-4 text-green-600" />
-                    ) : (
-                      <AlertCircle className="h-4 w-4 text-red-600" />
-                    )}
-                    <AlertDescription className={state.success ? "text-green-800" : "text-red-800"}>
-                      {state.message}
-                    </AlertDescription>
-                  </Alert>
-                )}
-
-                <form action={formAction} className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-                        お名前 <span className="text-red-500">*</span>
-                      </label>
-                      <Input
-                        id="name"
-                        name="name"
-                        type="text"
-                        required
-                        defaultValue={user?.user_metadata?.full_name || ""}
-                        className="w-full"
-                        placeholder="山田太郎"
-                      />
-                    </div>
-                    <div>
-                      <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                        メールアドレス <span className="text-red-500">*</span>
-                      </label>
-                      <Input
-                        id="email"
-                        name="email"
-                        type="email"
-                        required
-                        defaultValue={user?.email || ""}
-                        className="w-full"
-                        placeholder="example@email.com"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label htmlFor="subject" className="block text-sm font-medium text-gray-700 mb-2">
-                      件名 <span className="text-red-500">*</span>
-                    </label>
-                    <Input
-                      id="subject"
-                      name="subject"
-                      type="text"
-                      required
-                      className="w-full"
-                      placeholder="お問い合わせの件名を入力してください"
-                    />
-                  </div>
-
-                  <div>
-                    <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-2">
-                      メッセージ <span className="text-red-500">*</span>
-                    </label>
-                    <Textarea
-                      id="message"
-                      name="message"
-                      required
-                      rows={6}
-                      className="w-full"
-                      placeholder="お問い合わせ内容を詳しくご記入ください"
-                    />
-                  </div>
-
-                  <Button type="submit" disabled={isPending} className="w-full bg-blue-600 hover:bg-blue-700">
-                    {isPending ? "送信中..." : "送信する"}
-                  </Button>
-                </form>
-              </CardContent>
-            </Card>
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-8">
+            <h1 className="text-4xl font-bold text-gray-900 mb-4">お問い合わせ</h1>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              ご質問やご要望がございましたら、お気軽にお問い合わせください。 内容を確認の上、後日ご返信いたします。
+            </p>
           </div>
 
-          {/* サイドバー */}
-          <div className="space-y-6">
-            {/* よくある質問 */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">よくある質問</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <h4 className="font-medium text-gray-900 mb-1">アカウントについて</h4>
-                  <p className="text-sm text-gray-600">ログインやアカウント設定に関するご質問</p>
-                </div>
-                <div>
-                  <h4 className="font-medium text-gray-900 mb-1">トレード機能について</h4>
-                  <p className="text-sm text-gray-600">カード交換やリスト作成に関するご質問</p>
-                </div>
-                <div>
-                  <h4 className="font-medium text-gray-900 mb-1">技術的な問題</h4>
-                  <p className="text-sm text-gray-600">サイトの動作やエラーに関するご質問</p>
-                </div>
-              </CardContent>
-            </Card>
+          <div className="grid lg:grid-cols-3 gap-8">
+            {/* メインフォーム */}
+            <div className="lg:col-span-2">
+              <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+                <CardHeader className="bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-t-lg">
+                  <CardTitle className="flex items-center gap-2 text-xl">
+                    <MessageCircle className="w-6 h-6" />
+                    お問い合わせフォーム
+                  </CardTitle>
+                  <CardDescription className="text-blue-100">必要事項をご入力の上、送信してください</CardDescription>
+                </CardHeader>
+                <CardContent className="p-6">
+                  {state?.message && (
+                    <Alert
+                      className={`mb-6 ${state.success ? "border-green-200 bg-green-50" : "border-red-200 bg-red-50"}`}
+                    >
+                      <div className="flex items-center gap-2">
+                        {state.success ? (
+                          <CheckCircle className="w-5 h-5 text-green-600" />
+                        ) : (
+                          <AlertCircle className="w-5 h-5 text-red-600" />
+                        )}
+                        <AlertDescription className={state.success ? "text-green-800" : "text-red-800"}>
+                          {state.message}
+                        </AlertDescription>
+                      </div>
+                    </Alert>
+                  )}
 
-            {/* 連絡先情報 */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">連絡先情報</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center space-x-3">
-                  <Mail className="w-5 h-5 text-blue-600" />
-                  <div>
-                    <p className="font-medium">メール</p>
-                    <p className="text-sm text-gray-600">support@pokelnk.com</p>
-                  </div>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <Clock className="w-5 h-5 text-blue-600" />
-                  <div>
-                    <p className="font-medium">対応時間</p>
-                    <p className="text-sm text-gray-600">平日 9:00-18:00</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                  <form action={formAction} className="space-y-6">
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div>
+                        <label htmlFor="name" className="block text-sm font-semibold text-gray-700 mb-2">
+                          お名前 <span className="text-red-500">*</span>
+                        </label>
+                        <Input
+                          id="name"
+                          name="name"
+                          type="text"
+                          defaultValue={userProfile?.display_name || ""}
+                          placeholder="山田 太郎"
+                          required
+                          className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                        />
+                      </div>
+                      <div>
+                        <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-2">
+                          メールアドレス <span className="text-red-500">*</span>
+                        </label>
+                        <Input
+                          id="email"
+                          name="email"
+                          type="email"
+                          defaultValue={user?.email || ""}
+                          placeholder="example@email.com"
+                          required
+                          className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                        />
+                      </div>
+                    </div>
 
-            {/* 注意事項 */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">ご注意</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ul className="text-sm text-gray-600 space-y-2">
-                  <li>• お返事まで2-3営業日いただく場合があります</li>
-                  <li>• 緊急の場合は件名に【緊急】と記載してください</li>
-                  <li>• スパムメールフィルターをご確認ください</li>
-                </ul>
-              </CardContent>
-            </Card>
+                    <div>
+                      <label htmlFor="subject" className="block text-sm font-semibold text-gray-700 mb-2">
+                        件名 <span className="text-red-500">*</span>
+                      </label>
+                      <Input
+                        id="subject"
+                        name="subject"
+                        type="text"
+                        placeholder="お問い合わせの件名をご入力ください"
+                        required
+                        className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label htmlFor="message" className="block text-sm font-semibold text-gray-700 mb-2">
+                        メッセージ <span className="text-red-500">*</span>
+                      </label>
+                      <Textarea
+                        id="message"
+                        name="message"
+                        placeholder="お問い合わせ内容を詳しくご記入ください"
+                        required
+                        rows={6}
+                        className="border-gray-300 focus:border-blue-500 focus:ring-blue-500 resize-none"
+                      />
+                    </div>
+
+                    <Button
+                      type="submit"
+                      disabled={isPending}
+                      className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                    >
+                      {isPending ? (
+                        <div className="flex items-center gap-2">
+                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                          送信中...
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <Mail className="w-5 h-5" />
+                          送信する
+                        </div>
+                      )}
+                    </Button>
+                  </form>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* サイドバー */}
+            <div className="space-y-6">
+              {/* よくある質問 */}
+              <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+                <CardHeader className="bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-t-lg">
+                  <CardTitle className="text-lg">よくある質問</CardTitle>
+                </CardHeader>
+                <CardContent className="p-4 space-y-4">
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-2">Q. 返信までどのくらいかかりますか？</h4>
+                    <p className="text-sm text-gray-600">通常、1-3営業日以内にご返信いたします。</p>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-2">Q. アカウントに関する問題</h4>
+                    <p className="text-sm text-gray-600">
+                      ログインできない場合は、パスワードリセットをお試しください。
+                    </p>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-2">Q. 機能の要望について</h4>
+                    <p className="text-sm text-gray-600">新機能のご要望も大歓迎です。詳しくお聞かせください。</p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* 連絡先情報 */}
+              <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+                <CardHeader className="bg-gradient-to-r from-orange-500 to-red-600 text-white rounded-t-lg">
+                  <CardTitle className="text-lg">その他の連絡方法</CardTitle>
+                </CardHeader>
+                <CardContent className="p-4 space-y-4">
+                  <div className="flex items-center gap-3">
+                    <Mail className="w-5 h-5 text-blue-600" />
+                    <div>
+                      <p className="font-semibold text-gray-900">メール</p>
+                      <p className="text-sm text-gray-600">support@pokelink.com</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Clock className="w-5 h-5 text-green-600" />
+                    <div>
+                      <p className="font-semibold text-gray-900">対応時間</p>
+                      <p className="text-sm text-gray-600">平日 9:00-18:00</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* 注意事項 */}
+              <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+                <CardHeader className="bg-gradient-to-r from-purple-500 to-pink-600 text-white rounded-t-lg">
+                  <CardTitle className="text-lg">ご注意</CardTitle>
+                </CardHeader>
+                <CardContent className="p-4">
+                  <ul className="text-sm text-gray-600 space-y-2">
+                    <li>• 土日祝日は返信が遅れる場合があります</li>
+                    <li>• 緊急の場合は件名に【緊急】と記載してください</li>
+                    <li>• スパムメールフィルターをご確認ください</li>
+                  </ul>
+                </CardContent>
+              </Card>
+            </div>
           </div>
         </div>
       </div>
