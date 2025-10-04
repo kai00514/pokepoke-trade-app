@@ -41,10 +41,17 @@ export async function submitContactForm(prevState: any, formData: FormData) {
       }
     }
 
-    // 現在のユーザーを取得
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
+    // 現在のユーザーを取得（オプショナル）
+    let userId: string | null = null
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+      userId = user?.id || null
+    } catch (authError) {
+      // ユーザー取得エラーは無視（ログインしていない場合もある）
+      console.log("User not authenticated:", authError)
+    }
 
     // データベースに保存
     const { error: insertError } = await supabase.from("contact_submissions").insert({
@@ -52,7 +59,7 @@ export async function submitContactForm(prevState: any, formData: FormData) {
       email: email.trim(),
       subject: subject.trim(),
       message: message.trim(),
-      user_id: user?.id || null,
+      user_id: userId,
       status: "pending",
       created_at: new Date().toISOString(),
     })
