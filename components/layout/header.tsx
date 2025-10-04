@@ -111,21 +111,15 @@ export default function Header() {
                   <span className="text-white text-sm font-medium hidden sm:inline">{displayName}</span>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuItem onClick={handlePokepokeIdRegistration} className="cursor-pointer">
-                  ポケポケID登録
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleUsernameRegistration} className="cursor-pointer">
-                  ユーザー名登録
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleContactClick} className="cursor-pointer">
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={handlePokepokeIdRegistration}>ポケポケID登録</DropdownMenuItem>
+                <DropdownMenuItem onClick={handleUsernameRegistration}>ユーザー名登録</DropdownMenuItem>
+                <DropdownMenuItem onClick={handleContactClick}>
                   <MessageCircle className="w-4 h-4 mr-2" />
                   お問い合わせ
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer">
-                  ログアウト
-                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleSignOut}>ログアウト</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
