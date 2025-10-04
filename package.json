@@ -9,7 +9,6 @@
     "start": "next start"
   },
   "dependencies": {
-    "@components": "latest",
     "@emotion/is-prop-valid": "latest",
     "@hello-pangea/dnd": "18.0.1",
     "@hookform/resolvers": "^3.9.1",
