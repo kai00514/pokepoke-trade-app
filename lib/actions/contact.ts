@@ -1,10 +1,13 @@
 "use server"
 
 import { createClient } from "@/lib/supabase/server"
+import { cookies } from "next/headers"
 
 export async function submitContactForm(prevState: any, formData: FormData) {
   try {
-    const supabase = await createClient()
+    // cookiesを取得してからcreateClientを呼び出す
+    const cookieStore = await cookies()
+    const supabase = createClient(cookieStore)
 
     // フォームデータを取得
     const name = formData.get("name") as string
