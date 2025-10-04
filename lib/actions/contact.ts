@@ -3,81 +3,77 @@
 import { createClient } from "@/lib/supabase/server"
 import { cookies } from "next/headers"
 
-export async function submitContactForm(prevState: any, formData: FormData) {
-  try {
-    // cookiesを取得してからcreateClientを呼び出す
-    const cookieStore = await cookies()
-    const supabase = createClient(cookieStore)
+type ContactFormState = {
+  success: boolean
+  message: string
+  error?: string
+}
 
-    // フォームデータを取得
+export async function submitContactForm(
+  prevState: ContactFormState | undefined,
+  formData: FormData,
+): Promise<ContactFormState> {
+  try {
+    // フォームデータの取得
     const name = formData.get("name") as string
     const email = formData.get("email") as string
     const subject = formData.get("subject") as string
     const message = formData.get("message") as string
 
     // バリデーション
-    if (!name || name.trim().length < 2) {
+    if (!name || !email || !subject || !message) {
       return {
         success: false,
-        message: "お名前は2文字以上で入力してください。",
+        message: "全ての項目を入力してください。",
       }
     }
 
-    if (!email || !email.includes("@")) {
+    // メールアドレスの簡易バリデーション
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(email)) {
       return {
         success: false,
         message: "有効なメールアドレスを入力してください。",
       }
     }
 
-    if (!subject || subject.trim().length < 5) {
-      return {
-        success: false,
-        message: "件名は5文字以上で入力してください。",
-      }
-    }
+    // Supabase クライアントの作成（既存のパターンに従う）
+    const cookieStore = await cookies()
+    const supabase = createClient(cookieStore)
 
-    if (!message || message.trim().length < 10) {
-      return {
-        success: false,
-        message: "メッセージは10文字以上で入力してください。",
-      }
-    }
-
-    // 現在のユーザーを取得
+    // 現在のユーザーを取得（オプショナル）
     const {
       data: { user },
     } = await supabase.auth.getUser()
 
     // データベースに保存
     const { error: insertError } = await supabase.from("contact_submissions").insert({
-      name: name.trim(),
-      email: email.trim(),
-      subject: subject.trim(),
-      message: message.trim(),
+      name,
+      email,
+      subject,
+      message,
       user_id: user?.id || null,
-      status: "pending",
-      created_at: new Date().toISOString(),
     })
 
     if (insertError) {
-      console.error("Database insert error:", insertError)
+      console.error("Contact form submission error:", insertError)
       return {
         success: false,
-        message: "お問い合わせの送信中にエラーが発生しました。しばらく時間をおいて再度お試しください。",
+        message: "お問い合わせの送信に失敗しました。",
+        error: insertError.message,
       }
     }
 
     return {
       success: true,
-      message:
-        "お問い合わせを受け付けました。ご連絡いただきありがとうございます。内容を確認の上、後日ご返信いたします。",
+      message: "お問い合わせを受け付けました。ご連絡ありがとうございます。",
     }
   } catch (error) {
-    console.error("Contact form error:", error)
+    console.error("Unexpected error in contact form submission:", error)
     return {
       success: false,
       message: "予期しないエラーが発生しました。しばらく時間をおいて再度お試しください。",
+      error: error instanceof Error ? error.message : "Unknown error",
     }
   }
 }
