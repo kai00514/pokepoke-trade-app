@@ -24,17 +24,26 @@ export const alt = "PokeLink トレード投稿"
 function convertWebpImageUrl(imageUrl: string | null | undefined): string | null {
   if (!imageUrl) return null
 
-  // WEBP以外はそのまま返す
-  if (!imageUrl.toLowerCase().endsWith(".webp")) {
+  try {
+    // URLをパースして拡張子をチェック
+    const url = new URL(imageUrl)
+    const pathname = url.pathname.toLowerCase()
+
+    // WEBP形式かチェック（pathnameには ? や # が含まれない）
+    if (!pathname.endsWith(".webp")) {
+      return imageUrl
+    }
+
+    // 変換APIのURLを生成（絶対URLが必要）
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.pokelnk.com"
+    const apiUrl = new URL("/api/convert-webp-to-png", baseUrl)
+    apiUrl.searchParams.set("url", imageUrl)
+
+    return apiUrl.href
+  } catch {
+    // URLパースに失敗した場合は元のURLをそのまま返す
     return imageUrl
   }
-
-  // 変換APIのURLを生成（絶対URLが必要）
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.pokelnk.com"
-  const apiUrl = new URL("/api/convert-webp-to-png", baseUrl)
-  apiUrl.searchParams.set("url", imageUrl)
-
-  return apiUrl.href
 }
 
 export default async function Image({ params }: { params: { id: string } }) {
