@@ -5,12 +5,6 @@ import { revalidatePath } from "next/cache"
 import { v4 as uuidv4 } from "uuid"
 import type { Card } from "@/components/detailed-search-modal"
 
-// UTCからJST（UTC+9）に変換するヘルパー関数
-function toJST(utcDate: Date): Date {
-  const jstOffset = 9 * 60 * 60 * 1000 // 9時間をミリ秒に変換
-  return new Date(utcDate.getTime() + jstOffset)
-}
-
 // Helper function to extract username and avatar from user profile
 function getUserDisplayInfo(userProfile: any) {
   const username = userProfile?.name || userProfile?.display_name || userProfile?.email?.split("@")[0] || "ユーザー"
@@ -118,14 +112,11 @@ export async function getTradePostCommentsOnly(postId: string) {
       console.error(`Error fetching user profiles for post ${postId}:`, usersError)
     }
 
-    // コメントを整形（JSTで表示）
+    // コメントを整形
     const comments = commentsData.map((comment: any) => {
-      const createdAtUTC = new Date(comment.created_at)
-      const createdAt = toJST(createdAtUTC)
-      const nowJST = toJST(new Date())
-      const diffSeconds = Math.floor((nowJST.getTime() - createdAt.getTime()) / 1000)
-
-      let timestamp = `${createdAt.getFullYear()}/${String(createdAt.getMonth() + 1).padStart(2, "0")}/${String(createdAt.getDate()).padStart(2, "0")}`
+      const createdAt = new Date(comment.created_at)
+      const diffSeconds = Math.floor((Date.now() - createdAt.getTime()) / 1000)
+      let timestamp = `${createdAt.toLocaleDateString()}`
       if (diffSeconds < 60) timestamp = `${diffSeconds}秒前`
       else if (diffSeconds < 3600) timestamp = `${Math.floor(diffSeconds / 60)}分前`
       else if (diffSeconds < 86400) timestamp = `${Math.floor(diffSeconds / 3600)}時間前`
@@ -204,7 +195,7 @@ export async function createTradePost(formData: TradeFormData) {
       offered_card_id: offeredCardsJsonb, // JSONB配列
       status: "OPEN",
       is_authenticated: isAuthenticated,
-      g8_flg: false,
+      g8_flg: false, // 新しい行
     }
 
     console.log("[createTradePost] Insert data:", {
@@ -325,10 +316,9 @@ export async function getTradePostsWithCards(limit = 10, offset = 0) {
       })
     }
 
-    // Build posts with card data and user info（JSTで表示）
+    // Build posts with card data and user info
     const postsWithCards = posts.map((post: any) => {
-      const createdAtUTC = new Date(post.created_at)
-      const createdAt = toJST(createdAtUTC)
+      const createdAt = new Date(new Date(post.created_at).getTime() + 9 * 60 * 60 * 1000)
       const formattedDate = `${createdAt.getFullYear()}/${String(createdAt.getMonth() + 1).padStart(
         2,
         "0",
@@ -530,15 +520,12 @@ export async function getTradePostDetailsById(postId: string) {
     const wantedCards = parseCardsFromDatabase(postData.wanted_card_id || [])
     const offeredCards = parseCardsFromDatabase(postData.offered_card_id || [])
 
-    // Map comments with author info（JSTで表示）
+    // Map comments with author info
     const comments =
       commentsData?.map((comment: any) => {
-        const createdAtUTC = new Date(comment.created_at)
-        const createdAt = toJST(createdAtUTC)
-        const nowJST = toJST(new Date())
-        const diffSeconds = Math.floor((nowJST.getTime() - createdAt.getTime()) / 1000)
-
-        let timestamp = `${createdAt.getFullYear()}/${String(createdAt.getMonth() + 1).padStart(2, "0")}/${String(createdAt.getDate()).padStart(2, "0")}`
+        const createdAt = new Date(comment.created_at)
+        const diffSeconds = Math.floor((Date.now() - createdAt.getTime()) / 1000)
+        let timestamp = `${createdAt.toLocaleDateString()}`
         if (diffSeconds < 60) timestamp = `${diffSeconds}秒前`
         else if (diffSeconds < 3600) timestamp = `${Math.floor(diffSeconds / 60)}分前`
         else if (diffSeconds < 86400) timestamp = `${Math.floor(diffSeconds / 3600)}時間前`
@@ -568,11 +555,6 @@ export async function getTradePostDetailsById(postId: string) {
         }
       }) || []
 
-    // 投稿日時をJSTで表示
-    const createdAtUTC = new Date(postData.created_at)
-    const createdAtJST = toJST(createdAtUTC)
-    const formattedCreatedAt = `${createdAtJST.getFullYear()}/${String(createdAtJST.getMonth() + 1).padStart(2, "0")}/${String(createdAtJST.getDate()).padStart(2, "0")}`
-
     const formattedPost = {
       id: postData.id,
       title: postData.title,
@@ -595,7 +577,7 @@ export async function getTradePostDetailsById(postId: string) {
         userId: postData.owner_id,
         isOwner: postData.is_authenticated && postData.owner_id,
       },
-      createdAt: formattedCreatedAt,
+      createdAt: new Date(postData.created_at).toLocaleDateString(),
     }
 
     return { success: true, post: formattedPost }
@@ -627,8 +609,8 @@ export async function addCommentToTradePost(
       post_id: postId,
       content: content,
       is_guest: !isAuthenticated,
-      user_id: userId,
-      user_name: isAuthenticated ? "ユーザー" : "ゲスト",
+      user_id: userId, // フロントエンドから渡されたuser_id
+      user_name: isAuthenticated ? "ユーザー" : "ゲスト", // 仮の値、後で適切に設定
       guest_name: !isAuthenticated ? "ゲスト" : null,
     }
 
@@ -744,7 +726,7 @@ export async function getMyTradePosts(userId: string) {
       })
     }
 
-    // 投稿データを整形（JSTで表示）
+    // 投稿データを整形
     const formattedPosts = posts.map((post: any) => {
       const commentCount = commentCountsMap.get(post.id) || 0
 
@@ -767,10 +749,9 @@ export async function getMyTradePosts(userId: string) {
         imageUrl: "/placeholder.svg?width=80&height=112",
       }
 
-      const createdAtUTC = new Date(post.created_at)
-      const createdAt = toJST(createdAtUTC)
-      const nowJST = toJST(new Date())
-      const diffDays = Math.floor((nowJST.getTime() - createdAt.getTime()) / (1000 * 60 * 60 * 24))
+      const createdAt = new Date(post.created_at)
+      const now = new Date()
+      const diffDays = Math.floor((now.getTime() - createdAt.getTime()) / (1000 * 60 * 60 * 24))
       const postedDateRelative = diffDays === 0 ? "今日" : `${diffDays}日前`
 
       return {
@@ -831,7 +812,7 @@ export async function getCommentedTradePosts(userId: string) {
         wanted_card_id
       `)
       .in("id", commentedPostIds)
-      .or(`owner_id.is.null,owner_id.neq.${userId}`)
+      .or(`owner_id.is.null,owner_id.neq.${userId}`) // 自分の投稿は除外、ゲスト投稿は含める
       .order("created_at", { ascending: false })
 
     if (postsError) {
@@ -859,11 +840,11 @@ export async function getCommentedTradePosts(userId: string) {
       })
     }
 
-    // 投稿データを整形（JSTで表示）
+    // 投稿データを整形
     const formattedPosts = posts.map((post: any) => {
       const commentCount = commentCountsMap.get(post.id) || 0
 
-      // ステータス表示
+      // ステータス表示（投稿に設定されているステータスをそのまま表示）
       let displayStatus: string
       if (post.status === "CANCELED") {
         displayStatus = "canceled"
@@ -883,10 +864,9 @@ export async function getCommentedTradePosts(userId: string) {
         imageUrl: "/placeholder.svg?width=80&height=112",
       }
 
-      const createdAtUTC = new Date(post.created_at)
-      const createdAt = toJST(createdAtUTC)
-      const nowJST = toJST(new Date())
-      const diffDays = Math.floor((nowJST.getTime() - createdAt.getTime()) / (1000 * 60 * 60 * 24))
+      const createdAt = new Date(post.created_at)
+      const now = new Date()
+      const diffDays = Math.floor((now.getTime() - createdAt.getTime()) / (1000 * 60 * 60 * 24))
       const postedDateRelative = diffDays === 0 ? "今日" : `${diffDays}日前`
 
       return {
