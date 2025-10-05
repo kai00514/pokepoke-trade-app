@@ -18,25 +18,27 @@ export async function GET(request: NextRequest) {
     // WEBP画像をfetch
     const response = await fetch(imageUrl)
     if (!response.ok) {
-      console.error("Failed to fetch image:", response.status, response.statusText)
+      console.error("Failed to fetch image:", response.status)
       return new NextResponse("Failed to fetch image", { status: 404 })
     }
 
     const arrayBuffer = await response.arrayBuffer()
     const buffer = Buffer.from(arrayBuffer)
 
-    // WEBP → PNG 変換（sharpを使用）
+    console.log("Original image size:", buffer.length)
+
+    // WEBP → PNG 変換、315x440にリサイズ
     const pngBuffer = await sharp(buffer)
-      .png()
       .resize(315, 440, {
         fit: "contain",
-        background: { r: 0, g: 0, b: 0, alpha: 0 }, // 透明背景
+        background: { r: 0, g: 0, b: 0, alpha: 0 },
       })
+      .png()
       .toBuffer()
 
-    console.log("Successfully converted image")
+    console.log("Converted PNG size:", pngBuffer.length)
 
-    // PNG画像を返す（1年間キャッシュ）
+    // PNG画像を返す
     return new NextResponse(pngBuffer, {
       headers: {
         "Content-Type": "image/png",
