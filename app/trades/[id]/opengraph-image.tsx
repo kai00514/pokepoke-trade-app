@@ -17,11 +17,11 @@ export const contentType = "image/png"
 export const alt = "PokeLink トレード投稿"
 
 /**
- * WEBP画像URLを変換APIのURLに変換
+ * WEBP画像をData URL（Base64エンコード）に変換
  * @param imageUrl 元の画像URL
- * @returns 変換API経由のURL（WEBP以外はそのまま、WEBPは変換APIを通す）
+ * @returns Data URL（WEBP以外はそのまま、WEBPは変換してBase64化）
  */
-function convertWebpImageUrl(imageUrl: string | null | undefined): string | null {
+async function convertWebpToDataUrl(imageUrl: string | null | undefined): Promise<string | null> {
   if (!imageUrl) return null
 
   try {
@@ -29,20 +29,42 @@ function convertWebpImageUrl(imageUrl: string | null | undefined): string | null
     const url = new URL(imageUrl)
     const pathname = url.pathname.toLowerCase()
 
-    // WEBP形式かチェック（pathnameには ? や # が含まれない）
+    // WEBP形式でない場合はそのまま返す
     if (!pathname.endsWith(".webp")) {
       return imageUrl
     }
 
-    // 変換APIのURLを生成（絶対URLが必要）
+    // 変換APIのURLを生成
     const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.pokelnk.com"
     const apiUrl = new URL("/api/convert-webp-to-png", baseUrl)
     apiUrl.searchParams.set("url", imageUrl)
 
-    return apiUrl.href
-  } catch {
-    // URLパースに失敗した場合は元のURLをそのまま返す
-    return imageUrl
+    console.log("Fetching converted image from API:", apiUrl.href)
+
+    // 変換APIを呼び出し
+    const response = await fetch(apiUrl.href)
+
+    if (!response.ok) {
+      console.error("Failed to convert image:", response.status, response.statusText)
+      return null
+    }
+
+    // ArrayBufferとして取得
+    const arrayBuffer = await response.arrayBuffer()
+    console.log("Received image buffer, size:", arrayBuffer.byteLength)
+
+    // Base64エンコード
+    const buffer = Buffer.from(arrayBuffer)
+    const base64 = buffer.toString("base64")
+
+    // Data URLを生成
+    const dataUrl = `data:image/png;base64,${base64}`
+    console.log("Generated data URL, length:", dataUrl.length)
+
+    return dataUrl
+  } catch (error) {
+    console.error("Error converting to data URL:", error)
+    return null
   }
 }
 
@@ -75,23 +97,33 @@ export default async function Image({ params }: { params: { id: string } }) {
 
     const post = result.post
 
+    console.log("Generating OG image for trade:", params.id)
+
     // カード画像URLを取得（最初の1枚ずつ）
     const wantedCardImageUrl = post.wantedCards[0]?.imageUrl
     const offeredCardImageUrl = post.offeredCards[0]?.imageUrl
 
-    // WEBP画像を変換APIのURLに変換
-    const wantedCardImage = convertWebpImageUrl(wantedCardImageUrl)
-    const offeredCardImage = convertWebpImageUrl(offeredCardImageUrl)
+    console.log("Wanted card URL:", wantedCardImageUrl || "null")
+    console.log("Offered card URL:", offeredCardImageUrl || "null")
+
+    // WEBP画像をData URLに変換（非同期処理）
+    const wantedCardImage = await convertWebpToDataUrl(wantedCardImageUrl)
+    const offeredCardImage = await convertWebpToDataUrl(offeredCardImageUrl)
+
+    console.log(
+      "Wanted card data URL:",
+      wantedCardImage ? `${wantedCardImage.substring(0, 50)}... (length: ${wantedCardImage.length})` : "null",
+    )
+    console.log(
+      "Offered card data URL:",
+      offeredCardImage ? `${offeredCardImage.substring(0, 50)}... (length: ${offeredCardImage.length})` : "null",
+    )
 
     // ベース画像のURLを生成（linkpreview_images.pngを使用）
     const baseImageUrl = new URL(
       "/linkpreview_images.png",
       process.env.NEXT_PUBLIC_SITE_URL || "https://www.pokelnk.com",
     ).href
-
-    console.log("Generating OG image for trade:", params.id)
-    console.log("Wanted card image:", wantedCardImage)
-    console.log("Offered card image:", offeredCardImage)
 
     return new ImageResponse(
       <div
@@ -116,40 +148,36 @@ export default async function Image({ params }: { params: { id: string } }) {
         />
 
         {/* 求めるカード（左側・青枠） */}
-        {wantedCardImage && (
-          <img
-            src={wantedCardImage || "/placeholder.svg"}
-            alt="Wanted Card"
-            width={315}
-            height={440}
-            style={{
-              position: "absolute",
-              left: "135px",
-              top: "132px",
-              width: "280px",
-              height: "389px",
-              objectFit: "contain",
-            }}
-          />
-        )}
+        <img
+          src={wantedCardImage || "/no-card.png"}
+          alt="Wanted Card"
+          width={315}
+          height={440}
+          style={{
+            position: "absolute",
+            left: "135px",
+            top: "132px",
+            width: "280px",
+            height: "389px",
+            objectFit: "contain",
+          }}
+        />
 
         {/* 譲れるカード（右側・緑枠） */}
-        {offeredCardImage && (
-          <img
-            src={offeredCardImage || "/placeholder.svg"}
-            alt="Offered Card"
-            width={315}
-            height={440}
-            style={{
-              position: "absolute",
-              left: "830px",
-              top: "133px",
-              width: "285px",
-              height: "388px",
-              objectFit: "contain",
-            }}
-          />
-        )}
+        <img
+          src={offeredCardImage || "/no-card.png"}
+          alt="Offered Card"
+          width={315}
+          height={440}
+          style={{
+            position: "absolute",
+            left: "830px",
+            top: "133px",
+            width: "285px",
+            height: "388px",
+            objectFit: "contain",
+          }}
+        />
       </div>,
       {
         ...size,
