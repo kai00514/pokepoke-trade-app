@@ -31,11 +31,8 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
   const wantedCardNames = post.wantedCards.map((card) => card.name).join("、") || "要相談"
   const offeredCardNames = post.offeredCards.map((card) => card.name).join("、") || "要相談"
 
-  // OGP画像は最初の求めるカードまたは譲りたいカードの画像を使用
-  const ogImage =
-    post.wantedCards[0]?.imageUrl ||
-    post.offeredCards[0]?.imageUrl ||
-    `${process.env.NEXT_PUBLIC_SITE_URL || "https://www.pokelnk.com"}/pokelink-logo.png`
+  // OG画像は opengraph-image.tsx が生成する
+  const ogImageUrl = `${process.env.NEXT_PUBLIC_SITE_URL || "https://www.pokelnk.com"}/trades/${id}/opengraph-image`
 
   return {
     title: `${post.title} | PokeLink`,
@@ -47,7 +44,7 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
       siteName: "PokeLink",
       images: [
         {
-          url: ogImage,
+          url: ogImageUrl,
           width: 1200,
           height: 630,
           alt: post.title,
@@ -60,7 +57,7 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
       card: "summary_large_image",
       title: post.title,
       description: `求めるカード: ${wantedCardNames} / 譲りたいカード: ${offeredCardNames}`,
-      images: [ogImage],
+      images: [ogImageUrl],
     },
   }
 }
