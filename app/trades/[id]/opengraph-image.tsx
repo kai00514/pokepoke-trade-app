@@ -18,7 +18,6 @@ export const alt = "PokeLink トレード投稿"
 
 /**
  * WEBP画像をData URL（Base64エンコード）に変換
- * 画像サイズを小さくするためにクエリパラメータを追加
  * @param imageUrl 元の画像URL
  * @returns Data URL（WEBP以外はそのまま、WEBPは変換してBase64化）
  */
@@ -34,25 +33,16 @@ async function convertWebpToDataUrl(imageUrl: string | null | undefined): Promis
     const url = new URL(imageUrl)
     const pathname = url.pathname.toLowerCase()
 
-    // 画像サイズを小さくするためのクエリパラメータを追加
-    // 幅を300pxに制限（アスペクト比は維持）
-    let modifiedUrl = imageUrl
-    if (!url.searchParams.has("width")) {
-      const urlWithSize = new URL(imageUrl)
-      urlWithSize.searchParams.set("width", "300")
-      modifiedUrl = urlWithSize.href
-    }
-
     // WEBP形式でない場合はそのまま返す
     if (!pathname.endsWith(".webp")) {
-      console.log("Not a WEBP image, returning original URL:", modifiedUrl)
-      return modifiedUrl
+      console.log("Not a WEBP image, returning original URL:", imageUrl)
+      return imageUrl
     }
 
     // 変換APIのURLを生成
     const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.pokelnk.com"
     const apiUrl = new URL("/api/convert-webp-to-png", baseUrl)
-    apiUrl.searchParams.set("url", modifiedUrl)
+    apiUrl.searchParams.set("url", imageUrl)
 
     console.log("Fetching converted image from API:", apiUrl.href)
 
@@ -191,7 +181,7 @@ export default async function Image({ params }: { params: { id: string } }) {
           }}
         />
 
-        {/* 求めるカード（左側・青枠） - サイズを小さく調整 */}
+        {/* 求めるカード（左側・青枠） - 315px × 440px */}
         <img
           src={wantedCardImage || placeholderImageUrl}
           alt="Wanted Card"
@@ -200,14 +190,14 @@ export default async function Image({ params }: { params: { id: string } }) {
           style={{
             position: "absolute",
             left: "135px",
-            top: "132px",
-            width: "250px",
-            height: "350px",
+            top: "95px",
+            width: "315px",
+            height: "440px",
             objectFit: "contain",
           }}
         />
 
-        {/* 譲れるカード（右側・緑枠） - サイズを小さく調整 */}
+        {/* 譲れるカード（右側・緑枠） - 315px × 440px */}
         <img
           src={offeredCardImage || placeholderImageUrl}
           alt="Offered Card"
@@ -215,10 +205,10 @@ export default async function Image({ params }: { params: { id: string } }) {
           height={440}
           style={{
             position: "absolute",
-            left: "830px",
-            top: "133px",
-            width: "250px",
-            height: "350px",
+            left: "750px",
+            top: "95px",
+            width: "315px",
+            height: "440px",
             objectFit: "contain",
           }}
         />
