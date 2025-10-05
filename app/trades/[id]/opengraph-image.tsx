@@ -16,6 +16,27 @@ export const contentType = "image/png"
 // Alt text
 export const alt = "PokeLink トレード投稿"
 
+/**
+ * WEBP画像URLを変換APIのURLに変換
+ * @param imageUrl 元の画像URL
+ * @returns 変換API経由のURL（WEBP以外はそのまま、WEBPは変換APIを通す）
+ */
+function convertWebpImageUrl(imageUrl: string | null | undefined): string | null {
+  if (!imageUrl) return null
+
+  // WEBP以外はそのまま返す
+  if (!imageUrl.toLowerCase().endsWith(".webp")) {
+    return imageUrl
+  }
+
+  // 変換APIのURLを生成（絶対URLが必要）
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.pokelnk.com"
+  const apiUrl = new URL("/api/convert-webp-to-png", baseUrl)
+  apiUrl.searchParams.set("url", imageUrl)
+
+  return apiUrl.href
+}
+
 export default async function Image({ params }: { params: { id: string } }) {
   try {
     // 投稿データを取得
@@ -46,14 +67,22 @@ export default async function Image({ params }: { params: { id: string } }) {
     const post = result.post
 
     // カード画像URLを取得（最初の1枚ずつ）
-    const wantedCardImage = post.wantedCards[0]?.imageUrl
-    const offeredCardImage = post.offeredCards[0]?.imageUrl
+    const wantedCardImageUrl = post.wantedCards[0]?.imageUrl
+    const offeredCardImageUrl = post.offeredCards[0]?.imageUrl
+
+    // WEBP画像を変換APIのURLに変換
+    const wantedCardImage = convertWebpImageUrl(wantedCardImageUrl)
+    const offeredCardImage = convertWebpImageUrl(offeredCardImageUrl)
 
     // ベース画像のURLを生成（linkpreview_images.pngを使用）
     const baseImageUrl = new URL(
       "/linkpreview_images.png",
       process.env.NEXT_PUBLIC_SITE_URL || "https://www.pokelnk.com",
     ).href
+
+    console.log("Generating OG image for trade:", params.id)
+    console.log("Wanted card image:", wantedCardImage)
+    console.log("Offered card image:", offeredCardImage)
 
     return new ImageResponse(
       <div
@@ -68,6 +97,8 @@ export default async function Image({ params }: { params: { id: string } }) {
         <img
           src={baseImageUrl || "/placeholder.svg"}
           alt="Base"
+          width={1200}
+          height={630}
           style={{
             position: "absolute",
             width: "1200px",
@@ -80,6 +111,8 @@ export default async function Image({ params }: { params: { id: string } }) {
           <img
             src={wantedCardImage || "/placeholder.svg"}
             alt="Wanted Card"
+            width={315}
+            height={440}
             style={{
               position: "absolute",
               left: "135px",
@@ -96,6 +129,8 @@ export default async function Image({ params }: { params: { id: string } }) {
           <img
             src={offeredCardImage || "/placeholder.svg"}
             alt="Offered Card"
+            width={315}
+            height={440}
             style={{
               position: "absolute",
               left: "830px",
