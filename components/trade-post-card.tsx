@@ -1,6 +1,7 @@
 "use client"
 
 import type React from "react"
+import { useState } from "react"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -8,6 +9,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Badge } from "@/components/ui/badge"
 import { Copy, MessageSquare, UserCircle, Share2 } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
+import { ShareModal } from "@/components/share-modal"
 
 type CardInfo = {
   name: string
@@ -36,6 +38,7 @@ interface TradePostCardProps {
 export default function TradePostCard({ post }: TradePostCardProps) {
   const { toast } = useToast()
   const router = useRouter()
+  const [shareModalOpen, setShareModalOpen] = useState(false)
 
   const handleCopyToClipboard = (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -50,26 +53,7 @@ export default function TradePostCard({ post }: TradePostCardProps) {
   const handleShare = async (e: React.MouseEvent) => {
     e.stopPropagation()
     e.preventDefault()
-
-    const shareUrl = `${window.location.origin}/trades/${post.id}`
-
-    try {
-      await navigator.clipboard.writeText(shareUrl)
-
-      toast({
-        title: "リンクをコピーしました",
-        description: "投稿のURLがクリップボードにコピーされました。",
-        duration: 2000,
-      })
-    } catch (error) {
-      console.error("Failed to copy URL:", error)
-      toast({
-        title: "コピーに失敗しました",
-        description: "もう一度お試しください。",
-        variant: "destructive",
-        duration: 2000,
-      })
-    }
+    setShareModalOpen(true)
   }
 
   const handleCardClick = (e: React.MouseEvent) => {
@@ -113,162 +97,168 @@ export default function TradePostCard({ post }: TradePostCardProps) {
           ? "bg-emerald-100 text-emerald-800 border-emerald-200"
           : "bg-gray-100 text-gray-700 border-gray-200"
 
+  const shareUrl = `${typeof window !== "undefined" ? window.location.origin : ""}/trades/${post.id}`
+
   return (
-    <Card className="relative w-full border border-[#3d496e] bg-white shadow-sm hover:shadow-md transition-shadow duration-200 rounded-xl">
-      {/* Status Badge in the top-right */}
-      <div className="absolute right-3 top-3 z-10">
-        <Badge variant="outline" className={`rounded-full px-2.5 py-1 text-xs font-semibold ${statusStyles}`}>
-          {post.status}
-        </Badge>
-      </div>
+    <>
+      <Card className="relative w-full border border-[#3d496e] bg-white shadow-sm hover:shadow-md transition-shadow duration-200 rounded-xl">
+        {/* Status Badge in the top-right */}
+        <div className="absolute right-3 top-3 z-10">
+          <Badge variant="outline" className={`rounded-full px-2.5 py-1 text-xs font-semibold ${statusStyles}`}>
+            {post.status}
+          </Badge>
+        </div>
 
-      <div onClick={handleCardClick} className="block cursor-pointer">
-        <CardHeader className>
-          <div className="flex items-start">
-            <div className="flex-1 min-w-0">
-              <CardTitle className="text-xl font-semibold text-[#111827]">{post.title}</CardTitle>
-              <div className="mt-1 flex items-center text-[#6B7280]">
-                {post.avatarUrl ? (
-                  <Image
-                    src={post.avatarUrl || "/placeholder.svg"}
-                    alt={post.username || "ユーザー"}
-                    width={20}
-                    height={20}
-                    className="rounded-full mr-2"
-                  />
-                ) : (
-                  <UserCircle className="h-5 w-5 text-slate-400 mr-2" />
-                )}
-                <p className="text-xs">
-                  {post.username || "ユーザー"} ・ {post.date}
-                </p>
+        <div onClick={handleCardClick} className="block cursor-pointer">
+          <CardHeader className>
+            <div className="flex items-start">
+              <div className="flex-1 min-w-0">
+                <CardTitle className="text-xl font-semibold text-[#111827]">{post.title}</CardTitle>
+                <div className="mt-1 flex items-center text-[#6B7280]">
+                  {post.avatarUrl ? (
+                    <Image
+                      src={post.avatarUrl || "/placeholder.svg"}
+                      alt={post.username || "ユーザー"}
+                      width={20}
+                      height={20}
+                      className="rounded-full mr-2"
+                    />
+                  ) : (
+                    <UserCircle className="h-5 w-5 text-slate-400 mr-2" />
+                  )}
+                  <p className="text-xs">
+                    {post.username || "ユーザー"} ・ {post.date}
+                  </p>
+                </div>
               </div>
             </div>
-          </div>
-        </CardHeader>
+          </CardHeader>
 
-        <CardContent className="pt-1 pb-2">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-3 mb-2">
-            {/* Wanted Cards */}
-            <div className="space-y-2 md:pr-3">
-              <div className="flex items-center justify-between">
-                <h3 className="text-sm font-medium text-[#1D4ED8]">求めるカード</h3>
-              </div>
-              <div className="rounded-lg border border-[#3d496e] bg-[#F8FBFF] pt-2 pb-2 pl-2 pr-2 flex flex-nowrap overflow-x-auto gap-2 items-center scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-slate-100">
-                {wantedCards.length > 0 ? (
-                  wantedCards.map((card: any) => (
-                    <div key={card.id} className="flex-shrink-0 flex flex-col items-center">
+          <CardContent className="pt-1 pb-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-3 mb-2">
+              {/* Wanted Cards */}
+              <div className="space-y-2 md:pr-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-medium text-[#1D4ED8]">求めるカード</h3>
+                </div>
+                <div className="rounded-lg border border-[#3d496e] bg-[#F8FBFF] pt-2 pb-2 pl-2 pr-2 flex flex-nowrap overflow-x-auto gap-2 items-center scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-slate-100">
+                  {wantedCards.length > 0 ? (
+                    wantedCards.map((card: any) => (
+                      <div key={card.id} className="flex-shrink-0 flex flex-col items-center">
+                        <Image
+                          src={card.imageUrl || "/placeholder.svg?width=72&height=100&query=pokemon-card"}
+                          alt={card.name}
+                          width={72}
+                          height={100}
+                          className="rounded-md object-contain border border-[#E5E7EB] bg-white mb-1"
+                        />
+                        <p className="text-xs font-semibold text-[#374151] text-center max-w-[72px] truncate">
+                          {card.name}
+                        </p>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="flex-shrink-0 flex flex-col items-center">
                       <Image
-                        src={card.imageUrl || "/placeholder.svg?width=72&height=100&query=pokemon-card"}
-                        alt={card.name}
+                        src="/placeholder.svg"
+                        alt="要相談"
                         width={72}
                         height={100}
                         className="rounded-md object-contain border border-[#E5E7EB] bg-white mb-1"
                       />
-                      <p className="text-xs font-semibold text-[#374151] text-center max-w-[72px] truncate">
-                        {card.name}
-                      </p>
+                      <p className="text-xs font-semibold text-[#374151] text-center max-w-[72px] truncate">要相談</p>
                     </div>
-                  ))
-                ) : (
-                  <div className="flex-shrink-0 flex flex-col items-center">
-                    <Image
-                      src="/placeholder.svg"
-                      alt="要相談"
-                      width={72}
-                      height={100}
-                      className="rounded-md object-contain border border-[#E5E7EB] bg-white mb-1"
-                    />
-                    <p className="text-xs font-semibold text-[#374151] text-center max-w-[72px] truncate">要相談</p>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
-            </div>
 
-            {/* Offered Cards */}
-            <div className="space-y-2 md:pl-3 md:border-l">
-              <div className="flex items-center justify-between">
-                <h3 className="text-sm font-medium text-[#0EA5E9]">譲れるカード</h3>
-              </div>
-              <div className="rounded-lg border border-[#3d496e] bg-[#F7FAFF] pt-2 pb-2 pl-2 pr-2 flex flex-nowrap overflow-x-auto gap-2 items-center scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-slate-100">
-                {offeredCards.length > 0 ? (
-                  offeredCards.map((card: any) => (
-                    <div key={card.id} className="flex-shrink-0 flex flex-col items-center">
+              {/* Offered Cards */}
+              <div className="space-y-2 md:pl-3 md:border-l">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-medium text-[#0EA5E9]">譲れるカード</h3>
+                </div>
+                <div className="rounded-lg border border-[#3d496e] bg-[#F7FAFF] pt-2 pb-2 pl-2 pr-2 flex flex-nowrap overflow-x-auto gap-2 items-center scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-slate-100">
+                  {offeredCards.length > 0 ? (
+                    offeredCards.map((card: any) => (
+                      <div key={card.id} className="flex-shrink-0 flex flex-col items-center">
+                        <Image
+                          src={card.imageUrl || "/placeholder.svg?width=72&height=100&query=pokemon-card"}
+                          alt={card.name}
+                          width={72}
+                          height={100}
+                          className="rounded-md object-contain border border-[#E5E7EB] bg-white mb-1"
+                        />
+                        <p className="text-xs font-semibold text-[#374151] text-center max-w-[72px] truncate">
+                          {card.name}
+                        </p>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="flex-shrink-0 flex flex-col items-center">
                       <Image
-                        src={card.imageUrl || "/placeholder.svg?width=72&height=100&query=pokemon-card"}
-                        alt={card.name}
+                        src="/placeholder.svg"
+                        alt="要相談"
                         width={72}
                         height={100}
                         className="rounded-md object-contain border border-[#E5E7EB] bg-white mb-1"
                       />
-                      <p className="text-xs font-semibold text-[#374151] text-center max-w-[72px] truncate">
-                        {card.name}
-                      </p>
+                      <p className="text-xs font-semibold text-[#374151] text-center max-w-[72px] truncate">要相談</p>
                     </div>
-                  ))
-                ) : (
-                  <div className="flex-shrink-0 flex flex-col items-center">
-                    <Image
-                      src="/placeholder.svg"
-                      alt="要相談"
-                      width={72}
-                      height={100}
-                      className="rounded-md object-contain border border-[#E5E7EB] bg-white mb-1"
-                    />
-                    <p className="text-xs font-semibold text-[#374151] text-center max-w-[72px] truncate">要相談</p>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
             </div>
-          </div>
-          <div className="bg-[#F9FAFB] p-1 rounded-md text-sm text-[#6B7280] mb-3 border border-[#E5E7EB]">
-            {post.authorComment ? (
-              <div className="mb-1">
-                <p className="text-xs font-medium text-[#374151] mb-1">投稿者コメント：{post.authorComment}</p>
-              </div>
-            ) : null}
-          </div>
-        </CardContent>
-      </div>
+            <div className="bg-[#F9FAFB] p-1 rounded-md text-sm text-[#6B7280] mb-3 border border-[#E5E7EB]">
+              {post.authorComment ? (
+                <div className="mb-1">
+                  <p className="text-xs font-medium text-[#374151] mb-1">投稿者コメント：{post.authorComment}</p>
+                </div>
+              ) : null}
+            </div>
+          </CardContent>
+        </div>
 
-      <CardFooter className="bg-[#F8FAFC] px-4 py-3 flex items-center justify-between rounded-b-xl border-t border-[#3d496e] mx-1">
-        <div className="flex items-center gap-2">
-          <p className="text-xs text-[#6B7280]">ID: {post.postId}</p>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="text-xs h-auto py-1 px-2 text-[#1F2937] hover:bg-[#E5F0FF]"
-            onClick={handleCopyToClipboard}
-          >
-            <Copy className="mr-1 h-3 w-3" />
-          </Button>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="text-xs h-auto py-1.5 px-3 text-[#6B7280] hover:bg-[#F3F4F6] hover:text-[#374151]"
-            onClick={handleShare}
-          >
-            <Share2 className="mr-1.5 h-3.5 w-3.5" />
-            共有
-          </Button>
-          <Button
-            variant="default"
-            size="sm"
-            className="bg-[#3B82F6] hover:bg-[#2563EB] text-white text-xs h-auto py-1.5 px-3 rounded-md"
-            onClick={handleDetailsClick}
-          >
-            <MessageSquare className="mr-1.5 h-3.5 w-3.5" />
-            詳細
-            {post.comments > 0 && (
-              <span className="ml-1.5 bg-white text-[#1D4ED8] text-xs font-bold px-1.5 py-0.5 rounded-full">
-                {post.comments}
-              </span>
-            )}
-          </Button>
-        </div>
-      </CardFooter>
-    </Card>
+        <CardFooter className="bg-[#F8FAFC] px-4 py-3 flex items-center justify-between rounded-b-xl border-t border-[#3d496e] mx-1">
+          <div className="flex items-center gap-2">
+            <p className="text-xs text-[#6B7280]">ID: {post.postId}</p>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-xs h-auto py-1 px-2 text-[#1F2937] hover:bg-[#E5F0FF]"
+              onClick={handleCopyToClipboard}
+            >
+              <Copy className="mr-1 h-3 w-3" />
+            </Button>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-xs h-auto py-2 px-3 bg-gradient-to-r from-[#3B82F6] to-[#2563EB] hover:from-[#2563EB] hover:to-[#1D4ED8] text-white rounded-lg shadow-sm hover:shadow-md transition-all duration-200 font-semibold"
+              onClick={handleShare}
+            >
+              <Share2 className="mr-1.5 h-4 w-4" />
+              共有
+            </Button>
+            <Button
+              variant="default"
+              size="sm"
+              className="bg-[#3B82F6] hover:bg-[#2563EB] text-white text-xs h-auto py-1.5 px-3 rounded-md"
+              onClick={handleDetailsClick}
+            >
+              <MessageSquare className="mr-1.5 h-3.5 w-3.5" />
+              詳細
+              {post.comments > 0 && (
+                <span className="ml-1.5 bg-white text-[#1D4ED8] text-xs font-bold px-1.5 py-0.5 rounded-full">
+                  {post.comments}
+                </span>
+              )}
+            </Button>
+          </div>
+        </CardFooter>
+      </Card>
+
+      <ShareModal open={shareModalOpen} onOpenChange={setShareModalOpen} shareUrl={shareUrl} title={post.title} />
+    </>
   )
 }

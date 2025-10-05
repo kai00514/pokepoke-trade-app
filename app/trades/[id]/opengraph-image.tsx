@@ -18,6 +18,7 @@ export const alt = "PokeLink トレード投稿"
 
 /**
  * WEBP画像をData URL（Base64エンコード）に変換
+ * 画像サイズを小さくするためにクエリパラメータを追加
  * @param imageUrl 元の画像URL
  * @returns Data URL（WEBP以外はそのまま、WEBPは変換してBase64化）
  */
@@ -33,16 +34,25 @@ async function convertWebpToDataUrl(imageUrl: string | null | undefined): Promis
     const url = new URL(imageUrl)
     const pathname = url.pathname.toLowerCase()
 
+    // 画像サイズを小さくするためのクエリパラメータを追加
+    // 幅を300pxに制限（アスペクト比は維持）
+    let modifiedUrl = imageUrl
+    if (!url.searchParams.has("width")) {
+      const urlWithSize = new URL(imageUrl)
+      urlWithSize.searchParams.set("width", "300")
+      modifiedUrl = urlWithSize.href
+    }
+
     // WEBP形式でない場合はそのまま返す
     if (!pathname.endsWith(".webp")) {
-      console.log("Not a WEBP image, returning original URL:", imageUrl)
-      return imageUrl
+      console.log("Not a WEBP image, returning original URL:", modifiedUrl)
+      return modifiedUrl
     }
 
     // 変換APIのURLを生成
     const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.pokelnk.com"
     const apiUrl = new URL("/api/convert-webp-to-png", baseUrl)
-    apiUrl.searchParams.set("url", imageUrl)
+    apiUrl.searchParams.set("url", modifiedUrl)
 
     console.log("Fetching converted image from API:", apiUrl.href)
 
@@ -181,7 +191,7 @@ export default async function Image({ params }: { params: { id: string } }) {
           }}
         />
 
-        {/* 求めるカード（左側・青枠） */}
+        {/* 求めるカード（左側・青枠） - サイズを小さく調整 */}
         <img
           src={wantedCardImage || placeholderImageUrl}
           alt="Wanted Card"
@@ -191,13 +201,13 @@ export default async function Image({ params }: { params: { id: string } }) {
             position: "absolute",
             left: "135px",
             top: "132px",
-            width: "280px",
-            height: "389px",
+            width: "250px",
+            height: "350px",
             objectFit: "contain",
           }}
         />
 
-        {/* 譲れるカード（右側・緑枠） */}
+        {/* 譲れるカード（右側・緑枠） - サイズを小さく調整 */}
         <img
           src={offeredCardImage || placeholderImageUrl}
           alt="Offered Card"
@@ -207,8 +217,8 @@ export default async function Image({ params }: { params: { id: string } }) {
             position: "absolute",
             left: "830px",
             top: "133px",
-            width: "285px",
-            height: "388px",
+            width: "250px",
+            height: "350px",
             objectFit: "contain",
           }}
         />
