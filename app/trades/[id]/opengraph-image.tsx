@@ -126,9 +126,11 @@ export default async function Image({ params }: { params: { id: string } }) {
 
     console.log("Base image URL:", baseImageUrl)
 
-    // プレースホルダー画像のURLを生成
-    const placeholderImageUrl = new URL("/no-card.png", process.env.NEXT_PUBLIC_SITE_URL || "https://www.pokelnk.com")
-      .href
+    // プレースホルダー画像のURLを生成（PNG形式）
+    const placeholderImageUrl = new URL(
+      "/no-card-placeholder.jpg",
+      process.env.NEXT_PUBLIC_SITE_URL || "https://www.pokelnk.com",
+    ).href
 
     console.log("Placeholder image URL:", placeholderImageUrl)
 

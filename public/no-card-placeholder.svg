@@ -1,0 +1,34 @@
+<svg width="315" height="440" viewBox="0 0 315 440" fill="none" xmlns="http://www.w3.org/2000/svg">
+   背景 
+  <rect width="315" height="440" fill="#F3F4F6" rx="12"/>
+  
+   破線の枠 
+  <rect x="20" y="20" width="275" height="400" stroke="#D1D5DB" stroke-width="2" stroke-dasharray="8 8" rx="8" fill="none"/>
+  
+   カードアイコン 
+  <g transform="translate(157.5, 180)">
+     カード外枠 
+    <rect x="-40" y="-60" width="80" height="120" fill="white" rx="6" stroke="#9CA3AF" stroke-width="2"/>
+    
+     画像プレースホルダー 
+    <rect x="-35" y="-55" width="70" height="70" fill="#E5E7EB" rx="4"/>
+    
+     山のアイコン 
+    <path d="M -20 -10 L -10 -25 L 0 -10 L 10 -20 L 20 -10 L 20 5 L -20 5 Z" fill="#9CA3AF"/>
+    
+     太陽のアイコン 
+    <circle cx="-12" cy="-35" r="6" fill="#D1D5DB"/>
+    
+     テキスト線 
+    <rect x="-30" y="20" width="60" height="4" fill="#E5E7EB" rx="2"/>
+    <rect x="-30" y="30" width="40" height="4" fill="#E5E7EB" rx="2"/>
+  </g>
+  
+   テキスト 
+  <text x="157.5" y="280" font-family="system-ui, -apple-system, sans-serif" font-size="16" fill="#9CA3AF" text-anchor="middle" font-weight="500">
+    カード画像なし
+  </text>
+  <text x="157.5" y="305" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#D1D5DB" text-anchor="middle">
+    No Card Image
+  </text>
+</svg>
