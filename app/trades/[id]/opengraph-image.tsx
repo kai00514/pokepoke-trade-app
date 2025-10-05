@@ -49,8 +49,11 @@ export default async function Image({ params }: { params: { id: string } }) {
     const wantedCardImage = post.wantedCards[0]?.imageUrl
     const offeredCardImage = post.offeredCards[0]?.imageUrl
 
-    // ベース画像のURLを生成（文字列として取得）
-    const baseImageUrl = new URL("/og-template.png", process.env.NEXT_PUBLIC_SITE_URL || "https://www.pokelnk.com").href
+    // ベース画像のURLを生成（linkpreview_images.pngを使用）
+    const baseImageUrl = new URL(
+      "/linkpreview_images.png",
+      process.env.NEXT_PUBLIC_SITE_URL || "https://www.pokelnk.com",
+    ).href
 
     return new ImageResponse(
       <div
