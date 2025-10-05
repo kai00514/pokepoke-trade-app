@@ -19,43 +19,57 @@ export const alt = "PokeLink トレード投稿"
 /**
  * 画像をData URL（Base64エンコード）に変換
  * @param imageUrl 元の画像URL
+ * @param label ログ用のラベル
  * @returns Data URL
  */
-async function convertImageToDataUrl(imageUrl: string): Promise<string | null> {
+async function convertImageToDataUrl(imageUrl: string, label = "image"): Promise<string | null> {
+  const startTime = Date.now()
   try {
-    console.log("Fetching image:", imageUrl)
+    console.log(`[${label}] Fetching image:`, imageUrl)
 
     // タイムアウト設定
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), 8000) // 8秒でタイムアウト
 
+    const fetchStartTime = Date.now()
     const response = await fetch(imageUrl, {
       signal: controller.signal,
     }).finally(() => clearTimeout(timeoutId))
 
+    const fetchDuration = Date.now() - fetchStartTime
+    console.log(`[${label}] Fetch completed in ${fetchDuration}ms`)
+
     if (!response.ok) {
-      console.error("Failed to fetch image:", response.status, response.statusText)
+      console.error(`[${label}] Failed to fetch image:`, response.status, response.statusText)
       return null
     }
 
     // ArrayBufferとして取得
+    const arrayBufferStartTime = Date.now()
     const arrayBuffer = await response.arrayBuffer()
-    console.log("Received image buffer, size:", arrayBuffer.byteLength)
+    const arrayBufferDuration = Date.now() - arrayBufferStartTime
+    console.log(`[${label}] Received image buffer, size: ${arrayBuffer.byteLength} bytes (${arrayBufferDuration}ms)`)
 
     // Base64エンコード
+    const encodeStartTime = Date.now()
     const buffer = Buffer.from(arrayBuffer)
     const base64 = buffer.toString("base64")
+    const encodeDuration = Date.now() - encodeStartTime
+    console.log(`[${label}] Base64 encoding completed in ${encodeDuration}ms`)
 
     // Content-Typeを取得（デフォルトはimage/png）
     const contentType = response.headers.get("content-type") || "image/png"
 
     // Data URLを生成
     const dataUrl = `data:${contentType};base64,${base64}`
-    console.log("Generated data URL, length:", dataUrl.length)
+
+    const totalDuration = Date.now() - startTime
+    console.log(`[${label}] Generated data URL, length: ${dataUrl.length} characters (total: ${totalDuration}ms)`)
 
     return dataUrl
   } catch (error) {
-    console.error("Error converting image to data URL:", error)
+    const totalDuration = Date.now() - startTime
+    console.error(`[${label}] Error converting image to data URL (${totalDuration}ms):`, error)
     return null
   }
 }
@@ -63,12 +77,13 @@ async function convertImageToDataUrl(imageUrl: string): Promise<string | null> {
 /**
  * WEBP画像をData URL（Base64エンコード）に変換
  * @param imageUrl 元の画像URL
+ * @param label ログ用のラベル
  * @returns Data URL（WEBP以外はそのまま、WEBPは変換してBase64化）
  */
-async function convertWebpToDataUrl(imageUrl: string | null | undefined): Promise<string | null> {
+async function convertWebpToDataUrl(imageUrl: string | null | undefined, label = "card"): Promise<string | null> {
   // imageUrlがない場合はnullを返す
   if (!imageUrl) {
-    console.log("No image URL provided")
+    console.log(`[${label}] No image URL provided`)
     return null
   }
 
@@ -79,8 +94,8 @@ async function convertWebpToDataUrl(imageUrl: string | null | undefined): Promis
 
     // WEBP形式でない場合はそのままData URLに変換
     if (!pathname.endsWith(".webp")) {
-      console.log("Not a WEBP image, converting directly:", imageUrl)
-      return await convertImageToDataUrl(imageUrl)
+      console.log(`[${label}] Not a WEBP image, converting directly:`, imageUrl)
+      return await convertImageToDataUrl(imageUrl, label)
     }
 
     // 変換APIのURLを生成
@@ -88,22 +103,27 @@ async function convertWebpToDataUrl(imageUrl: string | null | undefined): Promis
     const apiUrl = new URL("/api/convert-webp-to-png", baseUrl)
     apiUrl.searchParams.set("url", imageUrl)
 
-    console.log("Fetching converted image from API:", apiUrl.href)
+    console.log(`[${label}] Fetching converted image from API:`, apiUrl.href)
 
     // 変換APIを呼び出してData URLに変換
-    return await convertImageToDataUrl(apiUrl.href)
+    return await convertImageToDataUrl(apiUrl.href, label)
   } catch (error) {
-    console.error("Error converting WEBP to data URL:", error)
+    console.error(`[${label}] Error converting WEBP to data URL:`, error)
     return null
   }
 }
 
 export default async function Image({ params }: { params: { id: string } }) {
+  const overallStartTime = Date.now()
+
   try {
     console.log("=== Starting OG image generation for trade:", params.id)
 
     // 投稿データを取得
+    const dataFetchStart = Date.now()
     const result = await getTradePostDetailsById(params.id)
+    const dataFetchDuration = Date.now() - dataFetchStart
+    console.log(`Data fetch completed in ${dataFetchDuration}ms`)
 
     if (!result.success || !result.post) {
       console.log("Failed to get trade post data")
@@ -153,11 +173,23 @@ export default async function Image({ params }: { params: { id: string } }) {
 
     console.log("Placeholder image URL:", placeholderImageUrl)
 
-    // ベース画像をData URLに変換
-    const baseImageDataUrl = await convertImageToDataUrl(baseImageUrl)
+    // === 並列処理: すべての画像を同時に変換 ===
+    console.log("=== Starting parallel image conversion ===")
+    const parallelStartTime = Date.now()
+
+    const [baseImageDataUrl, placeholderDataUrl, wantedCardImage, offeredCardImage] = await Promise.all([
+      convertImageToDataUrl(baseImageUrl, "base-image"),
+      convertImageToDataUrl(placeholderImageUrl, "placeholder"),
+      wantedCardImageUrl ? convertWebpToDataUrl(wantedCardImageUrl, "wanted-card") : Promise.resolve(null),
+      offeredCardImageUrl ? convertWebpToDataUrl(offeredCardImageUrl, "offered-card") : Promise.resolve(null),
+    ])
+
+    const parallelDuration = Date.now() - parallelStartTime
+    console.log(`=== Parallel conversion completed in ${parallelDuration}ms ===`)
+
+    // ベース画像のチェック
     if (!baseImageDataUrl) {
       console.error("Failed to convert base image to data URL")
-      // ベース画像の変換に失敗した場合はフォールバック
       return new ImageResponse(
         <div
           style={{
@@ -178,53 +210,38 @@ export default async function Image({ params }: { params: { id: string } }) {
       )
     }
 
-    // プレースホルダー画像をData URLに変換
-    const placeholderDataUrl = await convertImageToDataUrl(placeholderImageUrl)
+    // プレースホルダー画像の確認
     if (!placeholderDataUrl) {
       console.error("Failed to convert placeholder image to data URL")
-    }
-
-    // カード画像をData URLに変換（非同期処理）
-    let wantedCardImage: string | null = null
-    let offeredCardImage: string | null = null
-
-    // 求めるカードの変換
-    if (wantedCardImageUrl) {
-      try {
-        console.log("Converting wanted card image...")
-        wantedCardImage = await convertWebpToDataUrl(wantedCardImageUrl)
-        console.log("Wanted card result:", wantedCardImage ? `Data URL (length: ${wantedCardImage.length})` : "null")
-      } catch (error) {
-        console.error("Error converting wanted card:", error)
-        wantedCardImage = null
-      }
-    } else {
-      console.log("No wanted card image URL provided")
-    }
-
-    // 譲れるカードの変換
-    if (offeredCardImageUrl) {
-      try {
-        console.log("Converting offered card image...")
-        offeredCardImage = await convertWebpToDataUrl(offeredCardImageUrl)
-        console.log("Offered card result:", offeredCardImage ? `Data URL (length: ${offeredCardImage.length})` : "null")
-      } catch (error) {
-        console.error("Error converting offered card:", error)
-        offeredCardImage = null
-      }
-    } else {
-      console.log("No offered card image URL provided")
     }
 
     // 最終的な画像URLを決定（プレースホルダーを優先的に使用）
     const finalWantedCardImage = wantedCardImage || placeholderDataUrl || placeholderImageUrl
     const finalOfferedCardImage = offeredCardImage || placeholderDataUrl || placeholderImageUrl
 
-    console.log("=== Rendering ImageResponse")
-    console.log("Final wanted card image:", finalWantedCardImage ? "Available" : "null")
-    console.log("Final offered card image:", finalOfferedCardImage ? "Available" : "null")
+    console.log("=== Final image status ===")
+    console.log(
+      "Wanted card image:",
+      wantedCardImage ? `Available (${wantedCardImage.length} chars)` : "null -> using placeholder",
+    )
+    console.log(
+      "Offered card image:",
+      offeredCardImage ? `Available (${offeredCardImage.length} chars)` : "null -> using placeholder",
+    )
+    console.log(
+      "Final wanted card image:",
+      finalWantedCardImage ? `Available (${finalWantedCardImage.length} chars)` : "null",
+    )
+    console.log(
+      "Final offered card image:",
+      finalOfferedCardImage ? `Available (${finalOfferedCardImage.length} chars)` : "null",
+    )
 
-    return new ImageResponse(
+    // ImageResponse生成の開始時間を記録
+    const renderStartTime = Date.now()
+    console.log("=== Rendering ImageResponse ===")
+
+    const imageResponse = new ImageResponse(
       <div
         style={{
           width: "1200px",
@@ -282,8 +299,16 @@ export default async function Image({ params }: { params: { id: string } }) {
         ...size,
       },
     )
+
+    const renderDuration = Date.now() - renderStartTime
+    const overallDuration = Date.now() - overallStartTime
+    console.log(`ImageResponse rendering completed in ${renderDuration}ms`)
+    console.log(`=== Total OG image generation time: ${overallDuration}ms ===`)
+
+    return imageResponse
   } catch (error) {
-    console.error("=== Critical error generating OG image:", error)
+    const overallDuration = Date.now() - overallStartTime
+    console.error(`=== Critical error generating OG image (${overallDuration}ms):`, error)
 
     // エラー時: フォールバック画像
     return new ImageResponse(
