@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Copy, MessageSquare, UserCircle } from "lucide-react"
+import { Copy, MessageSquare, UserCircle, Share2 } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
 
 type CardInfo = {
@@ -45,6 +45,31 @@ export default function TradePostCard({ post }: TradePostCardProps) {
       title: "コピーしました",
       description: `ID: ${post.postId} をクリップボードにコピーしました。`,
     })
+  }
+
+  const handleShare = async (e: React.MouseEvent) => {
+    e.stopPropagation()
+    e.preventDefault()
+
+    const shareUrl = `${window.location.origin}/trades/${post.id}`
+
+    try {
+      await navigator.clipboard.writeText(shareUrl)
+
+      toast({
+        title: "リンクをコピーしました",
+        description: "投稿のURLがクリップボードにコピーされました。",
+        duration: 2000,
+      })
+    } catch (error) {
+      console.error("Failed to copy URL:", error)
+      toast({
+        title: "コピーに失敗しました",
+        description: "もう一度お試しください。",
+        variant: "destructive",
+        duration: 2000,
+      })
+    }
   }
 
   const handleCardClick = (e: React.MouseEvent) => {
@@ -218,20 +243,31 @@ export default function TradePostCard({ post }: TradePostCardProps) {
             <Copy className="mr-1 h-3 w-3" />
           </Button>
         </div>
-        <Button
-          variant="default"
-          size="sm"
-          className="bg-[#3B82F6] hover:bg-[#2563EB] text-white text-xs h-auto py-1.5 px-3 rounded-md"
-          onClick={handleDetailsClick}
-        >
-          <MessageSquare className="mr-1.5 h-3.5 w-3.5" />
-          詳細
-          {post.comments > 0 && (
-            <span className="ml-1.5 bg-white text-[#1D4ED8] text-xs font-bold px-1.5 py-0.5 rounded-full">
-              {post.comments}
-            </span>
-          )}
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-xs h-auto py-1.5 px-3 text-[#6B7280] hover:bg-[#F3F4F6] hover:text-[#374151]"
+            onClick={handleShare}
+          >
+            <Share2 className="mr-1.5 h-3.5 w-3.5" />
+            共有
+          </Button>
+          <Button
+            variant="default"
+            size="sm"
+            className="bg-[#3B82F6] hover:bg-[#2563EB] text-white text-xs h-auto py-1.5 px-3 rounded-md"
+            onClick={handleDetailsClick}
+          >
+            <MessageSquare className="mr-1.5 h-3.5 w-3.5" />
+            詳細
+            {post.comments > 0 && (
+              <span className="ml-1.5 bg-white text-[#1D4ED8] text-xs font-bold px-1.5 py-0.5 rounded-full">
+                {post.comments}
+              </span>
+            )}
+          </Button>
+        </div>
       </CardFooter>
     </Card>
   )
