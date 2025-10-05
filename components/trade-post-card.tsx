@@ -1,163 +1,268 @@
 "use client"
 
+import type React from "react"
 import { useState } from "react"
-import Link from "next/link"
-import { Clock, MessageCircle, Heart, Share2 } from "lucide-react"
+import Image from "next/image"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { CardDisplay } from "@/components/card-display"
-import { formatDistanceToNowStrict } from "date-fns"
-import { ja } from "date-fns/locale"
-import type { Card } from "@/types/card"
-import { ShareModal } from "@/components/share-modal"
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Copy, MessageSquare, UserCircle, Share2 } from "lucide-react"
+import { useToast } from "@/components/ui/use-toast"
+import ShareModal from "@/components/share-modal"
 
-interface TradePostCardProps {
-  id: string
-  wantedCards: Card[]
-  offeredCards: Card[]
-  comment: string
-  createdAt: string
-  userId: string
-  userName?: string
-  likeCount?: number
-  commentCount?: number
-  viewCount?: number
+type CardInfo = {
+  name: string
+  image: string
 }
 
-export function TradePostCard({
-  id,
-  wantedCards,
-  offeredCards,
-  comment,
-  createdAt,
-  userId,
-  userName,
-  likeCount = 0,
-  commentCount = 0,
-}: TradePostCardProps) {
+type TradePost = {
+  id: string
+  title: string
+  date: string
+  status: string
+  wantedCard?: CardInfo
+  offeredCard?: CardInfo
+  comments: number
+  postId: string
+  username?: string
+  avatarUrl?: string | null
+  authorComment?: string | null
+  rawData?: any
+}
+
+interface TradePostCardProps {
+  post: TradePost
+}
+
+export default function TradePostCard({ post }: TradePostCardProps) {
+  const { toast } = useToast()
+  const router = useRouter()
   const [isShareModalOpen, setIsShareModalOpen] = useState(false)
 
-  const timeAgo = formatDistanceToNowStrict(new Date(createdAt), {
-    addSuffix: true,
-    locale: ja,
-  })
+  const handleCopyToClipboard = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    e.preventDefault()
+    navigator.clipboard.writeText(post.postId)
+    toast({
+      title: "コピーしました",
+      description: `ID: ${post.postId} をクリップボードにコピーしました。`,
+    })
+  }
 
-  const handleShare = () => {
-    const url = `${typeof window !== "undefined" ? window.location.origin : ""}/trades/${id}`
+  const handleShare = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    e.preventDefault()
     setIsShareModalOpen(true)
   }
 
-  const shareUrl = `${typeof window !== "undefined" ? window.location.origin : ""}/trades/${id}`
-  const shareTitle = `${userName || "匿名ユーザー"}のトレード投稿`
+  const handleCardClick = (e: React.MouseEvent) => {
+    e.preventDefault()
+
+    // sessionStorageにデータを保存
+    if (post.rawData?.fullPostData) {
+      try {
+        const cacheKey = `trade-post-${post.id}`
+        const cacheData = {
+          ...post.rawData.fullPostData,
+          cachedAt: Date.now(),
+        }
+        sessionStorage.setItem(cacheKey, JSON.stringify(cacheData))
+        console.log(`[TradePostCard] Cached data for post ${post.id}`)
+      } catch (error) {
+        console.error("[TradePostCard] Failed to cache data:", error)
+      }
+    }
+
+    // 詳細画面に遷移
+    router.push(`/trades/${post.id}`)
+  }
+
+  const handleDetailsClick = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    e.preventDefault()
+    handleCardClick(e)
+  }
+
+  // 複数カード表示用
+  const wantedCards = post.rawData?.wantedCards || []
+  const offeredCards = post.rawData?.offeredCards || []
+
+  const statusStyles =
+    post.status === "募集中"
+      ? "bg-[#3B82F6] text-white border-transparent"
+      : post.status === "進行中"
+        ? "bg-amber-100 text-amber-800 border-amber-200"
+        : post.status === "完了"
+          ? "bg-emerald-100 text-emerald-800 border-emerald-200"
+          : "bg-gray-100 text-gray-700 border-gray-200"
+
+  const shareUrl = `${typeof window !== "undefined" ? window.location.origin : ""}/trades/${post.id}`
 
   return (
     <>
-      <Link
-        href={`/trades/${id}`}
-        className="block bg-white rounded-lg shadow-sm hover:shadow-md transition-all duration-300 border border-[#E5E7EB] overflow-hidden"
-      >
-        <div className="p-4">
-          {/* ヘッダー */}
-          <div className="flex items-start justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#3B82F6] to-[#2563EB] flex items-center justify-center text-white font-semibold text-sm">
-                {userName ? userName[0].toUpperCase() : "U"}
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-[#1F2937]">{userName || "匿名ユーザー"}</p>
-                <div className="flex items-center gap-1 text-xs text-[#6B7280]">
-                  <Clock className="w-3 h-3" />
-                  <span>{timeAgo}</span>
+      <Card className="relative w-full border border-[#3d496e] bg-white shadow-sm hover:shadow-md transition-shadow duration-200 rounded-xl">
+        {/* Status Badge in the top-right */}
+        <div className="absolute right-3 top-3 z-10">
+          <Badge variant="outline" className={`rounded-full px-2.5 py-1 text-xs font-semibold ${statusStyles}`}>
+            {post.status}
+          </Badge>
+        </div>
+
+        <div onClick={handleCardClick} className="block cursor-pointer">
+          <CardHeader className>
+            <div className="flex items-start">
+              <div className="flex-1 min-w-0">
+                <CardTitle className="text-xl font-semibold text-[#111827]">{post.title}</CardTitle>
+                <div className="mt-1 flex items-center text-[#6B7280]">
+                  {post.avatarUrl ? (
+                    <Image
+                      src={post.avatarUrl || "/placeholder.svg"}
+                      alt={post.username || "ユーザー"}
+                      width={20}
+                      height={20}
+                      className="rounded-full mr-2"
+                    />
+                  ) : (
+                    <UserCircle className="h-5 w-5 text-slate-400 mr-2" />
+                  )}
+                  <p className="text-xs">
+                    {post.username || "ユーザー"} ・ {post.date}
+                  </p>
                 </div>
               </div>
             </div>
-          </div>
+          </CardHeader>
 
-          {/* カードセクション */}
-          <div className="grid grid-cols-2 gap-3 mb-3">
-            {/* 求めるカード */}
-            <div className="space-y-2">
-              <div className="flex items-center gap-1.5">
-                <div className="w-2 h-2 rounded-full bg-[#3B82F6]" />
-                <h3 className="text-xs font-semibold text-[#3B82F6]">求めるカード</h3>
+          <CardContent className="pt-1 pb-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-3 mb-2">
+              {/* Wanted Cards */}
+              <div className="space-y-2 md:pr-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-medium text-[#1D4ED8]">求めるカード</h3>
+                </div>
+                <div className="rounded-lg border border-[#3d496e] bg-[#F8FBFF] pt-2 pb-2 pl-2 pr-2 flex flex-nowrap overflow-x-auto gap-2 items-center scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-slate-100">
+                  {wantedCards.length > 0 ? (
+                    wantedCards.map((card: any) => (
+                      <div key={card.id} className="flex-shrink-0 flex flex-col items-center">
+                        <Image
+                          src={card.imageUrl || "/placeholder.svg?width=72&height=100&query=pokemon-card"}
+                          alt={card.name}
+                          width={72}
+                          height={100}
+                          className="rounded-md object-contain border border-[#E5E7EB] bg-white mb-1"
+                        />
+                        <p className="text-xs font-semibold text-[#374151] text-center max-w-[72px] truncate">
+                          {card.name}
+                        </p>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="flex-shrink-0 flex flex-col items-center">
+                      <Image
+                        src="/placeholder.svg"
+                        alt="要相談"
+                        width={72}
+                        height={100}
+                        className="rounded-md object-contain border border-[#E5E7EB] bg-white mb-1"
+                      />
+                      <p className="text-xs font-semibold text-[#374151] text-center max-w-[72px] truncate">要相談</p>
+                    </div>
+                  )}
+                </div>
               </div>
-              <div className="aspect-[7/10] relative rounded-lg overflow-hidden bg-[#F9FAFB] border border-[#E5E7EB]">
-                {wantedCards.length > 0 ? (
-                  <CardDisplay card={wantedCards[0]} size="sm" />
-                ) : (
-                  <div className="absolute inset-0 flex items-center justify-center text-xs text-[#9CA3AF]">
-                    カードなし
-                  </div>
-                )}
-                {wantedCards.length > 1 && (
-                  <div className="absolute bottom-2 right-2 bg-black/70 backdrop-blur-sm text-white text-xs px-2 py-1 rounded-full font-semibold">
-                    +{wantedCards.length - 1}
-                  </div>
-                )}
+
+              {/* Offered Cards */}
+              <div className="space-y-2 md:pl-3 md:border-l">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-medium text-[#0EA5E9]">譲れるカード</h3>
+                </div>
+                <div className="rounded-lg border border-[#3d496e] bg-[#F7FAFF] pt-2 pb-2 pl-2 pr-2 flex flex-nowrap overflow-x-auto gap-2 items-center scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-slate-100">
+                  {offeredCards.length > 0 ? (
+                    offeredCards.map((card: any) => (
+                      <div key={card.id} className="flex-shrink-0 flex flex-col items-center">
+                        <Image
+                          src={card.imageUrl || "/placeholder.svg?width=72&height=100&query=pokemon-card"}
+                          alt={card.name}
+                          width={72}
+                          height={100}
+                          className="rounded-md object-contain border border-[#E5E7EB] bg-white mb-1"
+                        />
+                        <p className="text-xs font-semibold text-[#374151] text-center max-w-[72px] truncate">
+                          {card.name}
+                        </p>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="flex-shrink-0 flex flex-col items-center">
+                      <Image
+                        src="/placeholder.svg"
+                        alt="要相談"
+                        width={72}
+                        height={100}
+                        className="rounded-md object-contain border border-[#E5E7EB] bg-white mb-1"
+                      />
+                      <p className="text-xs font-semibold text-[#374151] text-center max-w-[72px] truncate">要相談</p>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
-
-            {/* 譲れるカード */}
-            <div className="space-y-2">
-              <div className="flex items-center gap-1.5">
-                <div className="w-2 h-2 rounded-full bg-[#10B981]" />
-                <h3 className="text-xs font-semibold text-[#10B981]">譲れるカード</h3>
-              </div>
-              <div className="aspect-[7/10] relative rounded-lg overflow-hidden bg-[#F9FAFB] border border-[#E5E7EB]">
-                {offeredCards.length > 0 ? (
-                  <CardDisplay card={offeredCards[0]} size="sm" />
-                ) : (
-                  <div className="absolute inset-0 flex items-center justify-center text-xs text-[#9CA3AF]">
-                    カードなし
-                  </div>
-                )}
-                {offeredCards.length > 1 && (
-                  <div className="absolute bottom-2 right-2 bg-black/70 backdrop-blur-sm text-white text-xs px-2 py-1 rounded-full font-semibold">
-                    +{offeredCards.length - 1}
-                  </div>
-                )}
-              </div>
+            <div className="bg-[#F9FAFB] p-1 rounded-md text-sm text-[#6B7280] mb-3 border border-[#E5E7EB]">
+              {post.authorComment ? (
+                <div className="mb-1">
+                  <p className="text-xs font-medium text-[#374151] mb-1">投稿者コメント：{post.authorComment}</p>
+                </div>
+              ) : null}
             </div>
-          </div>
+          </CardContent>
+        </div>
 
-          {/* コメント */}
-          {comment && (
-            <div className="mb-3 p-3 bg-[#F9FAFB] rounded-lg border border-[#E5E7EB]">
-              <p className="text-sm text-[#4B5563] line-clamp-2">{comment}</p>
-            </div>
-          )}
-
-          {/* アクションバー */}
-          <div className="flex items-center justify-between pt-3 border-t border-[#E5E7EB]">
-            <div className="flex items-center gap-3">
-              <button className="flex items-center gap-1.5 text-xs text-[#6B7280] hover:text-[#EF4444] transition-colors">
-                <Heart className="w-4 h-4" />
-                <span>{likeCount}</span>
-              </button>
-              <button className="flex items-center gap-1.5 text-xs text-[#6B7280] hover:text-[#3B82F6] transition-colors">
-                <MessageCircle className="w-4 h-4" />
-                <span>{commentCount}</span>
-              </button>
-            </div>
+        <CardFooter className="bg-[#F8FAFC] px-4 py-3 flex items-center justify-between rounded-b-xl border-t border-[#3d496e] mx-1">
+          <div className="flex items-center gap-2">
+            <p className="text-xs text-[#6B7280]">ID: {post.postId}</p>
             <Button
-              onClick={(e) => {
-                e.preventDefault()
-                handleShare()
-              }}
+              variant="ghost"
               size="sm"
-              className="text-xs h-8 px-3 bg-gradient-to-r from-[#3B82F6] to-[#2563EB] hover:from-[#2563EB] hover:to-[#1D4ED8] text-white rounded-lg shadow-sm hover:shadow-md transition-all duration-200 font-semibold"
+              className="text-xs h-auto py-1 px-2 text-[#1F2937] hover:bg-[#E5F0FF]"
+              onClick={handleCopyToClipboard}
             >
-              <Share2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1" />
-              <span className="hidden sm:inline">シェア</span>
+              <Copy className="mr-1 h-3 w-3" />
             </Button>
           </div>
-        </div>
-      </Link>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-xs h-auto py-1.5 px-3 rounded-md transition-all duration-300 bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:from-blue-600 hover:to-blue-700 shadow-md hover:shadow-lg"
+              onClick={handleShare}
+            >
+              <Share2 className="mr-1.5 h-3.5 w-3.5" />
+              共有
+            </Button>
+            <Button
+              variant="default"
+              size="sm"
+              className="bg-[#3B82F6] hover:bg-[#2563EB] text-white text-xs h-auto py-1.5 px-3 rounded-md"
+              onClick={handleDetailsClick}
+            >
+              <MessageSquare className="mr-1.5 h-3.5 w-3.5" />
+              詳細
+              {post.comments > 0 && (
+                <span className="ml-1.5 bg-white text-[#1D4ED8] text-xs font-bold px-1.5 py-0.5 rounded-full">
+                  {post.comments}
+                </span>
+              )}
+            </Button>
+          </div>
+        </CardFooter>
+      </Card>
 
       <ShareModal
         isOpen={isShareModalOpen}
         onClose={() => setIsShareModalOpen(false)}
-        url={shareUrl}
-        title={shareTitle}
+        shareUrl={shareUrl}
+        title={post.title}
       />
     </>
   )

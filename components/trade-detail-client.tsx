@@ -16,6 +16,7 @@ import { addCommentToTradePost, updateTradePostStatus, getTradePostCommentsOnly 
 import { supabase } from "@/lib/supabase/client"
 import LoginPromptModal from "@/components/ui/login-prompt-modal"
 import { useAuth } from "@/contexts/auth-context"
+import ShareModal from "@/components/share-modal"
 
 // 型定義をexport（page.tsxから参照可能にする）
 export interface Comment {
@@ -119,6 +120,7 @@ export default function TradeDetailClient({ initialPost, postId }: TradeDetailCl
   const [newComment, setNewComment] = useState("")
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null)
   const [showLoginPrompt, setShowLoginPrompt] = useState(false)
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false)
 
   // IDをクリップボードにコピー
   const handleCopyToClipboard = useCallback(() => {
@@ -128,30 +130,10 @@ export default function TradeDetailClient({ initialPost, postId }: TradeDetailCl
     }
   }, [post?.originalPostId, toast])
 
-  // 共有リンクをクリップボードにコピー
-  const handleShare = useCallback(async () => {
-    if (!post?.id) return
-
-    const shareUrl = `${window.location.origin}/trades/${post.id}`
-
-    try {
-      await navigator.clipboard.writeText(shareUrl)
-
-      toast({
-        title: "リンクをコピーしました",
-        description: "この投稿のURLがクリップボードにコピーされました。",
-        duration: 2000,
-      })
-    } catch (error) {
-      console.error("Failed to copy URL:", error)
-      toast({
-        title: "コピーに失敗しました",
-        description: "もう一度お試しください。",
-        variant: "destructive",
-        duration: 2000,
-      })
-    }
-  }, [post?.id, toast])
+  // 共有ボタンをクリック
+  const handleShare = useCallback(() => {
+    setIsShareModalOpen(true)
+  }, [])
 
   // 楽観的コメント生成
   const generateOptimisticComment = useCallback((user: any, isAuthenticated: boolean | null) => {
@@ -314,6 +296,8 @@ export default function TradeDetailClient({ initialPost, postId }: TradeDetailCl
     </div>
   )
 
+  const shareUrl = `${typeof window !== "undefined" ? window.location.origin : ""}/trades/${post.id}`
+
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-b from-blue-50 via-blue-100 to-white">
       <Header />
@@ -346,20 +330,31 @@ export default function TradeDetailClient({ initialPost, postId }: TradeDetailCl
                 <span>{post.createdAt}</span>
               </div>
             </div>
-            <Badge
-              variant="outline"
-              className={`whitespace-nowrap ${
-                post.status === "募集中"
-                  ? "bg-green-100 text-green-700 border-green-300"
-                  : post.status === "進行中"
-                    ? "bg-amber-100 text-amber-700 border-amber-300"
-                    : post.status === "完了"
-                      ? "bg-blue-100 text-blue-700 border-blue-300"
-                      : "bg-gray-100 text-gray-700 border-gray-300"
-              }`}
-            >
-              {post.status}
-            </Badge>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:from-blue-600 hover:to-blue-700 shadow-md hover:shadow-lg"
+                onClick={handleShare}
+              >
+                <Share2 className="mr-2 h-4 w-4" />
+                共有
+              </Button>
+              <Badge
+                variant="outline"
+                className={`whitespace-nowrap ${
+                  post.status === "募集中"
+                    ? "bg-green-100 text-green-700 border-green-300"
+                    : post.status === "進行中"
+                      ? "bg-amber-100 text-amber-700 border-amber-300"
+                      : post.status === "完了"
+                        ? "bg-blue-100 text-blue-700 border-blue-300"
+                        : "bg-gray-100 text-gray-700 border-gray-300"
+                }`}
+              >
+                {post.status}
+              </Badge>
+            </div>
           </div>
           <div className="space-y-6 mb-6">
             {renderCardList(post.wantedCards, "求めるカード")}
@@ -373,16 +368,10 @@ export default function TradeDetailClient({ initialPost, postId }: TradeDetailCl
           )}
           <div className="flex justify-between items-center bg-slate-100 p-3 rounded-md">
             <p className="text-sm text-slate-600">ID : {post.originalPostId}</p>
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={handleCopyToClipboard} className="text-xs bg-transparent">
-                <Copy className="mr-1.5 h-3 w-3" />
-                コピー
-              </Button>
-              <Button variant="outline" size="sm" onClick={handleShare} className="text-xs bg-transparent">
-                <Share2 className="mr-1.5 h-3 w-3" />
-                共有
-              </Button>
-            </div>
+            <Button variant="outline" size="sm" onClick={handleCopyToClipboard} className="text-xs bg-transparent">
+              <Copy className="mr-1.5 h-3 w-3" />
+              コピー
+            </Button>
           </div>
           <OwnerActionButtons post={post} currentUserId={user?.id || null} />
         </div>
@@ -450,6 +439,12 @@ export default function TradeDetailClient({ initialPost, postId }: TradeDetailCl
       {showLoginPrompt && (
         <LoginPromptModal onClose={() => setShowLoginPrompt(false)} onContinueAsGuest={handleContinueAsGuest} />
       )}
+      <ShareModal
+        isOpen={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
+        shareUrl={shareUrl}
+        title={post.title}
+      />
     </div>
   )
 }

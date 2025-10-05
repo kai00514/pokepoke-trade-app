@@ -181,7 +181,7 @@ export default async function Image({ params }: { params: { id: string } }) {
           }}
         />
 
-        {/* 求めるカード（左側・青枠） - 315px × 440px */}
+        {/* 求めるカード（左側・青枠） */}
         <img
           src={wantedCardImage || placeholderImageUrl}
           alt="Wanted Card"
@@ -190,14 +190,14 @@ export default async function Image({ params }: { params: { id: string } }) {
           style={{
             position: "absolute",
             left: "135px",
-            top: "95px",
-            width: "315px",
-            height: "440px",
+            top: "132px",
+            width: "280px",
+            height: "389px",
             objectFit: "contain",
           }}
         />
 
-        {/* 譲れるカード（右側・緑枠） - 315px × 440px */}
+        {/* 譲れるカード（右側・緑枠） */}
         <img
           src={offeredCardImage || placeholderImageUrl}
           alt="Offered Card"
@@ -205,10 +205,10 @@ export default async function Image({ params }: { params: { id: string } }) {
           height={440}
           style={{
             position: "absolute",
-            left: "750px",
-            top: "95px",
-            width: "315px",
-            height: "440px",
+            left: "830px",
+            top: "133px",
+            width: "285px",
+            height: "388px",
             objectFit: "contain",
           }}
         />
