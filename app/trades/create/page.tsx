@@ -223,6 +223,9 @@ export default function CreateTradePage() {
         userId: isAuthenticated ? currentUserId : undefined,
       })
       if (result.success) {
+        // タイムラインのキャッシュをクリア
+        sessionStorage.removeItem("trade-posts-cache-page-1")
+
         toast({ title: "投稿成功", description: "トレード投稿が作成されました。" })
         if (result.postId) router.push(`/trades/${result.postId}`)
         else router.push("/")
