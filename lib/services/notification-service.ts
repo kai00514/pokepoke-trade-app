@@ -57,7 +57,7 @@ export async function isNotificationTypeEnabled(userId: string, type: Notificati
     }
   } catch (error) {
     console.error("通知設定確認エラー:", error)
-    return true // エラーの場���はデフォルトで有効
+    return true // エラーの場合デフォルトで有効
   }
 }
 
@@ -82,7 +82,7 @@ export async function handleCommentNotification(comment: any, postOwnerId: strin
           .insert({
             user_id: postOwnerId,
             type: "comment",
-            content: `あなたの投稿に${userName}さんからコメントがありました`,
+            content: `${userName}さんがコメント`,
             related_id: comment.post_id,
           })
           .select()
@@ -118,7 +118,7 @@ export async function handleCommentNotification(comment: any, postOwnerId: strin
             .insert({
               user_id: parentComment.user_id,
               type: "reply",
-              content: `あなたのコメントに${userName}さんから返信がありました`,
+              content: `${userName}さんが返信`,
               related_id: comment.post_id,
             })
             .select()
@@ -201,7 +201,7 @@ async function notifyOtherCommenters(comment: any): Promise<void> {
           .insert({
             user_id: userId,
             type: "comment_on_post",
-            content: `あなたがコメントした投稿に${userName}さんが新しいコメントを追加しました`,
+            content: `${userName}さんもコメント`,
             related_id: comment.post_id,
           })
           .select()
@@ -255,13 +255,13 @@ export async function handleMatchNotification(
     let content = ""
     switch (type) {
       case "match_request":
-        content = `${userName}さんからマッチングリクエストが届きました`
+        content = `${userName}さんからリクエスト`
         break
       case "match_accepted":
-        content = `${userName}さんがあなたのマッチングリクエストを承認しました`
+        content = `${userName}さんが承認`
         break
       case "match_rejected":
-        content = `${userName}さんがあなたのマッチングリクエストを拒否しました`
+        content = `${userName}さんが辞退`
         break
     }
 
@@ -333,25 +333,25 @@ export async function createNotification(options: {
     let message = ""
     switch (options.type) {
       case "match_request":
-        message = "あなたのマッチングに応答がありました。承認してチャットを開始しましょう。"
+        message = "マッチングに応答がありました"
         break
       case "match_approved":
-        message = "マッチングが承認されました。チャットルームが作成されました。"
+        message = "マッチングが承認されました"
         break
       case "match_approval_pending":
-        message = "相手がマッチングを承認しました。あなたの承認が必要です。"
+        message = "相手が承認しました。あなたの承認が必要です"
         break
       case "match_rejected":
-        message = "マッチングが拒否されました。"
+        message = "マッチングが辞退されました"
         break
       case "trade_completion_request":
-        message = "トレード完了リクエストが届いています。承認してください。"
+        message = "トレード完了リクエストが届いています"
         break
       case "trade_completed":
-        message = "トレードが完了しました！"
+        message = "トレードが完了しました"
         break
       default:
-        message = options.content.message || "新しい通知があります。"
+        message = options.content.message || "新しい通知があります"
     }
 
     const { data, error } = await supabase
@@ -571,8 +571,7 @@ export async function createTestNotification(userId: string): Promise<any> {
 }
 
 /**
- * コメント通知を作成する
- * 特定のコメントに対する通知を作成します
+ * コメント通知を処理する
  */
 export async function markCommentAsRead(userId: string, commentId: string, postId: string): Promise<boolean> {
   try {
