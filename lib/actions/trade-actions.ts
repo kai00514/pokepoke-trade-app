@@ -224,7 +224,12 @@ export async function createTradePost(formData: TradeFormData) {
     console.log("[createTradePost] Post ID:", postId)
     console.log("[createTradePost] Owner ID:", finalUserId || "GUEST")
 
-    return { success: true, postId }
+    return {
+      success: true,
+      postId,
+      isAuthenticated,
+      userId: finalUserId,
+    }
   } catch (error) {
     console.error("[createTradePost] Unexpected error:", error)
     return {

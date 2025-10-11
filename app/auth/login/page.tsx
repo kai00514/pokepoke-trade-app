@@ -12,6 +12,7 @@ import { createClient } from "@/lib/supabase/client"
 import { useToast } from "@/components/ui/use-toast"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { AlertCircle, Mail, Lock, Eye, EyeOff } from "lucide-react"
+import { event as gtagEvent } from "@/lib/analytics/gtag"
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")
@@ -90,6 +91,12 @@ export default function LoginPage() {
           variant: "destructive",
         })
       } else if (data.user) {
+        gtagEvent("user_login", {
+          category: "engagement",
+          method: "email",
+          label: "email_login",
+        })
+
         toast({
           title: "ログイン成功",
           description: "ログインしました。",
@@ -147,6 +154,12 @@ export default function LoginPage() {
       }
 
       if (data?.url) {
+        gtagEvent("user_login", {
+          category: "engagement",
+          method: provider,
+          label: `${provider}_login_initiated`,
+        })
+
         window.location.href = data.url
       }
     } catch (error) {

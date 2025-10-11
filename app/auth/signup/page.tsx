@@ -12,6 +12,7 @@ import { createClient } from "@/lib/supabase/client"
 import { useToast } from "@/components/ui/use-toast"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Mail, ArrowRight, Lock, Eye, EyeOff, AlertCircle, CheckCircle } from "lucide-react"
+import { event as gtagEvent } from "@/lib/analytics/gtag"
 
 export default function SignupPage() {
   const [email, setEmail] = useState("")
@@ -77,6 +78,12 @@ export default function SignupPage() {
           description: "メールをご確認ください。",
         })
       } else if (data.session) {
+        gtagEvent("user_registered", {
+          category: "conversion",
+          method: "email",
+          label: "email_signup",
+        })
+
         toast({
           title: "登録完了",
           description: "アカウントが作成されました。",
@@ -129,6 +136,12 @@ export default function SignupPage() {
       }
 
       if (data?.url) {
+        gtagEvent("user_registered", {
+          category: "conversion",
+          method: provider,
+          label: `${provider}_signup_initiated`,
+        })
+
         window.location.href = data.url
       }
     } catch (error) {

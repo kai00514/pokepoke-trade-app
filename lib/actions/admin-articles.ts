@@ -286,6 +286,8 @@ export async function getArticle(id: string) {
   }
 }
 
+export const getArticleById = getArticle
+
 export async function toggleArticlePublished(id: string, isPublished: boolean) {
   try {
     const supabase = await createClient()

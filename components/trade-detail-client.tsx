@@ -17,8 +17,8 @@ import { supabase } from "@/lib/supabase/client"
 import LoginPromptModal from "@/components/ui/login-prompt-modal"
 import { useAuth } from "@/contexts/auth-context"
 import ShareModal from "@/components/share-modal"
+import { event as gtagEvent } from "@/lib/analytics/gtag"
 
-// 型定義をexport（page.tsxから参照可能にする）
 export interface Comment {
   id: string
   author: string
@@ -48,7 +48,6 @@ export interface TradePostDetails {
   createdAt: string
 }
 
-// 投稿者操作ボタンコンポーネント
 const OwnerActionButtons = ({ post, currentUserId }: { post: TradePostDetails; currentUserId: string | null }) => {
   const [isUpdating, setIsUpdating] = useState(false)
   const { toast } = useToast()
@@ -105,13 +104,11 @@ const OwnerActionButtons = ({ post, currentUserId }: { post: TradePostDetails; c
   )
 }
 
-// Client Componentのprops
 interface TradeDetailClientProps {
   initialPost: TradePostDetails
   postId: string
 }
 
-// メインのClient Component
 export default function TradeDetailClient({ initialPost, postId }: TradeDetailClientProps) {
   const router = useRouter()
   const { toast } = useToast()
@@ -122,7 +119,6 @@ export default function TradeDetailClient({ initialPost, postId }: TradeDetailCl
   const [showLoginPrompt, setShowLoginPrompt] = useState(false)
   const [isShareModalOpen, setIsShareModalOpen] = useState(false)
 
-  // IDをクリップボードにコピー
   const handleCopyToClipboard = useCallback(() => {
     if (post?.originalPostId) {
       navigator.clipboard.writeText(post.originalPostId)
@@ -130,12 +126,10 @@ export default function TradeDetailClient({ initialPost, postId }: TradeDetailCl
     }
   }, [post?.originalPostId, toast])
 
-  // 共有ボタンをクリック
   const handleShare = useCallback(() => {
     setIsShareModalOpen(true)
   }, [])
 
-  // 楽観的コメント生成
   const generateOptimisticComment = useCallback((user: any, isAuthenticated: boolean | null) => {
     const displayName = user?.user_metadata?.display_name || user?.email || "ユーザー"
     const avatarUrl = user?.user_metadata?.avatar_url
@@ -148,7 +142,6 @@ export default function TradeDetailClient({ initialPost, postId }: TradeDetailCl
     })
   }, [])
 
-  // コメント送信処理
   const handleCommentSubmit = useCallback(async () => {
     if (!newComment.trim()) {
       toast({ title: "入力エラー", description: "コメントを入力してください。", variant: "destructive" })
@@ -183,7 +176,6 @@ export default function TradeDetailClient({ initialPost, postId }: TradeDetailCl
     }
   }, [newComment, isAuthenticated, user, postId, toast, generateOptimisticComment])
 
-  // コメント送信ボタンクリック（ログインチェック付き）
   const handleCommentSubmitClick = useCallback(() => {
     if (!newComment.trim()) {
       toast({ title: "入力エラー", description: "コメントを入力してください。", variant: "destructive" })
@@ -193,13 +185,11 @@ export default function TradeDetailClient({ initialPost, postId }: TradeDetailCl
     else handleCommentSubmit()
   }, [newComment, isAuthenticated, handleCommentSubmit, toast])
 
-  // ゲストとして続行
   const handleContinueAsGuest = useCallback(() => {
     setShowLoginPrompt(false)
     handleCommentSubmit()
   }, [handleCommentSubmit])
 
-  // キーボードショートカット（Ctrl+Enterで送信）
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
       if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
@@ -210,16 +200,13 @@ export default function TradeDetailClient({ initialPost, postId }: TradeDetailCl
     [handleCommentSubmitClick],
   )
 
-  // タイムラインに戻る
   const handleBackToTimeline = useCallback(
     (e: React.MouseEvent) => {
       e.preventDefault()
 
-      // 現在のスクロール位置を保存
       const currentScrollY = window.scrollY
       sessionStorage.setItem("trade-list-scroll-position", currentScrollY.toString())
 
-      // ブラウザの履歴を使用して戻る
       if (window.history.length > 1) {
         window.history.back()
       } else {
@@ -229,7 +216,18 @@ export default function TradeDetailClient({ initialPost, postId }: TradeDetailCl
     [router],
   )
 
-  // 認証状態の監視
+  useEffect(() => {
+    if (postId && post) {
+      gtagEvent("trade_post_viewed", {
+        category: "engagement",
+        label: "trade_detail",
+        post_id: postId,
+        post_title: post.title,
+        status: post.status,
+      })
+    }
+  }, [postId, post])
+
   useEffect(() => {
     const checkAuth = async () => {
       const { data } = await supabase.auth.getSession()
@@ -244,7 +242,6 @@ export default function TradeDetailClient({ initialPost, postId }: TradeDetailCl
     }
   }, [])
 
-  // コメントの再取得（初期データにはコメントが含まれていない場合）
   useEffect(() => {
     const fetchComments = async () => {
       const commentsResult = await getTradePostCommentsOnly(postId)
@@ -258,7 +255,6 @@ export default function TradeDetailClient({ initialPost, postId }: TradeDetailCl
     fetchComments()
   }, [postId])
 
-  // ページ離脱時の処理
   useEffect(() => {
     const handleBeforeUnload = () => {
       sessionStorage.setItem("trade-list-scroll-position", window.scrollY.toString())
@@ -271,7 +267,6 @@ export default function TradeDetailClient({ initialPost, postId }: TradeDetailCl
     }
   }, [])
 
-  // カードリストのレンダリング
   const renderCardList = (cards: CardInfo[], title: string) => (
     <div>
       <h2 className="text-lg font-semibold text-slate-700 mb-3">{title}</h2>

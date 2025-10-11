@@ -21,6 +21,7 @@ import { createTradePost } from "@/lib/actions/trade-actions"
 import { supabase } from "@/lib/supabase/client"
 import LoginPromptModal from "@/components/ui/login-prompt-modal"
 import { checkTimeSync, formatTimeSkew, type TimeSync } from "@/lib/utils/time-sync"
+import { event as gtagEvent } from "@/lib/analytics/gtag"
 
 type SelectionContextType = "wanted" | "offered" | null
 
@@ -223,6 +224,14 @@ export default function CreateTradePage() {
         userId: isAuthenticated ? currentUserId : undefined,
       })
       if (result.success) {
+        gtagEvent("trade_post_created", {
+          category: "engagement",
+          label: "trade_post",
+          is_authenticated: result.isAuthenticated,
+          wanted_cards_count: wantedCards.length,
+          offered_cards_count: offeredCards.length,
+        })
+
         // タイムラインのキャッシュをクリア
         sessionStorage.removeItem("trade-posts-cache-page-1")
 
