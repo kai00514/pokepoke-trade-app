@@ -13,6 +13,7 @@ import {
 } from "@/lib/services/notification-service"
 import { useAuth } from "@/contexts/auth-context"
 import { useRouter } from "next/navigation"
+import { event as gtagEvent } from "@/lib/analytics/gtag"
 
 interface Notification {
   id: string
@@ -83,6 +84,12 @@ export function NotificationDropdown() {
   }
 
   const handleNotificationClick = async (notification: Notification) => {
+    gtagEvent("notification_clicked", {
+      category: "engagement",
+      notification_type: notification.type,
+      notification_id: notification.id,
+    })
+
     // 未読の場合は既読にする
     if (!notification.is_read) {
       await handleMarkAsRead(notification.id)

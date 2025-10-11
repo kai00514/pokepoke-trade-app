@@ -12,6 +12,7 @@ import { Search, Trash2, Plus } from "lucide-react"
 import { updateTradeOwnedList } from "@/lib/actions/trade-owned-lists"
 import { DetailedSearchModal } from "@/components/detailed-search-modal"
 import { NotificationModal } from "@/components/ui/notification-modal"
+import { event as gtagEvent } from "@/lib/analytics/gtag"
 
 interface SelectedCard {
   id: number
@@ -110,6 +111,13 @@ export function ListEditorModal({ isOpen, onClose, list, onUpdate }: ListEditorM
       })
 
       if (result.success) {
+        gtagEvent("list_updated", {
+          category: "engagement",
+          list_id: list.id,
+          list_name: listName.trim(),
+          card_count: cardIds.length,
+        })
+
         showNotification("success", "更新完了", "リストが正常に更新されました。")
         onUpdate()
         setTimeout(() => {

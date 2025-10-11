@@ -24,6 +24,7 @@ import {
   DialogClose,
 } from "@/components/ui/dialog"
 import DeckComments from "@/components/DeckComments"
+import { event as gtagEvent } from "@/lib/analytics/gtag"
 
 interface DeckPageData {
   id: string
@@ -134,6 +135,13 @@ export default function PokemonDeckPage() {
         setDeckData(convertedData)
         setEvalValue(convertedData.evalValue)
         setEvalCount(convertedData.evalCount)
+
+        gtagEvent("deck_viewed", {
+          category: "engagement",
+          deck_id: params.id as string,
+          deck_title: convertedData.title,
+          deck_type: "official",
+        })
       } catch (err) {
         console.error("Failed to fetch deck:", err)
         setError("デッキの取得に失敗しました")

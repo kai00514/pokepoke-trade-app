@@ -267,7 +267,8 @@ export async function getTradePostsWithCards(limit = 10, offset = 0) {
         is_authenticated,
         comment,
         wanted_card_id,
-        offered_card_id
+        offered_card_id,
+        g8_flg
       `)
       .order("created_at", { ascending: false })
       .range(offset, offset + limit - 1)
@@ -416,6 +417,7 @@ export async function getTradePostsWithCards(limit = 10, offset = 0) {
             createdAt: formattedDate,
             wantedCards: wantedCards,
             offeredCards: offeredCards,
+            g8_flg: post.g8_flg || false, // 新しい行
           },
         },
       }
@@ -583,6 +585,7 @@ export async function getTradePostDetailsById(postId: string) {
         isOwner: postData.is_authenticated && postData.owner_id,
       },
       createdAt: new Date(postData.created_at).toLocaleDateString(),
+      g8_flg: postData.g8_flg || false,
     }
 
     return { success: true, post: formattedPost }
@@ -700,7 +703,8 @@ export async function getMyTradePosts(userId: string) {
         created_at,
         is_authenticated,
         comment,
-        wanted_card_id
+        wanted_card_id,
+        g8_flg
       `)
       .eq("owner_id", userId)
       .eq("is_authenticated", true)
@@ -769,6 +773,7 @@ export async function getMyTradePosts(userId: string) {
         commentCount,
         authorComment: post.comment || null,
         postUrl: `/trades/${post.id}`,
+        g8_flg: post.g8_flg || false, // 新しい行
       }
     })
 
@@ -814,7 +819,8 @@ export async function getCommentedTradePosts(userId: string) {
         created_at,
         is_authenticated,
         comment,
-        wanted_card_id
+        wanted_card_id,
+        g8_flg
       `)
       .in("id", commentedPostIds)
       .or(`owner_id.is.null,owner_id.neq.${userId}`) // 自分の投稿は除外、ゲスト投稿は含める
@@ -884,6 +890,7 @@ export async function getCommentedTradePosts(userId: string) {
         commentCount,
         authorComment: post.comment || null,
         postUrl: `/trades/${post.id}`,
+        g8_flg: post.g8_flg || false, // 新しい行
       }
     })
 

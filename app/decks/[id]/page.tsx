@@ -20,6 +20,7 @@ import type { CardData } from "@/lib/card-utils"
 import { AuthProvider } from "@/contexts/auth-context"
 import DeckComments from "@/components/DeckComments"
 import LoginPromptModal from "@/components/ui/login-prompt-modal"
+import { event as gtagEvent } from "@/lib/analytics/gtag"
 
 const energyTypes = [
   { name: "草", icon: "/images/types/草.png", id: "grass", color: "bg-green-500" },
@@ -91,6 +92,13 @@ export default function DeckDetailPage() {
       setLikeCount(data.like_count || 0)
       setFavoriteCount(data.favorite_count || 0)
       setCommentCount(data.comment_count || 0)
+
+      gtagEvent("deck_viewed", {
+        category: "engagement",
+        deck_id: id,
+        deck_title: data.title,
+        deck_type: "user_created",
+      })
 
       if (data.deck_cards && data.deck_cards.length > 0) {
         const cardIds = data.deck_cards.map((dc) => String(dc.card_id))

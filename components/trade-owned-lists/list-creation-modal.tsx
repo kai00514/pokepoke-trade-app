@@ -10,6 +10,7 @@ import { createTradeOwnedList, type TradeOwnedList } from "@/lib/actions/trade-o
 import DetailedSearchModal from "@/components/detailed-search-modal"
 import { Card } from "@/components/ui/card"
 import { X, Search } from "lucide-react"
+import { event as gtagEvent } from "@/lib/analytics/gtag"
 
 interface ListCreationModalProps {
   isOpen: boolean
@@ -80,6 +81,12 @@ export default function ListCreationModal({ isOpen, onOpenChange, userId, onSucc
     const result = await createTradeOwnedList(userId, listName.trim(), cardIds)
 
     if (result.success) {
+      gtagEvent("list_created", {
+        category: "engagement",
+        list_name: listName.trim(),
+        card_count: cardIds.length,
+      })
+
       onSuccess(result.list)
       handleClose()
     } else {

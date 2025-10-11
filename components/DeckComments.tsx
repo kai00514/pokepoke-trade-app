@@ -8,6 +8,7 @@ import { Send, UserCircle } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
 import { supabase } from "@/lib/supabase/client"
 import LoginPromptModal from "@/components/ui/login-prompt-modal"
+import { event as gtagEvent } from "@/lib/analytics/gtag"
 
 interface Comment {
   id: string
@@ -129,6 +130,13 @@ export default function DeckComments({ deckId, deckTitle, commentType = "deck" }
         if (!response.ok) throw new Error(`HTTP ${response.status}: ${await response.text()}`)
         const data = await response.json()
         if (data.success) {
+          gtagEvent("comment_posted", {
+            category: "engagement",
+            post_type: "deck",
+            comment_type: commentType,
+            is_guest: isActualGuestUser,
+          })
+
           const actualComment: Comment = {
             id: data.comment.id,
             author: data.comment.user_name || userName,

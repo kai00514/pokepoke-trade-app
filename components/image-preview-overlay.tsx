@@ -5,6 +5,7 @@ import Image from "next/image"
 import { X } from "lucide-react"
 import { useEffect } from "react"
 import { createPortal } from "react-dom"
+import { event as gtagEvent } from "@/lib/analytics/gtag"
 
 interface ImagePreviewOverlayProps {
   isOpen: boolean
@@ -22,6 +23,12 @@ export default function ImagePreviewOverlay({
   useEffect(() => {
     if (!isOpen) return
 
+    gtagEvent("image_preview_opened", {
+      category: "engagement",
+      image_type: "card",
+      card_name: cardName,
+    })
+
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         event.preventDefault()
@@ -38,7 +45,7 @@ export default function ImagePreviewOverlay({
       document.removeEventListener("keydown", handleKeyDown, true)
       document.body.style.overflow = originalOverflow
     }
-  }, [isOpen, onClose])
+  }, [isOpen, onClose, cardName])
 
   if (!isOpen || !imageUrl) return null
 

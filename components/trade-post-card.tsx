@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge"
 import { Copy, MessageSquare, UserCircle, Share2 } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
 import ShareModal from "@/components/share-modal"
+import { event as gtagEvent } from "@/lib/analytics/gtag"
 
 type CardInfo = {
   name: string
@@ -53,13 +54,19 @@ export default function TradePostCard({ post }: TradePostCardProps) {
   const handleShare = (e: React.MouseEvent) => {
     e.stopPropagation()
     e.preventDefault()
+
+    gtagEvent("trade_share_clicked", {
+      category: "engagement",
+      trade_id: post.id,
+      trade_title: post.title,
+    })
+
     setIsShareModalOpen(true)
   }
 
   const handleCardClick = (e: React.MouseEvent) => {
     e.preventDefault()
 
-    // sessionStorageにデータを保存
     if (post.rawData?.fullPostData) {
       try {
         const cacheKey = `trade-post-${post.id}`
@@ -74,7 +81,6 @@ export default function TradePostCard({ post }: TradePostCardProps) {
       }
     }
 
-    // 詳細画面に遷移
     router.push(`/trades/${post.id}`)
   }
 
@@ -84,7 +90,6 @@ export default function TradePostCard({ post }: TradePostCardProps) {
     handleCardClick(e)
   }
 
-  // 複数カード表示用
   const wantedCards = post.rawData?.wantedCards || []
   const offeredCards = post.rawData?.offeredCards || []
 
@@ -102,7 +107,6 @@ export default function TradePostCard({ post }: TradePostCardProps) {
   return (
     <>
       <Card className="relative w-full border border-[#3d496e] bg-white shadow-sm hover:shadow-md transition-shadow duration-200 rounded-xl">
-        {/* Status Badge in the top-right */}
         <div className="absolute right-3 top-3 z-10">
           <Badge variant="outline" className={`rounded-full px-2.5 py-1 text-xs font-semibold ${statusStyles}`}>
             {post.status}
@@ -136,7 +140,6 @@ export default function TradePostCard({ post }: TradePostCardProps) {
 
           <CardContent className="pt-1 pb-2">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-3 mb-2">
-              {/* Wanted Cards */}
               <div className="space-y-2 md:pr-3">
                 <div className="flex items-center justify-between">
                   <h3 className="text-sm font-medium text-[#1D4ED8]">求めるカード</h3>
@@ -172,7 +175,6 @@ export default function TradePostCard({ post }: TradePostCardProps) {
                 </div>
               </div>
 
-              {/* Offered Cards */}
               <div className="space-y-2 md:pl-3 md:border-l">
                 <div className="flex items-center justify-between">
                   <h3 className="text-sm font-medium text-[#0EA5E9]">譲れるカード</h3>

@@ -17,6 +17,7 @@ import { supabase } from "@/lib/supabase/client"
 import { useToast } from "@/components/ui/use-toast"
 import { createDeck, type CreateDeckInput } from "@/lib/actions/deck-posts"
 import LoginPromptModal from "@/components/ui/login-prompt-modal"
+import { event as gtagEvent } from "@/lib/analytics/gtag"
 
 type DeckCard = CardType & { quantity: number }
 
@@ -254,6 +255,14 @@ export default function CreateDeckPage() {
       }
       const result = await createDeck(deckInput)
       if (result.success) {
+        gtagEvent("deck_created", {
+          category: "engagement",
+          deck_name: deckName.trim(),
+          card_count: deckCards.reduce((sum, card) => sum + card.quantity, 0),
+          is_authenticated: !!user,
+          is_public: isPublic,
+        })
+
         toast({ title: "デッキ保存成功", description: `${deckName}を保存しました。` })
         setDeckName("")
         setDeckDescription("")

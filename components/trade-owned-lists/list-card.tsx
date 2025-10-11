@@ -8,6 +8,7 @@ import { Edit, Trash2, Calendar, User } from "lucide-react"
 import { deleteTradeOwnedList } from "@/lib/actions/trade-owned-lists"
 import { ListEditorModal } from "./list-editor-modal"
 import { NotificationModal } from "@/components/ui/notification-modal"
+import { event as gtagEvent } from "@/lib/analytics/gtag"
 
 interface TradeOwnedList {
   id: number
@@ -67,6 +68,12 @@ export function ListCard({ list, onUpdate, currentUserId }: ListCardProps) {
       const result = await deleteTradeOwnedList(list.id)
 
       if (result.success) {
+        gtagEvent("list_deleted", {
+          category: "engagement",
+          list_id: list.id,
+          card_count: list.card_ids.length,
+        })
+
         showNotification("success", "削除完了", "リストが正常に削除されました。")
         onUpdate()
       } else {
