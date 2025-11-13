@@ -24,9 +24,15 @@ export default function CollagePageClient() {
       try {
         const response = await fetch(`/api/collages/${collageId}`)
         if (!response.ok) throw new Error("Failed to fetch collage")
-        const data = await response.json()
-        setCollage(data)
-        setOgImageUrl(data.collage_image_url || `/collages/${collageId}/opengraph-image`)
+
+        const result = await response.json()
+
+        if (result.success && result.data) {
+          setCollage(result.data)
+          setOgImageUrl(result.data.image_url || `/collages/${collageId}/opengraph-image`)
+        } else {
+          console.error("Failed to fetch collage:", result.error)
+        }
       } catch (error) {
         console.error("Error fetching collage:", error)
       } finally {
