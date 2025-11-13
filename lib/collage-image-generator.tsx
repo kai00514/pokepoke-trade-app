@@ -96,13 +96,10 @@ export async function generateCollageImageBuffer(params: GenerateCollageImagePar
       if (!buffer) return null
 
       try {
-        const cardWidth = layout1.cardSize
-        const cardHeight = Math.floor(layout1.cardSize * 1.4) // 7/5 = 1.4
-
         return await sharp(buffer)
-          .resize(cardWidth, cardHeight, {
+          .resize(layout1.cardSize, layout1.cardSize, {
             fit: "contain",
-            background: { r: 0, g: 0, b: 0, alpha: 0 },
+            background: { r: 255, g: 255, b: 255, alpha: 0 },
           })
           .png()
           .toBuffer()
@@ -119,13 +116,10 @@ export async function generateCollageImageBuffer(params: GenerateCollageImagePar
       if (!buffer) return null
 
       try {
-        const cardWidth = layout2.cardSize
-        const cardHeight = Math.floor(layout2.cardSize * 1.4)
-
         return await sharp(buffer)
-          .resize(cardWidth, cardHeight, {
+          .resize(layout2.cardSize, layout2.cardSize, {
             fit: "contain",
-            background: { r: 0, g: 0, b: 0, alpha: 0 },
+            background: { r: 255, g: 255, b: 255, alpha: 0 },
           })
           .png()
           .toBuffer()
