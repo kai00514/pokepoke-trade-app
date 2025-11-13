@@ -72,34 +72,43 @@ export async function generateCollageImageBuffer(params: GenerateCollageImagePar
 
   const composite = sharp(bgBuffer).resize(1536, 1024, { fit: "cover" })
 
+  const escapeXml = (text: string) => {
+    return text
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&apos;")
+  }
+
   const title1BgSvg = `
     <svg width="1536" height="1024">
-      <rect x="20" y="${zones.zone1Y + 10}" width="1496" height="60" 
-            fill="rgb(236, 72, 153)" rx="8" />
+      <rect x="20" y="${zones.zone1Y + 5}" width="1496" height="70" 
+            fill="rgb(236, 72, 153)" rx="12" />
     </svg>
   `
 
   const title2BgSvg = `
     <svg width="1536" height="1024">
-      <rect x="20" y="${zones.zone3Y + 10}" width="1496" height="60" 
-            fill="rgb(59, 130, 246)" rx="8" />
+      <rect x="20" y="${zones.zone3Y + 5}" width="1496" height="70" 
+            fill="rgb(59, 130, 246)" rx="12" />
     </svg>
   `
 
   const title1Svg = `
     <svg width="1536" height="1024">
-      <text x="768" y="${zones.zone1Y + 50}" fontSize="36" fontWeight="bold" fill="white"
-            textAnchor="middle" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">
-        ${title1}
+      <text x="768" y="${zones.zone1Y + 53}" fontSize="48" fontWeight="bold" fill="white"
+            textAnchor="middle" fontFamily="Arial, sans-serif">
+        ${escapeXml(title1)}
       </text>
     </svg>
   `
 
   const title2Svg = `
     <svg width="1536" height="1024">
-      <text x="768" y="${zones.zone3Y + 50}" fontSize="36" fontWeight="bold" fill="white"
-            textAnchor="middle" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">
-        ${title2}
+      <text x="768" y="${zones.zone3Y + 53}" fontSize="48" fontWeight="bold" fill="white"
+            textAnchor="middle" fontFamily="Arial, sans-serif">
+        ${escapeXml(title2)}
       </text>
     </svg>
   `

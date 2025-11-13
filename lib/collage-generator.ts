@@ -24,8 +24,8 @@ interface GridLayout {
  */
 export function calculateGridLayout(cardCount: number): GridLayout {
   const maxWidth = 1496 // 配置幅（1536 - 左右パディング20px × 2）
-  const spacing = 8 // カード間スペース
-  const maxCols = 12 // 最大カラム数（固定）
+  const spacing = 4 // カード間スペース
+  const maxCols = 10 // 最大カラム数（固定）
 
   if (cardCount === 0) {
     return {
