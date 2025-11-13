@@ -24,7 +24,7 @@ interface GridLayout {
  */
 export function calculateGridLayout(cardCount: number): GridLayout {
   const maxWidth = 1496 // 配置幅（1536 - 左右パディング20px × 2）
-  const spacing = 4 // カード間スペース
+  const spacing = 1 // カード間スペース（1pxに削減）
   const maxCols = 10 // 最大カラム数（固定）
 
   if (cardCount === 0) {
@@ -41,7 +41,6 @@ export function calculateGridLayout(cardCount: number): GridLayout {
   // 実際に使用するカラム数（カード枚数が少ない場合はそれに合わせる）
   const cols = Math.min(cardCount, maxCols)
 
-  // カードサイズを計算（最大カラム数を基準にすることで一定サイズを保つ）
   const cardSize = Math.floor((maxWidth - (maxCols - 1) * spacing) / maxCols)
 
   // 必要な行数
@@ -73,7 +72,7 @@ export function calculateUniformSpacing(
   const layout2 = calculateGridLayout(cards2Count)
 
   const zone1Y = 0
-  const zone1Height = 80
+  const zone1Height = 60
 
   const cards1Height = layout1.totalHeight
   const zone2Y = zone1Y + zone1Height
@@ -81,7 +80,7 @@ export function calculateUniformSpacing(
   const zone2EndY = zone2Y + zone2Height
 
   const zone3Y_tentative = zone2EndY
-  const zone3Height = 80
+  const zone3Height = 60
 
   const cards2Height = layout2.totalHeight
   const zone4Y_tentative = zone3Y_tentative + zone3Height
@@ -92,7 +91,7 @@ export function calculateUniformSpacing(
   const totalAvailableHeight = 1024
   const spacingSum = totalAvailableHeight - totalUsedHeight
 
-  const uniformSpacing = Math.floor(spacingSum / 4)
+  const uniformSpacing = Math.max(1, Math.floor(spacingSum / 4))
 
   const adjustedZone1Y = zone1Y
   const adjustedZone2Y = adjustedZone1Y + zone1Height + uniformSpacing

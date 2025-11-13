@@ -83,21 +83,21 @@ export async function generateCollageImageBuffer(params: GenerateCollageImagePar
 
   const title1BgSvg = `
     <svg width="1536" height="1024">
-      <rect x="20" y="${zones.zone1Y + 5}" width="1496" height="70" 
-            fill="rgb(236, 72, 153)" rx="12" />
+      <rect x="20" y="${zones.zone1Y}" width="1496" height="60" 
+            fill="rgb(236, 72, 153)" rx="8" />
     </svg>
   `
 
   const title2BgSvg = `
     <svg width="1536" height="1024">
-      <rect x="20" y="${zones.zone3Y + 5}" width="1496" height="70" 
-            fill="rgb(59, 130, 246)" rx="12" />
+      <rect x="20" y="${zones.zone3Y}" width="1496" height="60" 
+            fill="rgb(59, 130, 246)" rx="8" />
     </svg>
   `
 
   const title1Svg = `
     <svg width="1536" height="1024">
-      <text x="768" y="${zones.zone1Y + 53}" fontSize="48" fontWeight="bold" fill="white"
+      <text x="768" y="${zones.zone1Y + 42}" fontSize="36" fontWeight="bold" fill="white"
             textAnchor="middle" fontFamily="Arial, sans-serif">
         ${escapeXml(title1)}
       </text>
@@ -106,7 +106,7 @@ export async function generateCollageImageBuffer(params: GenerateCollageImagePar
 
   const title2Svg = `
     <svg width="1536" height="1024">
-      <text x="768" y="${zones.zone3Y + 53}" fontSize="48" fontWeight="bold" fill="white"
+      <text x="768" y="${zones.zone3Y + 42}" fontSize="36" fontWeight="bold" fill="white"
             textAnchor="middle" fontFamily="Arial, sans-serif">
         ${escapeXml(title2)}
       </text>
