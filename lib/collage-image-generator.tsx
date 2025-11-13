@@ -27,7 +27,7 @@ async function fetchImageBuffer(imageUrl: string): Promise<Buffer | null> {
 
   try {
     const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 10000)
+    const timeoutId = setTimeout(() => controller.abort(), 15000)
 
     const response = await fetch(absoluteUrl, {
       signal: controller.signal,
@@ -133,7 +133,6 @@ export async function generateCollageImageBuffer(params: GenerateCollageImagePar
 
   const compositeArray: sharp.OverlayOptions[] = []
 
-  // Add titles
   compositeArray.push({
     input: Buffer.from(title1Svg),
     top: 0,
@@ -146,7 +145,6 @@ export async function generateCollageImageBuffer(params: GenerateCollageImagePar
     left: 0,
   })
 
-  // Add cards1
   cardBuffers1.forEach((buffer, index) => {
     if (buffer && positions1[index]) {
       compositeArray.push({
@@ -157,7 +155,6 @@ export async function generateCollageImageBuffer(params: GenerateCollageImagePar
     }
   })
 
-  // Add cards2
   cardBuffers2.forEach((buffer, index) => {
     if (buffer && positions2[index]) {
       compositeArray.push({

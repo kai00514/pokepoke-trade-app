@@ -24,7 +24,7 @@ async function convertImageToDataUrl(imageUrl: string | null, label = "image"): 
 
   try {
     const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 8000)
+    const timeoutId = setTimeout(() => controller.abort(), 15000) // 15秒に延長
 
     const response = await fetch(absoluteUrl, { signal: controller.signal }).finally(() => clearTimeout(timeoutId))
 
@@ -42,6 +42,27 @@ async function convertImageToDataUrl(imageUrl: string | null, label = "image"): 
   }
 }
 
+function createFallbackImage() {
+  return new ImageResponse(
+    <div
+      style={{
+        width: "100%",
+        height: "100%",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        background: "linear-gradient(to right, #ec4899, #8b5cf6, #3b82f6)",
+        color: "white",
+        fontSize: 60,
+        fontWeight: "bold",
+      }}
+    >
+      PokeLink
+    </div>,
+    { ...size },
+  )
+}
+
 export default async function Image({ params }: { params: { id: string } }) {
   try {
     console.log("=== Starting collage OG image generation:", params.id)
@@ -50,24 +71,7 @@ export default async function Image({ params }: { params: { id: string } }) {
 
     if (!result.success || !result.collage) {
       console.log("Failed to get collage data")
-      return new ImageResponse(
-        <div
-          style={{
-            width: "100%",
-            height: "100%",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            background: "linear-gradient(to right, #ec4899, #8b5cf6, #3b82f6)",
-            color: "white",
-            fontSize: 60,
-            fontWeight: "bold",
-          }}
-        >
-          PokeLink
-        </div>,
-        { ...size },
-      )
+      return createFallbackImage()
     }
 
     const collage = result.collage
@@ -76,25 +80,8 @@ export default async function Image({ params }: { params: { id: string } }) {
     const bgDataUrl = await convertImageToDataUrl(bgUrl, "background")
 
     if (!bgDataUrl) {
-      console.error("Failed to load background image")
-      return new ImageResponse(
-        <div
-          style={{
-            width: "100%",
-            height: "100%",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            background: "linear-gradient(to right, #ec4899, #8b5cf6, #3b82f6)",
-            color: "white",
-            fontSize: 60,
-            fontWeight: "bold",
-          }}
-        >
-          PokeLink
-        </div>,
-        { ...size },
-      )
+      console.error("Failed to load background image, returning fallback")
+      return createFallbackImage()
     }
 
     const cardImages1 = await Promise.all(
@@ -155,7 +142,10 @@ export default async function Image({ params }: { params: { id: string } }) {
         {/* カードグループ1 */}
         {collage.cards1.map((card, index) => {
           const pos = positions1[index]
-          const imgSrc = cardImages1[index] || "/placeholder.svg?width=100&height=100"
+          const imgSrc = cardImages1[index]
+
+          if (!imgSrc || !pos) return null
+
           return (
             <img
               key={`card1-${index}`}
@@ -193,7 +183,10 @@ export default async function Image({ params }: { params: { id: string } }) {
         {/* カードグループ2 */}
         {collage.cards2.map((card, index) => {
           const pos = positions2[index]
-          const imgSrc = cardImages2[index] || "/placeholder.svg?width=100&height=100"
+          const imgSrc = cardImages2[index]
+
+          if (!imgSrc || !pos) return null
+
           return (
             <img
               key={`card2-${index}`}
@@ -218,24 +211,6 @@ export default async function Image({ params }: { params: { id: string } }) {
     )
   } catch (error) {
     console.error("=== Critical error generating collage OG image:", error)
-
-    return new ImageResponse(
-      <div
-        style={{
-          width: "100%",
-          height: "100%",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          background: "linear-gradient(to right, #ec4899, #8b5cf6, #3b82f6)",
-          color: "white",
-          fontSize: 60,
-          fontWeight: "bold",
-        }}
-      >
-        PokeLink
-      </div>,
-      { ...size },
-    )
+    return createFallbackImage()
   }
 }
