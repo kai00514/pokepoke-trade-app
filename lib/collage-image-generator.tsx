@@ -1,7 +1,7 @@
-import { ImageResponse } from "next/og"
-import { calculateGridLayout, calculateUniformSpacing } from "@/lib/collage-generator"
+import sharp from "sharp"
+import { calculateGridLayout, calculateUniformSpacing, calculateCardPositions } from "@/lib/collage-generator"
 
-interface Card {
+interface CardData {
   id: number
   name: string
   imageUrl: string
@@ -11,169 +11,166 @@ interface GenerateCollageImageParams {
   collageId: string
   title1: string
   title2: string
-  cards1: Card[]
-  cards2: Card[]
+  cards1: CardData[]
+  cards2: CardData[]
 }
 
-async function convertImageToDataUrl(imageUrl: string, label = "image"): Promise<string> {
+/**
+ * 画像URLをバッファとして取得
+ */
+async function fetchImageBuffer(imageUrl: string): Promise<Buffer | null> {
+  let absoluteUrl = imageUrl
+  if (imageUrl.startsWith("/")) {
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.pokelnk.com"
+    absoluteUrl = `${baseUrl}${imageUrl}`
+  }
+
   try {
     const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 8000)
+    const timeoutId = setTimeout(() => controller.abort(), 10000)
 
-    const response = await fetch(imageUrl, { signal: controller.signal })
-    clearTimeout(timeoutId)
+    const response = await fetch(absoluteUrl, {
+      signal: controller.signal,
+    }).finally(() => clearTimeout(timeoutId))
 
     if (!response.ok) {
-      console.error(`[${label}] Failed to fetch: ${response.status}`)
-      return "/placeholder.svg?width=100&height=100"
+      console.error(`Failed to fetch image ${absoluteUrl}: ${response.status}`)
+      return null
     }
 
     const arrayBuffer = await response.arrayBuffer()
-    const buffer = Buffer.from(arrayBuffer)
-    const base64 = buffer.toString("base64")
-    const mimeType = response.headers.get("content-type") || "image/jpeg"
-    return `data:${mimeType};base64,${base64}`
+    return Buffer.from(arrayBuffer)
   } catch (error) {
-    console.error(`[${label}] Error converting image:`, error)
-    return "/placeholder.svg?width=100&height=100"
+    console.error(`Error fetching image ${absoluteUrl}:`, error)
+    return null
   }
 }
 
+/**
+ * コラージュ画像を生成してBufferとして返す（1536x1024px）
+ */
 export async function generateCollageImageBuffer(params: GenerateCollageImageParams): Promise<Buffer> {
   const { title1, title2, cards1, cards2 } = params
 
-  const bgWidth = 1536
-  const bgHeight = 1024
-  const gridWidth = 1416 // 1536 - 60px padding on each side
+  console.log(`[generateCollageImageBuffer] Starting generation for collage ${params.collageId}`)
+  console.log(`[generateCollageImageBuffer] Cards1: ${cards1.length}, Cards2: ${cards2.length}`)
 
-  // Calculate layouts
+  const bgImagePath = `${process.env.NEXT_PUBLIC_SITE_URL || "https://www.pokelnk.com"}/coragu_backimage.png`
+  const bgBuffer = await fetchImageBuffer(bgImagePath)
+
+  if (!bgBuffer) {
+    throw new Error("Failed to load background image")
+  }
+
   const layout1 = calculateGridLayout(cards1.length)
   const layout2 = calculateGridLayout(cards2.length)
   const zones = calculateUniformSpacing(cards1.length, cards2.length)
 
-  // Load background image
-  const bgUrl = new URL("/coragu_backimage.png", process.env.NEXT_PUBLIC_SITE_URL || "https://www.pokelnk.com").href
-  const bgDataUrl = await convertImageToDataUrl(bgUrl, "background")
+  console.log(`[generateCollageImageBuffer] Layout1:`, layout1)
+  console.log(`[generateCollageImageBuffer] Layout2:`, layout2)
+  console.log(`[generateCollageImageBuffer] Zones:`, zones)
 
-  // Convert all card images to Data URLs
-  const cards1WithData = await Promise.all(
-    cards1.map(async (card) => ({
-      ...card,
-      dataUrl: await convertImageToDataUrl(card.imageUrl, `card1-${card.id}`),
-    })),
+  const composite = sharp(bgBuffer).resize(1536, 1024, { fit: "cover" })
+
+  const title1Svg = `
+    <svg width="1536" height="1024">
+      <text x="60" y="${zones.zone1Y + 50}" font-size="28" font-weight="bold" fill="white">
+        ${title1}
+      </text>
+    </svg>
+  `
+
+  const title2Svg = `
+    <svg width="1536" height="1024">
+      <text x="60" y="${zones.zone3Y + 50}" font-size="28" font-weight="bold" fill="white">
+        ${title2}
+      </text>
+    </svg>
+  `
+
+  const cardBuffers1 = await Promise.all(
+    cards1.map(async (card) => {
+      const buffer = await fetchImageBuffer(card.imageUrl)
+      if (!buffer) return null
+
+      try {
+        return await sharp(buffer)
+          .resize(layout1.cardSize, layout1.cardSize, {
+            fit: "cover",
+            position: "center",
+          })
+          .png()
+          .toBuffer()
+      } catch (error) {
+        console.error(`Error processing card image ${card.id}:`, error)
+        return null
+      }
+    }),
   )
 
-  const cards2WithData = await Promise.all(
-    cards2.map(async (card) => ({
-      ...card,
-      dataUrl: await convertImageToDataUrl(card.imageUrl, `card2-${card.id}`),
-    })),
+  const cardBuffers2 = await Promise.all(
+    cards2.map(async (card) => {
+      const buffer = await fetchImageBuffer(card.imageUrl)
+      if (!buffer) return null
+
+      try {
+        return await sharp(buffer)
+          .resize(layout2.cardSize, layout2.cardSize, {
+            fit: "cover",
+            position: "center",
+          })
+          .png()
+          .toBuffer()
+      } catch (error) {
+        console.error(`Error processing card image ${card.id}:`, error)
+        return null
+      }
+    }),
   )
 
-  const imageResponse = new ImageResponse(
-    <div
-      style={{
-        width: bgWidth,
-        height: bgHeight,
-        display: "flex",
-        position: "relative",
-      }}
-    >
-      {/* Background */}
-      <img
-        src={bgDataUrl || "/placeholder.svg"}
-        alt="background"
-        style={{ width: bgWidth, height: bgHeight, position: "absolute" }}
-      />
+  const positions1 = calculateCardPositions(layout1, 60, zones.zone2Y)
+  const positions2 = calculateCardPositions(layout2, 60, zones.zone4Y)
 
-      {/* Title 1 */}
-      <div
-        style={{
-          position: "absolute",
-          top: zones.zone1Y + 25,
-          left: 60,
-          color: "#FFFFFF",
-          fontSize: 28,
-          fontWeight: "bold",
-        }}
-      >
-        {title1}
-      </div>
+  const compositeArray: sharp.OverlayOptions[] = []
 
-      {/* Cards 1 Grid */}
-      <div
-        style={{
-          position: "absolute",
-          top: zones.zone2Y,
-          left: 60,
-          display: "flex",
-          flexWrap: "wrap",
-          width: gridWidth,
-          gap: layout1.spacing,
-        }}
-      >
-        {cards1WithData.map((card, idx) => (
-          <img
-            key={idx}
-            src={card.dataUrl || "/placeholder.svg"}
-            alt={card.name}
-            style={{
-              width: layout1.cardSize,
-              height: layout1.cardSize,
-              objectFit: "cover",
-              borderRadius: "4px",
-            }}
-          />
-        ))}
-      </div>
+  // Add titles
+  compositeArray.push({
+    input: Buffer.from(title1Svg),
+    top: 0,
+    left: 0,
+  })
 
-      {/* Title 2 */}
-      <div
-        style={{
-          position: "absolute",
-          top: zones.zone3Y + 25,
-          left: 60,
-          color: "#FFFFFF",
-          fontSize: 28,
-          fontWeight: "bold",
-        }}
-      >
-        {title2}
-      </div>
+  compositeArray.push({
+    input: Buffer.from(title2Svg),
+    top: 0,
+    left: 0,
+  })
 
-      {/* Cards 2 Grid */}
-      <div
-        style={{
-          position: "absolute",
-          top: zones.zone4Y,
-          left: 60,
-          display: "flex",
-          flexWrap: "wrap",
-          width: gridWidth,
-          gap: layout2.spacing,
-        }}
-      >
-        {cards2WithData.map((card, idx) => (
-          <img
-            key={idx}
-            src={card.dataUrl || "/placeholder.svg"}
-            alt={card.name}
-            style={{
-              width: layout2.cardSize,
-              height: layout2.cardSize,
-              objectFit: "cover",
-              borderRadius: "4px",
-            }}
-          />
-        ))}
-      </div>
-    </div>,
-    {
-      width: bgWidth,
-      height: bgHeight,
-    },
-  )
+  // Add cards1
+  cardBuffers1.forEach((buffer, index) => {
+    if (buffer && positions1[index]) {
+      compositeArray.push({
+        input: buffer,
+        top: Math.round(positions1[index].y),
+        left: Math.round(positions1[index].x),
+      })
+    }
+  })
 
-  const arrayBuffer = await imageResponse.arrayBuffer()
-  return Buffer.from(arrayBuffer)
+  // Add cards2
+  cardBuffers2.forEach((buffer, index) => {
+    if (buffer && positions2[index]) {
+      compositeArray.push({
+        input: buffer,
+        top: Math.round(positions2[index].y),
+        left: Math.round(positions2[index].x),
+      })
+    }
+  })
+
+  const finalBuffer = await composite.composite(compositeArray).png().toBuffer()
+
+  console.log(`[generateCollageImageBuffer] ✅ Image generated successfully, size: ${finalBuffer.length} bytes`)
+
+  return finalBuffer
 }
