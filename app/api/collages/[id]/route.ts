@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { createServerClient } from "@/lib/supabase/server"
+import { deleteCollageImage } from "@/lib/actions/upload-collage-image"
 
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
@@ -54,6 +55,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
         cards1,
         cards2,
         created_at: collage.created_at,
+        collage_image_url: collage.collage_image_url,
       },
     })
   } catch (error) {
@@ -74,13 +76,23 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
 
     const supabase = await createServerClient()
 
-    // Verify ownership
-    const { data: collage } = await supabase.from("user_collages").select("user_id").eq("id", id).single()
+    // Verify ownership and get storage path
+    const { data: collage } = await supabase
+      .from("user_collages")
+      .select("user_id, collage_storage_path")
+      .eq("id", id)
+      .single()
 
     if (!collage || collage.user_id !== userId) {
       return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 })
     }
 
+    // Delete from Storage if exists
+    if (collage.collage_storage_path) {
+      await deleteCollageImage(collage.collage_storage_path)
+    }
+
+    // Delete from database
     const { error } = await supabase.from("user_collages").delete().eq("id", id)
 
     if (error) {

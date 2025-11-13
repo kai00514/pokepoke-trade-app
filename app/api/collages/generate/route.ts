@@ -1,6 +1,8 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { createServerClient } from "@/lib/supabase/server"
 import { v4 as uuidv4 } from "uuid"
+import { generateCollageImageBuffer } from "@/lib/collage-image-generator"
+import { uploadCollageImage } from "@/lib/actions/upload-collage-image"
 
 export const runtime = "nodejs" // Using nodejs runtime for image generation
 
@@ -53,21 +55,21 @@ export async function POST(request: NextRequest) {
     })
 
     // Build card lists
-    const cards1 = card_ids_1.map((id) => {
+    const cards1 = card_ids_1.map((id: number) => {
       const card = cardsMap.get(id)
       return {
         id,
         name: card?.name || "Unknown",
-        imageUrl: card?.image_url || null,
+        imageUrl: card?.image_url || "/placeholder.svg?width=80&height=112",
       }
     })
 
-    const cards2 = card_ids_2.map((id) => {
+    const cards2 = card_ids_2.map((id: number) => {
       const card = cardsMap.get(id)
       return {
         id,
         name: card?.name || "Unknown",
-        imageUrl: card?.image_url || null,
+        imageUrl: card?.image_url || "/placeholder.svg?width=80&height=112",
       }
     })
 
@@ -77,9 +79,9 @@ export async function POST(request: NextRequest) {
       id: collageId,
       user_id: session.user.id,
       title1: title1.trim(),
-      card_ids_1: card_ids_1, // Direct number array for bigint[]
+      card_ids_1: card_ids_1,
       title2: title2.trim(),
-      card_ids_2: card_ids_2, // Direct number array for bigint[]
+      card_ids_2: card_ids_2,
     })
 
     if (insertError) {
@@ -88,6 +90,35 @@ export async function POST(request: NextRequest) {
     }
 
     console.log("[POST /api/collages/generate] ✅ Collage created:", collageId)
+
+    try {
+      const imageBuffer = await generateCollageImageBuffer({
+        collageId,
+        title1: title1.trim(),
+        title2: title2.trim(),
+        cards1,
+        cards2,
+      })
+
+      const uploadResult = await uploadCollageImage(imageBuffer, collageId)
+
+      if (uploadResult.success && uploadResult.url) {
+        await supabase
+          .from("user_collages")
+          .update({
+            collage_image_url: uploadResult.url,
+            collage_storage_path: uploadResult.path,
+          })
+          .eq("id", collageId)
+
+        console.log("[POST /api/collages/generate] ✅ Image uploaded:", uploadResult.url)
+      } else {
+        console.error("[POST /api/collages/generate] ⚠️ Image upload failed:", uploadResult.error)
+      }
+    } catch (imageError) {
+      console.error("[POST /api/collages/generate] ⚠️ Image generation failed:", imageError)
+      // Continue without image - can be generated later
+    }
 
     return NextResponse.json({
       success: true,

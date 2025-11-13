@@ -7,6 +7,8 @@ export interface CollageData {
   card_ids_2: number[]
   created_at: string
   updated_at: string
+  collage_image_url?: string
+  collage_storage_path?: string
 }
 
 export interface CollageListItem {
@@ -17,4 +19,5 @@ export interface CollageListItem {
   cardCount2: number
   created_at: string
   thumbnail_url?: string
+  collage_image_url?: string
 }
