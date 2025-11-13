@@ -31,7 +31,7 @@ export async function POST(request: Request) {
 
     const user = authResult[0]
 
-    // セッションデータをCookieに保存
+    // セッション��ータをCookieに保存
     const sessionData = {
       userId: user.id,
       username: user.username,
