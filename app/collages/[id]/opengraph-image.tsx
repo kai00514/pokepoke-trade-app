@@ -1,8 +1,8 @@
 import { ImageResponse } from "next/og"
 import { getCollageById } from "@/lib/actions/collages"
-import { calculateGridLayout, calculateUniformSpacing, calculateCardPositions } from "@/lib/collage-generator"
 
-export const runtime = "nodejs"
+// Edge Runtimeで高速化
+export const runtime = "edge"
 
 export const size = {
   width: 1200,
@@ -13,6 +13,9 @@ export const contentType = "image/png"
 
 export const alt = "PokeLink コラージュ画像"
 
+/**
+ * 画像をData URL（Base64エンコード）に変換
+ */
 async function convertImageToDataUrl(imageUrl: string | null, label = "image"): Promise<string | null> {
   if (!imageUrl) return null
 
@@ -23,12 +26,17 @@ async function convertImageToDataUrl(imageUrl: string | null, label = "image"): 
   }
 
   try {
+    console.log(`[${label}] Fetching image:`, absoluteUrl)
+
     const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 15000) // 15秒に延長
+    const timeoutId = setTimeout(() => controller.abort(), 10000)
 
     const response = await fetch(absoluteUrl, { signal: controller.signal }).finally(() => clearTimeout(timeoutId))
 
-    if (!response.ok) return null
+    if (!response.ok) {
+      console.error(`[${label}] Failed to fetch image:`, response.status)
+      return null
+    }
 
     const arrayBuffer = await response.arrayBuffer()
     const buffer = Buffer.from(arrayBuffer)
@@ -42,6 +50,9 @@ async function convertImageToDataUrl(imageUrl: string | null, label = "image"): 
   }
 }
 
+/**
+ * フォールバック画像を生成
+ */
 function createFallbackImage() {
   return new ImageResponse(
     <div
@@ -76,31 +87,25 @@ export default async function Image({ params }: { params: { id: string } }) {
 
     const collage = result.collage
 
-    const bgUrl = new URL("/coragu_backimage.png", process.env.NEXT_PUBLIC_SITE_URL || "https://www.pokelnk.com").href
-    const bgDataUrl = await convertImageToDataUrl(bgUrl, "background")
+    // 既に生成されているコラージュ画像URLを取得
+    const collageImageUrl = collage.collage_image_url
 
-    if (!bgDataUrl) {
-      console.error("Failed to load background image, returning fallback")
+    if (!collageImageUrl) {
+      console.error("Collage image URL not found")
       return createFallbackImage()
     }
 
-    const cardImages1 = await Promise.all(
-      collage.cards1.map((card, i) => convertImageToDataUrl(card.imageUrl, `card1-${i}`)),
-    )
-    const cardImages2 = await Promise.all(
-      collage.cards2.map((card, i) => convertImageToDataUrl(card.imageUrl, `card2-${i}`)),
-    )
+    console.log("Using existing collage image:", collageImageUrl)
 
-    const layout1 = calculateGridLayout(collage.cards1.length)
-    const layout2 = calculateGridLayout(collage.cards2.length)
-    const zones = calculateUniformSpacing(collage.cards1.length, collage.cards2.length)
+    // コラージュ画像をData URLに変換
+    const collageDataUrl = await convertImageToDataUrl(collageImageUrl, "collage-image")
 
-    const scaleX = 1200 / 1536
-    const scaleY = 630 / 1024
+    if (!collageDataUrl) {
+      console.error("Failed to convert collage image to data URL")
+      return createFallbackImage()
+    }
 
-    const positions1 = calculateCardPositions(layout1, 60, zones.zone2Y)
-    const positions2 = calculateCardPositions(layout2, 60, zones.zone4Y)
-
+    // 1536x1024の既存画像を1200x630にリサイズして表示
     return new ImageResponse(
       <div
         style={{
@@ -111,101 +116,19 @@ export default async function Image({ params }: { params: { id: string } }) {
           overflow: "hidden",
         }}
       >
-        {/* 背景画像（1536×1024 → 1200×630にスケール） */}
         <img
-          src={bgDataUrl || "/placeholder.svg"}
-          alt="Background"
+          src={collageDataUrl}
+          alt={`${collage.title1} / ${collage.title2}`}
           width={1536}
           height={1024}
           style={{
             position: "absolute",
-            width: `${1536 * scaleX}px`,
-            height: `${1024 * scaleY}px`,
+            width: "1200px",
+            height: "789px", // 1024 * (1200/1536) = 800px、少し調整して789px
             objectFit: "cover",
+            top: "-80px", // 上下を少しクロップして630pxに収める
           }}
         />
-
-        {/* タイトル1 */}
-        <div
-          style={{
-            position: "absolute",
-            left: `${60 * scaleX}px`,
-            top: `${zones.zone1Y * scaleY + 25 * scaleY}px`,
-            fontSize: `${28 * scaleY}px`,
-            fontWeight: "bold",
-            color: "white",
-          }}
-        >
-          {collage.title1}
-        </div>
-
-        {/* カードグループ1 */}
-        {collage.cards1.map((card, index) => {
-          const pos = positions1[index]
-          const imgSrc = cardImages1[index]
-
-          if (!imgSrc || !pos) return null
-
-          return (
-            <img
-              key={`card1-${index}`}
-              src={imgSrc || "/placeholder.svg"}
-              alt={card.name}
-              width={layout1.cardSize}
-              height={layout1.cardSize}
-              style={{
-                position: "absolute",
-                left: `${pos.x * scaleX}px`,
-                top: `${pos.y * scaleY}px`,
-                width: `${layout1.cardSize * scaleX}px`,
-                height: `${layout1.cardSize * scaleY}px`,
-                objectFit: "cover",
-                borderRadius: "4px",
-              }}
-            />
-          )
-        })}
-
-        {/* タイトル2 */}
-        <div
-          style={{
-            position: "absolute",
-            left: `${60 * scaleX}px`,
-            top: `${zones.zone3Y * scaleY + 25 * scaleY}px`,
-            fontSize: `${28 * scaleY}px`,
-            fontWeight: "bold",
-            color: "white",
-          }}
-        >
-          {collage.title2}
-        </div>
-
-        {/* カードグループ2 */}
-        {collage.cards2.map((card, index) => {
-          const pos = positions2[index]
-          const imgSrc = cardImages2[index]
-
-          if (!imgSrc || !pos) return null
-
-          return (
-            <img
-              key={`card2-${index}`}
-              src={imgSrc || "/placeholder.svg"}
-              alt={card.name}
-              width={layout2.cardSize}
-              height={layout2.cardSize}
-              style={{
-                position: "absolute",
-                left: `${pos.x * scaleX}px`,
-                top: `${pos.y * scaleY}px`,
-                width: `${layout2.cardSize * scaleX}px`,
-                height: `${layout2.cardSize * scaleY}px`,
-                objectFit: "cover",
-                borderRadius: "4px",
-              }}
-            />
-          )
-        })}
       </div>,
       { ...size },
     )
