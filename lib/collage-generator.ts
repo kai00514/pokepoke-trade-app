@@ -24,47 +24,30 @@ interface GridLayout {
  */
 export function calculateGridLayout(cardCount: number): GridLayout {
   const maxWidth = 1496 // 配置幅（1536 - 左右パディング20px × 2）
-  const spacing = 8
-
-  let rows: number
-  let cols: number
+  const spacing = 8 // カード間スペース
+  const maxCols = 10 // 最大カラム数（固定）
 
   if (cardCount === 0) {
-    return { rows: 0, cols: 0, cardSize: 0, spacing, totalWidth: maxWidth, totalHeight: 0 }
-  } else if (cardCount === 1) {
-    cols = 1
-    rows = 1
-  } else if (cardCount === 2) {
-    cols = 2
-    rows = 1
-  } else if (cardCount <= 4) {
-    cols = 2
-    rows = 2
-  } else if (cardCount <= 6) {
-    cols = 3
-    rows = 2
-  } else if (cardCount <= 9) {
-    cols = 3
-    rows = 3
-  } else if (cardCount <= 12) {
-    cols = 4
-    rows = 3
-  } else if (cardCount <= 16) {
-    cols = 4
-    rows = 4
-  } else if (cardCount <= 20) {
-    cols = 5
-    rows = 4
-  } else if (cardCount <= 25) {
-    cols = 5
-    rows = 5
-  } else {
-    cols = 6
-    rows = 5
+    return {
+      rows: 0,
+      cols: 0,
+      cardSize: 0,
+      spacing,
+      totalWidth: maxWidth,
+      totalHeight: 0,
+    }
   }
 
-  const cardSize = Math.floor((maxWidth - (cols - 1) * spacing) / cols)
+  // 実際に使用するカラム数（カード枚数が少ない場合はそれに合わせる）
+  const cols = Math.min(cardCount, maxCols)
 
+  // カードサイズを計算（最大カラム数を基準にすることで一定サイズを保つ）
+  const cardSize = Math.floor((maxWidth - (maxCols - 1) * spacing) / maxCols)
+
+  // 必要な行数
+  const rows = Math.ceil(cardCount / cols)
+
+  // グリッドの実際の幅と高さ
   const totalWidth = cols * cardSize + (cols - 1) * spacing
   const totalHeight = rows * cardSize + (rows - 1) * spacing
 
