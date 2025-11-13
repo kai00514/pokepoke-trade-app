@@ -12,6 +12,7 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
       title: "コラージュ - PokeLink",
       description: "ポケモンカードのコラージュ画像",
       url: collageUrl,
+      siteName: "PokeLink",
       images: [
         {
           url: ogImageUrl,
@@ -20,6 +21,7 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
           alt: "コラージュ画像",
         },
       ],
+      locale: "ja_JP",
       type: "website",
     },
     twitter: {
