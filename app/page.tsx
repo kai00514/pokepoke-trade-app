@@ -9,7 +9,7 @@ import TradePostCard from "@/components/trade-post-card"
 import AdPlaceholder from "@/components/ad-placeholder"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { PlusCircle, Search, Loader2, List, ChevronLeft, ChevronRight } from "lucide-react"
+import { PlusCircle, Search, Loader2, List, ChevronLeft, ChevronRight, Sparkles } from "lucide-react"
 import DetailedSearchModal from "@/components/detailed-search-modal"
 import LoginPromptModal from "@/components/ui/login-prompt-modal"
 import { useAuth } from "@/contexts/auth-context"
@@ -411,6 +411,18 @@ export default function TradeBoardPage() {
               <div className="flex items-center justify-center">
                 <PlusCircle className="h-5 w-5 mr-2" />
                 <span className="text-sm font-medium">トレード希望投稿を作成</span>
+              </div>
+            </Button>
+
+            <Button
+              variant="default"
+              className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white rounded-md shadow-sm"
+              style={{ padding: "0.625rem 1.25rem" }}
+              onClick={() => router.push("/collages")}
+            >
+              <div className="flex items-center justify-center">
+                <Sparkles className="h-5 w-5 mr-2" />
+                <span className="text-sm font-medium">コラージュ画像を生成</span>
               </div>
             </Button>
 
