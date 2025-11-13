@@ -210,6 +210,8 @@ export async function getCollageById(collageId: string) {
       cards1,
       cards2,
       created_at: new Date(collage.created_at).toLocaleDateString(),
+      collage_image_url: collage.collage_image_url,
+      collage_storage_path: collage.collage_storage_path,
     }
 
     console.log("[v0] Fetched successfully")
