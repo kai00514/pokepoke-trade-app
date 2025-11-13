@@ -37,8 +37,8 @@ function calculateLayoutForCardSize(
   cardCount: number,
   cardSize: number,
   maxWidth: number,
-  spacing: number = 4,
-  maxColsLimit: number = 10
+  spacing = 1, // カード間スペースを1pxに変更
+  maxColsLimit = 12, // 最大カラム数を12に増やして横幅を最大活用
 ): LayoutResult {
   if (cardCount === 0) {
     return { cols: 0, rows: 0, gridWidth: 0, gridHeight: 0 }
@@ -67,18 +67,14 @@ function calculateLayoutForCardSize(
  * 両方のセクションが収まる最適なカードサイズを見つける
  */
 function findOptimalCardSize(cards1Count: number, cards2Count: number): number {
-  const maxWidth = 1496 // 1536 - 左右パディング20px × 2
-  const maxHeight = 984 // 1024 - 上下パディング20px × 2
+  const maxWidth = 1516 // パディングを減らして横幅を最大活用（1536 - 10px × 2）
+  const maxHeight = 1004 // パディングを減らして縦幅を最大活用（1024 - 10px × 2）
   const titleHeight = 60
-  const minSpacing = 10 // スペースを削減（20px → 10px）
-  const cardSpacing = 4 // カード間スペースを半分に（8px → 4px）
-  const maxColsLimit = 10 // 最大カラム数を制限（背景が見えないように）
+  const minSpacing = 5 // セクション間スペースを削減
+  const cardSpacing = 1 // カード間スペースを1pxに変更
+  const maxColsLimit = 12 // 最大カラム数を12に増やす
 
-  // カードサイズ候補（大きい順に試す）
-  // 背景が見えないように、大きいサイズから開始
-  const cardSizeCandidates = [
-    180, 170, 160, 150, 140, 130, 120, 110, 100, 95, 90, 85, 80, 75, 70, 65, 60, 55, 50
-  ]
+  const cardSizeCandidates = [200, 190, 180, 170, 160, 150, 140, 130, 120, 110, 100, 90, 80, 70, 60, 50]
 
   for (const cardSize of cardSizeCandidates) {
     const layout1 = calculateLayoutForCardSize(cards1Count, cardSize, maxWidth, cardSpacing, maxColsLimit)
@@ -86,21 +82,25 @@ function findOptimalCardSize(cards1Count: number, cards2Count: number): number {
 
     // 必要な高さを計算
     const requiredHeight =
-      minSpacing +           // 上パディング
-      titleHeight +          // タイトル1
-      minSpacing +           // タイトルとグリッド間
-      layout1.gridHeight +   // カードグリッド1
-      minSpacing * 2 +       // セクション間スペース
-      titleHeight +          // タイトル2
-      minSpacing +           // タイトルとグリッド間
-      layout2.gridHeight +   // カードグリッド2
-      minSpacing             // 下パディング
+      minSpacing + // 上パディング
+      titleHeight + // タイトル1
+      minSpacing + // タイトルとグリッド間
+      layout1.gridHeight + // カードグリッド1
+      minSpacing * 2 + // セクション間スペース
+      titleHeight + // タイトル2
+      minSpacing + // タイトルとグリッド間
+      layout2.gridHeight + // カードグリッド2
+      minSpacing // 下パディング
 
     // 収まるかチェック
     if (requiredHeight <= maxHeight) {
       console.log(`[findOptimalCardSize] Selected cardSize: ${cardSize}px`)
-      console.log(`[findOptimalCardSize] Layout1: ${layout1.cols} cols × ${layout1.rows} rows (height: ${layout1.gridHeight}px)`)
-      console.log(`[findOptimalCardSize] Layout2: ${layout2.cols} cols × ${layout2.rows} rows (height: ${layout2.gridHeight}px)`)
+      console.log(
+        `[findOptimalCardSize] Layout1: ${layout1.cols} cols × ${layout1.rows} rows (height: ${layout1.gridHeight}px)`,
+      )
+      console.log(
+        `[findOptimalCardSize] Layout2: ${layout2.cols} cols × ${layout2.rows} rows (height: ${layout2.gridHeight}px)`,
+      )
       console.log(`[findOptimalCardSize] Required height: ${requiredHeight}px / ${maxHeight}px`)
       return cardSize
     }
@@ -142,7 +142,7 @@ export function calculateGridLayout(cardCount: number, optimalCardSize?: number)
  */
 export function calculateUniformSpacing(
   cards1Count: number,
-  cards2Count: number
+  cards2Count: number,
 ): {
   spacing: number
   zone1Y: number
@@ -157,10 +157,10 @@ export function calculateUniformSpacing(
 } {
   const totalHeight = 1024
   const titleHeight = 60
-  const minSpacing = 10 // スペースを削減
-  const maxWidth = 1496
-  const cardSpacing = 4 // カード間スペースを半分に
-  const maxColsLimit = 10 // 最大カラム数を制限
+  const minSpacing = 5 // セクション間スペースを削減
+  const maxWidth = 1516 // パディングを減らす
+  const cardSpacing = 1 // カード間スペースを1pxに変更
+  const maxColsLimit = 12 // 最大カラム数を12に増やす
 
   // 最適なカードサイズを決定
   const optimalCardSize = findOptimalCardSize(cards1Count, cards2Count)
@@ -204,8 +204,12 @@ export function calculateUniformSpacing(
   console.log(`[calculateUniformSpacing] ========================================`)
   console.log(`[calculateUniformSpacing] Cards1: ${cards1Count}, Cards2: ${cards2Count}`)
   console.log(`[calculateUniformSpacing] Optimal cardSize: ${optimalCardSize}px`)
-  console.log(`[calculateUniformSpacing] Layout1: ${layout1.cols}×${layout1.rows}, totalHeight: ${layout1.totalHeight}px`)
-  console.log(`[calculateUniformSpacing] Layout2: ${layout2.cols}×${layout2.rows}, totalHeight: ${layout2.totalHeight}px`)
+  console.log(
+    `[calculateUniformSpacing] Layout1: ${layout1.cols}×${layout1.rows}, totalHeight: ${layout1.totalHeight}px`,
+  )
+  console.log(
+    `[calculateUniformSpacing] Layout2: ${layout2.cols}×${layout2.rows}, totalHeight: ${layout2.totalHeight}px`,
+  )
   console.log(`[calculateUniformSpacing] Zone spacing: ${spacing}px`)
   console.log(`[calculateUniformSpacing] Zone1Y (Title1): ${zone1Y}px`)
   console.log(`[calculateUniformSpacing] Zone2Y (Cards1): ${zone2Y}px`)
@@ -233,7 +237,7 @@ export function calculateUniformSpacing(
 export function calculateCardPositions(
   layout: GridLayout,
   startX: number,
-  startY: number
+  startY: number,
 ): Array<{ x: number; y: number }> {
   const positions: Array<{ x: number; y: number }> = []
 

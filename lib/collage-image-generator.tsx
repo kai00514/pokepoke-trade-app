@@ -82,60 +82,82 @@ export async function generateCollageImageBuffer(params: GenerateCollageImagePar
   // 背景画像をリサイズ
   const composite = sharp(bgBuffer).resize(1536, 1024, { fit: "cover" })
 
-  // XMLエスケープ関数
-  const escapeXml = (text: string) => {
-    return text
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&apos;")
-  }
-
-  // タイトル背景（ピンク色・不透明）
+  // タイトル背景（ピンク色・半透明）
   const title1BgSvg = `
     <svg width="1536" height="1024">
       <rect x="0" y="${zones.zone1Y}" width="1536" height="60"
-            fill="rgb(236, 72, 153)" fill-opacity="1.0" />
+            fill="rgb(236, 72, 153)" opacity="0.95" />
     </svg>
   `
 
-  // タイトル背景（ブルー色・不透明）
   const title2BgSvg = `
     <svg width="1536" height="1024">
       <rect x="0" y="${zones.zone3Y}" width="1536" height="60"
-            fill="rgb(59, 130, 246)" fill-opacity="1.0" />
+            fill="rgb(59, 130, 246)" opacity="0.95" />
     </svg>
   `
 
   // タイトルテキスト（影付きで視認性向上）
-  const title1Svg = `
-    <svg width="1536" height="1024">
-      <defs>
-        <filter id="shadow1" x="-50%" y="-50%" width="200%" height="200%">
-          <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="rgba(0,0,0,0.5)"/>
-        </filter>
-      </defs>
-      <text x="768" y="${zones.zone1Y + 42}" fontSize="40" fontWeight="bold" fill="white"
-            textAnchor="middle" fontFamily="Arial, sans-serif" filter="url(#shadow1)">
-        ${escapeXml(title1)}
-      </text>
+  const title1TextSvg = Buffer.from(`
+    <svg width="1536" height="60">
+      <text 
+        x="768" 
+        y="45" 
+        fontFamily="Arial, sans-serif" 
+        fontSize="48" 
+        fontWeight="bold" 
+        fill="white" 
+        textAnchor="middle"
+        stroke="rgba(0,0,0,0.3)"
+        strokeWidth="2"
+      >${title1.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")}</text>
     </svg>
-  `
+  `)
 
-  const title2Svg = `
-    <svg width="1536" height="1024">
-      <defs>
-        <filter id="shadow2" x="-50%" y="-50%" width="200%" height="200%">
-          <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="rgba(0,0,0,0.5)"/>
-        </filter>
-      </defs>
-      <text x="768" y="${zones.zone3Y + 42}" fontSize="40" fontWeight="bold" fill="white"
-            textAnchor="middle" fontFamily="Arial, sans-serif" filter="url(#shadow2)">
-        ${escapeXml(title2)}
-      </text>
+  const title2TextSvg = Buffer.from(`
+    <svg width="1536" height="60">
+      <text 
+        x="768" 
+        y="45" 
+        fontFamily="Arial, sans-serif" 
+        fontSize="48" 
+        fontWeight="bold" 
+        fill="white" 
+        textAnchor="middle"
+        stroke="rgba(0,0,0,0.3)"
+        strokeWidth="2"
+      >${title2.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")}</text>
     </svg>
-  `
+  `)
+
+  // コンポジット配列を作成
+  const compositeArray: sharp.OverlayOptions[] = []
+
+  // タイトル背景を追加
+  compositeArray.push({
+    input: Buffer.from(title1BgSvg),
+    top: 0,
+    left: 0,
+  })
+
+  compositeArray.push({
+    input: Buffer.from(title2BgSvg),
+    top: 0,
+    left: 0,
+  })
+
+  // タイトルテキストを追加
+  compositeArray.push({
+    input: title1TextSvg,
+    top: zones.zone1Y,
+    left: 0,
+  })
+
+  compositeArray.push({
+    input: title2TextSvg,
+    top: zones.zone3Y,
+    left: 0,
+  })
 
   // カード画像を処理（最適なカードサイズを使用）
   console.log(`[generateCollageImageBuffer] Processing ${cards1.length} cards for section 1...`)
@@ -160,7 +182,7 @@ export async function generateCollageImageBuffer(params: GenerateCollageImagePar
         console.error(`[generateCollageImageBuffer] Error processing card ${index + 1} (ID: ${card.id}):`, error)
         return null
       }
-    })
+    }),
   )
 
   console.log(`[generateCollageImageBuffer] Processing ${cards2.length} cards for section 2...`)
@@ -185,7 +207,7 @@ export async function generateCollageImageBuffer(params: GenerateCollageImagePar
         console.error(`[generateCollageImageBuffer] Error processing card ${index + 1} (ID: ${card.id}):`, error)
         return null
       }
-    })
+    }),
   )
 
   // カード配置座標を計算
@@ -194,35 +216,6 @@ export async function generateCollageImageBuffer(params: GenerateCollageImagePar
 
   console.log(`[generateCollageImageBuffer] Calculated ${positions1.length} positions for section 1`)
   console.log(`[generateCollageImageBuffer] Calculated ${positions2.length} positions for section 2`)
-
-  // コンポジット配列を作成
-  const compositeArray: sharp.OverlayOptions[] = []
-
-  // タイトル背景を追加
-  compositeArray.push({
-    input: Buffer.from(title1BgSvg),
-    top: 0,
-    left: 0,
-  })
-
-  compositeArray.push({
-    input: Buffer.from(title2BgSvg),
-    top: 0,
-    left: 0,
-  })
-
-  // タイトルテキストを追加
-  compositeArray.push({
-    input: Buffer.from(title1Svg),
-    top: 0,
-    left: 0,
-  })
-
-  compositeArray.push({
-    input: Buffer.from(title2Svg),
-    top: 0,
-    left: 0,
-  })
 
   // カード画像を配置
   let successCount1 = 0
