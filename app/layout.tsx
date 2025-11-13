@@ -8,6 +8,7 @@ import { Toaster } from "@/components/ui/toaster"
 import GoogleAnalytics from "@/components/analytics/google-analytics"
 import { Suspense } from "react"
 import PageViewTracker from "@/components/analytics/page-view-tracker"
+
 import { Inter, Geist as V0_Font_Geist, Geist_Mono as V0_Font_Geist_Mono, Source_Serif_4 as V0_Font_Source_Serif_4 } from 'next/font/google'
 
 // Initialize fonts
