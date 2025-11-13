@@ -1,22 +1,207 @@
 import { type NextRequest, NextResponse } from "next/server"
+import { ImageResponse } from "next/og"
+import { createServerClient } from "@/lib/supabase/server"
+import { calculateGridLayout, calculateUniformSpacing } from "@/lib/collage-generator"
 
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const { id } = params
+    const supabase = await createServerClient()
 
-    // This endpoint will be called by the frontend to download the collage image
-    // The actual image generation happens on the client side or via OG image generation
-    // This is a placeholder for future implementation of server-side image download
+    // Fetch collage data
+    const { data: collage, error: collageError } = await supabase
+      .from("user_collages")
+      .select("*")
+      .eq("id", id)
+      .single()
 
-    return NextResponse.json(
-      {
-        success: false,
-        error: "Image generation is being processed. Please use the preview display.",
-      },
-      { status: 501 },
+    if (collageError || !collage) {
+      return NextResponse.json({ success: false, error: "Collage not found" }, { status: 404 })
+    }
+
+    // Fetch all card data
+    const allCardIds = [...(collage.card_ids_1 || []), ...(collage.card_ids_2 || [])]
+
+    const { data: cards } = await supabase.from("cards").select("id, name, image_url").in("id", allCardIds)
+
+    const cardMap = new Map(cards?.map((c) => [c.id, c]) || [])
+
+    // Helper to convert image to data URL
+    async function convertImageToDataUrl(imageUrl: string): Promise<string> {
+      try {
+        const response = await fetch(imageUrl, { signal: AbortSignal.timeout(10000) })
+        const arrayBuffer = await response.arrayBuffer()
+        const buffer = Buffer.from(arrayBuffer)
+        const base64 = buffer.toString("base64")
+        const mimeType = response.headers.get("content-type") || "image/jpeg"
+        return `data:${mimeType};base64,${base64}`
+      } catch {
+        return `/placeholder.svg?width=100&height=100`
+      }
+    }
+
+    // Prepare card images
+    const cards1 = await Promise.all(
+      (collage.card_ids_1 || []).map(async (id: number) => {
+        const card = cardMap.get(id)
+        return {
+          id,
+          name: card?.name || "不明",
+          imageUrl: card?.image_url
+            ? await convertImageToDataUrl(card.image_url)
+            : "/placeholder.svg?width=100&height=100",
+        }
+      }),
     )
+
+    const cards2 = await Promise.all(
+      (collage.card_ids_2 || []).map(async (id: number) => {
+        const card = cardMap.get(id)
+        return {
+          id,
+          name: card?.name || "不明",
+          imageUrl: card?.image_url
+            ? await convertImageToDataUrl(card.image_url)
+            : "/placeholder.svg?width=100&height=100",
+        }
+      }),
+    )
+
+    // Layout calculations
+    const bgWidth = 1536
+    const bgHeight = 1024
+    const titleHeight = 80
+    const gridWidth = 1416
+
+    const layout1 = calculateGridLayout(cards1.length, gridWidth, 800)
+    const layout2 = calculateGridLayout(cards2.length, gridWidth, 800)
+    const uniformSpacing = calculateUniformSpacing(
+      bgHeight,
+      titleHeight,
+      layout1.gridHeight,
+      titleHeight,
+      layout2.gridHeight,
+    )
+
+    // Fetch background image
+    const bgResponse = await fetch(
+      new URL("/coragu_backimage.png", process.env.NEXT_PUBLIC_SITE_URL || "https://www.pokelnk.com").href,
+    )
+    const bgArrayBuffer = await bgResponse.arrayBuffer()
+    const bgBase64 = Buffer.from(bgArrayBuffer).toString("base64")
+    const bgDataUrl = `data:image/png;base64,${bgBase64}`
+
+    // Generate image at original size (1536x1024)
+    const imageResponse = new ImageResponse(
+      <div
+        style={{
+          width: bgWidth,
+          height: bgHeight,
+          display: "flex",
+          position: "relative",
+        }}
+      >
+        <img
+          src={bgDataUrl || "/placeholder.svg"}
+          alt="background"
+          style={{ width: bgWidth, height: bgHeight, position: "absolute" }}
+        />
+
+        {/* Title 1 */}
+        <div
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 60,
+            height: titleHeight,
+            display: "flex",
+            alignItems: "center",
+            color: "#FFFFFF",
+            fontSize: 28,
+            fontWeight: "bold",
+          }}
+        >
+          {collage.title1}
+        </div>
+
+        {/* Cards 1 */}
+        <div
+          style={{
+            position: "absolute",
+            top: titleHeight + uniformSpacing,
+            left: 60,
+            display: "flex",
+            flexWrap: "wrap",
+            width: gridWidth,
+            gap: layout1.spacing,
+          }}
+        >
+          {cards1.map((card, idx) => (
+            <img
+              key={idx}
+              src={card.imageUrl || "/placeholder.svg"}
+              alt={card.name}
+              style={{ width: layout1.cardSize, height: layout1.cardSize, objectFit: "cover" }}
+            />
+          ))}
+        </div>
+
+        {/* Title 2 */}
+        <div
+          style={{
+            position: "absolute",
+            top: titleHeight + uniformSpacing + layout1.gridHeight + uniformSpacing,
+            left: 60,
+            height: titleHeight,
+            display: "flex",
+            alignItems: "center",
+            color: "#FFFFFF",
+            fontSize: 28,
+            fontWeight: "bold",
+          }}
+        >
+          {collage.title2}
+        </div>
+
+        {/* Cards 2 */}
+        <div
+          style={{
+            position: "absolute",
+            top: titleHeight + uniformSpacing + layout1.gridHeight + uniformSpacing + titleHeight + uniformSpacing,
+            left: 60,
+            display: "flex",
+            flexWrap: "wrap",
+            width: gridWidth,
+            gap: layout2.spacing,
+          }}
+        >
+          {cards2.map((card, idx) => (
+            <img
+              key={idx}
+              src={card.imageUrl || "/placeholder.svg"}
+              alt={card.name}
+              style={{ width: layout2.cardSize, height: layout2.cardSize, objectFit: "cover" }}
+            />
+          ))}
+        </div>
+      </div>,
+      {
+        width: bgWidth,
+        height: bgHeight,
+      },
+    )
+
+    const imageBuffer = await imageResponse.arrayBuffer()
+
+    return new Response(imageBuffer, {
+      headers: {
+        "Content-Type": "image/png",
+        "Content-Disposition": `attachment; filename="collage-${id}.png"`,
+        "Cache-Control": "public, max-age=31536000, immutable",
+      },
+    })
   } catch (error) {
-    console.error("[GET /api/collages/[id]/download] Unexpected error:", error)
+    console.error("[GET /api/collages/[id]/download] Error:", error)
     return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 })
   }
 }

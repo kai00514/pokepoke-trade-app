@@ -93,7 +93,7 @@ export async function POST(request: NextRequest) {
       success: true,
       id: collageId,
       collage_url: `/collages/${collageId}`,
-      og_image_url: `/api/collages/${collageId}/opengraph-image`,
+      og_image_url: `/collages/${collageId}/opengraph-image`,
     })
   } catch (error) {
     console.error("[POST /api/collages/generate] Error:", error)

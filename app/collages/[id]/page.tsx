@@ -3,7 +3,7 @@ import CollagePageClient from "./collage-page-client"
 
 export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
   const collageUrl = `${process.env.NEXT_PUBLIC_SITE_URL || "https://www.pokelnk.com"}/collages/${params.id}`
-  const ogImageUrl = `${process.env.NEXT_PUBLIC_SITE_URL || "https://www.pokelnk.com"}/api/collages/${params.id}/opengraph-image`
+  const ogImageUrl = `${process.env.NEXT_PUBLIC_SITE_URL || "https://www.pokelnk.com"}/collages/${params.id}/opengraph-image`
 
   return {
     title: "コラージュ - PokeLink",
