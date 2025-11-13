@@ -92,27 +92,32 @@ export async function generateCollageImageBuffer(params: GenerateCollageImagePar
       .replace(/'/g, "&apos;")
   }
 
-  // タイトル背景（ピンク色）
+  // タイトル背景（ピンク色・不透明）
   const title1BgSvg = `
     <svg width="1536" height="1024">
-      <rect x="20" y="${zones.zone1Y}" width="1496" height="60"
-            fill="rgb(236, 72, 153)" rx="8" />
+      <rect x="0" y="${zones.zone1Y}" width="1536" height="60"
+            fill="rgb(236, 72, 153)" fill-opacity="1.0" />
     </svg>
   `
 
-  // タイトル背景（ブルー色）
+  // タイトル背景（ブルー色・不透明）
   const title2BgSvg = `
     <svg width="1536" height="1024">
-      <rect x="20" y="${zones.zone3Y}" width="1496" height="60"
-            fill="rgb(59, 130, 246)" rx="8" />
+      <rect x="0" y="${zones.zone3Y}" width="1536" height="60"
+            fill="rgb(59, 130, 246)" fill-opacity="1.0" />
     </svg>
   `
 
-  // タイトルテキスト
+  // タイトルテキスト（影付きで視認性向上）
   const title1Svg = `
     <svg width="1536" height="1024">
-      <text x="768" y="${zones.zone1Y + 42}" fontSize="36" fontWeight="bold" fill="white"
-            textAnchor="middle" fontFamily="Arial, sans-serif">
+      <defs>
+        <filter id="shadow1" x="-50%" y="-50%" width="200%" height="200%">
+          <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="rgba(0,0,0,0.5)"/>
+        </filter>
+      </defs>
+      <text x="768" y="${zones.zone1Y + 42}" fontSize="40" fontWeight="bold" fill="white"
+            textAnchor="middle" fontFamily="Arial, sans-serif" filter="url(#shadow1)">
         ${escapeXml(title1)}
       </text>
     </svg>
@@ -120,8 +125,13 @@ export async function generateCollageImageBuffer(params: GenerateCollageImagePar
 
   const title2Svg = `
     <svg width="1536" height="1024">
-      <text x="768" y="${zones.zone3Y + 42}" fontSize="36" fontWeight="bold" fill="white"
-            textAnchor="middle" fontFamily="Arial, sans-serif">
+      <defs>
+        <filter id="shadow2" x="-50%" y="-50%" width="200%" height="200%">
+          <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="rgba(0,0,0,0.5)"/>
+        </filter>
+      </defs>
+      <text x="768" y="${zones.zone3Y + 42}" fontSize="40" fontWeight="bold" fill="white"
+            textAnchor="middle" fontFamily="Arial, sans-serif" filter="url(#shadow2)">
         ${escapeXml(title2)}
       </text>
     </svg>

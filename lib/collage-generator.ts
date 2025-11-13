@@ -37,14 +37,18 @@ function calculateLayoutForCardSize(
   cardCount: number,
   cardSize: number,
   maxWidth: number,
-  spacing: number = 8
+  spacing: number = 4,
+  maxColsLimit: number = 10
 ): LayoutResult {
   if (cardCount === 0) {
     return { cols: 0, rows: 0, gridWidth: 0, gridHeight: 0 }
   }
 
   // 幅に収まる最大カラム数
-  const maxCols = Math.floor((maxWidth + spacing) / (cardSize + spacing))
+  const maxColsFromWidth = Math.floor((maxWidth + spacing) / (cardSize + spacing))
+
+  // 最大カラム数を制限（背景が見えないようにカードを大きく）
+  const maxCols = Math.min(maxColsFromWidth, maxColsLimit)
 
   // 実際のカラム数（カード枚数が少ない場合はそれに合わせる）
   const cols = Math.min(cardCount, maxCols)
@@ -66,17 +70,19 @@ function findOptimalCardSize(cards1Count: number, cards2Count: number): number {
   const maxWidth = 1496 // 1536 - 左右パディング20px × 2
   const maxHeight = 984 // 1024 - 上下パディング20px × 2
   const titleHeight = 60
-  const minSpacing = 20
-  const cardSpacing = 8
+  const minSpacing = 10 // スペースを削減（20px → 10px）
+  const cardSpacing = 4 // カード間スペースを半分に（8px → 4px）
+  const maxColsLimit = 10 // 最大カラム数を制限（背景が見えないように）
 
   // カードサイズ候補（大きい順に試す）
+  // 背景が見えないように、大きいサイズから開始
   const cardSizeCandidates = [
-    140, 130, 120, 110, 100, 95, 90, 85, 80, 75, 70, 65, 60, 55, 50, 45, 40
+    180, 170, 160, 150, 140, 130, 120, 110, 100, 95, 90, 85, 80, 75, 70, 65, 60, 55, 50
   ]
 
   for (const cardSize of cardSizeCandidates) {
-    const layout1 = calculateLayoutForCardSize(cards1Count, cardSize, maxWidth, cardSpacing)
-    const layout2 = calculateLayoutForCardSize(cards2Count, cardSize, maxWidth, cardSpacing)
+    const layout1 = calculateLayoutForCardSize(cards1Count, cardSize, maxWidth, cardSpacing, maxColsLimit)
+    const layout2 = calculateLayoutForCardSize(cards2Count, cardSize, maxWidth, cardSpacing, maxColsLimit)
 
     // 必要な高さを計算
     const requiredHeight =
@@ -113,12 +119,13 @@ function findOptimalCardSize(cards1Count: number, cards2Count: number): number {
  */
 export function calculateGridLayout(cardCount: number, optimalCardSize?: number): GridLayout {
   const maxWidth = 1496
-  const spacing = 8
+  const spacing = 4 // カード間スペースを半分に
+  const maxColsLimit = 10 // 最大カラム数を制限
 
   // optimalCardSize が渡されていない場合は、デフォルト値を使用（後方互換性）
-  const cardSize = optimalCardSize || 80
+  const cardSize = optimalCardSize || 140
 
-  const layout = calculateLayoutForCardSize(cardCount, cardSize, maxWidth, spacing)
+  const layout = calculateLayoutForCardSize(cardCount, cardSize, maxWidth, spacing, maxColsLimit)
 
   return {
     rows: layout.rows,
@@ -150,16 +157,17 @@ export function calculateUniformSpacing(
 } {
   const totalHeight = 1024
   const titleHeight = 60
-  const minSpacing = 20
+  const minSpacing = 10 // スペースを削減
   const maxWidth = 1496
-  const cardSpacing = 8
+  const cardSpacing = 4 // カード間スペースを半分に
+  const maxColsLimit = 10 // 最大カラム数を制限
 
   // 最適なカードサイズを決定
   const optimalCardSize = findOptimalCardSize(cards1Count, cards2Count)
 
   // 各セクションのレイアウトを計算
-  const layout1Result = calculateLayoutForCardSize(cards1Count, optimalCardSize, maxWidth, cardSpacing)
-  const layout2Result = calculateLayoutForCardSize(cards2Count, optimalCardSize, maxWidth, cardSpacing)
+  const layout1Result = calculateLayoutForCardSize(cards1Count, optimalCardSize, maxWidth, cardSpacing, maxColsLimit)
+  const layout2Result = calculateLayoutForCardSize(cards2Count, optimalCardSize, maxWidth, cardSpacing, maxColsLimit)
 
   const layout1: GridLayout = {
     rows: layout1Result.rows,
@@ -182,12 +190,13 @@ export function calculateUniformSpacing(
   // 使用する高さの合計
   const usedHeight = titleHeight + layout1.totalHeight + titleHeight + layout2.totalHeight
 
-  // 残りのスペースを分配（上、タイトル1後、セクション間、タイトル2後、下）
+  // 残りのスペースを分配（タイトル1後、セクション間、タイトル2後、下）
+  // タイトル1は最上部に配置するため、上のスペースは不要
   const remainingSpace = totalHeight - usedHeight
-  const spacing = Math.max(minSpacing, Math.floor(remainingSpace / 5))
+  const spacing = Math.max(minSpacing, Math.floor(remainingSpace / 4))
 
   // 各ゾーンのY座標
-  const zone1Y = spacing // タイトル1
+  const zone1Y = 0 // タイトル1（最上部）
   const zone2Y = zone1Y + titleHeight + spacing // カードグリッド1
   const zone3Y = zone2Y + layout1.totalHeight + spacing // タイトル2
   const zone4Y = zone3Y + titleHeight + spacing // カードグリッド2
