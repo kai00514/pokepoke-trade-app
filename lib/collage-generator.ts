@@ -38,7 +38,7 @@ function calculateLayoutForCardSize(
   cardSize: number,
   maxWidth: number,
   spacing = 1, // カード間スペースを1pxに変更
-  maxColsLimit = 12, // 最大カラム数を12に増やして横幅を最大活用
+  maxColsLimit = 12,
 ): LayoutResult {
   if (cardCount === 0) {
     return { cols: 0, rows: 0, gridWidth: 0, gridHeight: 0 }

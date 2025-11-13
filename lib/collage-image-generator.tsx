@@ -99,10 +99,10 @@ export async function generateCollageImageBuffer(params: GenerateCollageImagePar
 
   // タイトルテキスト（影付きで視認性向上）
   const title1TextSvg = Buffer.from(`
-    <svg width="1536" height="60">
+    <svg width="1536" height="1024">
       <text 
         x="768" 
-        y="45" 
+        y="${zones.zone1Y + 45}" 
         fontFamily="Arial, sans-serif" 
         fontSize="48" 
         fontWeight="bold" 
@@ -110,15 +110,15 @@ export async function generateCollageImageBuffer(params: GenerateCollageImagePar
         textAnchor="middle"
         stroke="rgba(0,0,0,0.3)"
         strokeWidth="2"
-      >${title1.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")}</text>
+      >${title1.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;")}</text>
     </svg>
   `)
 
   const title2TextSvg = Buffer.from(`
-    <svg width="1536" height="60">
+    <svg width="1536" height="1024">
       <text 
         x="768" 
-        y="45" 
+        y="${zones.zone3Y + 45}" 
         fontFamily="Arial, sans-serif" 
         fontSize="48" 
         fontWeight="bold" 
@@ -126,7 +126,7 @@ export async function generateCollageImageBuffer(params: GenerateCollageImagePar
         textAnchor="middle"
         stroke="rgba(0,0,0,0.3)"
         strokeWidth="2"
-      >${title2.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")}</text>
+      >${title2.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;")}</text>
     </svg>
   `)
 
@@ -146,16 +146,15 @@ export async function generateCollageImageBuffer(params: GenerateCollageImagePar
     left: 0,
   })
 
-  // タイトルテキストを追加
   compositeArray.push({
     input: title1TextSvg,
-    top: zones.zone1Y,
+    top: 0,
     left: 0,
   })
 
   compositeArray.push({
     input: title2TextSvg,
-    top: zones.zone3Y,
+    top: 0,
     left: 0,
   })
 
