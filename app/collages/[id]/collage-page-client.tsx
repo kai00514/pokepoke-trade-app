@@ -92,7 +92,7 @@ export default function CollagePageClient() {
             <div className="mb-6">
               <h1 className="text-3xl font-bold text-gray-900">{collage.title1}</h1>
               <p className="text-gray-600 mt-2">
-                {collage.card_ids_1.length} + {collage.card_ids_2.length}枚のカード
+                {(collage.card_ids_1?.length || 0) + (collage.card_ids_2?.length || 0)}枚のカード
               </p>
             </div>
 

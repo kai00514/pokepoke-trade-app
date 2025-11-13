@@ -73,8 +73,6 @@ export async function POST(request: NextRequest) {
     }
 
     const collageId = crypto.randomUUID()
-    const cardsData1 = card_ids_1.map((id: number) => ({ id }))
-    const cardsData2 = card_ids_2.map((id: number) => ({ id }))
 
     const { data: result, error } = await supabase
       .from("user_collages")
@@ -82,9 +80,9 @@ export async function POST(request: NextRequest) {
         id: collageId,
         user_id: userId,
         title1: title1.trim(),
-        card_ids_1: cardsData1,
+        card_ids_1: card_ids_1, // Direct number array for bigint[]
         title2: title2.trim(),
-        card_ids_2: cardsData2,
+        card_ids_2: card_ids_2, // Direct number array for bigint[]
       })
       .select()
       .single()

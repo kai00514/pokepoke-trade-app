@@ -13,8 +13,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       return NextResponse.json({ success: false, error: "Collage not found" }, { status: 404 })
     }
 
-    // Get card details
-    const allCardIds = [...(collage.card_ids_1 || []), ...(collage.card_ids_2 || [])].map((c: any) => c.id)
+    const allCardIds = [...(collage.card_ids_1 || []), ...(collage.card_ids_2 || [])]
 
     const { data: cardsData } = await supabase
       .from("cards")
@@ -26,19 +25,19 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       cardsMap.set(card.id, card)
     })
 
-    const cards1 = (collage.card_ids_1 || []).map((c: any) => {
-      const cardData = cardsMap.get(c.id)
+    const cards1 = (collage.card_ids_1 || []).map((cardId: number) => {
+      const cardData = cardsMap.get(cardId)
       return {
-        id: c.id?.toString() || "unknown",
+        id: cardId?.toString() || "unknown",
         name: cardData?.name || "不明",
         imageUrl: cardData?.image_url || "/placeholder.svg?width=80&height=112",
       }
     })
 
-    const cards2 = (collage.card_ids_2 || []).map((c: any) => {
-      const cardData = cardsMap.get(c.id)
+    const cards2 = (collage.card_ids_2 || []).map((cardId: number) => {
+      const cardData = cardsMap.get(cardId)
       return {
-        id: c.id?.toString() || "unknown",
+        id: cardId?.toString() || "unknown",
         name: cardData?.name || "不明",
         imageUrl: cardData?.image_url || "/placeholder.svg?width=80&height=112",
       }
@@ -50,6 +49,8 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
         id: collage.id,
         title1: collage.title1,
         title2: collage.title2,
+        card_ids_1: collage.card_ids_1,
+        card_ids_2: collage.card_ids_2,
         cards1,
         cards2,
         created_at: collage.created_at,
