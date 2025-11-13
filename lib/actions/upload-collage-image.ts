@@ -13,7 +13,7 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey, {
 })
 
 export async function uploadCollageImage(imageBuffer: Buffer, collageId: string) {
-  const filePath = `collages/${collageId}.png`
+  const filePath = `${collageId}.png`
 
   try {
     const { data, error } = await supabase.storage.from("collages").upload(filePath, imageBuffer, {
@@ -28,6 +28,8 @@ export async function uploadCollageImage(imageBuffer: Buffer, collageId: string)
     }
 
     const { data: urlData } = supabase.storage.from("collages").getPublicUrl(filePath)
+
+    console.log("[uploadCollageImage] ✅ Upload successful:", urlData.publicUrl)
 
     return {
       success: true,
@@ -51,6 +53,8 @@ export async function deleteCollageImage(path: string) {
       console.error("Delete error:", error)
       return { success: false, error: "画像の削除に失敗しました" }
     }
+
+    console.log("[deleteCollageImage] ✅ Delete successful:", path)
 
     return { success: true }
   } catch (error) {
