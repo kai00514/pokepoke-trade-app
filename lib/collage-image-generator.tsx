@@ -197,7 +197,7 @@ export async function generateCollageImageBuffer(params: GenerateCollageImagePar
         // 最適なカードサイズでリサイズ（正方形、contain）
         return await sharp(buffer)
           .resize(optimalCardSize, optimalCardSize, {
-            fit: "",
+            fit: "contain",
             background: { r: 255, g: 255, b: 255, alpha: 0 },
           })
           .png()
