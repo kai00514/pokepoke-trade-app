@@ -22,8 +22,13 @@ export default function CollageList() {
     try {
       const response = await fetch("/api/collages?limit=50&offset=0")
       if (!response.ok) throw new Error("Failed to fetch collages")
-      const data = await response.json()
-      setCollages(data.collages)
+
+      const result = await response.json()
+      if (result.success && result.data) {
+        setCollages(result.data.collages)
+      } else {
+        throw new Error(result.error || "Failed to fetch collages")
+      }
     } catch (error) {
       console.error("Error fetching collages:", error)
       toast({

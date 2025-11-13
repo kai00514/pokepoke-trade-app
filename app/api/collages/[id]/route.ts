@@ -18,7 +18,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
 
     const { data: cardsData } = await supabase
       .from("cards")
-      .select("id, name, image_url, pack_name, type, rarity")
+      .select("id, name, image_url, type_code, rarity_code")
       .in("id", allCardIds)
 
     const cardsMap = new Map()
@@ -46,7 +46,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
 
     return NextResponse.json({
       success: true,
-      collage: {
+      data: {
         id: collage.id,
         title1: collage.title1,
         title2: collage.title2,
@@ -54,8 +54,8 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
         card_ids_2: collage.card_ids_2,
         cards1,
         cards2,
+        image_url: collage.collage_image_url || null,
         created_at: collage.created_at,
-        collage_image_url: collage.collage_image_url,
       },
     })
   } catch (error) {
@@ -67,14 +67,18 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
 export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const { id } = params
-    const body = await request.json()
-    const { userId } = body
-
-    if (!userId) {
-      return NextResponse.json({ success: false, error: "userId is required" }, { status: 400 })
-    }
 
     const supabase = await createServerClient()
+
+    const {
+      data: { session },
+    } = await supabase.auth.getSession()
+
+    if (!session) {
+      return NextResponse.json({ success: false, error: "認証が必要です" }, { status: 401 })
+    }
+
+    const userId = session.user.id
 
     // Verify ownership and get storage path
     const { data: collage } = await supabase
