@@ -37,7 +37,7 @@ function calculateLayoutForCardSize(
   cardCount: number,
   cardSize: number,
   maxWidth: number,
-  spacing = 1, // カード間スペースを1pxに変更
+  spacing = 0, // カード間スペースを0pxに変更
   maxColsLimit = 12,
 ): LayoutResult {
   if (cardCount === 0) {
@@ -71,7 +71,7 @@ function findOptimalCardSize(cards1Count: number, cards2Count: number): number {
   const maxHeight = 1004 // パディングを減らして縦幅を最大活用（1024 - 10px × 2）
   const titleHeight = 60
   const minSpacing = 5 // セクション間スペースを削減
-  const cardSpacing = 1 // カード間スペースを1pxに変更
+  const cardSpacing = 0 // カード間スペースを0pxに変更
   const maxColsLimit = 12 // 最大カラム数を12に増やす
 
   const cardSizeCandidates = [200, 190, 180, 170, 160, 150, 140, 130, 120, 110, 100, 90, 80, 70, 60, 50]
@@ -119,7 +119,7 @@ function findOptimalCardSize(cards1Count: number, cards2Count: number): number {
  */
 export function calculateGridLayout(cardCount: number, optimalCardSize?: number): GridLayout {
   const maxWidth = 1496
-  const spacing = 4 // カード間スペースを半分に
+  const spacing = 0 // カード間スペースを0pxに変更
   const maxColsLimit = 10 // 最大カラム数を制限
 
   // optimalCardSize が渡されていない場合は、デフォルト値を使用（後方互換性）
@@ -159,7 +159,7 @@ export function calculateUniformSpacing(
   const titleHeight = 60
   const minSpacing = 5 // セクション間スペースを削減
   const maxWidth = 1516 // パディングを減らす
-  const cardSpacing = 1 // カード間スペースを1pxに変更
+  const cardSpacing = 0 // カード間スペースを0pxに変更
   const maxColsLimit = 12 // 最大カラム数を12に増やす
 
   // 最適なカードサイズを決定
