@@ -1,16 +1,25 @@
 "use server"
 
-import { createClient } from "@/lib/supabase/server"
+import { createClient } from "@supabase/supabase-js"
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
+
+const supabase = createClient(supabaseUrl, supabaseServiceKey, {
+  auth: {
+    autoRefreshToken: false,
+    persistSession: false,
+  },
+})
 
 export async function uploadCollageImage(imageBuffer: Buffer, collageId: string) {
-  const supabase = await createClient()
   const filePath = `collages/${collageId}.png`
 
   try {
     const { data, error } = await supabase.storage.from("collages").upload(filePath, imageBuffer, {
       contentType: "image/png",
       cacheControl: "3600",
-      upsert: true, // Allow re-generating
+      upsert: true,
     })
 
     if (error) {
@@ -35,8 +44,6 @@ export async function uploadCollageImage(imageBuffer: Buffer, collageId: string)
 }
 
 export async function deleteCollageImage(path: string) {
-  const supabase = await createClient()
-
   try {
     const { error } = await supabase.storage.from("collages").remove([path])
 
