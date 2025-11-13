@@ -2,34 +2,6 @@
 
 import { createServerClient } from "@/lib/supabase/server"
 import { revalidatePath } from "next/cache"
-import { v4 as uuidv4 } from "uuid"
-import type { Card } from "@/components/detailed-search-modal"
-
-// Helper function to convert Card[] to JSONB format
-function prepareCardsForDatabase(cards: Card[]) {
-  return cards.map((card) => ({
-    id: Number.parseInt(card.id),
-    name: card.name,
-    image_url: card.imageUrl,
-    pack_name: card.packName || null,
-    type: card.type || null,
-    rarity: card.rarity || null,
-  }))
-}
-
-// Helper function to convert JSONB data back to Card format
-function parseCardsFromDatabase(jsonbData: any[]): Card[] {
-  if (!Array.isArray(jsonbData)) return []
-
-  return jsonbData.map((card) => ({
-    id: card.id?.toString() || "unknown",
-    name: card.name || "不明",
-    imageUrl: card.image_url || "/placeholder.svg?width=80&height=112",
-    packName: card.pack_name || undefined,
-    type: card.type || undefined,
-    rarity: card.rarity || undefined,
-  }))
-}
 
 export interface CollageFormData {
   title1: string
@@ -40,8 +12,8 @@ export interface CollageFormData {
 
 export async function createCollage(userId: string, formData: CollageFormData) {
   try {
-    console.log("[createCollage] 🚀 Starting collage creation...")
-    console.log("[createCollage] Form data:", {
+    console.log("[v0] [createCollage] Starting collage creation...")
+    console.log("[v0] Form data:", {
       title1: formData.title1,
       cards1Count: formData.card_ids_1.length,
       title2: formData.title2,
@@ -60,22 +32,15 @@ export async function createCollage(userId: string, formData: CollageFormData) {
       return { success: false, error: "タイトル2とカード2は必須です。" }
     }
 
-    // Prepare card data
-    const cardsData1 = formData.card_ids_1.map((id) => ({ id }))
-    const cardsData2 = formData.card_ids_2.map((id) => ({ id }))
-
-    // Create collage record
-    const collageId = uuidv4()
     const insertData = {
-      id: collageId,
       user_id: userId,
       title1: formData.title1.trim(),
-      card_ids_1: cardsData1,
+      card_ids_1: formData.card_ids_1, // Direct number array
       title2: formData.title2.trim(),
-      card_ids_2: cardsData2,
+      card_ids_2: formData.card_ids_2, // Direct number array
     }
 
-    console.log("[createCollage] Insert data:", {
+    console.log("[v0] Insert data:", {
       ...insertData,
       card_ids_1: `[${formData.card_ids_1.length} cards]`,
       card_ids_2: `[${formData.card_ids_2.length} cards]`,
@@ -88,24 +53,24 @@ export async function createCollage(userId: string, formData: CollageFormData) {
       .single()
 
     if (insertError) {
-      console.error("[createCollage] Insert error:", insertError)
+      console.error("[v0] Insert error:", insertError)
       return {
         success: false,
         error: `コラージュの作成に失敗しました: ${insertError.message}`,
       }
     }
 
-    console.log("[createCollage] ✅ Collage inserted successfully!")
+    console.log("[v0] Collage inserted successfully!")
 
     revalidatePath("/collages")
 
     return {
       success: true,
-      collageId,
-      collage_url: `/collages/${collageId}`,
+      collageId: result.id,
+      collage_url: `/collages/${result.id}`,
     }
   } catch (error) {
-    console.error("[createCollage] Unexpected error:", error)
+    console.error("[v0] Unexpected error:", error)
     return {
       success: false,
       error: error instanceof Error ? error.message : "予期しないエラーが発生しました。",
@@ -115,7 +80,7 @@ export async function createCollage(userId: string, formData: CollageFormData) {
 
 export async function getUserCollages(userId: string, limit = 20, offset = 0) {
   try {
-    console.log("[getUserCollages] 🚀 Fetching collages for user:", userId)
+    console.log("[v0] [getUserCollages] Fetching collages for user:", userId)
 
     const supabase = await createServerClient()
 
@@ -126,7 +91,7 @@ export async function getUserCollages(userId: string, limit = 20, offset = 0) {
       .eq("user_id", userId)
 
     if (countError) {
-      console.error("[getUserCollages] Count error:", countError)
+      console.error("[v0] Count error:", countError)
     }
 
     // Get collages
@@ -138,7 +103,7 @@ export async function getUserCollages(userId: string, limit = 20, offset = 0) {
       .range(offset, offset + limit - 1)
 
     if (collagesError) {
-      console.error("[getUserCollages] Query error:", collagesError)
+      console.error("[v0] Query error:", collagesError)
       return { success: false, error: `コラージュの取得に失敗しました: ${collagesError.message}`, collages: [] }
     }
 
@@ -158,25 +123,25 @@ export async function getUserCollages(userId: string, limit = 20, offset = 0) {
         id: collage.id,
         title1: collage.title1,
         title2: collage.title2,
-        cardCount1: collage.card_ids_1?.length || 0,
-        cardCount2: collage.card_ids_2?.length || 0,
+        cardCount1: Array.isArray(collage.card_ids_1) ? collage.card_ids_1.length : 0,
+        cardCount2: Array.isArray(collage.card_ids_2) ? collage.card_ids_2.length : 0,
         created_at: formattedDate,
         collage_url: `/collages/${collage.id}`,
       }
     })
 
-    console.log("[getUserCollages] ✅ Fetched successfully:", formattedCollages.length)
+    console.log("[v0] Fetched successfully:", formattedCollages.length)
 
     return { success: true, collages: formattedCollages, totalCount: totalCount || 0 }
   } catch (error) {
-    console.error("[getUserCollages] Unexpected error:", error)
+    console.error("[v0] Unexpected error:", error)
     return { success: false, error: "予期しないエラーが発生しました。", collages: [] }
   }
 }
 
 export async function getCollageById(collageId: string) {
   try {
-    console.log("[getCollageById] 🚀 Fetching collage:", collageId)
+    console.log("[v0] [getCollageById] Fetching collage:", collageId)
 
     const supabase = await createServerClient()
 
@@ -187,7 +152,7 @@ export async function getCollageById(collageId: string) {
       .single()
 
     if (collageError || !collage) {
-      console.error("[getCollageById] Query error:", collageError)
+      console.error("[v0] Query error:", collageError)
       return {
         success: false,
         error: `コラージュが見つかりません`,
@@ -195,16 +160,17 @@ export async function getCollageById(collageId: string) {
       }
     }
 
-    // Get card details for both groups
-    const allCardIds = [...(collage.card_ids_1 || []), ...(collage.card_ids_2 || [])].map((c: any) => c.id)
+    const cardIds1 = Array.isArray(collage.card_ids_1) ? collage.card_ids_1 : []
+    const cardIds2 = Array.isArray(collage.card_ids_2) ? collage.card_ids_2 : []
+    const allCardIds = [...cardIds1, ...cardIds2]
 
     const { data: cardsData, error: cardsError } = await supabase
       .from("cards")
-      .select("id, name, image_url, pack_name, type, rarity")
+      .select("id, name, image_url, pack_name, type_code, rarity_code")
       .in("id", allCardIds)
 
     if (cardsError) {
-      console.error("[getCollageById] Cards error:", cardsError)
+      console.error("[v0] Cards error:", cardsError)
     }
 
     // Map cards by ID for quick lookup
@@ -213,28 +179,27 @@ export async function getCollageById(collageId: string) {
       cardsMap.set(card.id, card)
     })
 
-    // Parse cards with full data
-    const cards1 = (collage.card_ids_1 || []).map((c: any) => {
-      const cardData = cardsMap.get(c.id)
+    const cards1 = cardIds1.map((cardId: number) => {
+      const cardData = cardsMap.get(cardId)
       return {
-        id: c.id?.toString() || "unknown",
+        id: cardId.toString(),
         name: cardData?.name || "不明",
         imageUrl: cardData?.image_url || "/placeholder.svg?width=80&height=112",
         packName: cardData?.pack_name || undefined,
-        type: cardData?.type || undefined,
-        rarity: cardData?.rarity || undefined,
+        type: cardData?.type_code || undefined,
+        rarity: cardData?.rarity_code || undefined,
       }
     })
 
-    const cards2 = (collage.card_ids_2 || []).map((c: any) => {
-      const cardData = cardsMap.get(c.id)
+    const cards2 = cardIds2.map((cardId: number) => {
+      const cardData = cardsMap.get(cardId)
       return {
-        id: c.id?.toString() || "unknown",
+        id: cardId.toString(),
         name: cardData?.name || "不明",
         imageUrl: cardData?.image_url || "/placeholder.svg?width=80&height=112",
         packName: cardData?.pack_name || undefined,
-        type: cardData?.type || undefined,
-        rarity: cardData?.rarity || undefined,
+        type: cardData?.type_code || undefined,
+        rarity: cardData?.rarity_code || undefined,
       }
     })
 
@@ -242,16 +207,18 @@ export async function getCollageById(collageId: string) {
       id: collage.id,
       title1: collage.title1,
       title2: collage.title2,
+      card_ids_1: cardIds1,
+      card_ids_2: cardIds2,
       cards1,
       cards2,
       created_at: new Date(collage.created_at).toLocaleDateString(),
     }
 
-    console.log("[getCollageById] ✅ Fetched successfully")
+    console.log("[v0] Fetched successfully")
 
     return { success: true, collage: formattedCollage }
   } catch (error) {
-    console.error("[getCollageById] Unexpected error:", error)
+    console.error("[v0] Unexpected error:", error)
     return {
       success: false,
       error: error instanceof Error ? error.message : "予期しないエラーが発生しました。",
@@ -262,7 +229,7 @@ export async function getCollageById(collageId: string) {
 
 export async function deleteCollage(collageId: string, userId: string) {
   try {
-    console.log("[deleteCollage] 🚀 Deleting collage:", collageId)
+    console.log("[v0] [deleteCollage] Deleting collage:", collageId)
 
     const supabase = await createServerClient()
 
@@ -285,17 +252,17 @@ export async function deleteCollage(collageId: string, userId: string) {
     const { error: deleteError } = await supabase.from("user_collages").delete().eq("id", collageId)
 
     if (deleteError) {
-      console.error("[deleteCollage] Delete error:", deleteError)
+      console.error("[v0] Delete error:", deleteError)
       return { success: false, error: `削除に失敗しました: ${deleteError.message}` }
     }
 
-    console.log("[deleteCollage] ✅ Deleted successfully")
+    console.log("[v0] Deleted successfully")
 
     revalidatePath("/collages")
 
     return { success: true }
   } catch (error) {
-    console.error("[deleteCollage] Unexpected error:", error)
+    console.error("[v0] Unexpected error:", error)
     return { success: false, error: "予期しないエラーが発生しました。" }
   }
 }
