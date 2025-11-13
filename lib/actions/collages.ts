@@ -166,7 +166,7 @@ export async function getCollageById(collageId: string) {
 
     const { data: cardsData, error: cardsError } = await supabase
       .from("cards")
-      .select("id, name, image_url, pack_name, type_code, rarity_code")
+      .select("id, name, image_url, type_code, rarity_code")
       .in("id", allCardIds)
 
     if (cardsError) {
@@ -185,7 +185,6 @@ export async function getCollageById(collageId: string) {
         id: cardId.toString(),
         name: cardData?.name || "不明",
         imageUrl: cardData?.image_url || "/placeholder.svg?width=80&height=112",
-        packName: cardData?.pack_name || undefined,
         type: cardData?.type_code || undefined,
         rarity: cardData?.rarity_code || undefined,
       }
@@ -197,7 +196,6 @@ export async function getCollageById(collageId: string) {
         id: cardId.toString(),
         name: cardData?.name || "不明",
         imageUrl: cardData?.image_url || "/placeholder.svg?width=80&height=112",
-        packName: cardData?.pack_name || undefined,
         type: cardData?.type_code || undefined,
         rarity: cardData?.rarity_code || undefined,
       }

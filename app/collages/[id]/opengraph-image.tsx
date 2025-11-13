@@ -16,11 +16,17 @@ export const alt = "PokeLink コラージュ画像"
 async function convertImageToDataUrl(imageUrl: string | null, label = "image"): Promise<string | null> {
   if (!imageUrl) return null
 
+  let absoluteUrl = imageUrl
+  if (imageUrl.startsWith("/")) {
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.pokelnk.com"
+    absoluteUrl = `${baseUrl}${imageUrl}`
+  }
+
   try {
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), 8000)
 
-    const response = await fetch(imageUrl, { signal: controller.signal }).finally(() => clearTimeout(timeoutId))
+    const response = await fetch(absoluteUrl, { signal: controller.signal }).finally(() => clearTimeout(timeoutId))
 
     if (!response.ok) return null
 
