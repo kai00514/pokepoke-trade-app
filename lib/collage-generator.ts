@@ -23,54 +23,48 @@ interface GridLayout {
  * カード枚数からグリッドレイアウトを計算
  */
 export function calculateGridLayout(cardCount: number): GridLayout {
-  const maxWidth = 1416 // 配置幅（1536 - 左右パディング60px × 2）
-  const maxHeight = 800 // Zone 2の高さ
+  const maxWidth = 1496 // 配置幅（1536 - 左右パディング20px × 2）
+  const spacing = 8
 
   let rows: number
   let cols: number
-  let cardSize: number
 
   if (cardCount === 0) {
-    return { rows: 0, cols: 0, cardSize: 0, spacing: 12, totalWidth: maxWidth, totalHeight: 0 }
-  } else if (cardCount === 1 || cardCount === 2) {
+    return { rows: 0, cols: 0, cardSize: 0, spacing, totalWidth: maxWidth, totalHeight: 0 }
+  } else if (cardCount === 1) {
     cols = 1
-    rows = Math.min(2, cardCount)
-    cardSize = 220
-  } else if (cardCount === 3 || cardCount === 4) {
+    rows = 1
+  } else if (cardCount === 2) {
+    cols = 2
+    rows = 1
+  } else if (cardCount <= 4) {
     cols = 2
     rows = 2
-    cardSize = 180
-  } else if (cardCount === 5 || cardCount === 6) {
+  } else if (cardCount <= 6) {
     cols = 3
     rows = 2
-    cardSize = 160
   } else if (cardCount <= 9) {
     cols = 3
     rows = 3
-    cardSize = 140
   } else if (cardCount <= 12) {
     cols = 4
     rows = 3
-    cardSize = 120
   } else if (cardCount <= 16) {
     cols = 4
     rows = 4
-    cardSize = 110
   } else if (cardCount <= 20) {
     cols = 5
     rows = 4
-    cardSize = 100
   } else if (cardCount <= 25) {
     cols = 5
     rows = 5
-    cardSize = 95
   } else {
     cols = 6
     rows = 5
-    cardSize = 85
   }
 
-  const spacing = 12
+  const cardSize = Math.floor((maxWidth - (cols - 1) * spacing) / cols)
+
   const totalWidth = cols * cardSize + (cols - 1) * spacing
   const totalHeight = rows * cardSize + (rows - 1) * spacing
 

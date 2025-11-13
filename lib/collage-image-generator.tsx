@@ -74,7 +74,8 @@ export async function generateCollageImageBuffer(params: GenerateCollageImagePar
 
   const title1Svg = `
     <svg width="1536" height="1024">
-      <text x="60" y="${zones.zone1Y + 50}" font-size="28" font-weight="bold" fill="white">
+      <text x="20" y="${zones.zone1Y + 60}" fontSize="48" fontWeight="bold" fill="white"
+            style="text-shadow: 2px 2px 4px rgba(0,0,0,0.8);">
         ${title1}
       </text>
     </svg>
@@ -82,7 +83,8 @@ export async function generateCollageImageBuffer(params: GenerateCollageImagePar
 
   const title2Svg = `
     <svg width="1536" height="1024">
-      <text x="60" y="${zones.zone3Y + 50}" font-size="28" font-weight="bold" fill="white">
+      <text x="20" y="${zones.zone3Y + 60}" fontSize="48" fontWeight="bold" fill="white"
+            style="text-shadow: 2px 2px 4px rgba(0,0,0,0.8);">
         ${title2}
       </text>
     </svg>
@@ -94,10 +96,13 @@ export async function generateCollageImageBuffer(params: GenerateCollageImagePar
       if (!buffer) return null
 
       try {
+        const cardWidth = layout1.cardSize
+        const cardHeight = Math.floor(layout1.cardSize * 1.4) // 7/5 = 1.4
+
         return await sharp(buffer)
-          .resize(layout1.cardSize, layout1.cardSize, {
-            fit: "cover",
-            position: "center",
+          .resize(cardWidth, cardHeight, {
+            fit: "contain",
+            background: { r: 0, g: 0, b: 0, alpha: 0 },
           })
           .png()
           .toBuffer()
@@ -114,10 +119,13 @@ export async function generateCollageImageBuffer(params: GenerateCollageImagePar
       if (!buffer) return null
 
       try {
+        const cardWidth = layout2.cardSize
+        const cardHeight = Math.floor(layout2.cardSize * 1.4)
+
         return await sharp(buffer)
-          .resize(layout2.cardSize, layout2.cardSize, {
-            fit: "cover",
-            position: "center",
+          .resize(cardWidth, cardHeight, {
+            fit: "contain",
+            background: { r: 0, g: 0, b: 0, alpha: 0 },
           })
           .png()
           .toBuffer()
@@ -128,8 +136,8 @@ export async function generateCollageImageBuffer(params: GenerateCollageImagePar
     }),
   )
 
-  const positions1 = calculateCardPositions(layout1, 60, zones.zone2Y)
-  const positions2 = calculateCardPositions(layout2, 60, zones.zone4Y)
+  const positions1 = calculateCardPositions(layout1, 20, zones.zone2Y)
+  const positions2 = calculateCardPositions(layout2, 20, zones.zone4Y)
 
   const compositeArray: sharp.OverlayOptions[] = []
 
