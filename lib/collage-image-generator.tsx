@@ -72,10 +72,24 @@ export async function generateCollageImageBuffer(params: GenerateCollageImagePar
 
   const composite = sharp(bgBuffer).resize(1536, 1024, { fit: "cover" })
 
+  const title1BgSvg = `
+    <svg width="1536" height="1024">
+      <rect x="20" y="${zones.zone1Y + 10}" width="1496" height="60" 
+            fill="rgb(236, 72, 153)" rx="8" />
+    </svg>
+  `
+
+  const title2BgSvg = `
+    <svg width="1536" height="1024">
+      <rect x="20" y="${zones.zone3Y + 10}" width="1496" height="60" 
+            fill="rgb(59, 130, 246)" rx="8" />
+    </svg>
+  `
+
   const title1Svg = `
     <svg width="1536" height="1024">
-      <text x="20" y="${zones.zone1Y + 60}" fontSize="48" fontWeight="bold" fill="white"
-            style="text-shadow: 2px 2px 4px rgba(0,0,0,0.8);">
+      <text x="768" y="${zones.zone1Y + 50}" fontSize="36" fontWeight="bold" fill="white"
+            textAnchor="middle" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">
         ${title1}
       </text>
     </svg>
@@ -83,8 +97,8 @@ export async function generateCollageImageBuffer(params: GenerateCollageImagePar
 
   const title2Svg = `
     <svg width="1536" height="1024">
-      <text x="20" y="${zones.zone3Y + 60}" fontSize="48" fontWeight="bold" fill="white"
-            style="text-shadow: 2px 2px 4px rgba(0,0,0,0.8);">
+      <text x="768" y="${zones.zone3Y + 50}" fontSize="36" fontWeight="bold" fill="white"
+            textAnchor="middle" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">
         ${title2}
       </text>
     </svg>
@@ -134,6 +148,18 @@ export async function generateCollageImageBuffer(params: GenerateCollageImagePar
   const positions2 = calculateCardPositions(layout2, 20, zones.zone4Y)
 
   const compositeArray: sharp.OverlayOptions[] = []
+
+  compositeArray.push({
+    input: Buffer.from(title1BgSvg),
+    top: 0,
+    left: 0,
+  })
+
+  compositeArray.push({
+    input: Buffer.from(title2BgSvg),
+    top: 0,
+    left: 0,
+  })
 
   compositeArray.push({
     input: Buffer.from(title1Svg),
