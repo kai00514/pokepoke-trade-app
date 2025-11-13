@@ -73,16 +73,13 @@ export async function POST(request: NextRequest) {
 
     // Create collage record
     const collageId = uuidv4()
-    const cardsData1 = card_ids_1.map((id) => ({ id }))
-    const cardsData2 = card_ids_2.map((id) => ({ id }))
-
     const { error: insertError } = await supabase.from("user_collages").insert({
       id: collageId,
       user_id: session.user.id,
       title1: title1.trim(),
-      card_ids_1: cardsData1,
+      card_ids_1: card_ids_1, // Direct number array for bigint[]
       title2: title2.trim(),
-      card_ids_2: cardsData2,
+      card_ids_2: card_ids_2, // Direct number array for bigint[]
     })
 
     if (insertError) {
