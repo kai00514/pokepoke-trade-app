@@ -23,7 +23,7 @@ interface GridLayout {
  * カード枚数からグリッドレイアウトを計算
  */
 export function calculateGridLayout(cardCount: number): GridLayout {
-  const maxWidth = 1456 // 配置幅（1536 - 左右パディング60px）
+  const maxWidth = 1416 // 配置幅（1536 - 左右パディング60px × 2）
   const maxHeight = 800 // Zone 2の高さ
 
   let rows: number

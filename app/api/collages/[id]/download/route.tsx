@@ -8,7 +8,6 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     const { id } = params
     const supabase = await createServerClient()
 
-    // Fetch collage data
     const { data: collage, error: collageError } = await supabase
       .from("user_collages")
       .select("*")
@@ -19,14 +18,12 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       return NextResponse.json({ success: false, error: "Collage not found" }, { status: 404 })
     }
 
-    // Fetch all card data
     const allCardIds = [...(collage.card_ids_1 || []), ...(collage.card_ids_2 || [])]
 
     const { data: cards } = await supabase.from("cards").select("id, name, image_url").in("id", allCardIds)
 
     const cardMap = new Map(cards?.map((c) => [c.id, c]) || [])
 
-    // Helper to convert image to data URL
     async function convertImageToDataUrl(imageUrl: string): Promise<string> {
       try {
         const response = await fetch(imageUrl, { signal: AbortSignal.timeout(10000) })
@@ -40,7 +37,6 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       }
     }
 
-    // Prepare card images
     const cards1 = await Promise.all(
       (collage.card_ids_1 || []).map(async (id: number) => {
         const card = cardMap.get(id)
@@ -67,23 +63,15 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       }),
     )
 
-    // Layout calculations
     const bgWidth = 1536
     const bgHeight = 1024
     const titleHeight = 80
-    const gridWidth = 1416
+    const gridWidth = 1416 // 1536 - 左右パディング60px×2
 
-    const layout1 = calculateGridLayout(cards1.length, gridWidth, 800)
-    const layout2 = calculateGridLayout(cards2.length, gridWidth, 800)
-    const uniformSpacing = calculateUniformSpacing(
-      bgHeight,
-      titleHeight,
-      layout1.gridHeight,
-      titleHeight,
-      layout2.gridHeight,
-    )
+    const layout1 = calculateGridLayout(cards1.length)
+    const layout2 = calculateGridLayout(cards2.length)
+    const zones = calculateUniformSpacing(cards1.length, cards2.length)
 
-    // Fetch background image
     const bgResponse = await fetch(
       new URL("/coragu_backimage.png", process.env.NEXT_PUBLIC_SITE_URL || "https://www.pokelnk.com").href,
     )
@@ -91,7 +79,6 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     const bgBase64 = Buffer.from(bgArrayBuffer).toString("base64")
     const bgDataUrl = `data:image/png;base64,${bgBase64}`
 
-    // Generate image at original size (1536x1024)
     const imageResponse = new ImageResponse(
       <div
         style={{
@@ -107,15 +94,11 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
           style={{ width: bgWidth, height: bgHeight, position: "absolute" }}
         />
 
-        {/* Title 1 */}
         <div
           style={{
             position: "absolute",
-            top: 0,
+            top: zones.zone1Y + 25,
             left: 60,
-            height: titleHeight,
-            display: "flex",
-            alignItems: "center",
             color: "#FFFFFF",
             fontSize: 28,
             fontWeight: "bold",
@@ -124,11 +107,10 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
           {collage.title1}
         </div>
 
-        {/* Cards 1 */}
         <div
           style={{
             position: "absolute",
-            top: titleHeight + uniformSpacing,
+            top: zones.zone2Y,
             left: 60,
             display: "flex",
             flexWrap: "wrap",
@@ -141,20 +123,16 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
               key={idx}
               src={card.imageUrl || "/placeholder.svg"}
               alt={card.name}
-              style={{ width: layout1.cardSize, height: layout1.cardSize, objectFit: "cover" }}
+              style={{ width: layout1.cardSize, height: layout1.cardSize, objectFit: "cover", borderRadius: "4px" }}
             />
           ))}
         </div>
 
-        {/* Title 2 */}
         <div
           style={{
             position: "absolute",
-            top: titleHeight + uniformSpacing + layout1.gridHeight + uniformSpacing,
+            top: zones.zone3Y + 25,
             left: 60,
-            height: titleHeight,
-            display: "flex",
-            alignItems: "center",
             color: "#FFFFFF",
             fontSize: 28,
             fontWeight: "bold",
@@ -163,11 +141,10 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
           {collage.title2}
         </div>
 
-        {/* Cards 2 */}
         <div
           style={{
             position: "absolute",
-            top: titleHeight + uniformSpacing + layout1.gridHeight + uniformSpacing + titleHeight + uniformSpacing,
+            top: zones.zone4Y,
             left: 60,
             display: "flex",
             flexWrap: "wrap",
@@ -180,7 +157,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
               key={idx}
               src={card.imageUrl || "/placeholder.svg"}
               alt={card.name}
-              style={{ width: layout2.cardSize, height: layout2.cardSize, objectFit: "cover" }}
+              style={{ width: layout2.cardSize, height: layout2.cardSize, objectFit: "cover", borderRadius: "4px" }}
             />
           ))}
         </div>
