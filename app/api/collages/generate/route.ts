@@ -1,7 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { createServerClient } from "@/lib/supabase/server"
 import { v4 as uuidv4 } from "uuid"
-import { generateCollageImageBuffer } from "@/lib/collage-image-generator"
 import { uploadCollageImage } from "@/lib/actions/upload-collage-image"
 
 export const runtime = "nodejs" // Using nodejs runtime for image generation
@@ -48,31 +47,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: "Failed to fetch card data" }, { status: 500 })
     }
 
-    // Create cards map
-    const cardsMap = new Map()
-    cardsData.forEach((card: any) => {
-      cardsMap.set(card.id, card)
-    })
-
-    // Build card lists
-    const cards1 = card_ids_1.map((id: number) => {
-      const card = cardsMap.get(id)
-      return {
-        id,
-        name: card?.name || "Unknown",
-        imageUrl: card?.image_url || "/placeholder.svg?width=80&height=112",
-      }
-    })
-
-    const cards2 = card_ids_2.map((id: number) => {
-      const card = cardsMap.get(id)
-      return {
-        id,
-        name: card?.name || "Unknown",
-        imageUrl: card?.image_url || "/placeholder.svg?width=80&height=112",
-      }
-    })
-
     // Create collage record
     const collageId = uuidv4()
     const { error: insertError } = await supabase.from("user_collages").insert({
@@ -92,28 +66,30 @@ export async function POST(request: NextRequest) {
     console.log("[POST /api/collages/generate] ✅ Collage created:", collageId)
 
     try {
-      const imageBuffer = await generateCollageImageBuffer({
-        collageId,
-        title1: title1.trim(),
-        title2: title2.trim(),
-        cards1,
-        cards2,
-      })
+      // 新しいImageResponseベースのAPIから画像を生成
+      const imageApiUrl = `${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/api/collages/image?id=${collageId}`
 
-      const uploadResult = await uploadCollageImage(imageBuffer, collageId)
+      const imageResponse = await fetch(imageApiUrl)
 
-      if (uploadResult.success && uploadResult.url) {
-        await supabase
-          .from("user_collages")
-          .update({
-            collage_image_url: uploadResult.url,
-            collage_storage_path: uploadResult.path,
-          })
-          .eq("id", collageId)
+      if (imageResponse.ok) {
+        const imageBuffer = Buffer.from(await imageResponse.arrayBuffer())
+        const uploadResult = await uploadCollageImage(imageBuffer, collageId)
 
-        console.log("[POST /api/collages/generate] ✅ Image uploaded:", uploadResult.url)
+        if (uploadResult.success && uploadResult.url) {
+          await supabase
+            .from("user_collages")
+            .update({
+              collage_image_url: uploadResult.url,
+              collage_storage_path: uploadResult.path,
+            })
+            .eq("id", collageId)
+
+          console.log("[POST /api/collages/generate] ✅ Image uploaded:", uploadResult.url)
+        } else {
+          console.error("[POST /api/collages/generate] ⚠️ Image upload failed:", uploadResult.error)
+        }
       } else {
-        console.error("[POST /api/collages/generate] ⚠️ Image upload failed:", uploadResult.error)
+        console.error("[POST /api/collages/generate] ⚠️ Image generation failed:", imageResponse.status)
       }
     } catch (imageError) {
       console.error("[POST /api/collages/generate] ⚠️ Image generation failed:", imageError)
