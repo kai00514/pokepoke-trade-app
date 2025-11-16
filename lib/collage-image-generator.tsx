@@ -172,7 +172,7 @@ export async function generateCollageImageBuffer(params: GenerateCollageImagePar
         // 最適なカードサイズでリサイズ（正方形、contain）
         return await sharp(buffer)
           .resize(optimalCardSize, optimalCardSize, {
-            fit: "contain",
+            fit: "cover",
             background: { r: 255, g: 255, b: 255, alpha: 0 },
           })
           .png()
@@ -197,7 +197,7 @@ export async function generateCollageImageBuffer(params: GenerateCollageImagePar
         // 最適なカードサイズでリサイズ（正方形、contain）
         return await sharp(buffer)
           .resize(optimalCardSize, optimalCardSize, {
-            fit: "contain",
+            fit: "",
             background: { r: 255, g: 255, b: 255, alpha: 0 },
           })
           .png()
@@ -209,9 +209,13 @@ export async function generateCollageImageBuffer(params: GenerateCollageImagePar
     }),
   )
 
-  // カード配置座標を計算
-  const positions1 = calculateCardPositions(layout1, 20, zones.zone2Y)
-  const positions2 = calculateCardPositions(layout2, 20, zones.zone4Y)
+  // カード配置座標を計算（グリッドを中央寄せ）
+  const canvasWidth = 1536
+  const startX1 = Math.floor((canvasWidth - layout1.totalWidth) / 2)
+  const startX2 = Math.floor((canvasWidth - layout2.totalWidth) / 2)
+
+  const positions1 = calculateCardPositions(layout1, startX1, zones.zone2Y)
+  const positions2 = calculateCardPositions(layout2, startX2, zones.zone4Y)
 
   console.log(`[generateCollageImageBuffer] Calculated ${positions1.length} positions for section 1`)
   console.log(`[generateCollageImageBuffer] Calculated ${positions2.length} positions for section 2`)
