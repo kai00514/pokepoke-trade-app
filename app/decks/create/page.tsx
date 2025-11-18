@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { ArrowLeft, ChevronDown, ChevronUp, Trash2, Save, Loader2, Check, ImageIcon } from "lucide-react"
+import { ArrowLeft, ChevronDown, ChevronUp, Trash2, Save, Loader2, Check, ImageIcon } from 'lucide-react'
 import { cn } from "@/lib/utils"
 import type { Card as CardType } from "@/types/card"
 import { supabase } from "@/lib/supabase/client"
@@ -52,7 +52,7 @@ const rarityOptions: RarityOption[] = [
   { dbValue: "星2", uiLabel: "2", iconPath: "/images/rarities/star_single.png" },
   { dbValue: "星3", uiLabel: "3", iconPath: "/images/rarities/star_single.png" },
   { dbValue: "クラウン", uiLabel: "クラウン", iconPath: "/images/rarities/crown.png" },
-  { dbValue: "色1", uiLabel: "色1", iconPath: "/images/rarities/color1.png" },
+  { dbValue: "色1", uiLabel: "色1", iconPath: "/images/rarities/color2.png" },
   { dbValue: "色2", uiLabel: "2", iconPath: "/images/rarities/color2.png" },
 ]
 
@@ -119,9 +119,8 @@ export default function CreateDeckPage() {
         if (dbCategory) query = query.eq("category", dbCategory)
       }
       if (selectedRarity !== "all") query = query.eq("rarity_code", selectedRarity)
-      else query = query.in("rarity_code", allowedRarityDbValues)
       if (selectedPackId !== null) query = query.eq("pack_id", selectedPackId)
-      query = query.order("id", { ascending: true })
+      query = query.order("pack_id", { ascending: false }).order("id", { ascending: true })
       const { data, error } = await query
       if (error) {
         console.error("Error fetching cards for search:", error)

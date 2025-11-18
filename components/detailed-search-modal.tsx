@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogC
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
-import { Check, X, Loader2 } from "lucide-react"
+import { Check, X, Loader2 } from 'lucide-react'
 import { cn } from "@/lib/utils"
 import { useToast } from "@/components/ui/use-toast"
 import { supabase } from "@/lib/supabase/client"
@@ -52,9 +52,12 @@ const rarityOptions: RarityOption[] = [
   { uiLabel: "3", dbValue: "ダイヤ3", iconPath: "/images/rarities/diamond_single.png", fullUiLabel: "ダイヤ3" },
   { uiLabel: "4", dbValue: "ダイヤ4", iconPath: "/images/rarities/diamond_single.png", fullUiLabel: "ダイヤ4" },
   { uiLabel: "1", dbValue: "星1", iconPath: "/images/rarities/star_single.png", fullUiLabel: "星1" },
+  { uiLabel: "2", dbValue: "星2", iconPath: "/images/rarities/star_single.png", fullUiLabel: "星2" },
+  { uiLabel: "3", dbValue: "星3", iconPath: "/images/rarities/star_single.png", fullUiLabel: "星3" },
+  { uiLabel: "クラウン", dbValue: "クラウン", iconPath: "/images/rarities/crown.png", fullUiLabel: "クラウン" },
+  { uiLabel: "色1", dbValue: "色1", iconPath: "/images/rarities/color2.png", fullUiLabel: "色1" },
+  { uiLabel: "色2", dbValue: "色2", iconPath: "/images/rarities/color2.png", fullUiLabel: "色2" },
 ]
-
-const allowedDisplayRaritiesDB = ["ダイヤ1", "ダイヤ2", "ダイヤ3", "ダイヤ4", "星1"]
 
 interface DetailedSearchModalProps {
   isOpen: boolean
@@ -140,10 +143,9 @@ export default function DetailedSearchModal({
         if (dbCategory) query = query.eq("category", dbCategory)
       }
       if (selectedTypeUI !== "all") query = query.eq("type_code", selectedTypeUI)
-      if (selectedRarityDBValue === "all") query = query.in("rarity_code", allowedDisplayRaritiesDB)
-      else query = query.eq("rarity_code", selectedRarityDBValue)
+      if (selectedRarityDBValue !== "all") query = query.eq("rarity_code", selectedRarityDBValue)
       if (selectedPackId && selectedPackId !== "all") query = query.eq("pack_id", selectedPackId)
-      query = query.order("id", { ascending: true })
+      query = query.order("pack_id", { ascending: false }).order("id", { ascending: true })
       const { data, error } = await query
       if (error) {
         toast({

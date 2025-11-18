@@ -1,15 +1,15 @@
 "use client"
 
 import { useState, useEffect, useCallback, useRef } from "react"
-import { useSearchParams, useRouter } from "next/navigation"
-import { Noto_Sans_JP } from "next/font/google"
+import { useSearchParams, useRouter } from 'next/navigation'
+import { Noto_Sans_JP } from 'next/font/google'
 import Header from "@/components/layout/header"
 import Footer from "@/components/footer"
 import TradePostCard from "@/components/trade-post-card"
 import AdPlaceholder from "@/components/ad-placeholder"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { PlusCircle, Search, Loader2, List, ChevronLeft, ChevronRight, Sparkles } from "lucide-react"
+import { PlusCircle, Search, Loader2, List, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react'
 import DetailedSearchModal from "@/components/detailed-search-modal"
 import LoginPromptModal from "@/components/ui/login-prompt-modal"
 import { useAuth } from "@/contexts/auth-context"
@@ -426,15 +426,16 @@ export default function TradeBoardPage() {
               </div>
             </Button>
 
+            {/* Updated Button */}
             <Button
-              variant="outline"
-              className="border-[#3B82F6] text-[#3B82F6] hover:bg-[#3B82F6] hover:text-white rounded-md shadow-sm bg-transparent"
-              style={{ padding: "0.5rem 1rem" }}
+              variant="default"
+              className="bg-gradient-to-r from-amber-600 to-yellow-700 hover:from-amber-700 hover:to-yellow-800 text-white rounded-md shadow-sm"
+              style={{ padding: "0.625rem 1.25rem" }}
               onClick={handleManageListsClick}
             >
               <div className="flex items-center justify-center">
-                <List className="h-4 w-4 mr-2" />
-                <span className="text-sm font-medium">譲れるカードのリストを作成/編集</span>
+                <List className="h-5 w-5 mr-2" />
+                <span className="text-sm font-medium">譲れるカードリストを作成</span>
               </div>
             </Button>
           </div>
