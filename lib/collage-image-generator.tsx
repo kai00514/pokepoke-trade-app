@@ -70,11 +70,12 @@ export async function generateCollageImageBuffer(params: GenerateCollageImagePar
 
   // 最適なスペーシングとレイアウトを計算
   const zones = calculateUniformSpacing(cards1.length, cards2.length)
-  const optimalCardSize = zones.optimalCardSize
+  const unifiedCardWidth = zones.unifiedCardWidth
+  const unifiedCardHeight = zones.unifiedCardHeight
   const layout1 = zones.layout1
   const layout2 = zones.layout2
 
-  console.log(`[generateCollageImageBuffer] Optimal cardSize: ${optimalCardSize}px`)
+  console.log(`[generateCollageImageBuffer] Unified Card Size: ${unifiedCardWidth}w × ${unifiedCardHeight}h`)
   console.log(`[generateCollageImageBuffer] Layout1:`, layout1)
   console.log(`[generateCollageImageBuffer] Layout2:`, layout2)
   console.log(`[generateCollageImageBuffer] Zones:`, zones)
@@ -158,7 +159,7 @@ export async function generateCollageImageBuffer(params: GenerateCollageImagePar
     left: 0,
   })
 
-  // カード画像を処理（最適なカードサイズを使用）
+  // カード画像を処理（統一カードサイズを使用、カード比率63:88を保持）
   console.log(`[generateCollageImageBuffer] Processing ${cards1.length} cards for section 1...`)
   const cardBuffers1 = await Promise.all(
     cards1.map(async (card, index) => {
@@ -169,11 +170,11 @@ export async function generateCollageImageBuffer(params: GenerateCollageImagePar
       }
 
       try {
-        // 最適なカードサイズでリサイズ（正方形、contain）
+        // 統一カードサイズでリサイズ（カード比率63:88、contain）
         return await sharp(buffer)
-          .resize(optimalCardSize, optimalCardSize, {
-            fit: "cover",
-            background: { r: 255, g: 255, b: 255, alpha: 0 },
+          .resize(Math.round(unifiedCardWidth), Math.round(unifiedCardHeight), {
+            fit: "contain",
+            background: { r: 0, g: 0, b: 0, alpha: 0 },
           })
           .png()
           .toBuffer()
@@ -194,11 +195,11 @@ export async function generateCollageImageBuffer(params: GenerateCollageImagePar
       }
 
       try {
-        // 最適なカードサイズでリサイズ（正方形、contain）
+        // 統一カードサイズでリサイズ（カード比率63:88、contain）
         return await sharp(buffer)
-          .resize(optimalCardSize, optimalCardSize, {
-            fit: "cover",
-            background: { r: 255, g: 255, b: 255, alpha: 0 },
+          .resize(Math.round(unifiedCardWidth), Math.round(unifiedCardHeight), {
+            fit: "contain",
+            background: { r: 0, g: 0, b: 0, alpha: 0 },
           })
           .png()
           .toBuffer()
@@ -209,9 +210,9 @@ export async function generateCollageImageBuffer(params: GenerateCollageImagePar
     }),
   )
 
-  // カード配置座標を計算
-  const positions1 = calculateCardPositions(layout1, 20, zones.zone2Y)
-  const positions2 = calculateCardPositions(layout2, 20, zones.zone4Y)
+  // カード配置座標を計算（X座標は0から開始、横幅いっぱいに配置）
+  const positions1 = calculateCardPositions(layout1, 0, zones.zone2Y)
+  const positions2 = calculateCardPositions(layout2, 0, zones.zone4Y)
 
   console.log(`[generateCollageImageBuffer] Calculated ${positions1.length} positions for section 1`)
   console.log(`[generateCollageImageBuffer] Calculated ${positions2.length} positions for section 2`)
