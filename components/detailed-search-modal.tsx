@@ -487,7 +487,7 @@ export default function DetailedSearchModal({
             </div>
             <ScrollBar orientation="vertical" />
           </ScrollArea>
-          <DialogFooter className="sticky bottom-0 p-4 border-t bg-white flex-shrink-0 pb-6 z-50 shadow-lg">
+          <DialogFooter className="p-4 border-t bg-white flex-shrink-0 pb-6">
             <div className="flex justify-between items-center w-full gap-3">
               {maxSelection === 1 && currentSelectedCards.length === 1 ? (
                 <div className="flex items-center gap-2 overflow-hidden">
