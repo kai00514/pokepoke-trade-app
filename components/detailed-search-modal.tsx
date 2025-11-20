@@ -320,7 +320,7 @@ export default function DetailedSearchModal({
   return (
     <>
       <Dialog open={isOpen} onOpenChange={handleMainModalClose}>
-        <DialogContent className="max-w-3xl w-[95vw] h-[90vh] p-0 flex flex-col gap-0">
+        <DialogContent className="max-w-3xl w-[95vw] h-[85vh] p-0 flex flex-col gap-0">
           <DialogHeader className="p-4 border-b flex-shrink-0">
             <DialogTitle className="text-lg font-semibold">{modalTitle}</DialogTitle>
             <DialogClose
@@ -487,8 +487,8 @@ export default function DetailedSearchModal({
             </div>
             <ScrollBar orientation="vertical" />
           </ScrollArea>
-          <DialogFooter className="p-4 border-t bg-white flex-shrink-0 pb-safe">
-            <div className="flex justify-between items-center w-full gap-3 mb-2">
+          <DialogFooter className="sticky bottom-0 p-4 border-t bg-white flex-shrink-0 pb-6 z-50 shadow-lg">
+            <div className="flex justify-between items-center w-full gap-3">
               {maxSelection === 1 && currentSelectedCards.length === 1 ? (
                 <div className="flex items-center gap-2 overflow-hidden">
                   <Image
@@ -508,7 +508,7 @@ export default function DetailedSearchModal({
               )}
               <Button
                 onClick={handleSelectionComplete}
-                className="bg-blue-600 hover:bg-blue-700 text-white min-h-[44px] px-6 flex-shrink-0"
+                className="bg-blue-600 hover:bg-blue-700 text-white min-h-[48px] px-6 flex-shrink-0"
                 disabled={
                   (maxSelection === 1 && currentSelectedCards.length !== 1) ||
                   (maxSelection !== 1 && currentSelectedCards.length === 0 && !!maxSelection)
