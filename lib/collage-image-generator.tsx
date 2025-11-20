@@ -1,6 +1,7 @@
 import sharp from "sharp"
-import { readFileSync } from "fs"
+import { createCanvas, registerFont } from "canvas"
 import { join } from "path"
+import { readFileSync } from "fs"
 
 // キャンバスサイズ
 const CANVAS_WIDTH = 1536
@@ -45,18 +46,6 @@ async function fetchImageBuffer(imageUrl: string): Promise<Buffer> {
 }
 
 /**
- * XMLエスケープ処理
- */
-function escapeXml(unsafe: string): string {
-  return unsafe
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&apos;")
-}
-
-/**
  * 日本語フォントをBase64エンコード
  */
 function getFontDataUrl(): string {
@@ -96,6 +85,39 @@ function calculateCardPositions(
 }
 
 /**
+ * テキストをCanvasで描画してBufferとして返す
+ */
+async function renderTextToBuffer(
+  text: string,
+  width: number,
+  height: number,
+  fontSize: number,
+  color: string,
+  backgroundColor?: string,
+): Promise<Buffer> {
+  const canvas = createCanvas(width, height)
+  const ctx = canvas.getContext("2d")
+
+  // 背景を描画
+  if (backgroundColor) {
+    ctx.fillStyle = backgroundColor
+    ctx.fillRect(0, 0, width, height)
+  }
+
+  // テキストを描画
+  ctx.font = `bold ${fontSize}px "NotoSansJP", sans-serif`
+  ctx.fillStyle = color
+  ctx.textAlign = "center"
+  ctx.textBaseline = "middle"
+  ctx.strokeStyle = "rgba(0,0,0,0.3)"
+  ctx.lineWidth = 2
+  ctx.strokeText(text, width / 2, height / 2)
+  ctx.fillText(text, width / 2, height / 2)
+
+  return canvas.toBuffer("image/png")
+}
+
+/**
  * コラージュ画像を生成してBufferとして返す（1536x1024px）
  *
  * test-collage-generation2.ts の完全移植版:
@@ -116,10 +138,15 @@ export async function generateCollageImageBuffer(params: GenerateCollageImagePar
   console.log(`📊 譲れるカード: ${cards2Count}枚`)
   console.log("=".repeat(60))
 
-  const fontDataUrl = getFontDataUrl()
-  const fontFaceStyle = fontDataUrl
-    ? `<defs><style>@font-face { font-family: 'NotoSansJP'; src: url('${fontDataUrl}') format('woff2'); }</style></defs>`
-    : ""
+  try {
+    const fontPath = join(process.cwd(), "public", "fonts", "NotoSansJP-Regular.ttf")
+    registerFont(fontPath, {
+      family: "NotoSansJP",
+    })
+    console.log("[v0] Japanese font registered successfully:", fontPath)
+  } catch (error) {
+    console.error("[v0] Failed to register Japanese font:", error)
+  }
 
   console.log("\nDownloading background image...")
   const bgImageBuffer = await fetchImageBuffer(BACKGROUND_IMAGE_URL)
@@ -223,12 +250,18 @@ export async function generateCollageImageBuffer(params: GenerateCollageImagePar
     console.log(`  Adjusted total height: ${totalHeight}px`)
   }
 
-  // SVG要素を作成（テキストはXMLエスケープ）
-  const title1BgSvg = `<svg width="${CANVAS_WIDTH}" height="${CANVAS_HEIGHT}"><rect x="0" y="${title1Y}" width="${CANVAS_WIDTH}" height="${TITLE_HEIGHT}" fill="rgb(236, 72, 153)" opacity="0.95" /></svg>`
-  const title2BgSvg = `<svg width="${CANVAS_WIDTH}" height="${CANVAS_HEIGHT}"><rect x="0" y="${title2Y}" width="${CANVAS_WIDTH}" height="${TITLE_HEIGHT}" fill="rgb(59, 130, 246)" opacity="0.95" /></svg>`
-  const title1TextSvg = `<svg width="${CANVAS_WIDTH}" height="${CANVAS_HEIGHT}">${fontFaceStyle}<text x="${CANVAS_WIDTH / 2}" y="${title1Y + 45}" fontFamily="NotoSansJP, Noto Sans CJK JP, sans-serif" fontSize="48" fontWeight="bold" fill="white" textAnchor="middle" stroke="rgba(0,0,0,0.3)" strokeWidth="2">${escapeXml(title1)}</text></svg>`
-  const title2TextSvg = `<svg width="${CANVAS_WIDTH}" height="${CANVAS_HEIGHT}">${fontFaceStyle}<text x="${CANVAS_WIDTH / 2}" y="${title2Y + 45}" fontFamily="NotoSansJP, Noto Sans CJK JP, sans-serif" fontSize="48" fontWeight="bold" fill="white" textAnchor="middle" stroke="rgba(0,0,0,0.3)" strokeWidth="2">${escapeXml(title2)}</text></svg>`
-  const footerTextSvg = `<svg width="${CANVAS_WIDTH}" height="${CANVAS_HEIGHT}">${fontFaceStyle}<text x="${CANVAS_WIDTH / 2}" y="${CANVAS_HEIGHT - 12}" fontFamily="NotoSansJP, Noto Sans CJK JP, sans-serif" fontSize="24" fill="rgba(0,0,0,0.6)" textAnchor="middle">${escapeXml("ポケポケコラージュ画像メーカー@PokeLink")}</text></svg>`
+  console.log("\nRendering text layers with node-canvas...")
+  const title1BgBuffer = await renderTextToBuffer("", CANVAS_WIDTH, TITLE_HEIGHT, 0, "", "rgb(236, 72, 153)")
+  const title2BgBuffer = await renderTextToBuffer("", CANVAS_WIDTH, TITLE_HEIGHT, 0, "", "rgb(59, 130, 246)")
+  const title1TextBuffer = await renderTextToBuffer(title1, CANVAS_WIDTH, TITLE_HEIGHT, 48, "white")
+  const title2TextBuffer = await renderTextToBuffer(title2, CANVAS_WIDTH, TITLE_HEIGHT, 48, "white")
+  const footerTextBuffer = await renderTextToBuffer(
+    "ポケポケコラージュ画像メーカー@PokeLink",
+    CANVAS_WIDTH,
+    FOOTER_HEIGHT,
+    24,
+    "rgba(0,0,0,0.6)",
+  )
 
   // カード座標を計算
   console.log("\nCalculating card positions...")
@@ -267,11 +300,11 @@ export async function generateCollageImageBuffer(params: GenerateCollageImagePar
   console.log("\nBuilding composite array...")
   const compositeArray: sharp.OverlayOptions[] = []
 
-  compositeArray.push({ input: Buffer.from(title1BgSvg), top: 0, left: 0 })
-  compositeArray.push({ input: Buffer.from(title2BgSvg), top: 0, left: 0 })
-  compositeArray.push({ input: Buffer.from(title1TextSvg), top: 0, left: 0 })
-  compositeArray.push({ input: Buffer.from(title2TextSvg), top: 0, left: 0 })
-  compositeArray.push({ input: Buffer.from(footerTextSvg), top: 0, left: 0 })
+  compositeArray.push({ input: title1BgBuffer, top: title1Y, left: 0 })
+  compositeArray.push({ input: title2BgBuffer, top: title2Y, left: 0 })
+  compositeArray.push({ input: title1TextBuffer, top: title1Y, left: 0 })
+  compositeArray.push({ input: title2TextBuffer, top: title2Y, left: 0 })
+  compositeArray.push({ input: footerTextBuffer, top: CANVAS_HEIGHT - FOOTER_HEIGHT, left: 0 })
 
   cardBuffers1.forEach((buffer, index) => {
     compositeArray.push({
