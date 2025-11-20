@@ -1,4 +1,6 @@
 import sharp from "sharp"
+import { readFileSync } from "fs"
+import { join } from "path"
 
 // キャンバスサイズ
 const CANVAS_WIDTH = 1536
@@ -55,6 +57,21 @@ function escapeXml(unsafe: string): string {
 }
 
 /**
+ * 日本語フォントをBase64エンコード
+ */
+function getFontDataUrl(): string {
+  try {
+    const fontPath = join(process.cwd(), "public", "fonts", "NotoSansJP-Regular.woff2")
+    const fontBuffer = readFileSync(fontPath)
+    const base64Font = fontBuffer.toString("base64")
+    return `data:font/woff2;base64,${base64Font}`
+  } catch (error) {
+    console.error("[v0] Failed to load Japanese font:", error)
+    return ""
+  }
+}
+
+/**
  * カード配置座標を計算
  */
 function calculateCardPositions(
@@ -62,7 +79,7 @@ function calculateCardPositions(
   sectionY: number,
   cols: number,
   cardWidth: number,
-  cardHeight: number
+  cardHeight: number,
 ): Array<{ x: number; y: number }> {
   const positions: Array<{ x: number; y: number }> = []
 
@@ -98,6 +115,11 @@ export async function generateCollageImageBuffer(params: GenerateCollageImagePar
   console.log(`📊 求めるカード: ${cards1Count}枚`)
   console.log(`📊 譲れるカード: ${cards2Count}枚`)
   console.log("=".repeat(60))
+
+  const fontDataUrl = getFontDataUrl()
+  const fontFaceStyle = fontDataUrl
+    ? `<defs><style>@font-face { font-family: 'NotoSansJP'; src: url('${fontDataUrl}') format('woff2'); }</style></defs>`
+    : ""
 
   console.log("\nDownloading background image...")
   const bgImageBuffer = await fetchImageBuffer(BACKGROUND_IMAGE_URL)
@@ -149,8 +171,8 @@ export async function generateCollageImageBuffer(params: GenerateCollageImagePar
   console.log(`  Section height: ${layout2.sectionHeight}px`)
 
   // 各要素のY座標を計算（初期）
-  let title1Y = 0
-  let section1Y = TITLE_HEIGHT
+  const title1Y = 0
+  const section1Y = TITLE_HEIGHT
   let title2Y = TITLE_HEIGHT + layout1.sectionHeight
   let section2Y = TITLE_HEIGHT + layout1.sectionHeight + TITLE_HEIGHT
   let totalHeight = TITLE_HEIGHT + layout1.sectionHeight + TITLE_HEIGHT + layout2.sectionHeight + FOOTER_HEIGHT
@@ -204,9 +226,9 @@ export async function generateCollageImageBuffer(params: GenerateCollageImagePar
   // SVG要素を作成（テキストはXMLエスケープ）
   const title1BgSvg = `<svg width="${CANVAS_WIDTH}" height="${CANVAS_HEIGHT}"><rect x="0" y="${title1Y}" width="${CANVAS_WIDTH}" height="${TITLE_HEIGHT}" fill="rgb(236, 72, 153)" opacity="0.95" /></svg>`
   const title2BgSvg = `<svg width="${CANVAS_WIDTH}" height="${CANVAS_HEIGHT}"><rect x="0" y="${title2Y}" width="${CANVAS_WIDTH}" height="${TITLE_HEIGHT}" fill="rgb(59, 130, 246)" opacity="0.95" /></svg>`
-  const title1TextSvg = `<svg width="${CANVAS_WIDTH}" height="${CANVAS_HEIGHT}"><text x="${CANVAS_WIDTH / 2}" y="${title1Y + 45}" font-family="DejaVu Sans" font-size="48" font-weight="bold" fill="white" text-anchor="middle" stroke="rgba(0,0,0,0.3)" stroke-width="2">${escapeXml(title1)}</text></svg>`
-  const title2TextSvg = `<svg width="${CANVAS_WIDTH}" height="${CANVAS_HEIGHT}"><text x="${CANVAS_WIDTH / 2}" y="${title2Y + 45}" font-family="DejaVu Sans" font-size="48" font-weight="bold" fill="white" text-anchor="middle" stroke="rgba(0,0,0,0.3)" stroke-width="2">${escapeXml(title2)}</text></svg>`
-  const footerTextSvg = `<svg width="${CANVAS_WIDTH}" height="${CANVAS_HEIGHT}"><text x="${CANVAS_WIDTH / 2}" y="${CANVAS_HEIGHT - 12}" font-family="DejaVu Sans" font-size="24" fill="rgba(0,0,0,0.6)" text-anchor="middle">${escapeXml("ポケポケコラージュ画像メーカー@PokeLink")}</text></svg>`
+  const title1TextSvg = `<svg width="${CANVAS_WIDTH}" height="${CANVAS_HEIGHT}">${fontFaceStyle}<text x="${CANVAS_WIDTH / 2}" y="${title1Y + 45}" fontFamily="NotoSansJP, Noto Sans CJK JP, sans-serif" fontSize="48" fontWeight="bold" fill="white" textAnchor="middle" stroke="rgba(0,0,0,0.3)" strokeWidth="2">${escapeXml(title1)}</text></svg>`
+  const title2TextSvg = `<svg width="${CANVAS_WIDTH}" height="${CANVAS_HEIGHT}">${fontFaceStyle}<text x="${CANVAS_WIDTH / 2}" y="${title2Y + 45}" fontFamily="NotoSansJP, Noto Sans CJK JP, sans-serif" fontSize="48" fontWeight="bold" fill="white" textAnchor="middle" stroke="rgba(0,0,0,0.3)" strokeWidth="2">${escapeXml(title2)}</text></svg>`
+  const footerTextSvg = `<svg width="${CANVAS_WIDTH}" height="${CANVAS_HEIGHT}">${fontFaceStyle}<text x="${CANVAS_WIDTH / 2}" y="${CANVAS_HEIGHT - 12}" fontFamily="NotoSansJP, Noto Sans CJK JP, sans-serif" fontSize="24" fill="rgba(0,0,0,0.6)" textAnchor="middle">${escapeXml("ポケポケコラージュ画像メーカー@PokeLink")}</text></svg>`
 
   // カード座標を計算
   console.log("\nCalculating card positions...")
