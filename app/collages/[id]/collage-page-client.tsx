@@ -45,9 +45,8 @@ export default function CollagePageClient() {
 
   const handleShare = () => {
     const url = `${window.location.origin}/collages/${collageId}`
-    const text = `⚡️『PokeLink』カード一覧⚡️`
-    const hashtags = "PokeLink,ポケポケ,ポケポケトレード募集,ポケポケトレード"
-    const shareUrl = `https://x.com/intent/post?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}&hashtags=${encodeURIComponent(hashtags)}`
+    const text = `⚡️『PokeLink』カード一覧⚡️\n\n${url}\n\n#PokeLink #ポケポケ #ポケポケトレード募集 #ポケポケトレード`
+    const shareUrl = `https://x.com/intent/post?text=${encodeURIComponent(text)}`
     window.open(shareUrl, "_blank")
   }
 

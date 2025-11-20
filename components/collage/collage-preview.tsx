@@ -1,7 +1,8 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { Download, Share2, RotateCcw } from "lucide-react"
+import { Download, RotateCcw } from "lucide-react"
+import { FaXTwitter } from "react-icons/fa6"
 
 interface CollagePreviewProps {
   collageId: string
@@ -48,8 +49,8 @@ export default function CollagePreview({ collageId, collageImageUrl, onReselect,
           <RotateCcw className="h-4 w-4 mr-2" />
           再選択
         </Button>
-        <Button onClick={onShare} className="flex-1 bg-blue-600 hover:bg-blue-700 text-white">
-          <Share2 className="h-4 w-4 mr-2" />
+        <Button onClick={onShare} className="flex-1 bg-black hover:bg-gray-800 text-white transition-colors">
+          <FaXTwitter className="h-4 w-4 mr-2" />
           Xに共有
         </Button>
       </div>
