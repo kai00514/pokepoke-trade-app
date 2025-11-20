@@ -74,7 +74,7 @@ export default function CollagePage() {
                 </div>
                 <div className="ml-3">
                   <p className="text-sm text-purple-800">
-                    複数のカード画像を自動で合成して、1つのコラージュ画像を作成できます。生成したコラージュはXに投稿できます。
+                    合計40枚のカード画像を自動で合成して、1つのコラージュ画像を作成できます。生成したコラージュはXに投稿できます。
                   </p>
                 </div>
               </div>

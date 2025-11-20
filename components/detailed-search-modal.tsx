@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogC
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
-import { Check, X, Loader2 } from 'lucide-react'
+import { Check, X, Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useToast } from "@/components/ui/use-toast"
 import { supabase } from "@/lib/supabase/client"
@@ -487,8 +487,8 @@ export default function DetailedSearchModal({
             </div>
             <ScrollBar orientation="vertical" />
           </ScrollArea>
-          <DialogFooter className="p-4 border-t bg-white flex-shrink-0">
-            <div className="flex justify-between items-center w-full">
+          <DialogFooter className="p-4 border-t bg-white flex-shrink-0 pb-safe">
+            <div className="flex justify-between items-center w-full gap-3 mb-2">
               {maxSelection === 1 && currentSelectedCards.length === 1 ? (
                 <div className="flex items-center gap-2 overflow-hidden">
                   <Image
@@ -508,7 +508,7 @@ export default function DetailedSearchModal({
               )}
               <Button
                 onClick={handleSelectionComplete}
-                className="bg-blue-600 hover:bg-blue-700 text-white"
+                className="bg-blue-600 hover:bg-blue-700 text-white min-h-[44px] px-6 flex-shrink-0"
                 disabled={
                   (maxSelection === 1 && currentSelectedCards.length !== 1) ||
                   (maxSelection !== 1 && currentSelectedCards.length === 0 && !!maxSelection)
