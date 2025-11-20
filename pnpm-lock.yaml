@@ -132,7 +132,7 @@ importers:
         specifier: latest
         version: 12.23.24(@emotion/is-prop-valid@1.4.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
       fs:
-        specifier: latest
+        specifier: 0.0.1-security
         version: 0.0.1-security
       input-otp:
         specifier: latest
@@ -147,7 +147,7 @@ importers:
         specifier: latest
         version: 0.4.6(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
       path:
-        specifier: latest
+        specifier: 0.12.7
         version: 0.12.7
       react:
         specifier: ^19

@@ -1,18 +1,4 @@
-import { join } from "path"
-import { readFileSync } from "fs"
 import { ImageResponse } from "@vercel/og"
-
-// キャンバスサイズ
-const CANVAS_WIDTH = 1536
-const CANVAS_HEIGHT = 1024
-
-// レイアウト設定
-const TITLE_HEIGHT = 60
-const FOOTER_HEIGHT = 40
-const COLS = 10 // 10列固定
-
-// カード縦横比（63mm × 88mm）
-const CARD_ASPECT_RATIO = 63 / 88
 
 interface CardData {
   id: number
@@ -28,194 +14,290 @@ interface GenerateCollageImageParams {
   cards2: CardData[]
 }
 
+// キャンバスサイズ
+const CANVAS_WIDTH = 1536
+const CANVAS_HEIGHT = 1024
+
+// レイアウト設定
+const TITLE_HEIGHT = 60
+const FOOTER_HEIGHT = 40
+const COLS = 10 // 10列固定
+
+// カード縦横比（63mm × 88mm）
+const CARD_ASPECT_RATIO = 63 / 88
+
 /**
- * 日本語フォントを読み込み
+ * カード配置座標を計算
  */
-function loadJapaneseFont(): ArrayBuffer {
-  const fontPath = join(process.cwd(), "public", "fonts", "NotoSansJP-Regular.ttf")
-  const fontBuffer = readFileSync(fontPath)
-  return fontBuffer.buffer.slice(fontBuffer.byteOffset, fontBuffer.byteOffset + fontBuffer.byteLength)
+function calculateCardPositions(
+  cardCount: number,
+  sectionY: number,
+  cols: number,
+  cardWidth: number,
+  cardHeight: number
+): Array<{ x: number; y: number }> {
+  const positions: Array<{ x: number; y: number }> = []
+
+  for (let i = 0; i < cardCount; i++) {
+    const col = i % cols
+    const row = Math.floor(i / cols)
+    positions.push({
+      x: Math.round(col * cardWidth),
+      y: Math.round(sectionY + row * cardHeight),
+    })
+  }
+
+  return positions
 }
 
 /**
- * カード配置を計算
- */
-function calculateCardLayout(cardCount: number, cols: number) {
-  const rows = Math.ceil(cardCount / cols)
-  const cardWidth = CANVAS_WIDTH / cols
-  const cardHeight = cardWidth / CARD_ASPECT_RATIO
-  const sectionHeight = cardHeight * rows
-
-  return { rows, cardWidth, cardHeight, sectionHeight }
-}
-
-/**
- * コラージュ画像を生成してBufferとして返す（1536x1024px）
+ * @vercel/ogを使用してコラージュ画像を生成
+ * 戻り値をArrayBufferからBufferに変更
  */
 export async function generateCollageImageBuffer(params: GenerateCollageImageParams): Promise<Buffer> {
   const { title1, title2, cards1, cards2 } = params
+  const cards1Count = cards1.length
+  const cards2Count = cards2.length
 
   console.log("=".repeat(60))
-  console.log("[v0] コラージュ画像生成開始 (@vercel/og)")
-  console.log(`[v0] 求めるカード: ${cards1.length}枚`)
-  console.log(`[v0] 譲れるカード: ${cards2.length}枚`)
+  console.log("コラージュ画像生成開始 (@vercel/og)")
+  console.log(`📊 求めるカード: ${cards1Count}枚`)
+  console.log(`📊 譲れるカード: ${cards2Count}枚`)
   console.log("=".repeat(60))
 
-  const japaneseFont = loadJapaneseFont()
+  // 統一カードサイズを計算（10列固定、画面幅いっぱい）
+  const unifiedCardWidth = CANVAS_WIDTH / COLS
+  const unifiedCardHeight = unifiedCardWidth / CARD_ASPECT_RATIO
 
-  const layout1 = calculateCardLayout(cards1.length, COLS)
-  const layout2 = calculateCardLayout(cards2.length, COLS)
+  console.log(`\n[Unified Card Size]`)
+  console.log(`  Card size: ${unifiedCardWidth}w × ${unifiedCardHeight}h`)
 
-  const section1Y = TITLE_HEIGHT
-  const title2Y = TITLE_HEIGHT + layout1.sectionHeight
-  const section2Y = title2Y + TITLE_HEIGHT
+  // セクション1のレイアウトを計算
+  console.log(`\n[Section 1] ${cards1Count} cards:`)
+  const cols1 = Math.min(cards1Count, COLS)
+  const rows1 = Math.ceil(cards1Count / cols1)
+  const sectionHeight1 = unifiedCardHeight * rows1
+  let layout1 = {
+    cols: cols1,
+    rows: rows1,
+    cardWidth: unifiedCardWidth,
+    cardHeight: unifiedCardHeight,
+    sectionHeight: sectionHeight1,
+  }
+  console.log(`  Layout: ${layout1.cols}cols × ${layout1.rows}rows`)
+  console.log(`  Section height: ${layout1.sectionHeight}px`)
+
+  // セクション2のレイアウトを計算
+  console.log(`\n[Section 2] ${cards2Count} cards:`)
+  const cols2 = Math.min(cards2Count, COLS)
+  const rows2 = Math.ceil(cards2Count / cols2)
+  const sectionHeight2 = unifiedCardHeight * rows2
+  let layout2 = {
+    cols: cols2,
+    rows: rows2,
+    cardWidth: unifiedCardWidth,
+    cardHeight: unifiedCardHeight,
+    sectionHeight: sectionHeight2,
+  }
+  console.log(`  Layout: ${layout2.cols}cols × ${layout2.rows}rows`)
+  console.log(`  Section height: ${layout2.sectionHeight}px`)
+
+  // Y座標を計算
+  let title1Y = 0
+  let section1Y = TITLE_HEIGHT
+  let title2Y = TITLE_HEIGHT + layout1.sectionHeight
+  let section2Y = TITLE_HEIGHT + layout1.sectionHeight + TITLE_HEIGHT
+  let totalHeight =
+    TITLE_HEIGHT + layout1.sectionHeight + TITLE_HEIGHT + layout2.sectionHeight + FOOTER_HEIGHT
+
+  console.log(`\n[Total Layout]`)
+  console.log(`  Total height: ${totalHeight}px`)
+
+  // 高さオーバーの場合、統一カードサイズを縮小
+  if (totalHeight > CANVAS_HEIGHT) {
+    console.error(`  ❌ Total height ${totalHeight}px exceeds canvas height ${CANVAS_HEIGHT}px!`)
+    console.error(`  Adjusting layout...`)
+
+    const scale =
+      (CANVAS_HEIGHT - TITLE_HEIGHT * 2 - FOOTER_HEIGHT) / (layout1.sectionHeight + layout2.sectionHeight)
+    console.log(`  Scaling factor: ${(scale * 100).toFixed(1)}%`)
+
+    const scaledCardHeight = unifiedCardHeight * scale
+    const scaledCardWidth = scaledCardHeight * CARD_ASPECT_RATIO
+
+    layout1 = {
+      ...layout1,
+      cardHeight: scaledCardHeight,
+      cardWidth: scaledCardWidth,
+      sectionHeight: scaledCardHeight * layout1.rows,
+    }
+
+    layout2 = {
+      ...layout2,
+      cardHeight: scaledCardHeight,
+      cardWidth: scaledCardWidth,
+      sectionHeight: scaledCardHeight * layout2.rows,
+    }
+
+    title2Y = TITLE_HEIGHT + layout1.sectionHeight
+    section2Y = TITLE_HEIGHT + layout1.sectionHeight + TITLE_HEIGHT
+    totalHeight = TITLE_HEIGHT + layout1.sectionHeight + TITLE_HEIGHT + layout2.sectionHeight + FOOTER_HEIGHT
+
+    console.log(`  Adjusted card size: ${scaledCardWidth}w × ${scaledCardHeight}h`)
+    console.log(`  Adjusted total height: ${totalHeight}px`)
+  }
+
+  // カード位置を計算
+  const positions1 = calculateCardPositions(
+    cards1Count,
+    section1Y,
+    layout1.cols,
+    layout1.cardWidth,
+    layout1.cardHeight
+  )
+  const positions2 = calculateCardPositions(
+    cards2Count,
+    section2Y,
+    layout2.cols,
+    layout2.cardWidth,
+    layout2.cardHeight
+  )
+
+  console.log("\n[Generating image with @vercel/og...]")
 
   const imageResponse = new ImageResponse(
-    <div
-      style={{
-        width: CANVAS_WIDTH,
-        height: CANVAS_HEIGHT,
-        display: "flex",
-        flexDirection: "column",
-        backgroundImage: "url(https://www.pokelnk.com/coragu_backimage.png)",
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-      }}
-    >
-      {/* Title 1 */}
+    (
       <div
         style={{
-          width: "100%",
-          height: TITLE_HEIGHT,
-          backgroundColor: "rgb(236, 72, 153)",
+          width: CANVAS_WIDTH,
+          height: CANVAS_HEIGHT,
           display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
+          position: "relative",
+          backgroundImage: "url(https://www.pokelnk.com/coragu_backimage.png)",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
         }}
       >
+        {/* タイトル1背景 */}
         <div
           style={{
-            fontSize: 48,
-            fontWeight: "bold",
-            color: "white",
-            textShadow: "2px 2px 4px rgba(0,0,0,0.3)",
-            fontFamily: "NotoSansJP",
+            position: "absolute",
+            top: title1Y,
+            left: 0,
+            width: CANVAS_WIDTH,
+            height: TITLE_HEIGHT,
+            backgroundColor: "rgb(236, 72, 153)",
+            opacity: 0.95,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
           }}
         >
-          {title1}
+          <span
+            style={{
+              fontSize: 48,
+              fontWeight: "bold",
+              color: "white",
+              textShadow: "2px 2px 4px rgba(0,0,0,0.3)",
+            }}
+          >
+            {title1}
+          </span>
         </div>
-      </div>
 
-      {/* Cards 1 */}
-      <div
-        style={{
-          display: "flex",
-          flexWrap: "wrap",
-          width: "100%",
-          height: layout1.sectionHeight,
-        }}
-      >
+        {/* タイトル2背景 */}
+        <div
+          style={{
+            position: "absolute",
+            top: title2Y,
+            left: 0,
+            width: CANVAS_WIDTH,
+            height: TITLE_HEIGHT,
+            backgroundColor: "rgb(59, 130, 246)",
+            opacity: 0.95,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <span
+            style={{
+              fontSize: 48,
+              fontWeight: "bold",
+              color: "white",
+              textShadow: "2px 2px 4px rgba(0,0,0,0.3)",
+            }}
+          >
+            {title2}
+          </span>
+        </div>
+
+        {/* カード1を配置 */}
         {cards1.map((card, index) => (
           <img
-            key={`card1-${index}`}
-            src={card.imageUrl || "/placeholder.svg"}
+            key={`card1-${card.id}`}
+            src={card.imageUrl}
             style={{
+              position: "absolute",
+              left: positions1[index].x,
+              top: positions1[index].y,
               width: layout1.cardWidth,
               height: layout1.cardHeight,
               objectFit: "contain",
             }}
           />
         ))}
-      </div>
 
-      {/* Title 2 */}
-      <div
-        style={{
-          width: "100%",
-          height: TITLE_HEIGHT,
-          backgroundColor: "rgb(59, 130, 246)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <div
-          style={{
-            fontSize: 48,
-            fontWeight: "bold",
-            color: "white",
-            textShadow: "2px 2px 4px rgba(0,0,0,0.3)",
-            fontFamily: "NotoSansJP",
-          }}
-        >
-          {title2}
-        </div>
-      </div>
-
-      {/* Cards 2 */}
-      <div
-        style={{
-          display: "flex",
-          flexWrap: "wrap",
-          width: "100%",
-          height: layout2.sectionHeight,
-        }}
-      >
+        {/* カード2を配置 */}
         {cards2.map((card, index) => (
           <img
-            key={`card2-${index}`}
-            src={card.imageUrl || "/placeholder.svg"}
+            key={`card2-${card.id}`}
+            src={card.imageUrl}
             style={{
+              position: "absolute",
+              left: positions2[index].x,
+              top: positions2[index].y,
               width: layout2.cardWidth,
               height: layout2.cardHeight,
               objectFit: "contain",
             }}
           />
         ))}
-      </div>
 
-      {/* Footer */}
-      <div
-        style={{
-          width: "100%",
-          height: FOOTER_HEIGHT,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          position: "absolute",
-          bottom: 0,
-        }}
-      >
+        {/* フッター */}
         <div
           style={{
-            fontSize: 24,
-            color: "rgba(0,0,0,0.6)",
-            fontFamily: "NotoSansJP",
+            position: "absolute",
+            bottom: 0,
+            left: 0,
+            width: CANVAS_WIDTH,
+            height: FOOTER_HEIGHT,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
           }}
         >
-          ポケポケコラージュ画像メーカー@PokeLink
+          <span
+            style={{
+              fontSize: 24,
+              color: "rgba(0,0,0,0.6)",
+            }}
+          >
+            ポケポケコラージュ画像メーカー@PokeLink
+          </span>
         </div>
       </div>
-    </div>,
+    ),
     {
       width: CANVAS_WIDTH,
       height: CANVAS_HEIGHT,
-      fonts: [
-        {
-          name: "NotoSansJP",
-          data: japaneseFont,
-          style: "normal",
-          weight: 400,
-        },
-      ],
-    },
+    }
   )
 
+  console.log("✅ コラージュ画像生成完了！")
+  console.log("=".repeat(60))
+
+  // ArrayBufferをBufferに変換して返す
   const arrayBuffer = await imageResponse.arrayBuffer()
-  const buffer = Buffer.from(arrayBuffer)
-
-  console.log("[v0] ✅ コラージュ画像生成完了！")
-  console.log(`[v0] ファイルサイズ: ${(buffer.length / 1024).toFixed(2)} KB`)
-
-  return buffer
+  return Buffer.from(arrayBuffer)
 }

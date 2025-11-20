@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from "uuid"
 import { uploadCollageImage } from "@/lib/actions/upload-collage-image"
 import { generateCollageImageBuffer } from "@/lib/collage-image-generator"
 
-export const runtime = "nodejs" // Using nodejs runtime for image generation
+export const runtime = "nodejs" // Using nodejs runtime (works with @vercel/og)
 
 export async function POST(request: NextRequest) {
   try {
