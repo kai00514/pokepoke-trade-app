@@ -26,12 +26,13 @@ export async function POST(request: NextRequest) {
 
     const supabase = await createServerClient()
 
-    // Get user session
+    // Get authenticated user
     const {
-      data: { session },
-    } = await supabase.auth.getSession()
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser()
 
-    if (!session?.user.id) {
+    if (userError || !user?.id) {
       return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 })
     }
 
@@ -52,7 +53,7 @@ export async function POST(request: NextRequest) {
     const collageId = uuidv4()
     const { error: insertError } = await supabase.from("user_collages").insert({
       id: collageId,
-      user_id: session.user.id,
+      user_id: user.id,
       title1: title1.trim(),
       card_ids_1: card_ids_1,
       title2: title2.trim(),

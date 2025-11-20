@@ -1,9 +1,14 @@
 import { ImageResponse } from "@vercel/og"
+import sharp from "sharp"
 
 interface CardData {
   id: number
   name: string
   imageUrl: string
+}
+
+interface CardDataWithPng extends CardData {
+  pngDataUrl: string
 }
 
 interface GenerateCollageImageParams {
@@ -51,6 +56,28 @@ function calculateCardPositions(
 }
 
 /**
+ * WebP画像をPNG Data URLに変換
+ */
+async function convertToPngDataUrl(imageUrl: string): Promise<string> {
+  try {
+    const response = await fetch(imageUrl)
+    if (!response.ok) {
+      throw new Error(`Failed to fetch image: ${response.status}`)
+    }
+    const arrayBuffer = await response.arrayBuffer()
+    const buffer = Buffer.from(arrayBuffer)
+
+    // sharpでPNGに変換
+    const pngBuffer = await sharp(buffer).png().toBuffer()
+    const base64 = pngBuffer.toString("base64")
+    return `data:image/png;base64,${base64}`
+  } catch (error) {
+    console.error(`Error converting image ${imageUrl}:`, error)
+    throw error
+  }
+}
+
+/**
  * @vercel/ogを使用してコラージュ画像を生成
  * 戻り値をArrayBufferからBufferに変更
  */
@@ -64,6 +91,23 @@ export async function generateCollageImageBuffer(params: GenerateCollageImagePar
   console.log(`📊 求めるカード: ${cards1Count}枚`)
   console.log(`📊 譲れるカード: ${cards2Count}枚`)
   console.log("=".repeat(60))
+
+  // WebP画像をPNG Data URLに変換
+  console.log("\n[Converting WebP images to PNG...]")
+  const cards1WithPng: CardDataWithPng[] = await Promise.all(
+    cards1.map(async (card) => ({
+      ...card,
+      pngDataUrl: await convertToPngDataUrl(card.imageUrl),
+    }))
+  )
+
+  const cards2WithPng: CardDataWithPng[] = await Promise.all(
+    cards2.map(async (card) => ({
+      ...card,
+      pngDataUrl: await convertToPngDataUrl(card.imageUrl),
+    }))
+  )
+  console.log("[✅ Image conversion complete]")
 
   // 統一カードサイズを計算（10列固定、画面幅いっぱい）
   const unifiedCardWidth = CANVAS_WIDTH / COLS
@@ -233,10 +277,10 @@ export async function generateCollageImageBuffer(params: GenerateCollageImagePar
         </div>
 
         {/* カード1を配置 */}
-        {cards1.map((card, index) => (
+        {cards1WithPng.map((card, index) => (
           <img
             key={`card1-${card.id}`}
-            src={card.imageUrl}
+            src={card.pngDataUrl}
             style={{
               position: "absolute",
               left: positions1[index].x,
@@ -249,10 +293,10 @@ export async function generateCollageImageBuffer(params: GenerateCollageImagePar
         ))}
 
         {/* カード2を配置 */}
-        {cards2.map((card, index) => (
+        {cards2WithPng.map((card, index) => (
           <img
             key={`card2-${card.id}`}
-            src={card.imageUrl}
+            src={card.pngDataUrl}
             style={{
               position: "absolute",
               left: positions2[index].x,
