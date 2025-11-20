@@ -43,6 +43,18 @@ async function fetchImageBuffer(imageUrl: string): Promise<Buffer> {
 }
 
 /**
+ * XMLエスケープ処理
+ */
+function escapeXml(unsafe: string): string {
+  return unsafe
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&apos;")
+}
+
+/**
  * カード配置座標を計算
  */
 function calculateCardPositions(
@@ -189,12 +201,12 @@ export async function generateCollageImageBuffer(params: GenerateCollageImagePar
     console.log(`  Adjusted total height: ${totalHeight}px`)
   }
 
-  // SVG要素を作成
+  // SVG要素を作成（テキストはXMLエスケープ）
   const title1BgSvg = `<svg width="${CANVAS_WIDTH}" height="${CANVAS_HEIGHT}"><rect x="0" y="${title1Y}" width="${CANVAS_WIDTH}" height="${TITLE_HEIGHT}" fill="rgb(236, 72, 153)" opacity="0.95" /></svg>`
   const title2BgSvg = `<svg width="${CANVAS_WIDTH}" height="${CANVAS_HEIGHT}"><rect x="0" y="${title2Y}" width="${CANVAS_WIDTH}" height="${TITLE_HEIGHT}" fill="rgb(59, 130, 246)" opacity="0.95" /></svg>`
-  const title1TextSvg = `<svg width="${CANVAS_WIDTH}" height="${CANVAS_HEIGHT}"><text x="${CANVAS_WIDTH / 2}" y="${title1Y + 45}" font-family="Arial, sans-serif" font-size="48" font-weight="bold" fill="white" text-anchor="middle" stroke="rgba(0,0,0,0.3)" stroke-width="2">${title1}</text></svg>`
-  const title2TextSvg = `<svg width="${CANVAS_WIDTH}" height="${CANVAS_HEIGHT}"><text x="${CANVAS_WIDTH / 2}" y="${title2Y + 45}" font-family="Arial, sans-serif" font-size="48" font-weight="bold" fill="white" text-anchor="middle" stroke="rgba(0,0,0,0.3)" stroke-width="2">${title2}</text></svg>`
-  const footerTextSvg = `<svg width="${CANVAS_WIDTH}" height="${CANVAS_HEIGHT}"><text x="${CANVAS_WIDTH / 2}" y="${CANVAS_HEIGHT - 12}" font-family="Arial, sans-serif" font-size="24" fill="rgba(0,0,0,0.6)" text-anchor="middle">ポケポケコラージュ画像メーカー@PokeLink</text></svg>`
+  const title1TextSvg = `<svg width="${CANVAS_WIDTH}" height="${CANVAS_HEIGHT}"><text x="${CANVAS_WIDTH / 2}" y="${title1Y + 45}" font-family="Arial, sans-serif" font-size="48" font-weight="bold" fill="white" text-anchor="middle" stroke="rgba(0,0,0,0.3)" stroke-width="2">${escapeXml(title1)}</text></svg>`
+  const title2TextSvg = `<svg width="${CANVAS_WIDTH}" height="${CANVAS_HEIGHT}"><text x="${CANVAS_WIDTH / 2}" y="${title2Y + 45}" font-family="Arial, sans-serif" font-size="48" font-weight="bold" fill="white" text-anchor="middle" stroke="rgba(0,0,0,0.3)" stroke-width="2">${escapeXml(title2)}</text></svg>`
+  const footerTextSvg = `<svg width="${CANVAS_WIDTH}" height="${CANVAS_HEIGHT}"><text x="${CANVAS_WIDTH / 2}" y="${CANVAS_HEIGHT - 12}" font-family="Arial, sans-serif" font-size="24" fill="rgba(0,0,0,0.6)" text-anchor="middle">${escapeXml("ポケポケコラージュ画像メーカー@PokeLink")}</text></svg>`
 
   // カード座標を計算
   console.log("\nCalculating card positions...")
