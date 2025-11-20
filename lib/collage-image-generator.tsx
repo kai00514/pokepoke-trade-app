@@ -19,13 +19,13 @@ interface GenerateCollageImageParams {
   cards2: CardData[]
 }
 
-// キャンバスサイズ
-const CANVAS_WIDTH = 1536
-const CANVAS_HEIGHT = 1024
+// キャンバスサイズ（X/Twitter OGP最適化: 1200×630px）
+const CANVAS_WIDTH = 1200
+const CANVAS_HEIGHT = 630
 
 // レイアウト設定
-const TITLE_HEIGHT = 60
-const FOOTER_HEIGHT = 40
+const TITLE_HEIGHT = 45
+const FOOTER_HEIGHT = 25
 const COLS = 10 // 10列固定
 
 // カード縦横比（63mm × 88mm）
@@ -239,7 +239,7 @@ export async function generateCollageImageBuffer(params: GenerateCollageImagePar
         >
           <span
             style={{
-              fontSize: 48,
+              fontSize: 36,
               fontWeight: "bold",
               color: "white",
               textShadow: "2px 2px 4px rgba(0,0,0,0.3)",
@@ -266,7 +266,7 @@ export async function generateCollageImageBuffer(params: GenerateCollageImagePar
         >
           <span
             style={{
-              fontSize: 48,
+              fontSize: 36,
               fontWeight: "bold",
               color: "white",
               textShadow: "2px 2px 4px rgba(0,0,0,0.3)",
@@ -323,9 +323,8 @@ export async function generateCollageImageBuffer(params: GenerateCollageImagePar
         >
           <span
             style={{
-              fontSize: 24,
-              fontWeight: "bold",
-              color: "white",
+              fontSize: 18,
+              color: "rgba(0,0,0,0.6)",
             }}
           >
             ポケポケコラージュ画像メーカー@PokeLink
