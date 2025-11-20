@@ -119,14 +119,12 @@ export default async function Image({ params }: { params: { id: string } }) {
         <img
           src={collageDataUrl}
           alt={`${collage.title1} / ${collage.title2}`}
-          width={1536}
-          height={1024}
+          width={1200}
+          height={630}
           style={{
-            position: "absolute",
-            width: "1200px",
-            height: "789px", // 1024 * (1200/1536) = 800px、少し調整して789px
-            objectFit: "cover",
-            top: "-80px", // 上下を少しクロップして630pxに収める
+            width: "100%",
+            height: "100%", // 1024 * (1200/1536) = 800px、少し調整して789px
+            objectFit: "contain",
           }}
         />
       </div>,
