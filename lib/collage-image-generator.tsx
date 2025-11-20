@@ -50,7 +50,7 @@ function calculateCardPositions(
   sectionY: number,
   cols: number,
   cardWidth: number,
-  cardHeight: number
+  cardHeight: number,
 ): Array<{ x: number; y: number }> {
   const positions: Array<{ x: number; y: number }> = []
 
@@ -137,8 +137,8 @@ export async function generateCollageImageBuffer(params: GenerateCollageImagePar
   console.log(`  Section height: ${layout2.sectionHeight}px`)
 
   // 各要素のY座標を計算（初期）
-  let title1Y = 0
-  let section1Y = TITLE_HEIGHT
+  const title1Y = 0
+  const section1Y = TITLE_HEIGHT
   let title2Y = TITLE_HEIGHT + layout1.sectionHeight
   let section2Y = TITLE_HEIGHT + layout1.sectionHeight + TITLE_HEIGHT
   let totalHeight = TITLE_HEIGHT + layout1.sectionHeight + TITLE_HEIGHT + layout2.sectionHeight + FOOTER_HEIGHT
@@ -192,9 +192,9 @@ export async function generateCollageImageBuffer(params: GenerateCollageImagePar
   // SVG要素を作成
   const title1BgSvg = `<svg width="${CANVAS_WIDTH}" height="${CANVAS_HEIGHT}"><rect x="0" y="${title1Y}" width="${CANVAS_WIDTH}" height="${TITLE_HEIGHT}" fill="rgb(236, 72, 153)" opacity="0.95" /></svg>`
   const title2BgSvg = `<svg width="${CANVAS_WIDTH}" height="${CANVAS_HEIGHT}"><rect x="0" y="${title2Y}" width="${CANVAS_WIDTH}" height="${TITLE_HEIGHT}" fill="rgb(59, 130, 246)" opacity="0.95" /></svg>`
-  const title1TextSvg = `<svg width="${CANVAS_WIDTH}" height="${CANVAS_HEIGHT}"><text x="${CANVAS_WIDTH / 2}" y="${title1Y + 45}" font-family="Arial, sans-serif" font-size="48" font-weight="bold" fill="white" text-anchor="middle" stroke="rgba(0,0,0,0.3)" stroke-width="2">${title1}</text></svg>`
-  const title2TextSvg = `<svg width="${CANVAS_WIDTH}" height="${CANVAS_HEIGHT}"><text x="${CANVAS_WIDTH / 2}" y="${title2Y + 45}" font-family="Arial, sans-serif" font-size="48" font-weight="bold" fill="white" text-anchor="middle" stroke="rgba(0,0,0,0.3)" stroke-width="2">${title2}</text></svg>`
-  const footerTextSvg = `<svg width="${CANVAS_WIDTH}" height="${CANVAS_HEIGHT}"><text x="${CANVAS_WIDTH / 2}" y="${CANVAS_HEIGHT - 12}" font-family="Arial, sans-serif" font-size="24" fill="rgba(0,0,0,0.6)" text-anchor="middle">ポケポケトレード画像メーカー@GameWith</text></svg>`
+  const title1TextSvg = `<svg width="${CANVAS_WIDTH}" height="${CANVAS_HEIGHT}"><text x="${CANVAS_WIDTH / 2}" y="${title1Y + 45}" fontFamily="Arial, sans-serif" fontSize="48" fontWeight="bold" fill="white" textAnchor="middle" stroke="rgba(0,0,0,0.3)" strokeWidth="2">${title1}</text></svg>`
+  const title2TextSvg = `<svg width="${CANVAS_WIDTH}" height="${CANVAS_HEIGHT}"><text x="${CANVAS_WIDTH / 2}" y="${title2Y + 45}" fontFamily="Arial, sans-serif" fontSize="48" fontWeight="bold" fill="white" textAnchor="middle" stroke="rgba(0,0,0,0.3)" strokeWidth="2">${title2}</text></svg>`
+  const footerTextSvg = `<svg width="${CANVAS_WIDTH}" height="${CANVAS_HEIGHT}"><text x="${CANVAS_WIDTH / 2}" y="${CANVAS_HEIGHT - 12}" fontFamily="Arial, sans-serif" fontSize="24" fill="rgba(0,0,0,0.6)" textAnchor="middle">ポケポケトレード画像メーカー@GameWith</text></svg>`
 
   // カード座標を計算
   console.log("\nCalculating card positions...")
