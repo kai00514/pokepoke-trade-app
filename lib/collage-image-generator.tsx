@@ -324,7 +324,8 @@ export async function generateCollageImageBuffer(params: GenerateCollageImagePar
           <span
             style={{
               fontSize: 24,
-              color: "rgba(0,0,0,0.6)",
+              fontWeight: "bold",
+              color: "white",
             }}
           >
             ポケポケコラージュ画像メーカー@PokeLink
