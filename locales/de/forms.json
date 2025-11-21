@@ -1,0 +1,96 @@
+{
+  "auth": {
+    "email": {
+      "label": "メールアドレス",
+      "placeholder": "あなたのメールアドレス"
+    },
+    "password": {
+      "label": "パスワード",
+      "placeholder": "あなたのパスワード",
+      "newPlaceholder": "6文字以上のパスワード",
+      "hint": "半角英数6文字以上を推奨します。",
+      "forgotLink": "パスワードを忘れた方はこちら",
+      "show": "パスワードを表示",
+      "hide": "パスワードを隠す"
+    },
+    "confirmPassword": {
+      "label": "パスワード確認",
+      "placeholder": "パスワードを再入力",
+      "show": "パスワード確認を表示",
+      "hide": "パスワード確認を隠す"
+    },
+    "newPassword": {
+      "label": "新しいパスワード",
+      "placeholder": "6文字以上の新しいパスワード"
+    }
+  },
+  "trade": {
+    "title": {
+      "label": "トレード目的",
+      "placeholder": "例：リザードンex求む"
+    },
+    "wantedCards": {
+      "label": "求めるカード"
+    },
+    "offeredCards": {
+      "label": "譲れるカード"
+    },
+    "savedList": {
+      "label": "保存済みリストから選択"
+    },
+    "pokepokeId": {
+      "label": "ポケポケアプリID",
+      "placeholder": "ポケポケアプリのID (任意)",
+      "helperAuthenticated": "登録済みのポケポケIDが自動入力されています。",
+      "helperAuthenticatedNoId": "ログイン中です。ポケポケIDは任意です。半角数字のみ入力可能です。",
+      "helperGuest": "ゲストユーザーとして投稿します。ポケポケIDは任意です。半角数字のみ入力可能です。"
+    },
+    "comment": {
+      "label": "コメント (任意)",
+      "placeholder": "コメントを入力 (256文字まで)"
+    }
+  },
+  "list": {
+    "name": {
+      "label": "リスト名",
+      "placeholder": "例: 交換用カードリスト"
+    },
+    "description": {
+      "label": "説明（任意）",
+      "placeholder": "リストの説明を入力してください"
+    }
+  },
+  "search": {
+    "keyword": {
+      "label": "キーワード",
+      "placeholder": "キーワードで検索"
+    }
+  },
+  "collage": {
+    "group1Title": {
+      "label": "グループ1のタイトル",
+      "placeholder": "例: 求めるカード"
+    },
+    "group2Title": {
+      "label": "グループ2のタイトル",
+      "placeholder": "例: 譲れるカード"
+    }
+  },
+  "contact": {
+    "name": {
+      "label": "お名前",
+      "placeholder": "山田 太郎"
+    },
+    "email": {
+      "label": "メールアドレス"
+    },
+    "subject": {
+      "label": "件名",
+      "placeholder": "お問い合わせの件名をご入力ください"
+    },
+    "message": {
+      "label": "メッセージ",
+      "placeholder": "お問い合わせ内容を詳しくご記入ください"
+    }
+  }
+}
