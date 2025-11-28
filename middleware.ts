@@ -17,6 +17,6 @@ export default createMiddleware({
 
 export const config = {
   // next-intlミドルウェアを適用するパス
-  // publicファイル、API、_nextを除外
-  matcher: ['/((?!api|_next|_vercel|.*\\..*).*)'],
+  // auth, admin, api, publicファイル、_nextを除外
+  matcher: ['/((?!auth|admin|api|_next|_vercel|.*\\..*).*)'],
 };

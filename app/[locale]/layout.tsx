@@ -35,11 +35,14 @@ export function generateStaticParams() {
 
 export default async function LocaleLayout({
   children,
-  params: { locale }
+  params
 }: {
   children: React.ReactNode;
-  params: { locale: string };
+  params: Promise<{ locale: string }>;
 }) {
+  // Await params (Next.js 15 requirement)
+  const { locale } = await params;
+  
   // Validate locale
   if (!locales.includes(locale as any)) {
     notFound();
@@ -51,12 +54,12 @@ export default async function LocaleLayout({
   return (
     <html lang={locale} suppressHydrationWarning>
       <body className={`${inter.className} bg-gradient-to-br from-purple-50 to-purple-100 min-h-screen`}>
-        <GoogleAnalytics />
-        <Suspense fallback={null}>
-          <PageViewTracker />
-        </Suspense>
-
         <NextIntlClientProvider messages={messages}>
+          <GoogleAnalytics />
+          <Suspense fallback={null}>
+            <PageViewTracker />
+          </Suspense>
+
           <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
             <AuthProvider>
               {children}
