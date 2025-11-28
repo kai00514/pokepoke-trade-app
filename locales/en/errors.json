@@ -1,77 +1,77 @@
 {
   "auth": {
-    "generic": "認証エラーが発生しました。",
-    "callbackError": "認証プロセスでエラーが発生しました。",
-    "noCode": "認証コードが見つかりませんでした。",
-    "noSession": "セッションの作成に失敗しました。",
-    "unexpected": "予期しないエラーが発生しました。",
-    "emptyCredentials": "メールアドレスとパスワードを入力してください。",
-    "invalidCredentials": "メールアドレスまたはパスワードが正しくありません。",
-    "emailNotConfirmed": "メールアドレスが確認されていません。確認メールをご確認ください。",
-    "tooManyRequests": "ログイン試行回数が上限に達しました。しばらく時間をおいてから再試行してください。",
-    "loginFailed": "ログインに失敗しました。",
-    "socialLoginFailed": "ソーシャルログインに失敗しました。",
-    "resendFailed": "確認メールの再送信に失敗しました。",
-    "passwordMismatch": "パスワードが一致しません。",
-    "passwordTooShort": "パスワードは6文字以上で入力してください。",
-    "userExists": "このメールアドレスは既に登録されています。ログインページからログインしてください。",
-    "invalidEmail": "有効なメールアドレスを入力してください。",
-    "signupFailed": "登録に失敗しました。",
-    "accountCreationFailed": "アカウント作成に失敗しました。",
-    "socialSignupFailed": "ソーシャル登録に失敗しました。",
-    "emptyEmail": "メールアドレスを入力してください。",
-    "resetEmailFailed": "パスワードリセットメールの送信に失敗しました。",
-    "updatePasswordFailed": "パスワードの更新に失敗しました。",
-    "sessionSetupError": "セッション設定エラー",
-    "notAuthenticated": "ユーザーが認証されていません。",
-    "adminAuthFailed": "認証に失敗しました",
-    "adminEmptyCredentials": "ユーザー名とパスワードを入力してください",
-    "databaseError": "データベースエラーが発生しました",
-    "serverError": "サーバーエラーが発生しました"
+    "generic": "An authentication error occurred.",
+    "callbackError": "An error occurred during the authentication process.",
+    "noCode": "Authentication code not found.",
+    "noSession": "Failed to create session.",
+    "unexpected": "An unexpected error occurred.",
+    "emptyCredentials": "Please enter your email and password.",
+    "invalidCredentials": "Invalid email or password.",
+    "emailNotConfirmed": "Email address is not confirmed. Please check your confirmation email.",
+    "tooManyRequests": "Too many login attempts. Please try again later.",
+    "loginFailed": "Login failed.",
+    "socialLoginFailed": "Social login failed.",
+    "resendFailed": "Failed to resend confirmation email.",
+    "passwordMismatch": "Passwords do not match.",
+    "passwordTooShort": "Password must be at least 6 characters.",
+    "userExists": "This email is already registered. Please log in.",
+    "invalidEmail": "Please enter a valid email address.",
+    "signupFailed": "Registration failed.",
+    "accountCreationFailed": "Failed to create account.",
+    "socialSignupFailed": "Social signup failed.",
+    "emptyEmail": "Please enter your email address.",
+    "resetEmailFailed": "Failed to send password reset email.",
+    "updatePasswordFailed": "Failed to update password.",
+    "sessionSetupError": "Session setup error",
+    "notAuthenticated": "User not authenticated.",
+    "adminAuthFailed": "Authentication failed",
+    "adminEmptyCredentials": "Please enter username and password",
+    "databaseError": "A database error occurred",
+    "serverError": "A server error occurred"
   },
   "validation": {
-    "emptyTitle": "トレード目的を入力してください。",
-    "noWantedCards": "求めるカードを選択してください。",
-    "noOfferedCards": "譲れるカードを選択してください。",
-    "requiredFields": "必須項目を入力してください。",
-    "emptyListName": "リスト名を入力してください。",
-    "noCardsSelected": "少なくとも1枚のカードを選択してください。",
-    "selectOneCard": "カードを1枚選択してください。",
-    "maxSelection": "最大{maxSelection}枚まで選択できます。"
+    "emptyTitle": "Please enter a trade title.",
+    "noWantedCards": "Please select wanted cards.",
+    "noOfferedCards": "Please select offered cards.",
+    "requiredFields": "Please fill in all required fields.",
+    "emptyListName": "Please enter a list name.",
+    "noCardsSelected": "Please select at least one card.",
+    "selectOneCard": "Please select one card.",
+    "maxSelection": "You can select up to {maxSelection} cards."
   },
   "trade": {
-    "inputError": "入力エラー",
-    "sessionError": "セッション更新エラー",
-    "sessionRefreshFailed": "セッションの更新に失敗しました。再ログインしてください。",
-    "postError": "投稿エラー",
-    "postCreationFailed": "投稿の作成に失敗しました。",
-    "genericError": "エラー"
+    "inputError": "Input Error",
+    "sessionError": "Session Refresh Error",
+    "sessionRefreshFailed": "Failed to refresh session. Please log in again.",
+    "postError": "Post Error",
+    "postCreationFailed": "Failed to create post.",
+    "genericError": "Error"
   },
   "data": {
-    "fetchError": "データ取得エラー",
-    "postsFetchFailed": "投稿の取得に失敗しました。",
-    "packsFetchError": "パック情報取得エラー",
-    "packsFetchFailed": "パック情報の読み込みに失敗しました。",
-    "cardsFetchFailed": "カード情報の読み込みに失敗しました。"
+    "fetchError": "Data Fetch Error",
+    "postsFetchFailed": "Failed to fetch posts.",
+    "packsFetchError": "Pack Information Fetch Error",
+    "packsFetchFailed": "Failed to load pack information.",
+    "cardsFetchFailed": "Failed to load card information."
   },
   "list": {
-    "authRequired": "ログインが必要です",
-    "authRequiredMessage": "リストを作成するにはログインしてください。",
-    "creationError": "エラーが発生しました",
-    "creationFailed": "リストの作成に失敗しました。",
-    "unexpectedError": "リストの作成中に予期しないエラーが発生しました。"
+    "authRequired": "Login Required",
+    "authRequiredMessage": "Please log in to create a list.",
+    "creationError": "An error occurred",
+    "creationFailed": "Failed to create list.",
+    "unexpectedError": "An unexpected error occurred while creating the list."
   },
   "share": {
-    "copyFailed": "コピーに失敗しました",
-    "tryAgain": "もう一度お試しください。"
+    "copyFailed": "Copy failed",
+    "tryAgain": "Please try again."
   },
   "collage": {
-    "emptyTitle": "タイトルを入力してください",
-    "noCards": "少なくとも1つのグループでカードを選択してください",
-    "generationFailed": "コラージュ生成に失敗しました"
+    "emptyTitle": "Please enter a title",
+    "noCards": "Please select cards in at least one group",
+    "generationFailed": "Failed to generate collage"
   },
   "profile": {
-    "fetchFailed": "プロファイルの取得に失敗しました",
-    "fetchFailedMessage": "基本情報で表示しています。バックグラウンドで再取得を試行中です。"
+    "fetchFailed": "Failed to fetch profile",
+    "fetchFailedMessage": "Displaying with basic information. Retrying in the background."
   }
 }

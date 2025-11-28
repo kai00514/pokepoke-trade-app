@@ -54,12 +54,7 @@ export async function GET(request: NextRequest) {
         pack_id,
         col_3,
         col_4,
-        col_5,
-        hp,
-        attack_power,
-        retreat_cost,
-        weakness,
-        resistance
+        col_5
       `
       )
       .order('id', { ascending: true })

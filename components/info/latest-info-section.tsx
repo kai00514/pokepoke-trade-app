@@ -1,4 +1,4 @@
-import Link from "next/link"
+import { Link } from "@/lib/i18n-navigation"
 import { Newspaper } from "lucide-react"
 import { getInfoList } from "@/lib/actions/info-articles"
 import { LatestInfoCarousel } from "./latest-info-carousel"

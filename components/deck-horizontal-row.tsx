@@ -2,7 +2,7 @@
 
 import type React from "react"
 import Image from "next/image"
-import Link from "next/link"
+import { Link } from "@/lib/i18n-navigation"
 import { useEffect, useMemo, useState } from "react"
 import { Heart, Star, MessageCircle, CalendarDays, Loader2 } from "lucide-react"
 import { Card } from "@/components/ui/card"

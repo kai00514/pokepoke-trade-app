@@ -1,42 +1,42 @@
 {
   "categories": {
-    "all": "全て",
-    "pokemon": "ポケモン",
-    "trainers": "トレーナーズ",
-    "goods": "グッズ",
-    "tools": "どうぐ"
+    "all": "All",
+    "pokemon": "Pokemon",
+    "trainers": "Trainers",
+    "goods": "Goods",
+    "tools": "Tools"
   },
   "types": {
-    "all": "全タイプ",
-    "grass": "草",
-    "fire": "炎",
-    "water": "水",
-    "electric": "電気",
-    "psychic": "エスパー",
-    "fighting": "格闘",
-    "dark": "悪",
-    "steel": "鋼",
-    "colorless": "無色",
-    "dragon": "ドラゴン"
+    "all": "All Types",
+    "grass": "Grass",
+    "fire": "Fire",
+    "water": "Water",
+    "electric": "Electric",
+    "psychic": "Psychic",
+    "fighting": "Fighting",
+    "dark": "Dark",
+    "steel": "Steel",
+    "colorless": "Colorless",
+    "dragon": "Dragon"
   },
   "rarities": {
-    "all": "全レアリティ",
-    "diamond1": "ダイヤ1",
-    "diamond2": "ダイヤ2",
-    "diamond3": "ダイヤ3",
-    "diamond4": "ダイヤ4",
-    "star1": "星1",
-    "star2": "星2",
-    "star3": "星3",
-    "crown": "クラウン",
-    "color1": "色1",
-    "color2": "色2"
+    "all": "All Rarities",
+    "diamond1": "Diamond 1",
+    "diamond2": "Diamond 2",
+    "diamond3": "Diamond 3",
+    "diamond4": "Diamond 4",
+    "star1": "Star 1",
+    "star2": "Star 2",
+    "star3": "Star 3",
+    "crown": "Crown",
+    "color1": "Color 1",
+    "color2": "Color 2"
   },
   "packs": {
-    "all": "全てのパック"
+    "all": "All Packs"
   },
   "filters": {
-    "type": "タイプ",
-    "pack": "パック名"
+    "type": "Type",
+    "pack": "Pack Name"
   }
 }

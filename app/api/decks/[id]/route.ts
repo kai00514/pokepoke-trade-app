@@ -18,7 +18,7 @@ import {
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const supabase = await createClient();
@@ -32,7 +32,8 @@ export async function GET(
       : parseAcceptLanguage(acceptLanguage);
 
     // デッキIDの検証
-    const deckId = parseInt(params.id);
+    const { id } = await params;
+    const deckId = parseInt(id);
     if (isNaN(deckId)) {
       return NextResponse.json(
         { error: 'Invalid deck ID' },

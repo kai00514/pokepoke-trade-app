@@ -1,5 +1,5 @@
 import Image from "next/image"
-import Link from "next/link"
+import { Link } from "@/lib/i18n-navigation"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { MessageSquare, CheckCircle, XCircle, Zap, Clock, type LucideIcon } from "lucide-react"

@@ -18,7 +18,7 @@ import {
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const supabase = await createClient();
@@ -32,7 +32,8 @@ export async function GET(
       : parseAcceptLanguage(acceptLanguage);
 
     // デッキページIDの検証
-    const pageId = parseInt(params.id);
+    const { id } = await params;
+    const pageId = parseInt(id);
     if (isNaN(pageId)) {
       return NextResponse.json(
         { error: 'Invalid page ID' },

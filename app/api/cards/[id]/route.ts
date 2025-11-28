@@ -18,7 +18,7 @@ import {
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const supabase = await createClient();
@@ -32,7 +32,8 @@ export async function GET(
       : parseAcceptLanguage(acceptLanguage);
 
     // カードIDの検証
-    const cardId = parseInt(params.id);
+    const { id } = await params;
+    const cardId = parseInt(id);
     if (isNaN(cardId)) {
       return NextResponse.json(
         { error: 'Invalid card ID' },
@@ -56,12 +57,6 @@ export async function GET(
         col_3,
         col_4,
         col_5,
-        hp,
-        attack_power,
-        retreat_cost,
-        weakness,
-        resistance,
-        description,
         game8_image_url,
         created_at
       `

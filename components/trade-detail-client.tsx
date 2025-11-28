@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react"
 import type React from "react"
-import { useRouter } from "next/navigation"
+import { useRouter } from "@/lib/i18n-navigation"
 import Image from "next/image"
 import Header from "@/components/layout/header"
 import Footer from "@/components/footer"

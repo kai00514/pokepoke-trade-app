@@ -12,7 +12,7 @@ import {
   getNotificationRedirectPath,
 } from "@/lib/services/notification-service"
 import { useAuth } from "@/contexts/auth-context"
-import { useRouter } from "next/navigation"
+import { useRouter } from "@/lib/i18n-navigation"
 import { event as gtagEvent } from "@/lib/analytics/gtag"
 
 interface Notification {

@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
       .select(
         `
         id,
-        user_id,
+        owner_id,
         title,
         title_multilingual,
         comment,

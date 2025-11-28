@@ -18,7 +18,7 @@ import {
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const supabase = await createClient();
@@ -32,7 +32,8 @@ export async function GET(
       : parseAcceptLanguage(acceptLanguage);
 
     // トレード投稿IDの検証
-    const postId = parseInt(params.id);
+    const { id } = await params;
+    const postId = parseInt(id);
     if (isNaN(postId)) {
       return NextResponse.json(
         { error: 'Invalid trade post ID' },
@@ -46,7 +47,7 @@ export async function GET(
       .select(
         `
         id,
-        user_id,
+        owner_id,
         title,
         title_multilingual,
         comment,

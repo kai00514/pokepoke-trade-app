@@ -1,7 +1,7 @@
 "use client"
 
 import { useRef, useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter } from "@/lib/i18n-navigation"
 import { LogIn, UserPlus } from "lucide-react"
 
 type LoginPromptModalProps = {
