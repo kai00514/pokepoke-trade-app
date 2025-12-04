@@ -1,4 +1,9 @@
 {
+  "title": "Error",
+  "inputError": "Input Error",
+  "unexpected": "An unexpected error occurred.",
+  "operationFailed": "Operation failed",
+  "loginRequired": "Login Required",
   "auth": {
     "generic": "An authentication error occurred.",
     "callbackError": "An error occurred during the authentication process.",

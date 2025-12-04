@@ -2,7 +2,7 @@
 
 import type React from "react"
 import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useParams } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -13,8 +13,10 @@ import { useToast } from "@/components/ui/use-toast"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Mail, ArrowRight, Lock, Eye, EyeOff, AlertCircle, CheckCircle } from "lucide-react"
 import { event as gtagEvent } from "@/lib/analytics/gtag"
+import { useTranslations } from "next-intl"
 
 export default function SignupPage() {
+  const t = useTranslations()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
@@ -36,12 +38,12 @@ export default function SignupPage() {
 
     try {
       if (password !== confirmPassword) {
-        setErrorMessage("パスワードが一致しません。")
+        setErrorMessage(t('errors.validation.passwordMismatch'))
         return
       }
 
       if (password.length < 6) {
-        setErrorMessage("パスワードは6文字以上で入力してください。")
+        setErrorMessage(t('errors.validation.passwordLength'))
         return
       }
 
@@ -56,26 +58,26 @@ export default function SignupPage() {
       if (error) {
         if (error.message.includes("User already registered")) {
           toast({
-            title: "登録済みアカウント",
-            description: "このメールアドレスは既に登録されています。ログインページからログインしてください。",
+            title: t('errors.auth.alreadyRegistered'),
+            description: t('errors.auth.alreadyRegisteredDesc'),
             variant: "destructive",
           })
           return
         } else if (error.message.includes("Invalid email")) {
-          setErrorMessage("有効なメールアドレスを入力してください。")
+          setErrorMessage(t('errors.validation.invalidEmail'))
         } else {
-          setErrorMessage(error.message || "登録に失敗しました。")
+          setErrorMessage(error.message || t('errors.auth.signupFailed'))
         }
         toast({
-          title: "登録エラー",
+          title: t('errors.auth.signupError'),
           description: error.message,
           variant: "destructive",
         })
       } else if (data.user && !data.session) {
-        setSuccessMessage("確認メールを送信しました。メールをご確認の上、リンクをクリックして登録を完了してください。")
+        setSuccessMessage(t('messages.success.confirmationEmailSentLong'))
         toast({
-          title: "確認メール送信",
-          description: "メールをご確認ください。",
+          title: t('messages.success.confirmationSent'),
+          description: t('messages.success.checkEmail'),
         })
       } else if (data.session) {
         gtagEvent("user_registered", {
@@ -85,18 +87,18 @@ export default function SignupPage() {
         })
 
         toast({
-          title: "登録完了",
-          description: "アカウントが作成されました。",
+          title: t('messages.success.signupComplete'),
+          description: t('messages.success.accountCreated'),
         })
         router.push("/")
         router.refresh()
       }
     } catch (error) {
       console.error("Signup error:", error)
-      const errorMsg = "アカウント作成に失敗しました。"
+      const errorMsg = t('errors.auth.accountCreationFailed')
       setErrorMessage(errorMsg)
       toast({
-        title: "エラー",
+        title: t('errors.generic.error'),
         description: errorMsg,
         variant: "destructive",
       })
@@ -128,7 +130,7 @@ export default function SignupPage() {
 
       if (error) {
         toast({
-          title: "登録エラー",
+          title: t('errors.auth.signupError'),
           description: error.message,
           variant: "destructive",
         })
@@ -147,8 +149,8 @@ export default function SignupPage() {
     } catch (error) {
       console.error("Social signup error:", error)
       toast({
-        title: "エラー",
-        description: "ソーシャル登録に失敗しました。",
+        title: t('errors.generic.error'),
+        description: t('errors.auth.socialSignupFailed'),
         variant: "destructive",
       })
     } finally {
@@ -163,8 +165,8 @@ export default function SignupPage() {
         <div className="container mx-auto px-4 py-10 sm:py-14 lg:py-16">
           <div className="mx-auto w-full max-w-md">
             <div className="text-center mb-8 sm:mb-10">
-              <h1 className="text-3xl font-bold text-slate-800 mb-2 drop-shadow-sm">メールアドレスで登録</h1>
-              <p className="text-slate-700">アカウント情報を入力してください</p>
+              <h1 className="text-3xl font-bold text-slate-800 mb-2 drop-shadow-sm">{t('auth.signup.emailFormTitle')}</h1>
+              <p className="text-slate-700">{t('auth.signup.emailFormSubtitle')}</p>
             </div>
 
             <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-6 sm:p-8 shadow-2xl border border-blue-200">
@@ -185,7 +187,7 @@ export default function SignupPage() {
               <form onSubmit={handleEmailSignup} className="space-y-6" noValidate>
                 <div className="space-y-2">
                   <label htmlFor="email" className="text-sm font-medium text-gray-700">
-                    メールアドレス
+                    {t('forms.labels.email')}
                   </label>
                   <div className="relative">
                     <Mail
@@ -195,7 +197,7 @@ export default function SignupPage() {
                     <Input
                       id="email"
                       type="email"
-                      placeholder="あなたのメールアドレス"
+                      placeholder={t('forms.placeholders.email')}
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       className="pl-10 h-12 rounded-xl border-blue-200 focus:border-blue-500 focus:ring-blue-500 bg-white/80 backdrop-blur-sm"
@@ -208,7 +210,7 @@ export default function SignupPage() {
 
                 <div className="space-y-2">
                   <label htmlFor="password" className="text-sm font-medium text-gray-700">
-                    パスワード
+                    {t('forms.labels.password')}
                   </label>
                   <div className="relative">
                     <Lock
@@ -218,7 +220,7 @@ export default function SignupPage() {
                     <Input
                       id="password"
                       type={showPassword ? "text" : "password"}
-                      placeholder="6文字以上のパスワード"
+                      placeholder={t('forms.placeholders.passwordMin')}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       className="pl-10 pr-10 h-12 rounded-xl border-blue-200 focus:border-blue-500 focus:ring-blue-500 bg-white/80 backdrop-blur-sm"
@@ -232,17 +234,17 @@ export default function SignupPage() {
                       onClick={() => setShowPassword(!showPassword)}
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-blue-600 transition-colors"
                       aria-pressed={showPassword}
-                      aria-label={showPassword ? "パスワードを隠す" : "パスワードを表示"}
+                      aria-label={showPassword ? t('auth.login.hidePassword') : t('auth.login.showPassword')}
                     >
                       {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                     </button>
                   </div>
-                  <p className="text-xs text-gray-500">半角英数6文字以上を推奨します。</p>
+                  <p className="text-xs text-gray-500">{t('forms.hints.passwordRecommendation')}</p>
                 </div>
 
                 <div className="space-y-2">
                   <label htmlFor="confirmPassword" className="text-sm font-medium text-gray-700">
-                    パスワード確認
+                    {t('forms.labels.confirmPassword')}
                   </label>
                   <div className="relative">
                     <Lock
@@ -252,7 +254,7 @@ export default function SignupPage() {
                     <Input
                       id="confirmPassword"
                       type={showConfirmPassword ? "text" : "password"}
-                      placeholder="パスワードを再入力"
+                      placeholder={t('forms.placeholders.confirmPassword')}
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       className="pl-10 pr-10 h-12 rounded-xl border-blue-200 focus:border-blue-500 focus:ring-blue-500 bg-white/80 backdrop-blur-sm"
@@ -265,7 +267,7 @@ export default function SignupPage() {
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-blue-600 transition-colors"
                       aria-pressed={showConfirmPassword}
-                      aria-label={showConfirmPassword ? "パスワード確認を隠す" : "パスワード確認を表示"}
+                      aria-label={showConfirmPassword ? t('auth.signup.hideConfirmPassword') : t('auth.signup.showConfirmPassword')}
                     >
                       {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                     </button>
@@ -278,7 +280,7 @@ export default function SignupPage() {
                   disabled={loading === "email"}
                   aria-busy={loading === "email"}
                 >
-                  {loading === "email" ? "登録中..." : "アカウントを作成"}
+                  {loading === "email" ? t('common.buttons.submitting') : t('common.buttons.createAccount')}
                 </Button>
               </form>
 
@@ -289,18 +291,18 @@ export default function SignupPage() {
                   onClick={() => setShowEmailForm(false)}
                   className="text-blue-600 hover:text-blue-700 hover:bg-blue-50/30 transition-colors"
                 >
-                  ← 他の登録方法を選択
+                  {t('common.buttons.backToOptions')}
                 </Button>
               </div>
 
               <div className="mt-6 text-center text-xs text-gray-500 leading-relaxed">
-                会員登録は利用規約およびプライバシーポリシーに同意したとみなします。
+                {t('auth.signup.termsAgreement')}
               </div>
 
               <div className="mt-8 text-center">
-                <p className="text-gray-600 mb-2">すでにアカウントをお持ちの方</p>
+                <p className="text-gray-600 mb-2">{t('auth.signup.loginPrompt')}</p>
                 <Link href="/auth/login" className="text-blue-600 hover:text-blue-700 font-medium transition-colors">
-                  ログイン
+                  {t('auth.login.title')}
                 </Link>
               </div>
             </div>
@@ -316,8 +318,8 @@ export default function SignupPage() {
       <div className="container mx-auto px-4 py-10 sm:py-14 lg:py-16">
         <div className="mx-auto w-full max-w-md">
           <div className="text-center mb-8 sm:mb-10">
-            <h1 className="text-3xl font-bold text-slate-800 mb-2 drop-shadow-sm">会員登録</h1>
-            <p className="text-slate-700">アカウントを作成してポケモンカードの取引を始めましょう</p>
+            <h1 className="text-3xl font-bold text-slate-800 mb-2 drop-shadow-sm">{t('auth.signup.title')}</h1>
+            <p className="text-slate-700">{t('auth.signup.subtitle')}</p>
           </div>
 
           <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-6 sm:p-8 shadow-2xl border border-blue-200">
@@ -328,7 +330,7 @@ export default function SignupPage() {
               >
                 <div className="flex items-center">
                   <Mail className="h-5 w-5 mr-3" />
-                  <span>メールアドレスで新規登録</span>
+                  <span>{t('common.buttons.signupWithEmail')}</span>
                 </div>
                 <ArrowRight className="h-5 w-5" />
               </Button>
@@ -341,7 +343,7 @@ export default function SignupPage() {
               >
                 <div className="flex items-center">
                   <GoogleIcon className="h-5 w-5 mr-3" />
-                  <span className="font-medium">{loading === "google" ? "登録中..." : "Googleで登録"}</span>
+                  <span className="font-medium">{loading === "google" ? t('common.buttons.submitting') : t('common.buttons.signupWithGoogle')}</span>
                 </div>
                 <ArrowRight className="h-5 w-5" />
               </Button>
@@ -355,7 +357,7 @@ export default function SignupPage() {
                   <div className="w-5 h-5 mr-3 bg-green-500 rounded flex items-center justify-center">
                     <span className="text-white text-xs font-bold">L</span>
                   </div>
-                  <span className="font-medium text-gray-400">LINEで登録（準備中）</span>
+                  <span className="font-medium text-gray-400">{t('common.buttons.signupWithLine')}</span>
                 </div>
                 <ArrowRight className="h-5 w-5 text-gray-400" />
               </Button>
@@ -368,26 +370,26 @@ export default function SignupPage() {
               >
                 <div className="flex items-center">
                   <XIcon className="h-5 w-5 mr-3" />
-                  <span className="font-medium">{loading === "twitter" ? "登録中..." : "Xで登録"}</span>
+                  <span className="font-medium">{loading === "twitter" ? t('common.buttons.submitting') : t('common.buttons.signupWithX')}</span>
                 </div>
                 <ArrowRight className="h-5 w-5" />
               </Button>
             </div>
 
             <div className="mt-6 text-center text-sm text-gray-500">
-              ※ソーシャルログイン機能は現在ブラウザのみで提供しています。
+              {t('auth.login.socialLoginNote')}
             </div>
 
             <div className="mt-6 text-center text-xs text-gray-500 leading-relaxed">
-              会員登録は利用規約およびプライバシーポリシーに同意したとみなします。
+              {t('auth.signup.termsAgreement')}
               <br />
-              ご確認の上、会員登録を進めてください。
+              {t('auth.signup.confirmationNote')}
             </div>
 
             <div className="mt-10 text-center">
-              <p className="text-gray-600 mb-2">すでにアカウントをお持ちの方</p>
+              <p className="text-gray-600 mb-2">{t('auth.signup.loginPrompt')}</p>
               <Link href="/auth/login" className="text-blue-600 hover:text-blue-700 font-medium transition-colors">
-                ログイン
+                {t('auth.login.title')}
               </Link>
             </div>
           </div>

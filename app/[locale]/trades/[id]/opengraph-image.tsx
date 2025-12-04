@@ -113,15 +113,16 @@ async function convertWebpToDataUrl(imageUrl: string | null | undefined, label =
   }
 }
 
-export default async function Image({ params }: { params: { id: string } }) {
+export default async function Image({ params }: { params: Promise<{ id: string }> }) {
   const overallStartTime = Date.now()
+  const { id } = await params
 
   try {
-    console.log("=== Starting OG image generation for trade:", params.id)
+    console.log("=== Starting OG image generation for trade:", id)
 
     // 投稿データを取得
     const dataFetchStart = Date.now()
-    const result = await getTradePostDetailsById(params.id)
+    const result = await getTradePostDetailsById(id)
     const dataFetchDuration = Date.now() - dataFetchStart
     console.log(`Data fetch completed in ${dataFetchDuration}ms`)
 

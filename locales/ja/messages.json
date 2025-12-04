@@ -21,6 +21,7 @@
     "listCreatedMessage": "カードリストが正常に作成されました。",
     "urlCopied": "URLをコピーしました",
     "urlCopiedMessage": "リンクがクリップボードにコピーされました。",
+    "copied": "コピーしました",
     "idCopied": "コピーしました",
     "idCopiedMessage": "ID: {postId} をクリップボードにコピーしました。",
     "resendConfirmation": "確認メール再送信",
@@ -36,6 +37,9 @@
     "noCardsSelected": "カードが選択されていません",
     "selectedCount": "選択されたカード: {count}枚",
     "selectedCountWithMax": "{count}枚選択中 (最大{max}枚)",
+    "selectedCountCards": "{count}枚選択中",
+    "maxCards": "(最大{max}枚)",
+    "searchCardsInstruction": "「カードを検索」ボタンからカードを選択してください",
     "resultCount": "全{totalCount}件中 {start}〜{end}件を表示",
     "noPostsFound": "該当する投稿が見つかりませんでした。",
     "noPosts": "投稿がありません",
@@ -45,6 +49,39 @@
     "timeSkew": "時刻同期の問題",
     "timeSkewMessage": "デバイスの時計が{formatTimeSkew}ずれています。投稿に失敗する可能性があります。",
     "timeSkewDetail": "デバイスの時計が{formatTimeSkew}ずれています。これにより認証に問題が発生する可能性があります。",
-    "selectionLimit": "選択上限"
+    "selectionLimit": "選択上限",
+    "maxSelectionReached": "最大{maxSelection}枚まで選択できます。"
+  },
+  "modals": {
+    "detailedSearch": {
+      "title": "カード詳細検索"
+    },
+    "collage": {
+      "title": "コラージュ画像を生成",
+      "selectCardsForGroup": "{title}のカードを選択"
+    },
+    "list": {
+      "createNew": "新しいリストを作成"
+    },
+    "selectCards": {
+      "title": "カードを選択",
+      "description": "リストに追加するカードを選択してください（最大35枚、現在{count}枚選択中）"
+    },
+    "loginPrompt": {
+      "title": "アカウント登録でもっと便利に！",
+      "benefit1": "ポケポケID・ユーザー名を自動入力",
+      "benefit2": "希望/譲渡カードのリスト作成",
+      "benefit3": "通知アイコンで最新情報を受け取り",
+      "benefit4": "履歴画面でトレード状況を確認",
+      "benefit5": "デッキをお気に入り登録"
+    },
+    "username": {
+      "title": "ユーザー名登録",
+      "description": "表示用のユーザー名を設定してください。いつでも変更できます。"
+    },
+    "pokepokeId": {
+      "title": "ポケポケID登録",
+      "description": "あなたのポケポケIDを設定してください。他のユーザーがあなたを見つけやすくなります。"
+    }
   }
 }

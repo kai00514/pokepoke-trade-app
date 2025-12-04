@@ -8,6 +8,7 @@ import { Loader2 } from "lucide-react"
 import { getTradeOwnedLists, type TradeOwnedList } from "@/lib/actions/trade-owned-lists"
 import { getCardsByIds } from "@/lib/card-api"
 import type { Card as SelectedCardType } from "@/components/detailed-search-modal"
+import { useTranslations } from "next-intl"
 
 interface ListSelectorModalProps {
   isOpen: boolean
@@ -17,6 +18,7 @@ interface ListSelectorModalProps {
 }
 
 function ListSelectorModal({ isOpen, onOpenChange, userId, onListSelect }: ListSelectorModalProps) {
+  const t = useTranslations()
   const [lists, setLists] = useState<TradeOwnedList[]>([])
   const [isLoading, setIsLoading] = useState(false)
 
@@ -86,7 +88,7 @@ function ListSelectorModal({ isOpen, onOpenChange, userId, onListSelect }: ListS
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[70vh] overflow-y-auto" onOpenChange={onOpenChange}>
         <DialogHeader>
-          <DialogTitle>保存済みリストから選択</DialogTitle>
+          <DialogTitle>{t('trades.selectFromSavedList')}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4">
@@ -120,8 +122,8 @@ function ListSelectorModal({ isOpen, onOpenChange, userId, onListSelect }: ListS
             </div>
           ) : (
             <div className="text-center py-12 text-[#6B7280]">
-              <p className="text-lg mb-2">保存済みリストがありません</p>
-              <p className="text-sm">リスト管理画面でリストを作成してください</p>
+              <p className="text-lg mb-2">{t('trades.noSavedLists')}</p>
+              <p className="text-sm">{t('trades.createListInManagement')}</p>
             </div>
           )}
         </div>

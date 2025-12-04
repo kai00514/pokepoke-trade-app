@@ -6,6 +6,7 @@ import { useState } from "react"
 import { X, Copy, Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/components/ui/use-toast"
+import { useTranslations } from "next-intl"
 
 interface ShareModalProps {
   isOpen: boolean
@@ -15,6 +16,7 @@ interface ShareModalProps {
 }
 
 export default function ShareModal({ isOpen, onClose, shareUrl, title }: ShareModalProps) {
+  const t = useTranslations()
   const { toast } = useToast()
   const [isCopied, setIsCopied] = useState(false)
 
@@ -26,8 +28,8 @@ export default function ShareModal({ isOpen, onClose, shareUrl, title }: ShareMo
       setIsCopied(true)
 
       toast({
-        title: "URLをコピーしました",
-        description: "リンクがクリップボードにコピーされました。",
+        title: t('messages.success.urlCopied'),
+        description: t('messages.success.linkCopiedToClipboard'),
         duration: 2000,
       })
 
@@ -37,8 +39,8 @@ export default function ShareModal({ isOpen, onClose, shareUrl, title }: ShareMo
     } catch (error) {
       console.error("Failed to copy URL:", error)
       toast({
-        title: "コピーに失敗しました",
-        description: "もう一度お試しください。",
+        title: t('errors.generic.copyFailed'),
+        description: t('errors.generic.pleaseTryAgain'),
         variant: "destructive",
         duration: 2000,
       })
@@ -84,8 +86,8 @@ export default function ShareModal({ isOpen, onClose, shareUrl, title }: ShareMo
               </svg>
             </div>
             <div className="flex-1">
-              <h2 className="text-xl font-bold text-gray-900">この投稿を共有</h2>
-              <p className="text-sm text-gray-500 mt-0.5">お好きな方法で投稿をシェアできます</p>
+              <h2 className="text-xl font-bold text-gray-900">{t('common.share.title')}</h2>
+              <p className="text-sm text-gray-500 mt-0.5">{t('common.share.description')}</p>
             </div>
           </div>
           <button
@@ -100,7 +102,7 @@ export default function ShareModal({ isOpen, onClose, shareUrl, title }: ShareMo
         <div className="p-6 space-y-6">
           {/* URL Section */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">投稿のURL</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">{t('common.share.postUrl')}</label>
             <div className="flex gap-2">
               <input
                 type="text"
@@ -120,12 +122,12 @@ export default function ShareModal({ isOpen, onClose, shareUrl, title }: ShareMo
                 {isCopied ? (
                   <>
                     <Check className="h-4 w-4 mr-1.5" />
-                    <span className="hidden sm:inline">コピー済</span>
+                    <span className="hidden sm:inline">{t('common.buttons.copied')}</span>
                   </>
                 ) : (
                   <>
                     <Copy className="h-4 w-4 mr-1.5" />
-                    <span className="hidden sm:inline">コピー</span>
+                    <span className="hidden sm:inline">{t('common.buttons.copy')}</span>
                   </>
                 )}
               </Button>
@@ -134,7 +136,7 @@ export default function ShareModal({ isOpen, onClose, shareUrl, title }: ShareMo
 
           {/* SNS Share Section */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-3">SNSでシェア</label>
+            <label className="block text-sm font-medium text-gray-700 mb-3">{t('common.share.shareOnSns')}</label>
             <div className="grid grid-cols-2 gap-3">
               {/* Twitter Button */}
               <button
@@ -164,7 +166,7 @@ export default function ShareModal({ isOpen, onClose, shareUrl, title }: ShareMo
           <div className="bg-blue-50 border border-blue-100 rounded-lg p-4">
             <p className="text-sm text-blue-900 flex items-start gap-2">
               <span className="text-lg">💡</span>
-              <span>リンクをコピーして、メールやチャットで共有することもできます</span>
+              <span>{t('common.share.copyLinkHint')}</span>
             </p>
           </div>
         </div>

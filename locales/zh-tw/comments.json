@@ -1,0 +1,21 @@
+{
+  "title": "Comments",
+  "titleWithCount": "Comments ({count})",
+  "anonymousUser": "Anonymous User",
+  "guest": "Guest",
+  "justNow": "Just now",
+  "noComments": "No comments yet.",
+  "placeholder": "Enter your comment...",
+  "placeholderGuest": "Enter your comment as a guest...",
+  "pleaseEnter": "Please enter a comment.",
+  "posted": "Posted",
+  "postedSuccess": "Comment posted successfully",
+  "postedAsGuest": "Comment posted as guest",
+  "postError": "Failed to post comment",
+  "postErrorTitle": "Comment Post Error",
+  "postErrorRetry": "Failed to post comment. Please try again.",
+  "loadError": "Failed to load comments.",
+  "loggedInAs": "Logged in as: {name}",
+  "edited": "Edited",
+  "shortcutHint": "Press Ctrl+Enter to submit"
+}

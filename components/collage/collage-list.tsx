@@ -7,12 +7,14 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Loader2, Trash2 } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
 import type { CollageListItem } from "@/types/collage"
+import { useTranslations } from "next-intl"
 
 export default function CollageList() {
   const [collages, setCollages] = useState<CollageListItem[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isDeleting, setIsDeleting] = useState<string | null>(null)
   const { toast } = useToast()
+  const t = useTranslations()
 
   useEffect(() => {
     fetchCollages()
@@ -84,7 +86,7 @@ export default function CollageList() {
             </svg>
           </div>
           <h3 className="text-xl font-semibold text-gray-900 mb-3">コラージュがまだありません</h3>
-          <p className="text-gray-600 mb-8 max-w-md mx-auto">カードのコラージュ画像を生成して、Xで共有しましょう！</p>
+          <p className="text-gray-600 mb-8 max-w-md mx-auto">{t('pages.collageGenerator.subtitle')}</p>
         </div>
       </div>
     )

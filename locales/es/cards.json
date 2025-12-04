@@ -17,7 +17,9 @@
     "dark": "悪",
     "steel": "鋼",
     "colorless": "無色",
-    "dragon": "ドラゴン"
+    "dragon": "ドラゴン",
+    "darkness": "Dark",
+    "metal": "Steel"
   },
   "rarities": {
     "all": "全レアリティ",
@@ -30,7 +32,10 @@
     "star3": "星3",
     "crown": "クラウン",
     "color1": "色1",
-    "color2": "色2"
+    "color2": "色2",
+    "crownLabel": "♔",
+    "color1Label": "1",
+    "color2Label": "2"
   },
   "packs": {
     "all": "全てのパック"

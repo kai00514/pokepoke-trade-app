@@ -11,6 +11,7 @@ import { Copy, MessageSquare, UserCircle, Share2 } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
 import ShareModal from "@/components/share-modal"
 import { event as gtagEvent } from "@/lib/analytics/gtag"
+import { useTranslations } from "next-intl"
 
 type CardInfo = {
   name: string
@@ -39,6 +40,7 @@ interface TradePostCardProps {
 export default function TradePostCard({ post }: TradePostCardProps) {
   const { toast } = useToast()
   const router = useRouter()
+  const t = useTranslations()
   const [isShareModalOpen, setIsShareModalOpen] = useState(false)
 
   const handleCopyToClipboard = (e: React.MouseEvent) => {
@@ -46,8 +48,8 @@ export default function TradePostCard({ post }: TradePostCardProps) {
     e.preventDefault()
     navigator.clipboard.writeText(post.postId)
     toast({
-      title: "コピーしました",
-      description: `ID: ${post.postId} をクリップボードにコピーしました。`,
+      title: t("messages.success.copied"),
+      description: t("idCopied", { id: post.postId }),
     })
   }
 
@@ -93,6 +95,17 @@ export default function TradePostCard({ post }: TradePostCardProps) {
   const wantedCards = post.rawData?.wantedCards || []
   const offeredCards = post.rawData?.offeredCards || []
 
+  // Map Japanese status to translation keys
+  const getStatusKey = (status: string) => {
+    switch (status) {
+      case "募集中": return "status.recruiting"
+      case "進行中": return "status.inProgress"
+      case "完了": return "status.completedShort"
+      case "キャンセル": return "status.canceled"
+      default: return status
+    }
+  }
+
   const statusStyles =
     post.status === "募集中"
       ? "bg-[#3B82F6] text-white border-transparent"
@@ -102,6 +115,8 @@ export default function TradePostCard({ post }: TradePostCardProps) {
           ? "bg-emerald-100 text-emerald-800 border-emerald-200"
           : "bg-gray-100 text-gray-700 border-gray-200"
 
+  const translatedStatus = t(getStatusKey(post.status))
+
   const shareUrl = `${typeof window !== "undefined" ? window.location.origin : ""}/trades/${post.id}`
 
   return (
@@ -109,7 +124,7 @@ export default function TradePostCard({ post }: TradePostCardProps) {
       <Card className="relative w-full border border-[#3d496e] bg-white shadow-sm hover:shadow-md transition-shadow duration-200 rounded-xl">
         <div className="absolute right-3 top-3 z-10">
           <Badge variant="outline" className={`rounded-full px-2.5 py-1 text-xs font-semibold ${statusStyles}`}>
-            {post.status}
+            {translatedStatus}
           </Badge>
         </div>
 
@@ -131,7 +146,7 @@ export default function TradePostCard({ post }: TradePostCardProps) {
                     <UserCircle className="h-5 w-5 text-slate-400 mr-2" />
                   )}
                   <p className="text-xs">
-                    {post.username || "ユーザー"} ・ {post.date}
+                    {post.username || t("user")} ・ {post.date}
                   </p>
                 </div>
               </div>
@@ -142,12 +157,12 @@ export default function TradePostCard({ post }: TradePostCardProps) {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-3 mb-2">
               <div className="space-y-2 md:pr-3">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-medium text-[#1D4ED8]">求めるカード</h3>
+                  <h3 className="text-sm font-medium text-[#1D4ED8]">{t("trades.wantedCards")}</h3>
                 </div>
                 <div className="rounded-lg border border-[#3d496e] bg-[#F8FBFF] pt-2 pb-2 pl-2 pr-2 flex flex-nowrap overflow-x-auto gap-2 items-center scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-slate-100">
                   {wantedCards.length > 0 ? (
-                    wantedCards.map((card: any) => (
-                      <div key={card.id} className="flex-shrink-0 flex flex-col items-center">
+                    wantedCards.map((card: any, index: number) => (
+                      <div key={`wanted-${card.id}-${index}`} className="flex-shrink-0 flex flex-col items-center">
                         <Image
                           src={card.imageUrl || "/placeholder.svg?width=72&height=100&query=pokemon-card"}
                           alt={card.name}
@@ -164,12 +179,12 @@ export default function TradePostCard({ post }: TradePostCardProps) {
                     <div className="flex-shrink-0 flex flex-col items-center">
                       <Image
                         src="/placeholder.svg"
-                        alt="要相談"
+                        alt={t("common.labels.negotiable")}
                         width={72}
                         height={100}
                         className="rounded-md object-contain border border-[#E5E7EB] bg-white mb-1"
                       />
-                      <p className="text-xs font-semibold text-[#374151] text-center max-w-[72px] truncate">要相談</p>
+                      <p className="text-xs font-semibold text-[#374151] text-center max-w-[72px] truncate">{t("common.labels.negotiable")}</p>
                     </div>
                   )}
                 </div>
@@ -177,12 +192,12 @@ export default function TradePostCard({ post }: TradePostCardProps) {
 
               <div className="space-y-2 md:pl-3 md:border-l">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-medium text-[#0EA5E9]">譲れるカード</h3>
+                  <h3 className="text-sm font-medium text-[#0EA5E9]">{t("trades.offeredCardsAlt")}</h3>
                 </div>
                 <div className="rounded-lg border border-[#3d496e] bg-[#F7FAFF] pt-2 pb-2 pl-2 pr-2 flex flex-nowrap overflow-x-auto gap-2 items-center scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-slate-100">
                   {offeredCards.length > 0 ? (
-                    offeredCards.map((card: any) => (
-                      <div key={card.id} className="flex-shrink-0 flex flex-col items-center">
+                    offeredCards.map((card: any, index: number) => (
+                      <div key={`offered-${card.id}-${index}`} className="flex-shrink-0 flex flex-col items-center">
                         <Image
                           src={card.imageUrl || "/placeholder.svg?width=72&height=100&query=pokemon-card"}
                           alt={card.name}
@@ -199,12 +214,12 @@ export default function TradePostCard({ post }: TradePostCardProps) {
                     <div className="flex-shrink-0 flex flex-col items-center">
                       <Image
                         src="/placeholder.svg"
-                        alt="要相談"
+                        alt={t("common.labels.negotiable")}
                         width={72}
                         height={100}
                         className="rounded-md object-contain border border-[#E5E7EB] bg-white mb-1"
                       />
-                      <p className="text-xs font-semibold text-[#374151] text-center max-w-[72px] truncate">要相談</p>
+                      <p className="text-xs font-semibold text-[#374151] text-center max-w-[72px] truncate">{t("common.labels.negotiable")}</p>
                     </div>
                   )}
                 </div>
@@ -213,7 +228,7 @@ export default function TradePostCard({ post }: TradePostCardProps) {
             <div className="bg-[#F9FAFB] p-1 rounded-md text-sm text-[#6B7280] mb-3 border border-[#E5E7EB]">
               {post.authorComment ? (
                 <div className="mb-1">
-                  <p className="text-xs font-medium text-[#374151] mb-1">投稿者コメント：{post.authorComment}</p>
+                  <p className="text-xs font-medium text-[#374151] mb-1">{t("trades.authorCommentWithText", { comment: post.authorComment })}</p>
                 </div>
               ) : null}
             </div>
@@ -240,7 +255,7 @@ export default function TradePostCard({ post }: TradePostCardProps) {
               onClick={handleShare}
             >
               <Share2 className="mr-1.5 h-3.5 w-3.5" />
-              共有
+              {t("common.buttons.share")}
             </Button>
             <Button
               variant="default"
@@ -249,7 +264,7 @@ export default function TradePostCard({ post }: TradePostCardProps) {
               onClick={handleDetailsClick}
             >
               <MessageSquare className="mr-1.5 h-3.5 w-3.5" />
-              詳細
+              {t("common.buttons.details")}
               {post.comments > 0 && (
                 <span className="ml-1.5 bg-white text-[#1D4ED8] text-xs font-bold px-1.5 py-0.5 rounded-full">
                   {post.comments}

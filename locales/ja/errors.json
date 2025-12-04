@@ -1,4 +1,9 @@
 {
+  "title": "エラー",
+  "inputError": "入力エラー",
+  "unexpected": "予期しないエラーが発生しました。",
+  "operationFailed": "操作に失敗しました",
+  "loginRequired": "ログインが必要です",
   "auth": {
     "generic": "認証エラーが発生しました。",
     "callbackError": "認証プロセスでエラーが発生しました。",
@@ -37,7 +42,15 @@
     "emptyListName": "リスト名を入力してください。",
     "noCardsSelected": "少なくとも1枚のカードを選択してください。",
     "selectOneCard": "カードを1枚選択してください。",
-    "maxSelection": "最大{maxSelection}枚まで選択できます。"
+    "maxSelection": "最大{maxSelection}枚まで選択できます。",
+    "enterTitle": "タイトルを入力してください",
+    "selectAtLeastOneGroup": "少なくとも1つのグループでカードを選択してください",
+    "enterListName": "リスト名を入力してください。",
+    "selectAtLeastOneCard": "少なくとも1枚のカードを選択してください。",
+    "enterUsername": "ユーザー名を入力してください",
+    "usernameLength": "ユーザー名は1文字以上30文字以下で入力してください",
+    "enterPokepokeId": "ポケポケIDを入力してください",
+    "pokepokeIdLength": "ポケポケIDは3文字以上20文字以下で入力してください"
   },
   "trade": {
     "inputError": "入力エラー",
@@ -73,5 +86,14 @@
   "profile": {
     "fetchFailed": "プロファイルの取得に失敗しました",
     "fetchFailedMessage": "基本情報で表示しています。バックグラウンドで再取得を試行中です。"
+  },
+  "username": {
+    "saveFailed": "ユーザー名の保存に失敗しました。もう一度お試しください。"
+  },
+  "pokepokeId": {
+    "saveFailed": "ポケポケIDの保存に失敗しました。もう一度お試しください。"
+  },
+  "selection": {
+    "title": "選択エラー"
   }
 }

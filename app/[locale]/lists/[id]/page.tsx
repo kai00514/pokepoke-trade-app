@@ -14,6 +14,7 @@ import { getTradeOwnedLists, deleteTradeOwnedList, updateTradeOwnedList } from "
 import CardDisplay from "@/components/card-display"
 import DetailedSearchModal from "@/components/detailed-search-modal"
 import type { TradeOwnedList } from "@/lib/actions/trade-owned-lists"
+import { useTranslations } from "next-intl"
 
 interface ListDetailPageProps {
   params: { id: string }
@@ -23,6 +24,7 @@ export default function ListDetailPage({ params }: ListDetailPageProps) {
   const { id } = params
   const router = useRouter()
   const { toast } = useToast()
+  const t = useTranslations()
   const [list, setList] = useState<TradeOwnedList | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [userId, setUserId] = useState<string | null>(null)
@@ -264,7 +266,7 @@ export default function ListDetailPage({ params }: ListDetailPageProps) {
       <div className="min-h-screen bg-blue-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">読み込み中...</p>
+          <p className="text-gray-600">{t('common.misc.loading')}</p>
         </div>
       </div>
     )
@@ -384,12 +386,12 @@ export default function ListDetailPage({ params }: ListDetailPageProps) {
             <div className="space-y-6">
               {/* List Name */}
               <div className="space-y-2">
-                <Label htmlFor="editListName">リスト名</Label>
+                <Label htmlFor="editListName">{t('forms.list.name.label')}</Label>
                 <Input
                   id="editListName"
                   value={editListName}
                   onChange={(e) => setEditListName(e.target.value)}
-                  placeholder="リスト名を入力してください"
+                  placeholder={t('forms.list.name.placeholder')}
                 />
               </div>
 

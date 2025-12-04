@@ -4,9 +4,11 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Sparkles } from "lucide-react"
 import CollageGeneratorModal from "./collage-generator-modal"
+import { useTranslations } from "next-intl"
 
 export default function CollageGeneratorButton() {
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const t = useTranslations()
 
   return (
     <>
@@ -15,7 +17,7 @@ export default function CollageGeneratorButton() {
         onClick={() => setIsModalOpen(true)}
       >
         <Sparkles className="h-4 w-4 mr-2" />
-        コラージュを生成
+        {t("buttons.generateCollage")}
       </Button>
 
       <CollageGeneratorModal isOpen={isModalOpen} onOpenChange={setIsModalOpen} />

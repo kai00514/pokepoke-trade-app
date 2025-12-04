@@ -1,0 +1,15 @@
+{
+  "untitled": "無題のデッキ",
+  "noCards": "デッキにカードがありません。",
+  "noRecipe": "デッキレシピ情報がありません",
+  "updated": "更新: {date}",
+  "type": "タイプ",
+  "commentCount": "コメント数",
+  "cardListLabel": "デッキのカード一覧 横スクロール",
+  "categories": {
+    "tier": "Tier",
+    "featured": "注目",
+    "newPack": "新パック",
+    "post": "投稿"
+  }
+}

@@ -39,7 +39,10 @@
     "resultCount": "全{totalCount}件中 {start}〜{end}件を表示",
     "noPostsFound": "該当する投稿が見つかりませんでした。",
     "noPosts": "投稿がありません",
-    "noCardsFound": "該当するカードが見つかりません。"
+    "noCardsFound": "該当するカードが見つかりません。",
+    "selectedCountCards": "{count} selected",
+    "maxCards": "(max {max})",
+    "searchCardsInstruction": "Please select cards from the \"Search Cards\" button"
   },
   "warning": {
     "timeSkew": "時刻同期の問題",

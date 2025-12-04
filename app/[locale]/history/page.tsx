@@ -12,6 +12,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import { useAuth } from "@/contexts/auth-context"
 import LoginPromptModal from "@/components/ui/login-prompt-modal"
 import { getMyTradePosts, getCommentedTradePosts } from "@/lib/actions/trade-actions"
+import { useTranslations } from "next-intl"
 
 type TabId = "myPosts" | "commentedPosts" | "matchingHistory"
 
@@ -21,10 +22,10 @@ interface TabInfo {
   icon: LucideIcon
 }
 
-const tabs: TabInfo[] = [
-  { id: "myPosts", label: "自分の募集", icon: Archive },
-  { id: "commentedPosts", label: "コメントした募集", icon: MessageCircle },
-  { id: "matchingHistory", label: "マッチング履歴", icon: Users },
+const getTabs = (t: any): TabInfo[] => [
+  { id: "myPosts", label: t("pages.history.myPosts"), icon: Archive },
+  { id: "commentedPosts", label: t("pages.history.commentedPosts"), icon: MessageCircle },
+  { id: "matchingHistory", label: t("pages.history.matchingHistory"), icon: Users },
 ]
 
 const variants = {
@@ -48,6 +49,8 @@ const variants = {
 }
 
 function HistoryPageContent() {
+  const t = useTranslations()
+  const tabs = getTabs(t)
   const [activeTabIndex, setActiveTabIndex] = useState(0)
   const [direction, setDirection] = useState(0)
   const [myPosts, setMyPosts] = useState<HistoryItem[]>([])
@@ -79,13 +82,13 @@ function HistoryPageContent() {
         if (commentedPostsResult.success) setCommentedPosts(commentedPostsResult.posts)
       } catch (err) {
         console.error("Error fetching history data:", err)
-        setError("データの取得に失敗しました。")
+        setError(t("pages.history.fetchError"))
       } finally {
         setLoading(false)
       }
     }
     fetchData()
-  }, [isAuthenticated, user?.id, authLoading])
+  }, [isAuthenticated, user?.id, authLoading, t])
 
   const changeTab = useCallback(
     (newIndex: number) => {
@@ -108,25 +111,25 @@ function HistoryPageContent() {
   })
 
   const renderContent = () => {
-    if (authLoading) return <div className="text-center py-10 text-slate-500">認証状態を確認中...</div>
+    if (authLoading) return <div className="text-center py-10 text-slate-500">{t("pages.history.authenticating")}</div>
     if (!isAuthenticated) return null // LoginPromptModalが表示される
-    if (loading) return <div className="text-center py-10 text-slate-500">読み込み中...</div>
+    if (loading) return <div className="text-center py-10 text-slate-500">{t("pages.history.loading")}</div>
     if (error) return <div className="text-center py-10 text-red-500">{error}</div>
 
     let items: HistoryItem[] = []
-    let emptyMessage = "履歴がありません。"
+    let emptyMessage = t("pages.history.noHistory")
 
     switch (activeTabId) {
       case "myPosts":
         items = myPosts
-        emptyMessage = "あなたの募集履歴はありません。"
+        emptyMessage = t("pages.history.noMyPosts")
         break
       case "commentedPosts":
         items = commentedPosts
-        emptyMessage = "コメントした募集の履歴はありません。"
+        emptyMessage = t("pages.history.noCommentedPosts")
         break
       case "matchingHistory":
-        emptyMessage = "マッチング履歴はありません。"
+        emptyMessage = t("pages.history.noMatchingHistory")
         break
     }
 
@@ -151,7 +154,7 @@ function HistoryPageContent() {
         }}
       >
         <main className="flex-grow container mx-auto px-0 sm:px-4 pb-8">
-          <h1 className="text-2xl sm:text-3xl font-bold text-slate-800 text-center my-6 sm:my-8 px-4 sm:px-0">履歴</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-slate-800 text-center my-6 sm:my-8 px-4 sm:px-0">{t("pages.history.title")}</h1>
 
           {!showLoginPrompt && (
             <>
@@ -219,7 +222,7 @@ const HistoryPage = dynamic(() => Promise.resolve(HistoryPageContent), {
         }}
       >
         <main className="flex-grow container mx-auto px-4 pb-8">
-          <div className="text-center py-10 text-slate-500">読み込み中...</div>
+          <div className="text-center py-10 text-slate-500">Loading...</div>
         </main>
       </div>
       <Footer />

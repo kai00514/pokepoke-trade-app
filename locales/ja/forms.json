@@ -76,6 +76,24 @@
       "placeholder": "例: 譲れるカード"
     }
   },
+  "username": {
+    "label": "ユーザー名",
+    "placeholder": "例: ポケモントレーナー"
+  },
+  "pokepokeId": {
+    "label": "ポケポケID",
+    "placeholder": "例: trainer123"
+  },
+  "listCreation": {
+    "label": "リスト名",
+    "placeholder": "リスト名を入力してください",
+    "charCount": "{count}/100文字",
+    "cardSelection": "カード選択 ({count}/35)"
+  },
+  "placeholders": {
+    "keyword": "キーワード",
+    "enterListName": "リスト名を入力してください"
+  },
   "contact": {
     "name": {
       "label": "お名前",

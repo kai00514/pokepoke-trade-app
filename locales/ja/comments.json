@@ -1,0 +1,21 @@
+{
+  "title": "コメント",
+  "titleWithCount": "コメント ({count})",
+  "anonymousUser": "匿名ユーザー",
+  "guest": "ゲスト",
+  "justNow": "たった今",
+  "noComments": "まだコメントはありません。",
+  "placeholder": "コメントを入力してください...",
+  "placeholderGuest": "ゲストとしてコメントを入力してください...",
+  "pleaseEnter": "コメントを入力してください。",
+  "posted": "投稿完了",
+  "postedSuccess": "コメントを投稿しました",
+  "postedAsGuest": "ゲストとしてコメントを投稿しました",
+  "postError": "コメントの投稿に失敗しました",
+  "postErrorTitle": "コメント投稿エラー",
+  "postErrorRetry": "コメントの投稿に失敗しました。もう一度お試しください。",
+  "loadError": "コメントの読み込みに失敗しました。",
+  "loggedInAs": "ログイン中: {name}",
+  "edited": "編集済み",
+  "shortcutHint": "Ctrl+Enter で送信"
+}

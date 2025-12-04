@@ -9,6 +9,7 @@ import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { useToast } from "@/components/ui/use-toast"
 import { useAuth } from "@/contexts/auth-context"
+import { useTranslations } from "next-intl"
 import {
   likeDeck,
   unlikeDeck,
@@ -88,6 +89,7 @@ export default function DeckHorizontalRow({
 }: DeckHorizontalRowProps) {
   const { user } = useAuth()
   const { toast } = useToast()
+  const t = useTranslations()
 
   const [isLiked, setIsLiked] = useState(false)
   const [isFavorited, setIsFavorited] = useState(false)
@@ -102,7 +104,7 @@ export default function DeckHorizontalRow({
   const [cardsLoading, setCardsLoading] = useState(false)
 
   const linkHref = (deck as any).is_deck_page ? `/content/${deck.id}` : `/decks/${deck.id}`
-  const deckName = (deck as any).title || deck.name || (deck as any).deck_name || "無題のデッキ"
+  const deckName = (deck as any).title || deck.name || (deck as any).deck_name || t('decks.untitled')
   const updatedDate =
     (deck as any).updated_at || (deck as any).updatedAt || (deck as any).created_at || new Date().toISOString()
 
@@ -230,7 +232,7 @@ export default function DeckHorizontalRow({
     } catch {
       setIsLiked(originalIsLiked)
       setLikeCount(originalLikeCount)
-      toast({ title: "エラー", description: "操作に失敗しました", variant: "destructive" })
+      toast({ title: t('errors.generic.error'), description: t('errors.operationFailed'), variant: "destructive" })
     } finally {
       setIsLikeLoading(false)
     }
@@ -267,7 +269,7 @@ export default function DeckHorizontalRow({
     } catch {
       setIsFavorited(originalIsFavorited)
       setFavoriteCount(originalFavoriteCount)
-      toast({ title: "エラー", description: "操作に失敗しました", variant: "destructive" })
+      toast({ title: t('errors.generic.error'), description: t('errors.operationFailed'), variant: "destructive" })
     } finally {
       setIsFavoriteLoading(false)
     }
@@ -285,7 +287,7 @@ export default function DeckHorizontalRow({
         </div>
         <div className="flex items-center text-xs text-slate-500">
           <CalendarDays className="h-3.5 w-3.5 mr-1 flex-shrink-0" />
-          <span>更新: {new Date(updatedDate).toLocaleDateString("ja-JP")}</span>
+          <span>{t('common.misc.updated')}: {new Date(updatedDate).toLocaleDateString(t('common.language.ja'))}</span>
         </div>
       </div>
 
@@ -298,7 +300,7 @@ export default function DeckHorizontalRow({
             "[-ms-overflow-style:none] [scrollbar-width:none]",
           )}
           style={{ WebkitOverflowScrolling: "touch" }}
-          aria-label="デッキのカード一覧 横スクロール"
+          aria-label={t('decks.cardListLabel')}
         >
           <style>{`.no-scrollbar::-webkit-scrollbar{display:none}`}</style>
 
@@ -385,7 +387,7 @@ export default function DeckHorizontalRow({
           href={linkHref}
           className="text-sm text-blue-600 hover:text-blue-700 font-medium underline-offset-2 hover:underline"
         >
-          詳細を見る
+          {t('common.buttons.viewDetails')}
         </Link>
       </div>
 

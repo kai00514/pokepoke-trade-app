@@ -9,6 +9,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Badge } from "@/components/ui/badge"
 import { Heart, Star, MessageCircle, CalendarDays, Loader2 } from "lucide-react"
 import { useAuth } from "@/contexts/auth-context"
+import { useTranslations } from "next-intl"
 import {
   likeDeck,
   unlikeDeck,
@@ -73,6 +74,7 @@ export function DeckCard({ deck, onCountUpdate, currentCategory = "posts", onRem
 
   const { user } = useAuth()
   const { toast } = useToast()
+  const t = useTranslations()
 
   // ローカル状態でいいね・お気に入りの状態とカウントを管理
   const [isLiked, setIsLiked] = useState(false)
@@ -125,7 +127,7 @@ export function DeckCard({ deck, onCountUpdate, currentCategory = "posts", onRem
     }
   }, [user, deck.id, deck.is_deck_page]) // Add deck.is_deck_page to dependency array
 
-  const deckName = deck.title || deck.name || deck.deck_name || "無題のデッキ"
+  const deckName = deck.title || deck.name || deck.deck_name || t('decks.untitled')
   const updatedDate = deck.updated_at || deck.updatedAt || deck.created_at || new Date().toISOString()
 
   // リンク先を決定（deck_pagesテーブルのデータは/content/[id]、通常のデッキは/decks/[id]）
@@ -244,7 +246,7 @@ export function DeckCard({ deck, onCountUpdate, currentCategory = "posts", onRem
 
         if (result.error) {
           console.error("❤️ Action failed with error:", result.error)
-          toast({ title: "エラー", description: result.error, variant: "destructive" })
+          toast({ title: t('errors.generic.error'), description: result.error, variant: "destructive" })
           // エラー時はUIの状態を元に戻す
           console.log("❤️ Reverting UI state due to error")
           setIsLiked(originalIsLiked)
@@ -264,7 +266,7 @@ export function DeckCard({ deck, onCountUpdate, currentCategory = "posts", onRem
         }
       } catch (actionError) {
         console.error("❤️ Exception during action:", actionError)
-        toast({ title: "エラー", description: "操作に失敗しました", variant: "destructive" })
+        toast({ title: t('errors.generic.error'), description: t('errors.operationFailed'), variant: "destructive" })
         console.log("❤️ Reverting UI state due to exception")
         setIsLiked(originalIsLiked)
         setLikeCount(originalLikeCount)
@@ -343,7 +345,7 @@ export function DeckCard({ deck, onCountUpdate, currentCategory = "posts", onRem
 
         if (result.error) {
           console.error("⭐ Action failed with error:", result.error)
-          toast({ title: "エラー", description: result.error, variant: "destructive" })
+          toast({ title: t('errors.generic.error'), description: result.error, variant: "destructive" })
           // エラー時はUIの状態を元に戻す
           console.log("⭐ Reverting UI state due to error")
           setIsFavorited(originalIsFavorited)
@@ -362,7 +364,7 @@ export function DeckCard({ deck, onCountUpdate, currentCategory = "posts", onRem
         }
       } catch (actionError) {
         console.error("⭐ Exception during action:", actionError)
-        toast({ title: "エラー", description: "操作に失敗しました", variant: "destructive" })
+        toast({ title: t('errors.generic.error'), description: t('errors.operationFailed'), variant: "destructive" })
         console.log("⭐ Reverting UI state due to exception")
         setIsFavorited(originalIsFavorited)
         setFavoriteCount(originalFavoriteCount)
@@ -431,7 +433,7 @@ export function DeckCard({ deck, onCountUpdate, currentCategory = "posts", onRem
             </p>
             <div className="flex items-center text-xs text-slate-500 mt-1">
               <CalendarDays className="h-3 w-3 mr-1 flex-shrink-0" />
-              <span className="text-xs">更新: {new Date(updatedDate).toLocaleDateString("ja-JP")}</span>
+              <span className="text-xs">{t('common.misc.updated')}: {new Date(updatedDate).toLocaleDateString(t('common.language.ja'))}</span>
             </div>
           </CardContent>
           <CardFooter className="p-2 bg-slate-50/70 border-t border-slate-200/80 flex justify-around items-center text-xs text-slate-600">

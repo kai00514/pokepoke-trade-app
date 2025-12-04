@@ -1,0 +1,20 @@
+{
+  "untitled": "Untitled Deck",
+  "noCards": "No cards in deck.",
+  "noRecipe": "No deck recipe information available",
+  "updated": "Updated: {date}",
+  "type": "Type",
+  "commentCount": "Comments",
+  "cardListLabel": "Deck card list - horizontal scroll",
+  "categories": {
+    "all": "All",
+    "pokemon": "Pokemon",
+    "trainers": "Trainers",
+    "goods": "Goods",
+    "tools": "Tools",
+    "tier": "Tier",
+    "featured": "Featured",
+    "newPack": "New Pack",
+    "post": "Post"
+  }
+}

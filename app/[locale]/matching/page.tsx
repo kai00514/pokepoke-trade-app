@@ -8,10 +8,12 @@ import { Construction, CalendarClock } from "lucide-react"
 import { Link } from "@/lib/i18n-navigation"
 import MatchingSurvey from "@/components/MatchingSurvey"
 import MatchingThanks from "@/components/MatchingThanks"
+import { useTranslations } from "next-intl"
 
 export default function MatchingPage() {
   const [hasResponded, setHasResponded] = useState<boolean | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const t = useTranslations()
 
   useEffect(() => {
     checkSurveyStatus()
@@ -52,7 +54,7 @@ export default function MatchingPage() {
         }}
       >
         <main className="container mx-auto px-4 py-6 flex flex-col items-center justify-center text-center space-y-4">
-          <h1 className="text-3xl font-bold text-slate-800 mb-2">マッチング</h1>
+          <h1 className="text-3xl font-bold text-slate-800 mb-2">{t("pages.matching.title")}</h1>
 
           {/* Coming Soon Card */}
           <Card className="w-full max-w-md p-6 shadow-lg">
@@ -61,11 +63,11 @@ export default function MatchingPage() {
                 <Construction className="h-12 w-12 text-blue-500" />
               </div>
               <div className="space-y-2">
-                <h2 className="text-2xl font-bold text-slate-900">Coming Soon！</h2>
+                <h2 className="text-2xl font-bold text-slate-900">{t("pages.matching.comingSoon")}</h2>
                 <p className="text-slate-600 text-sm leading-relaxed">
-                  マッチング機能は現在開発中です。
+                  {t("pages.matching.underDevelopment")}
                   <br />
-                  より良いトレード体験をご提供するために準備を進めています。
+                  {t("pages.matching.preparingBetterExperience")}
                 </p>
               </div>
               <Link
@@ -73,7 +75,7 @@ export default function MatchingPage() {
                 className="inline-flex items-center text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors"
               >
                 <CalendarClock className="mr-2 h-4 w-4" />
-                近日公開予定
+                {t("pages.matching.comingSoonDate")}
               </Link>
             </CardContent>
           </Card>

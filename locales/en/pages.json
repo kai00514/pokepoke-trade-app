@@ -88,5 +88,41 @@
     "defaultTitle1": "Wanted Cards",
     "defaultTitle2": "Offered Cards",
     "editGroup": "Edit {title}"
+  },
+  "matching": {
+    "title": "Matching",
+    "comingSoon": "Coming Soon!",
+    "underDevelopment": "Matching feature is currently under development.",
+    "preparingBetterExperience": "We are preparing to provide a better trading experience.",
+    "comingSoonDate": "Coming Soon"
+  },
+  "history": {
+    "title": "History",
+    "myPosts": "My Posts",
+    "commentedPosts": "Commented Posts",
+    "matchingHistory": "Matching History",
+    "noHistory": "No history available.",
+    "noMyPosts": "You have no post history.",
+    "noCommentedPosts": "No commented post history.",
+    "noMatchingHistory": "No matching history.",
+    "authenticating": "Checking authentication status...",
+    "loading": "Loading...",
+    "fetchError": "Failed to fetch data."
+  },
+  "decks": {
+    "postDeck": "Post Deck",
+    "favorites": "Favorites",
+    "tierDecks": "Tier Decks",
+    "featuredDecks": "Featured Decks",
+    "newPackDecks": "New Pack Decks",
+    "viewAllDecks": "View All Decks",
+    "updated": "Updated:",
+    "viewDetails": "View Details"
+  },
+  "resultsInfo": {
+    "showing": "Showing {start}~{end} of {total}",
+    "searchResults": "(Search: \"{keyword}\")",
+    "noPosts": "No posts available",
+    "noResults": "No matching posts found."
   }
 }

@@ -12,6 +12,7 @@ import { useRouter } from "@/lib/i18n-navigation"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import LoginPromptModal from "@/components/ui/login-prompt-modal"
+import { useTranslations } from "next-intl"
 
 export default function FavoritesPage() {
   const [favoriteDecks, setFavoriteDecks] = useState<Deck[]>([])
@@ -21,6 +22,7 @@ export default function FavoritesPage() {
   const { user, isLoading: authLoading } = useAuth()
   const { toast } = useToast()
   const router = useRouter()
+  const t = useTranslations()
 
   useEffect(() => {
     const fetchDecks = async () => {
@@ -156,7 +158,7 @@ export default function FavoritesPage() {
           <Card className="w-full max-w-2xl mx-auto bg-white/80 backdrop-blur-sm shadow-lg rounded-xl p-8">
             <CardContent className="flex flex-col items-center justify-center h-48">
               <Loader2 className="h-12 w-12 text-purple-600 animate-spin mb-4" />
-              <p className="text-lg text-slate-600 font-medium">お気に入りデッキを読み込み中...</p>
+              <p className="text-lg text-slate-600 font-medium">{t('common.misc.loading')}</p>
             </CardContent>
           </Card>
         </div>

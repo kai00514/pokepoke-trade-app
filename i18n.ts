@@ -17,7 +17,7 @@ export default getRequestConfig(async ({ requestLocale }) => {
   }
 
   // Load all message files for the locale
-  const [common, auth, cards, errors, forms, messages, pages] = await Promise.all([
+  const [common, auth, cards, errors, forms, messages, pages, trades, comments, decks, status, evaluation, survey, filters] = await Promise.all([
     import(`./locales/${locale}/common.json`),
     import(`./locales/${locale}/auth.json`),
     import(`./locales/${locale}/cards.json`),
@@ -25,18 +25,32 @@ export default getRequestConfig(async ({ requestLocale }) => {
     import(`./locales/${locale}/forms.json`),
     import(`./locales/${locale}/messages.json`),
     import(`./locales/${locale}/pages.json`),
+    import(`./locales/${locale}/trades.json`),
+    import(`./locales/${locale}/comments.json`),
+    import(`./locales/${locale}/decks.json`),
+    import(`./locales/${locale}/status.json`),
+    import(`./locales/${locale}/evaluation.json`),
+    import(`./locales/${locale}/survey.json`),
+    import(`./locales/${locale}/filters.json`),
   ]);
 
   return {
     locale,
     messages: {
-      ...common.default,
-      ...auth.default,
-      ...cards.default,
-      ...errors.default,
-      ...forms.default,
-      ...messages.default,
-      ...pages.default,
+      common: common.default,
+      auth: auth.default,
+      cards: cards.default,
+      errors: errors.default,
+      forms: forms.default,
+      messages: messages.default,
+      pages: pages.default,
+      trades: trades.default,
+      comments: comments.default,
+      decks: decks.default,
+      status: status.default,
+      evaluation: evaluation.default,
+      survey: survey.default,
+      filters: filters.default,
     }
   };
 });

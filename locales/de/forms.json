@@ -1,96 +1,100 @@
 {
   "auth": {
     "email": {
-      "label": "メールアドレス",
-      "placeholder": "あなたのメールアドレス"
+      "label": "Email",
+      "placeholder": "Your email address"
     },
     "password": {
-      "label": "パスワード",
-      "placeholder": "あなたのパスワード",
-      "newPlaceholder": "6文字以上のパスワード",
-      "hint": "半角英数6文字以上を推奨します。",
-      "forgotLink": "パスワードを忘れた方はこちら",
-      "show": "パスワードを表示",
-      "hide": "パスワードを隠す"
+      "label": "Password",
+      "placeholder": "Your password",
+      "newPlaceholder": "Password (6+ characters)",
+      "hint": "At least 6 alphanumeric characters recommended.",
+      "forgotLink": "Forgot your password?",
+      "show": "Show password",
+      "hide": "Hide password"
     },
     "confirmPassword": {
-      "label": "パスワード確認",
-      "placeholder": "パスワードを再入力",
-      "show": "パスワード確認を表示",
-      "hide": "パスワード確認を隠す"
+      "label": "Confirm Password",
+      "placeholder": "Re-enter password",
+      "show": "Show password confirmation",
+      "hide": "Hide password confirmation"
     },
     "newPassword": {
-      "label": "新しいパスワード",
-      "placeholder": "6文字以上の新しいパスワード"
+      "label": "New Password",
+      "placeholder": "New password (6+ characters)"
     }
   },
   "trade": {
     "title": {
-      "label": "トレード目的",
-      "placeholder": "例：リザードンex求む"
+      "label": "Trade Title",
+      "placeholder": "e.g., Looking for Charizard ex"
     },
     "wantedCards": {
-      "label": "求めるカード"
+      "label": "Wanted Cards"
     },
     "offeredCards": {
-      "label": "譲れるカード"
+      "label": "Offered Cards"
     },
     "savedList": {
-      "label": "保存済みリストから選択"
+      "label": "Select from Saved Lists"
     },
     "pokepokeId": {
-      "label": "ポケポケアプリID",
-      "placeholder": "ポケポケアプリのID (任意)",
-      "helperAuthenticated": "登録済みのポケポケIDが自動入力されています。",
-      "helperAuthenticatedNoId": "ログイン中です。ポケポケIDは任意です。半角数字のみ入力可能です。",
-      "helperGuest": "ゲストユーザーとして投稿します。ポケポケIDは任意です。半角数字のみ入力可能です。"
+      "label": "Pokepoke App ID",
+      "placeholder": "Pokepoke App ID (optional)",
+      "helperAuthenticated": "Your registered Pokepoke ID is auto-filled.",
+      "helperAuthenticatedNoId": "You are logged in. Pokepoke ID is optional. Only numbers allowed.",
+      "helperGuest": "Posting as guest. Pokepoke ID is optional. Only numbers allowed."
     },
     "comment": {
-      "label": "コメント (任意)",
-      "placeholder": "コメントを入力 (256文字まで)"
+      "label": "Comment (optional)",
+      "placeholder": "Enter comment (up to 256 characters)"
     }
   },
   "list": {
     "name": {
-      "label": "リスト名",
-      "placeholder": "例: 交換用カードリスト"
+      "label": "List Name",
+      "placeholder": "e.g., Trading Card List"
     },
     "description": {
-      "label": "説明（任意）",
-      "placeholder": "リストの説明を入力してください"
+      "label": "Description (optional)",
+      "placeholder": "Enter list description"
     }
   },
   "search": {
     "keyword": {
-      "label": "キーワード",
-      "placeholder": "キーワードで検索"
+      "label": "Keyword",
+      "placeholder": "Search by keyword"
     }
   },
   "collage": {
     "group1Title": {
-      "label": "グループ1のタイトル",
-      "placeholder": "例: 求めるカード"
+      "label": "Group 1 Title",
+      "placeholder": "e.g., Wanted Cards"
     },
     "group2Title": {
-      "label": "グループ2のタイトル",
-      "placeholder": "例: 譲れるカード"
+      "label": "Group 2 Title",
+      "placeholder": "e.g., Offered Cards"
     }
   },
   "contact": {
     "name": {
-      "label": "お名前",
-      "placeholder": "山田 太郎"
+      "label": "Name",
+      "placeholder": "John Doe"
     },
     "email": {
-      "label": "メールアドレス"
+      "label": "Email Address"
     },
     "subject": {
-      "label": "件名",
-      "placeholder": "お問い合わせの件名をご入力ください"
+      "label": "Subject",
+      "placeholder": "Enter the subject of your inquiry"
     },
     "message": {
-      "label": "メッセージ",
-      "placeholder": "お問い合わせ内容を詳しくご記入ください"
+      "label": "Message",
+      "placeholder": "Please describe your inquiry in detail"
     }
+  },
+  "placeholders": {
+    "keyword": "Keyword",
+    "enterListName": "Enter list name"
   }
 }

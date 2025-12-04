@@ -92,5 +92,9 @@
       "label": "Message",
       "placeholder": "Please describe your inquiry in detail"
     }
+  },
+  "placeholders": {
+    "keyword": "Keyword",
+    "enterListName": "Enter list name"
   }
 }

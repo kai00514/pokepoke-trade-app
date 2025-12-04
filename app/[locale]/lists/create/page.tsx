@@ -14,6 +14,7 @@ import { useAuth } from "@/contexts/auth-context"
 import { DetailedSearchModal } from "@/components/detailed-search-modal"
 import { createTradeOwnedList } from "@/lib/actions/trade-owned-lists"
 import { NotificationModal } from "@/components/ui/notification-modal"
+import { useTranslations } from "next-intl"
 
 interface SelectedCard {
   id: number
@@ -23,6 +24,7 @@ interface SelectedCard {
 }
 
 export default function CreateListPage() {
+  const t = useTranslations()
   const { user } = useAuth()
   const [listName, setListName] = useState("")
   const [description, setDescription] = useState("")
@@ -67,17 +69,17 @@ export default function CreateListPage() {
     e.preventDefault()
 
     if (!user) {
-      showNotification("error", "ログインが必要です", "リストを作成するにはログインしてください。")
+      showNotification("error", t('errors.auth.loginRequired'), t('errors.auth.loginRequiredForList'))
       return
     }
 
     if (!listName.trim()) {
-      showNotification("warning", "入力エラー", "リスト名を入力してください。")
+      showNotification("warning", t('errors.validation.inputError'), t('errors.validation.listNameRequired'))
       return
     }
 
     if (selectedCards.length === 0) {
-      showNotification("warning", "入力エラー", "少なくとも1枚のカードを選択してください。")
+      showNotification("warning", t('errors.validation.inputError'), t('errors.validation.selectAtLeastOneCard'))
       return
     }
 
@@ -93,17 +95,17 @@ export default function CreateListPage() {
       })
 
       if (result.success) {
-        showNotification("success", "リスト作成完了", "カードリストが正常に作成されました。")
+        showNotification("success", t('messages.success.listCreationComplete'), t('messages.success.listCreatedSuccessfully'))
         // フォームをリセット
         setListName("")
         setDescription("")
         setSelectedCards([])
       } else {
-        showNotification("error", "エラーが発生しました", result.error || "リストの作成に失敗しました。")
+        showNotification("error", t('errors.generic.errorOccurred'), result.error || t('errors.list.listCreationFailed'))
       }
     } catch (error) {
       console.error("List creation error:", error)
-      showNotification("error", "エラーが発生しました", "リストの作成中に予期しないエラーが発生しました。")
+      showNotification("error", t('errors.generic.errorOccurred'), t('errors.list.unexpectedErrorDuringCreation'))
     } finally {
       setIsSubmitting(false)
     }
@@ -114,12 +116,12 @@ export default function CreateListPage() {
       <div className="min-h-screen bg-blue-50 flex items-center justify-center">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
-            <CardTitle>ログインが必要です</CardTitle>
-            <CardDescription>カードリストを作成するにはログインしてください。</CardDescription>
+            <CardTitle>{t('errors.auth.loginRequired')}</CardTitle>
+            <CardDescription>{t('errors.auth.loginRequiredForList')}</CardDescription>
           </CardHeader>
           <CardContent className="text-center">
             <Link href="/auth/login">
-              <Button className="bg-violet-600 hover:bg-violet-700">ログインページへ</Button>
+              <Button className="bg-violet-600 hover:bg-violet-700">{t('common.buttons.toLoginPage')}</Button>
             </Link>
           </CardContent>
         </Card>
@@ -137,38 +139,38 @@ export default function CreateListPage() {
             className="inline-flex items-center text-violet-600 hover:text-violet-700 transition-colors mb-4"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
-            リスト一覧に戻る
+            {t('common.navigation.backToLists')}
           </Link>
-          <h1 className="text-3xl font-bold text-gray-900">新しいカードリストを作成</h1>
-          <p className="text-gray-600 mt-2">トレード用のカードリストを作成して、他のユーザーと交換しましょう。</p>
+          <h1 className="text-3xl font-bold text-gray-900">{t('pages.lists.createNewList')}</h1>
+          <p className="text-gray-600 mt-2">{t('pages.lists.createListDescription')}</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* リスト情報入力 */}
           <Card>
             <CardHeader>
-              <CardTitle>リスト情報</CardTitle>
-              <CardDescription>リストの基本情報を入力してください</CardDescription>
+              <CardTitle>{t('forms.lists.listInfo')}</CardTitle>
+              <CardDescription>{t('forms.lists.listInfoDescription')}</CardDescription>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                  <Label htmlFor="listName">リスト名 *</Label>
+                  <Label htmlFor="listName">{t('forms.labels.listName')} *</Label>
                   <Input
                     id="listName"
                     value={listName}
                     onChange={(e) => setListName(e.target.value)}
-                    placeholder="例: 交換用カードリスト"
+                    placeholder={t('forms.placeholders.listName')}
                     required
                   />
                 </div>
                 <div>
-                  <Label htmlFor="description">説明（任意）</Label>
+                  <Label htmlFor="description">{t('forms.labels.description')} {t('common.labels.optional')}</Label>
                   <Textarea
                     id="description"
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
-                    placeholder="リストの説明を入力してください"
+                    placeholder={t('forms.placeholders.listDescription')}
                     rows={3}
                   />
                 </div>
@@ -177,7 +179,7 @@ export default function CreateListPage() {
                   disabled={isSubmitting || selectedCards.length === 0}
                   className="w-full bg-violet-600 hover:bg-violet-700"
                 >
-                  {isSubmitting ? "作成中..." : "リストを作成"}
+                  {isSubmitting ? t('common.buttons.creating') : t('common.buttons.createList')}
                 </Button>
               </form>
             </CardContent>
@@ -186,18 +188,18 @@ export default function CreateListPage() {
           {/* カード選択 */}
           <Card>
             <CardHeader>
-              <CardTitle>カード選択</CardTitle>
-              <CardDescription>リストに追加するカードを選択してください</CardDescription>
+              <CardTitle>{t('forms.lists.cardSelection')}</CardTitle>
+              <CardDescription>{t('forms.lists.cardSelectionDescription')}</CardDescription>
             </CardHeader>
             <CardContent>
               <Button onClick={() => setIsSearchModalOpen(true)} className="w-full mb-4 bg-blue-600 hover:bg-blue-700">
                 <Search className="w-4 h-4 mr-2" />
-                カードを検索・追加
+                {t('common.buttons.searchAndAddCards')}
               </Button>
 
               {selectedCards.length > 0 && (
                 <div>
-                  <p className="text-sm text-gray-600 mb-3">選択されたカード: {selectedCards.length}枚</p>
+                  <p className="text-sm text-gray-600 mb-3">{t('forms.lists.selectedCards', { count: selectedCards.length })}</p>
                   <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-7 gap-3">
                     {selectedCards.map((card) => (
                       <div key={card.id} className="relative group">
@@ -227,8 +229,8 @@ export default function CreateListPage() {
               {selectedCards.length === 0 && (
                 <div className="text-center py-8 text-gray-500">
                   <Plus className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                  <p>まだカードが選択されていません</p>
-                  <p className="text-sm">上のボタンからカードを追加してください</p>
+                  <p>{t('common.misc.noCardsYet')}</p>
+                  <p className="text-sm">{t('common.misc.addCardsInstruction')}</p>
                 </div>
               )}
             </CardContent>

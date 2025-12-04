@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils"
 import { useToast } from "@/components/ui/use-toast"
 import { supabase } from "@/lib/supabase/client"
 import ImagePreviewOverlay from "../image-preview-overlay"
+import { useTranslations } from "next-intl"
 
 export interface Card {
   id: string
@@ -98,6 +99,7 @@ export default function DeckCardSelectionModal({
   const touchStartTimeRef = useRef<number>(0)
   const touchStartPositionRef = useRef<{ x: number; y: number } | null>(null)
   const { toast } = useToast()
+  const t = useTranslations()
 
   useEffect(() => {
     if (isOpen && !isInitializedRef.current) {
@@ -354,7 +356,7 @@ export default function DeckCardSelectionModal({
               }}
             >
               <X className="h-5 w-5" />
-              <span className="sr-only">閉じる</span>
+              <span className="sr-only">{t('common.buttons.close')}</span>
             </DialogClose>
           </DialogHeader>
 
@@ -619,7 +621,7 @@ export default function DeckCardSelectionModal({
                   className="bg-blue-600 hover:bg-blue-700 text-white"
                   disabled={totalCardCount === 0}
                 >
-                  選択完了
+                  {t('common.buttons.complete')}
                 </Button>
               </div>
             </div>

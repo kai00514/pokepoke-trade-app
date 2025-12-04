@@ -9,8 +9,10 @@ import { getTradeOwnedLists, type TradeOwnedList } from "@/lib/actions/trade-own
 import LoginPromptModal from "@/components/ui/login-prompt-modal"
 import { Link } from "@/lib/i18n-navigation"
 import { useRouter } from "@/lib/i18n-navigation"
+import { useTranslations } from "next-intl"
 
 export default function ListsPage() {
+  const t = useTranslations()
   const [user, setUser] = useState<any>(null)
   const [lists, setLists] = useState<TradeOwnedList[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -49,7 +51,7 @@ export default function ListsPage() {
       setLists(result.lists)
     } else {
       toast({
-        title: "エラー",
+        title: t('errors.generic.error'),
         description: result.error,
         variant: "destructive",
       })
@@ -82,8 +84,8 @@ export default function ListsPage() {
 
           <div className="max-w-2xl mx-auto">
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
-              <h1 className="text-2xl font-bold text-gray-900 mb-6 text-center">カードリスト</h1>
-              <LoginPromptModal message="カードリストを作成・管理するにはログインが必要です。" />
+              <h1 className="text-2xl font-bold text-gray-900 mb-6 text-center">{t('pages.lists.title')}</h1>
+              <LoginPromptModal message={t('messages.auth.listsLoginRequired')} />
             </div>
           </div>
         </div>
@@ -98,7 +100,7 @@ export default function ListsPage() {
         <div className="mb-6">
           <Link href="/" className="inline-flex items-center text-blue-600 hover:text-blue-800 transition-colors">
             <ArrowLeft className="h-4 w-4 mr-2" />
-            タイムラインに戻る
+            {t('common.navigation.backToTimeline')}
           </Link>
         </div>
 
@@ -107,14 +109,14 @@ export default function ListsPage() {
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
             {/* ヘッダー */}
             <div className="flex flex-col space-y-4 mb-8 sm:flex-row sm:justify-between sm:items-center sm:space-y-0">
-              <h1 className="text-2xl font-bold text-gray-900">カードリスト</h1>
+              <h1 className="text-2xl font-bold text-gray-900">{t('pages.lists.title')}</h1>
               <Button
                 onClick={handleCreateNewList}
                 disabled={lists.length >= 10}
                 className="bg-blue-600 hover:bg-blue-700 text-white w-full sm:w-auto"
               >
                 <Plus className="h-4 w-4 mr-2" />
-                新しいリストを作成
+                {t('pages.lists.createNewList')}
               </Button>
             </div>
 
@@ -132,7 +134,7 @@ export default function ListsPage() {
                 </div>
                 <div className="ml-3">
                   <p className="text-sm text-blue-800">
-                    カードリストを作成して、トレードで譲れるカードを管理しましょう。最大10個のリストを作成でき、各リストには35枚までのカードを登録できます。
+                    {t('pages.lists.description')}
                   </p>
                 </div>
               </div>
@@ -153,7 +155,7 @@ export default function ListsPage() {
                   </div>
                   <div className="ml-3">
                     <p className="text-sm text-yellow-800">
-                      リストは最大10個まで作成できます。新しいリストを作成するには、既存のリストを削除してください。
+                      {t('pages.lists.maxListsWarning')}
                     </p>
                   </div>
                 </div>
@@ -172,9 +174,9 @@ export default function ListsPage() {
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex-1">
                         <h3 className="text-lg font-semibold text-gray-900 mb-1 group-hover:text-blue-700 transition-colors">
-                          {list.list_name || "無題のリスト"}
+                          {list.list_name || t('pages.lists.untitledList')}
                         </h3>
-                        <p className="text-gray-600 text-sm line-clamp-2">{list.description || "説明なし"}</p>
+                        <p className="text-gray-600 text-sm line-clamp-2">{list.description || t('pages.lists.noDescription')}</p>
                       </div>
                       <div className="ml-3 p-2 bg-blue-50 rounded-lg group-hover:bg-blue-100 transition-colors">
                         <svg className="h-5 w-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -222,7 +224,7 @@ export default function ListsPage() {
                       </div>
 
                       <div className="flex items-center text-blue-600 group-hover:text-blue-700 transition-colors">
-                        <span className="text-sm font-medium mr-1">詳細</span>
+                        <span className="text-sm font-medium mr-1">{t('common.labels.details')}</span>
                         <svg
                           className="h-4 w-4 transform group-hover:translate-x-1 transition-transform"
                           fill="none"
@@ -249,16 +251,16 @@ export default function ListsPage() {
                       />
                     </svg>
                   </div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-3">リストがありません</h3>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-3">{t('pages.lists.noLists')}</h3>
                   <p className="text-gray-600 mb-8 max-w-md mx-auto">
-                    最初のカードリストを作成して、トレードで譲れるカードを管理しましょう。
+                    {t('pages.lists.createFirstList')}
                   </p>
                   <Button
                     onClick={handleCreateNewList}
                     className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-medium shadow-lg hover:shadow-xl transition-all duration-200"
                   >
                     <Plus className="h-5 w-5 mr-2" />
-                    新しいリストを作成
+                    {t('pages.lists.createNewList')}
                   </Button>
                 </div>
               </div>

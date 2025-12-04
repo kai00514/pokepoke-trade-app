@@ -17,6 +17,7 @@ import { useAuth } from "@/contexts/auth-context"
 import type { Card as SelectedCardType } from "@/components/detailed-search-modal"
 import { getTradePostsWithCards } from "@/lib/actions/trade-actions"
 import { useToast } from "@/components/ui/use-toast"
+import { useTranslations } from "next-intl"
 
 const notoSansJP = Noto_Sans_JP({
   subsets: ["latin"],
@@ -34,12 +35,13 @@ export default function TradeBoardPage() {
   const [showLoginPrompt, setShowLoginPrompt] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
   const [totalCount, setTotalCount] = useState(0)
-  const { toast } = useToast()
+  const { toast} = useToast()
   const router = useRouter()
   const searchParams = useSearchParams()
   const { user } = useAuth()
   const isInitialMount = useRef(true)
   const abortControllerRef = useRef<AbortController | null>(null)
+  const t = useTranslations()
 
   // URLパラメータからページ番号を取得
   useEffect(() => {
@@ -145,8 +147,8 @@ export default function TradeBoardPage() {
           sessionStorage.setItem(`trade-posts-cache-page-${page}`, JSON.stringify(cacheData))
         } else {
           toast({
-            title: "データ取得エラー",
-            description: result.error || "投稿の取得に失敗しました。",
+            title: t("errors.dataFetchError"),
+            description: result.error || t("errors.postsFetchFailed"),
             variant: "destructive",
           })
           setTradePosts([])
@@ -159,8 +161,8 @@ export default function TradeBoardPage() {
         }
 
         toast({
-          title: "エラー",
-          description: "予期しないエラーが発生しました。",
+          title: t("errors.error"),
+          description: t("errors.unexpectedError"),
           variant: "destructive",
         })
         setTradePosts([])
@@ -394,10 +396,10 @@ export default function TradeBoardPage() {
         <main className="container mx-auto px-3 sm:px-4 py-8 sm:py-10">
           <section className="text-center mb-8 sm:mb-10">
             <div className="inline-flex items-center rounded-full bg-gradient-to-r from-[#3B82F6] via-[#1D4ED8] to-[#6366F1] text-white px-8 py-2 text-2xl sm:text-3xl font-bold mb-2 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 border-2 border-white/20 backdrop-blur-sm animate-float">
-              <span className="relative z-10">PokeLink トレード掲示板</span>
+              <span className="relative z-10">{t("pages.home.title")}</span>
             </div>
             <p className="mt-1 text-sm sm:text-base text-[#6B7280]">
-              欲しいカードと譲れるカードをスムーズに交換しよう！
+              {t("pages.home.subtitle")}
             </p>
           </section>
 
@@ -411,7 +413,7 @@ export default function TradeBoardPage() {
             >
               <div className="flex items-center justify-center">
                 <PlusCircle className="h-5 w-5 mr-2" />
-                <span className="text-sm font-medium">トレード希望投稿を作成</span>
+                <span className="text-sm font-medium">{t("common.buttons.createTrade")}</span>
               </div>
             </Button>
 
@@ -423,7 +425,7 @@ export default function TradeBoardPage() {
             >
               <div className="flex items-center justify-center">
                 <Sparkles className="h-5 w-5 mr-2" />
-                <span className="text-sm font-medium">コラージュ画像を生成</span>
+                <span className="text-sm font-medium">{t("common.buttons.generateCollage")}</span>
               </div>
             </Button>
 
@@ -436,7 +438,7 @@ export default function TradeBoardPage() {
             >
               <div className="flex items-center justify-center">
                 <List className="h-5 w-5 mr-2" />
-                <span className="text-sm font-medium">譲れるカードリストを作成</span>
+                <span className="text-sm font-medium">{t("common.buttons.createCardList")}</span>
               </div>
             </Button>
           </div>
@@ -447,7 +449,7 @@ export default function TradeBoardPage() {
               <div className="flex gap-1">
                 <Input
                   type="text"
-                  placeholder="キーワードで検索"
+                  placeholder={t("forms.search.keyword.placeholder")}
                   className="flex-1 min-w-0 rounded-lg border-[#E5E7EB] text-[#111827] placeholder:text-[#9CA3AF] focus-visible:ring-[#3B82F6] focus-visible:ring-2"
                   value={searchKeyword}
                   onChange={(e) => setSearchKeyword(e.target.value)}
@@ -457,13 +459,13 @@ export default function TradeBoardPage() {
                   className="border-[#CBD5E1] text-[#111827] bg-white hover:bg-[#F8FAFC] whitespace-nowrap flex-shrink-0 rounded-lg"
                   onClick={() => setIsDetailedSearchOpen(true)}
                 >
-                  詳細
+                  {t("common.buttons.detailedSearch")}
                 </Button>
                 <Button
                   variant="default"
                   className="bg-[#3B82F6] hover:bg-[#2563EB] text-white whitespace-nowrap flex-shrink-0 rounded-lg px-2"
                 >
-                  <Search className="mr-1 h-4 w-4" /> 検索
+                  <Search className="mr-1 h-4 w-4" /> {t("common.buttons.search")}
                 </Button>
               </div>
             </div>
@@ -474,12 +476,15 @@ export default function TradeBoardPage() {
             <div className="mb-4 text-center text-sm text-[#6B7280]">
               {totalCount > 0 ? (
                 <>
-                  全{totalCount}件中 {(currentPage - 1) * POSTS_PER_PAGE + 1}〜
-                  {Math.min(currentPage * POSTS_PER_PAGE, totalCount)}件を表示
-                  {searchKeyword && ` (「${searchKeyword}」で検索)`}
+                  {t("pages.resultsInfo.showing", {
+                    total: totalCount,
+                    start: (currentPage - 1) * POSTS_PER_PAGE + 1,
+                    end: Math.min(currentPage * POSTS_PER_PAGE, totalCount)
+                  })}
+                  {searchKeyword && ` ${t("pages.resultsInfo.searchResults", { keyword: searchKeyword })}`}
                 </>
               ) : (
-                "投稿がありません"
+                t("pages.resultsInfo.noPosts")
               )}
             </div>
           )}
@@ -488,8 +493,8 @@ export default function TradeBoardPage() {
           <div className="flex flex-col lg:flex-row gap-6">
             {/* Left Ads */}
             <aside className="w-full lg:w-1/5 space-y-6 hidden lg:block">
-              <AdPlaceholder title="広告スペース" className="h-64 border border-[#E5E7EB] bg-white rounded-xl" />
-              <AdPlaceholder title="自己紹介バナー" className="h-48 border border-[#E5E7EB] bg-white rounded-xl" />
+              <AdPlaceholder title={t("common.labels.adSpace")} className="h-64 border border-[#E5E7EB] bg-white rounded-xl" />
+              <AdPlaceholder title={t("common.labels.profileBanner")} className="h-48 border border-[#E5E7EB] bg-white rounded-xl" />
             </aside>
 
             {/* Posts */}
@@ -508,14 +513,14 @@ export default function TradeBoardPage() {
                   {renderPagination()}
                 </>
               ) : (
-                <div className="text-center py-20 text-[#6B7280]">該当する投稿が見つかりませんでした。</div>
+                <div className="text-center py-20 text-[#6B7280]">{t("pages.resultsInfo.noResults")}</div>
               )}
             </section>
 
             {/* Right Ads */}
             <aside className="w-full lg:w-1/5 space-y-6 hidden lg:block">
-              <AdPlaceholder title="広告スペース" className="h-64 border border-[#E5E7EB] bg-white rounded-xl" />
-              <AdPlaceholder title="広告スペース" className="h-40 border border-[#E5E7EB] bg-white rounded-xl" />
+              <AdPlaceholder title={t("common.labels.adSpace")} className="h-64 border border-[#E5E7EB] bg-white rounded-xl" />
+              <AdPlaceholder title={t("common.labels.adSpace")} className="h-40 border border-[#E5E7EB] bg-white rounded-xl" />
             </aside>
           </div>
         </main>
@@ -526,7 +531,7 @@ export default function TradeBoardPage() {
         isOpen={isDetailedSearchOpen}
         onOpenChange={setIsDetailedSearchOpen}
         onSelectionComplete={handleDetailedSearchSelectionComplete}
-        modalTitle="カード詳細検索"
+        modalTitle={t("pages.detailedSearch.title")}
       />
       {showLoginPrompt && <LoginPromptModal onClose={() => setShowLoginPrompt(false)} showGuestButton={false} />}
     </div>

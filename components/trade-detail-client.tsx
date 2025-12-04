@@ -18,6 +18,7 @@ import LoginPromptModal from "@/components/ui/login-prompt-modal"
 import { useAuth } from "@/contexts/auth-context"
 import ShareModal from "@/components/share-modal"
 import { event as gtagEvent } from "@/lib/analytics/gtag"
+import { useTranslations } from "next-intl"
 
 export interface Comment {
   id: string
@@ -51,30 +52,38 @@ export interface TradePostDetails {
 const OwnerActionButtons = ({ post, currentUserId }: { post: TradePostDetails; currentUserId: string | null }) => {
   const [isUpdating, setIsUpdating] = useState(false)
   const { toast } = useToast()
+  const t = useTranslations()
 
   if (!currentUserId || !post.author?.isOwner || post.author.userId !== currentUserId) return null
-  if (post.status === "キャンセル" || post.status === "取引完了") return null
+  if (post.status === t("canceled") || post.status === t("completed")) return null
 
   const handleStatusUpdate = async (status: "CANCELED" | "COMPLETED") => {
     if (isUpdating) return
-    const action = status === "CANCELED" ? "キャンセル" : "取引完了"
-    if (!confirm(`この募集を${action}しますか？`)) return
+    const action = status === "CANCELED" ? t("canceled") : t("completed")
+    if (!confirm(t("confirmAction", { action }))) return
     setIsUpdating(true)
     try {
       const result = await updateTradePostStatus(post.id, status)
       if (result.success) {
-        toast({ title: `${action}しました`, description: `募集のステータスを${action}に変更しました。` })
+        toast({
+          title: t("actionCompleted", { action }),
+          description: t("statusChanged", { action })
+        })
         window.location.reload()
       } else {
         toast({
-          title: `${action}に失敗しました`,
-          description: result.error || "エラーが発生しました。",
+          title: t("actionFailed", { action }),
+          description: result.error || t("unexpected"),
           variant: "destructive",
         })
       }
     } catch (error) {
       console.error(`Error updating status to ${status}:`, error)
-      toast({ title: "エラー", description: `${action}中にエラーが発生しました。`, variant: "destructive" })
+      toast({
+        title: t("title"),
+        description: t("actionError", { action }),
+        variant: "destructive"
+      })
     } finally {
       setIsUpdating(false)
     }
@@ -82,7 +91,7 @@ const OwnerActionButtons = ({ post, currentUserId }: { post: TradePostDetails; c
 
   return (
     <div className="mt-6 p-4 bg-slate-50 rounded-lg border">
-      <h3 className="text-sm font-medium text-slate-700 mb-3">投稿者操作</h3>
+      <h3 className="text-sm font-medium text-slate-700 mb-3">{t("ownerActions")}</h3>
       <div className="flex gap-3">
         <Button
           onClick={() => handleStatusUpdate("CANCELED")}
@@ -90,14 +99,14 @@ const OwnerActionButtons = ({ post, currentUserId }: { post: TradePostDetails; c
           variant="destructive"
           className="flex-1"
         >
-          {isUpdating ? "処理中..." : "キャンセル"}
+          {isUpdating ? t("processing") : t("cancel")}
         </Button>
         <Button
           onClick={() => handleStatusUpdate("COMPLETED")}
           disabled={isUpdating}
           className="flex-1 bg-green-500 hover:bg-green-600"
         >
-          {isUpdating ? "処理中..." : "トレード完了"}
+          {isUpdating ? t("processing") : t("complete")}
         </Button>
       </div>
     </div>
@@ -113,6 +122,7 @@ export default function TradeDetailClient({ initialPost, postId }: TradeDetailCl
   const router = useRouter()
   const { toast } = useToast()
   const { user } = useAuth()
+  const t = useTranslations()
   const [post, setPost] = useState<TradePostDetails>(initialPost)
   const [newComment, setNewComment] = useState("")
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null)
@@ -122,29 +132,36 @@ export default function TradeDetailClient({ initialPost, postId }: TradeDetailCl
   const handleCopyToClipboard = useCallback(() => {
     if (post?.originalPostId) {
       navigator.clipboard.writeText(post.originalPostId)
-      toast({ title: "コピーしました", description: `ID: ${post.originalPostId} をクリップボードにコピーしました。` })
+      toast({
+        title: t("messages.success.copied"),
+        description: t("idCopied", { id: post.originalPostId })
+      })
     }
-  }, [post?.originalPostId, toast])
+  }, [post?.originalPostId, toast, t])
 
   const handleShare = useCallback(() => {
     setIsShareModalOpen(true)
   }, [])
 
   const generateOptimisticComment = useCallback((user: any, isAuthenticated: boolean | null) => {
-    const displayName = user?.user_metadata?.display_name || user?.email || "ユーザー"
+    const displayName = user?.user_metadata?.display_name || user?.email || t("common.labels.user")
     const avatarUrl = user?.user_metadata?.avatar_url
     return (commentText: string) => ({
       id: `temp-${Date.now()}`,
-      author: isAuthenticated ? displayName : "ゲスト",
+      author: isAuthenticated ? displayName : t("guest"),
       avatar: isAuthenticated ? avatarUrl : null,
       text: commentText,
-      timestamp: "たった今",
+      timestamp: t("justNow"),
     })
-  }, [])
+  }, [t])
 
   const handleCommentSubmit = useCallback(async () => {
     if (!newComment.trim()) {
-      toast({ title: "入力エラー", description: "コメントを入力してください。", variant: "destructive" })
+      toast({
+        title: t("inputError"),
+        description: t("pleaseEnter"),
+        variant: "destructive"
+      })
       return
     }
     const commentText = newComment.trim()
@@ -156,34 +173,42 @@ export default function TradeDetailClient({ initialPost, postId }: TradeDetailCl
         postId,
         commentText,
         isAuthenticated ? user?.id : null,
-        !isAuthenticated ? "ゲスト" : undefined,
+        !isAuthenticated ? t("guest") : undefined,
         !!isAuthenticated,
       )
       if (result.success) {
-        toast({ title: "投稿完了", description: "コメントを投稿しました", duration: 2000 })
+        toast({
+          title: t("posted"),
+          description: t("postedSuccess"),
+          duration: 2000
+        })
       } else {
-        throw new Error(result.error || "コメントの投稿に失敗しました")
+        throw new Error(result.error || t("postError"))
       }
     } catch (error) {
       setPost((prev) => ({ ...prev, comments: prev.comments.filter((comment) => comment.id !== optimisticComment.id) }))
       setNewComment(commentText)
       console.error("Error adding comment:", error)
       toast({
-        title: "コメント投稿エラー",
-        description: "コメントの投稿に失敗しました。もう一度お試しください。",
+        title: t("postErrorTitle"),
+        description: t("postErrorRetry"),
         variant: "destructive",
       })
     }
-  }, [newComment, isAuthenticated, user, postId, toast, generateOptimisticComment])
+  }, [newComment, isAuthenticated, user, postId, toast, generateOptimisticComment, t])
 
   const handleCommentSubmitClick = useCallback(() => {
     if (!newComment.trim()) {
-      toast({ title: "入力エラー", description: "コメントを入力してください。", variant: "destructive" })
+      toast({
+        title: t("inputError"),
+        description: t("pleaseEnter"),
+        variant: "destructive"
+      })
       return
     }
     if (!isAuthenticated) setShowLoginPrompt(true)
     else handleCommentSubmit()
-  }, [newComment, isAuthenticated, handleCommentSubmit, toast])
+  }, [newComment, isAuthenticated, handleCommentSubmit, toast, t])
 
   const handleContinueAsGuest = useCallback(() => {
     setShowLoginPrompt(false)
@@ -286,7 +311,7 @@ export default function TradeDetailClient({ initialPost, postId }: TradeDetailCl
           ))}
         </div>
       ) : (
-        <p className="text-sm text-slate-500">該当なし</p>
+        <p className="text-sm text-slate-500">{t("notApplicable")}</p>
       )}
     </div>
   )
@@ -302,7 +327,7 @@ export default function TradeDetailClient({ initialPost, postId }: TradeDetailCl
           className="inline-flex items-center text-sm text-blue-600 hover:text-blue-700 mb-6 group cursor-pointer border-none bg-transparent"
         >
           <ArrowLeft className="h-4 w-4 mr-1 transition-transform group-hover:-translate-x-1" />
-          タイムラインに戻る
+          {t("common.navigation.backToTimeline")}
         </button>
         <div className="bg-white p-6 sm:p-8 rounded-lg shadow-xl mb-8">
           <div className="flex justify-between items-start mb-4">
@@ -333,16 +358,16 @@ export default function TradeDetailClient({ initialPost, postId }: TradeDetailCl
                 onClick={handleShare}
               >
                 <Share2 className="mr-2 h-4 w-4" />
-                共有
+                {t("common.buttons.share")}
               </Button>
               <Badge
                 variant="outline"
                 className={`whitespace-nowrap ${
-                  post.status === "募集中"
+                  post.status === t("recruiting")
                     ? "bg-green-100 text-green-700 border-green-300"
-                    : post.status === "進行中"
+                    : post.status === t("inProgress")
                       ? "bg-amber-100 text-amber-700 border-amber-300"
-                      : post.status === "完了"
+                      : post.status === t("completedShort")
                         ? "bg-blue-100 text-blue-700 border-blue-300"
                         : "bg-gray-100 text-gray-700 border-gray-300"
                 }`}
@@ -352,12 +377,12 @@ export default function TradeDetailClient({ initialPost, postId }: TradeDetailCl
             </div>
           </div>
           <div className="space-y-6 mb-6">
-            {renderCardList(post.wantedCards, "求めるカード")}
-            {renderCardList(post.offeredCards, "譲りたいカード")}
+            {renderCardList(post.wantedCards, t("trades.wantedCards"))}
+            {renderCardList(post.offeredCards, t("offeredCards"))}
           </div>
           {post.authorNotes && (
             <div className="bg-slate-100 p-4 rounded-md mb-6">
-              <h3 className="font-semibold text-slate-800 mb-2">投稿者からのコメント</h3>
+              <h3 className="font-semibold text-slate-800 mb-2">{t("authorComment")}</h3>
               <p className="text-sm text-slate-700 whitespace-pre-wrap">{post.authorNotes}</p>
             </div>
           )}
@@ -365,14 +390,14 @@ export default function TradeDetailClient({ initialPost, postId }: TradeDetailCl
             <p className="text-sm text-slate-600">ID : {post.originalPostId}</p>
             <Button variant="outline" size="sm" onClick={handleCopyToClipboard} className="text-xs bg-transparent">
               <Copy className="mr-1.5 h-3 w-3" />
-              コピー
+              {t("copy")}
             </Button>
           </div>
           <OwnerActionButtons post={post} currentUserId={user?.id || null} />
         </div>
         <div className="bg-white rounded-lg shadow-xl">
           <div className="bg-blue-600 text-white p-4 rounded-t-lg">
-            <h2 className="text-xl font-semibold">コメント</h2>
+            <h2 className="text-xl font-semibold">{t("title")}</h2>
           </div>
           <div className="p-4 sm:p-6 space-y-4">
             {post.comments.length > 0 ? (
@@ -402,20 +427,20 @@ export default function TradeDetailClient({ initialPost, postId }: TradeDetailCl
                 </div>
               ))
             ) : (
-              <p className="text-sm text-slate-500 text-center py-4">まだコメントはありません。</p>
+              <p className="text-sm text-slate-500 text-center py-4">{t("noComments")}</p>
             )}
           </div>
           <div className="p-4 sm:p-6 border-t border-slate-200 bg-slate-50 rounded-b-lg">
             <div className="space-y-3">
               <Textarea
-                placeholder="コメントを入力してください..."
+                placeholder={t("placeholder")}
                 value={newComment}
                 onChange={(e) => setNewComment(e.target.value)}
                 className="min-h-[80px] bg-white resize-none"
                 onKeyDown={handleKeyDown}
               />
               <div className="flex justify-between items-center">
-                <p className="text-xs text-slate-500">Ctrl+Enter で送信</p>
+                <p className="text-xs text-slate-500">{t("shortcutHint")}</p>
                 <Button
                   type="button"
                   onClick={handleCommentSubmitClick}
@@ -423,7 +448,7 @@ export default function TradeDetailClient({ initialPost, postId }: TradeDetailCl
                   disabled={!newComment.trim()}
                 >
                   <Send className="h-4 w-4 mr-2" />
-                  投稿
+                  {t("post")}
                 </Button>
               </div>
             </div>

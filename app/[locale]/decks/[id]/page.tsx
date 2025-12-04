@@ -6,6 +6,7 @@ import { useRouter } from "@/lib/i18n-navigation"
 import Image from "next/image"
 import { Heart, StarIcon, ArrowLeft, User, Calendar, MessageCircle, Loader2 } from "lucide-react"
 import { useAuth } from "@/contexts/auth-context"
+import { useTranslations } from "next-intl"
 import { getDeckById, likeDeck, unlikeDeck, favoriteDeck, unfavoriteDeck } from "@/lib/services/deck-service"
 import { fetchCardDetailsByIds } from "@/lib/card-api"
 import { Button } from "@/components/ui/button"
@@ -23,23 +24,11 @@ import DeckComments from "@/components/DeckComments"
 import LoginPromptModal from "@/components/ui/login-prompt-modal"
 import { event as gtagEvent } from "@/lib/analytics/gtag"
 
-const energyTypes = [
-  { name: "草", icon: "/images/types/草.png", id: "grass", color: "bg-green-500" },
-  { name: "炎", icon: "/images/types/炎.png", id: "fire", color: "bg-red-500" },
-  { name: "水", icon: "/images/types/水.png", id: "water", color: "bg-blue-500" },
-  { name: "電気", icon: "/images/types/電気.png", id: "electric", color: "bg-yellow-500" },
-  { name: "エスパー", icon: "/images/types/念.png", id: "psychic", color: "bg-purple-500" }, // This is for the icon background, not text. Keeping as is.
-  { name: "格闘", icon: "/images/types/格闘.png", id: "fighting", color: "bg-orange-500" },
-  { name: "悪", icon: "/images/types/悪.png", id: "dark", color: "bg-gray-800" },
-  { name: "鋼", icon: "/images/types/鋼.png", id: "metal", color: "bg-gray-500" },
-  { name: "無色", icon: "/images/types/無色.png", id: "colorless", color: "bg-gray-400" },
-  { name: "ドラゴン", icon: "/images/types/龍.png", id: "dragon", color: "bg-yellow-600" },
-]
-
 export default function DeckDetailPage() {
   const { id } = useParams() as { id: string }
   const router = useRouter()
   const { user, loading: authLoading } = useAuth()
+  const t = useTranslations()
   const [deck, setDeck] = useState<DeckWithCards | null>(null)
   const [cardDetails, setCardDetails] = useState<Record<string, CardData>>({})
   const [isLoading, setIsLoading] = useState(true)
@@ -53,6 +42,19 @@ export default function DeckDetailPage() {
   const [isFavoriteLoading, setIsFavoriteLoading] = useState(false)
   const [showLoginPrompt, setShowLoginPrompt] = useState(false)
   const { toast } = useToast()
+
+  const energyTypes = [
+    { name: "草", icon: "/images/types/草.png", id: "grass", color: "bg-green-500" },
+    { name: "炎", icon: "/images/types/炎.png", id: "fire", color: "bg-red-500" },
+    { name: "水", icon: "/images/types/水.png", id: "water", color: "bg-blue-500" },
+    { name: "電気", icon: "/images/types/電気.png", id: "electric", color: "bg-yellow-500" },
+    { name: "エスパー", icon: "/images/types/念.png", id: "psychic", color: "bg-purple-500" },
+    { name: "格闘", icon: "/images/types/格闘.png", id: "fighting", color: "bg-orange-500" },
+    { name: t('cards.types.dark'), icon: "/images/types/悪.png", id: "dark", color: "bg-gray-800" },
+    { name: t('cards.types.steel'), icon: "/images/types/鋼.png", id: "metal", color: "bg-gray-500" },
+    { name: "無色", icon: "/images/types/無色.png", id: "colorless", color: "bg-gray-400" },
+    { name: "ドラゴン", icon: "/images/types/龍.png", id: "dragon", color: "bg-yellow-600" },
+  ]
 
   useEffect(() => {
     if (id === "create") {
@@ -151,7 +153,7 @@ export default function DeckDetailPage() {
         }, 100)
       }
     } catch {
-      toast({ title: "エラー", description: "操作に失敗しました", variant: "destructive" })
+      toast({ title: t('errors.generic.error'), description: t('errors.operationFailed'), variant: "destructive" })
       setIsLiked(originalIsLiked)
       setLikeCount(originalLikeCount)
     } finally {
@@ -190,7 +192,7 @@ export default function DeckDetailPage() {
         }, 100)
       }
     } catch {
-      toast({ title: "エラー", description: "操作に失敗しました", variant: "destructive" })
+      toast({ title: t('errors.generic.error'), description: t('errors.operationFailed'), variant: "destructive" })
       setIsFavorited(originalIsFavorited)
       setFavoriteCount(originalFavoriteCount)
     } finally {
@@ -307,7 +309,7 @@ export default function DeckDetailPage() {
                   <div className="flex flex-wrap gap-2 items-center text-sm text-gray-600 mb-3">
                     <div className="flex items-center">
                       <User className="h-4 w-4 mr-1" />
-                      <span>{deck.user_display_name || "匿名ユーザー"}</span>
+                      <span>{deck.user_display_name || t('comments.anonymousUser')}</span>
                     </div>
                     <div className="flex items-center">
                       <Calendar className="h-4 w-4 mr-1" />

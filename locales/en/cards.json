@@ -15,7 +15,9 @@
     "psychic": "Psychic",
     "fighting": "Fighting",
     "dark": "Dark",
+    "darkness": "Dark",
     "steel": "Steel",
+    "metal": "Steel",
     "colorless": "Colorless",
     "dragon": "Dragon"
   },
@@ -29,8 +31,11 @@
     "star2": "Star 2",
     "star3": "Star 3",
     "crown": "Crown",
+    "crownLabel": "♔",
     "color1": "Color 1",
-    "color2": "Color 2"
+    "color1Label": "1",
+    "color2": "Color 2",
+    "color2Label": "2"
   },
   "packs": {
     "all": "All Packs"

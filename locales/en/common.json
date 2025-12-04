@@ -58,7 +58,10 @@
     "copy": "Copy",
     "copied": "Copied",
     "send": "Send",
-    "toLoginPage": "Go to Login Page"
+    "toLoginPage": "Go to Login Page",
+    "post": "Post",
+    "viewDetails": "View Details",
+    "createPost": "Create New Post"
   },
   "labels": {
     "or": "OR",
@@ -69,7 +72,8 @@
     "negotiable": "Negotiable",
     "user": "User",
     "adSpace": "Ad Space",
-    "profileBanner": "Profile Banner"
+    "profileBanner": "Profile Banner",
+    "optional": "Optional"
   },
   "header": {
     "openUserMenu": "Open User Menu",
@@ -86,7 +90,22 @@
     "switchLanguage": "Switch Language",
     "notSelected": "No Card Selected",
     "noCardsYet": "No cards selected yet",
-    "addCardsInstruction": "Add cards using the button above"
+    "addCardsInstruction": "Add cards using the button above",
+    "processing": "Processing...",
+    "loading": "Loading...",
+    "notice": "Notice",
+    "updated": "Updated"
+  },
+  "user": {
+    "online": "Online",
+    "setYourId": "Set your exclusive ID",
+    "customizeDisplayName": "Customize display name"
+  },
+  "contact": {
+    "prompt": "Share your questions or requests"
+  },
+  "auth": {
+    "safeLogout": "Safely sign out from account"
   },
   "language": {
     "ja": "日本語",
@@ -99,5 +118,35 @@
     "it": "Italiano",
     "de": "Deutsch",
     "es": "Español"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "unreadCount": "Notifications ({count} unread)",
+    "markAsRead": "Read",
+    "markAllAsRead": "Mark all as read",
+    "loading": "Loading...",
+    "noNotifications": "No notifications",
+    "unknownUser": "Unknown user",
+    "unknownDetails": "Details unknown",
+    "fromAbout": "From {sender} about \"{content}\"",
+    "showing50": "Showing latest 50",
+    "count": "{count} notifications",
+    "types": {
+      "trade": "Trade",
+      "deck": "Deck",
+      "other": "Other"
+    },
+    "time": {
+      "now": "now",
+      "minutesAgo": "{count} min ago",
+      "hoursAgo": "{count} hr ago"
+    }
+  },
+  "share": {
+    "title": "Share",
+    "description": "Share this post",
+    "postUrl": "Post URL",
+    "shareOnSns": "Share on SNS",
+    "copyLinkHint": "Copy link"
   }
 }

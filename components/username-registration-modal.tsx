@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { User } from "lucide-react"
+import { useTranslations } from "next-intl"
 
 interface UsernameRegistrationModalProps {
   isOpen: boolean
@@ -30,6 +31,7 @@ export function UsernameRegistrationModal({
   currentUsername,
   onSave,
 }: UsernameRegistrationModalProps) {
+  const t = useTranslations()
   const [username, setUsername] = useState(currentUsername || "")
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -38,12 +40,12 @@ export function UsernameRegistrationModal({
     e.preventDefault()
 
     if (!username.trim()) {
-      setError("ユーザー名を入力してください")
+      setError(t("validation.enterUsername"))
       return
     }
 
     if (username.length < 1 || username.length > 30) {
-      setError("ユーザー名は1文字以上30文字以下で入力してください")
+      setError(t("validation.usernameLength"))
       return
     }
 
@@ -56,7 +58,7 @@ export function UsernameRegistrationModal({
       setUsername("")
     } catch (error) {
       console.error("ユーザー名保存エラー:", error)
-      setError("ユーザー名の保存に失敗しました。もう一度お試しください。")
+      setError(t("errors.usernameSaveFailed"))
     } finally {
       setIsLoading(false)
     }

@@ -69,7 +69,8 @@
     "negotiable": "要相談",
     "user": "ユーザー",
     "adSpace": "広告スペース",
-    "profileBanner": "自己紹介バナー"
+    "profileBanner": "自己紹介バナー",
+    "optional": "Optional"
   },
   "header": {
     "openUserMenu": "ユーザーメニューを開く",
@@ -86,7 +87,9 @@
     "switchLanguage": "言語切り替え",
     "notSelected": "カード未選択",
     "noCardsYet": "まだカードが選択されていません",
-    "addCardsInstruction": "上のボタンからカードを追加してください"
+    "addCardsInstruction": "上のボタンからカードを追加してください",
+    "notice": "Notice",
+    "updated": "Updated"
   },
   "language": {
     "ja": "日本語",
@@ -99,5 +102,12 @@
     "it": "Italiano",
     "de": "Deutsch",
     "es": "Español"
+  },
+  "share": {
+    "title": "Share",
+    "description": "Share this post",
+    "postUrl": "Post URL",
+    "shareOnSns": "Share on SNS",
+    "copyLinkHint": "Copy link"
   }
 }

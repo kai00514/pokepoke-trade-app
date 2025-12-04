@@ -1,92 +1,128 @@
 {
   "home": {
-    "title": "PokeLink トレード掲示板",
-    "subtitle": "欲しいカードと譲れるカードをスムーズに交換しよう！"
+    "title": "PokeLink Trade Board",
+    "subtitle": "Smoothly exchange the cards you want and the cards you can offer!"
   },
   "login": {
-    "title": "ログイン",
-    "subtitle": "アカウントにログインしてください"
+    "title": "Log In",
+    "subtitle": "Log in to your account"
   },
   "signup": {
-    "title": "会員登録",
-    "subtitle": "アカウントを作成してポケモンカードの取引を始めましょう"
+    "title": "Sign Up",
+    "subtitle": "Create an account and start trading Pokémon cards"
   },
   "reset": {
-    "title": "パスワードをリセット",
-    "subtitle": "登録済みのメールアドレスを入力してください"
+    "title": "Reset Password",
+    "subtitle": "Enter your registered email address"
   },
   "createTrade": {
-    "title": "トレードカードを登録",
-    "noticeTitle": "お知らせ"
+    "title": "Register Trade Card",
+    "noticeTitle": "Notice"
   },
   "createList": {
-    "title": "新しいカードリストを作成",
-    "subtitle": "トレード用のカードリストを作成して、他のユーザーと交換しましょう。",
+    "title": "Create New Card List",
+    "subtitle": "Create a card list for trading and exchange with other users.",
     "listInfo": {
-      "title": "リスト情報",
-      "description": "リストの基本情報を入力してください"
+      "title": "List Information",
+      "description": "Enter basic list information"
     },
     "cardSelection": {
-      "title": "カード選択",
-      "description": "リストに追加するカードを選択してください"
+      "title": "Card Selection",
+      "description": "Select cards to add to the list"
     },
     "loginRequired": {
-      "title": "カードをお持ちでない方",
-      "description": "カードリストを作成するにはログインしてください。"
+      "title": "Don't have any cards?",
+      "description": "Please log in to create a card list."
     }
   },
   "collages": {
-    "title": "コラージュ画像",
-    "subtitle": "複数のカードをコラージュにしてXで共有しましょう"
+    "title": "Collage Images",
+    "subtitle": "Create collages of multiple cards and share on X"
   },
   "contact": {
-    "title": "お問い合わせ",
-    "subtitle": "ご質問やご要望がございましたら、お気軽にお問い合わせください。 内容を確認の上、後日ご返信いたします。",
+    "title": "Contact Us",
+    "subtitle": "If you have any questions or requests, please feel free to contact us. We will review and respond at a later date.",
     "form": {
-      "title": "お問い合わせフォーム",
-      "description": "必要事項をご入力の上、送信してください"
+      "title": "Contact Form",
+      "description": "Please fill in the required information and submit"
     },
     "faq": {
-      "title": "よくある質問",
-      "q1": "Q. 返信までどのくらいかかりますか？",
-      "a1": "通常、1-3営業日以内にご返信いたします。",
-      "q2": "Q. アカウントに関する問題",
-      "a2": "ログインできない場合は、パスワードリセットをお試しください。",
-      "q3": "Q. 機能の要望について",
-      "a3": "新機能のご要望も大歓迎です。詳しくお聞かせください。"
+      "title": "Frequently Asked Questions",
+      "q1": "Q. How long does it take to get a response?",
+      "a1": "We usually respond within 1-3 business days.",
+      "q2": "Q. Account issues",
+      "a2": "If you can't log in, please try resetting your password.",
+      "q3": "Q. Feature requests",
+      "a3": "We welcome requests for new features. Please let us know in detail."
     },
     "contactInfo": {
-      "title": "その他の連絡方法",
-      "email": "メール",
-      "hours": "対応時間",
-      "hoursValue": "平日 9:00-18:00"
+      "title": "Other Contact Methods",
+      "email": "Email",
+      "hours": "Support Hours",
+      "hoursValue": "Weekdays 9:00-18:00"
     },
     "notice": {
-      "title": "ご注意",
-      "item1": "• 土日祝日は返信が遅れる場合があります",
-      "item2": "• 緊急の場合は件名に【緊急】と記載してください",
-      "item3": "• スパムメールフィルターをご確認ください"
+      "title": "Notice",
+      "item1": "• Responses may be delayed on weekends and holidays",
+      "item2": "• For urgent matters, please add [URGENT] to the subject",
+      "item3": "• Please check your spam filter"
     }
   },
   "tradePost": {
-    "wantedCards": "求めるカード",
-    "offeredCards": "譲れるカード",
-    "authorComment": "投稿者コメント："
+    "wantedCards": "Wanted Cards",
+    "offeredCards": "Offered Cards",
+    "authorComment": "Author's Comment:"
   },
   "share": {
-    "title": "この投稿を共有",
-    "subtitle": "お好きな方法で投稿をシェアできます",
-    "urlSection": "投稿のURL",
-    "snsSection": "SNSでシェア",
-    "tip": "リンクをコピーして、メールやチャットで共有することもできます"
+    "title": "Share This Post",
+    "subtitle": "Share the post in your preferred way",
+    "urlSection": "Post URL",
+    "snsSection": "Share on Social Media",
+    "tip": "You can also copy the link and share via email or chat"
   },
   "detailedSearch": {
-    "title": "カード詳細検索"
+    "title": "Detailed Card Search"
   },
   "collageGenerator": {
-    "title": "コラージュ画像を生成",
-    "defaultTitle1": "求めるカード",
-    "defaultTitle2": "譲れるカード",
-    "editGroup": "{title}を編集"
+    "title": "Generate Collage Image",
+    "defaultTitle1": "Wanted Cards",
+    "defaultTitle2": "Offered Cards",
+    "editGroup": "Edit {title}"
+  },
+  "matching": {
+    "title": "Matching",
+    "comingSoon": "Coming Soon!",
+    "underDevelopment": "Matching feature is currently under development.",
+    "preparingBetterExperience": "We are preparing to provide a better trading experience.",
+    "comingSoonDate": "Coming Soon"
+  },
+  "history": {
+    "title": "History",
+    "myPosts": "My Posts",
+    "commentedPosts": "Commented Posts",
+    "matchingHistory": "Matching History",
+    "noHistory": "No history available.",
+    "noMyPosts": "You have no post history.",
+    "noCommentedPosts": "No commented post history.",
+    "noMatchingHistory": "No matching history.",
+    "authenticating": "Checking authentication status...",
+    "loading": "Loading...",
+    "fetchError": "Failed to fetch data."
+  },
+  "decks": {
+    "postDeck": "Post Deck",
+    "favorites": "Favorites",
+    "tierDecks": "Tier Decks",
+    "featuredDecks": "Featured Decks",
+    "newPackDecks": "New Pack Decks",
+    "viewAllDecks": "View All Decks",
+    "updated": "Updated:",
+    "viewDetails": "View Details"
+  },
+  "resultsInfo": {
+    "showing": "Showing {start}~{end} of {total}",
+    "searchResults": "(Search: \"{keyword}\")",
+    "noPosts": "No posts available",
+    "noResults": "No matching posts found."
   }
 }

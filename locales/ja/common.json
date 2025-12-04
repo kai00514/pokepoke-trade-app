@@ -58,7 +58,15 @@
     "copy": "コピー",
     "copied": "コピー済",
     "send": "送信する",
-    "toLoginPage": "ログインページへ"
+    "toLoginPage": "ログインページへ",
+    "post": "投稿",
+    "viewDetails": "詳細を見る",
+    "createPost": "新規投稿作成",
+    "save": "保存",
+    "saving": "保存中...",
+    "create": "作成",
+    "searchCards": "カードを検索",
+    "editGroup": "{title}を編集"
   },
   "labels": {
     "or": "または",
@@ -69,7 +77,8 @@
     "negotiable": "要相談",
     "user": "ユーザー",
     "adSpace": "広告スペース",
-    "profileBanner": "自己紹介バナー"
+    "profileBanner": "自己紹介バナー",
+    "optional": "任意"
   },
   "header": {
     "openUserMenu": "ユーザーメニューを開く",
@@ -86,7 +95,22 @@
     "switchLanguage": "言語切り替え",
     "notSelected": "カード未選択",
     "noCardsYet": "まだカードが選択されていません",
-    "addCardsInstruction": "上のボタンからカードを追加してください"
+    "addCardsInstruction": "上のボタンからカードを追加してください",
+    "processing": "処理中...",
+    "loading": "読み込み中...",
+    "notice": "注意事項",
+    "updated": "更新"
+  },
+  "user": {
+    "online": "オンライン",
+    "setYourId": "あなた専用のIDを設定",
+    "customizeDisplayName": "表示名をカスタマイズ"
+  },
+  "contact": {
+    "prompt": "ご質問やご要望をお聞かせください"
+  },
+  "auth": {
+    "safeLogout": "アカウントから安全に退出"
   },
   "language": {
     "ja": "日本語",
@@ -99,5 +123,35 @@
     "it": "Italiano",
     "de": "Deutsch",
     "es": "Español"
+  },
+  "notifications": {
+    "title": "通知",
+    "unreadCount": "通知 ({count}件の未読)",
+    "markAsRead": "既読",
+    "markAllAsRead": "全て既読",
+    "loading": "読み込み中...",
+    "noNotifications": "通知はありません",
+    "unknownUser": "不明なユーザー",
+    "unknownDetails": "詳細不明",
+    "fromAbout": "{sender}さんから「{content}」について",
+    "showing50": "最新50件を表示",
+    "count": "{count}件の通知",
+    "types": {
+      "trade": "トレード",
+      "deck": "デッキ",
+      "other": "その他"
+    },
+    "time": {
+      "now": "今",
+      "minutesAgo": "{count}分前",
+      "hoursAgo": "{count}時間前"
+    }
+  },
+  "share": {
+    "title": "シェア",
+    "description": "この投稿をシェアする",
+    "postUrl": "投稿URL",
+    "shareOnSns": "SNSでシェア",
+    "copyLinkHint": "リンクをコピー"
   }
 }

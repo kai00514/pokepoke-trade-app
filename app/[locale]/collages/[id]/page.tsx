@@ -2,12 +2,13 @@ import type { Metadata } from "next"
 import CollagePageClient from "./collage-page-client"
 import { getCollageById } from "@/lib/actions/collages"
 
-export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
-  const collageUrl = `${process.env.NEXT_PUBLIC_SITE_URL || "https://www.pokelnk.com"}/collages/${params.id}`
-  const ogImageUrl = `${process.env.NEXT_PUBLIC_SITE_URL || "https://www.pokelnk.com"}/collages/${params.id}/opengraph-image`
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params
+  const collageUrl = `${process.env.NEXT_PUBLIC_SITE_URL || "https://www.pokelnk.com"}/collages/${id}`
+  const ogImageUrl = `${process.env.NEXT_PUBLIC_SITE_URL || "https://www.pokelnk.com"}/collages/${id}/opengraph-image`
 
   // Fetch collage data for dynamic metadata
-  const result = await getCollageById(params.id)
+  const result = await getCollageById(id)
 
   if (!result.success || !result.collage) {
     return {

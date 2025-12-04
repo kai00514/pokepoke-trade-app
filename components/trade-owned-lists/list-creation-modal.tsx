@@ -11,6 +11,7 @@ import DetailedSearchModal from "@/components/detailed-search-modal"
 import { Card } from "@/components/ui/card"
 import { X, Search } from "lucide-react"
 import { event as gtagEvent } from "@/lib/analytics/gtag"
+import { useTranslations } from "next-intl"
 
 interface ListCreationModalProps {
   isOpen: boolean
@@ -26,20 +27,19 @@ interface SelectedCard {
 }
 
 export default function ListCreationModal({ isOpen, onOpenChange, userId, onSuccess }: ListCreationModalProps) {
+  const t = useTranslations()
   const [listName, setListName] = useState("")
   const [selectedCards, setSelectedCards] = useState<SelectedCard[]>([])
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false)
   const [isCreating, setIsCreating] = useState(false)
   const { toast } = useToast()
 
-  // モーダルを閉じる時の処理
   const handleClose = () => {
     setListName("")
     setSelectedCards([])
     onOpenChange(false)
   }
 
-  // カード選択時の処理
   const handleCardSelect = (cards: any[]) => {
     const formattedCards = cards.map((card) => ({
       id: card.id.toString(),
@@ -50,17 +50,15 @@ export default function ListCreationModal({ isOpen, onOpenChange, userId, onSucc
     setIsSearchModalOpen(false)
   }
 
-  // カードを削除
   const removeCard = (cardId: string) => {
     setSelectedCards((prev) => prev.filter((card) => card.id !== cardId))
   }
 
-  // リスト作成処理
   const handleCreate = async () => {
     if (!listName.trim()) {
       toast({
-        title: "エラー",
-        description: "リスト名を入力してください。",
+        title: t("errors.errors.title"),
+        description: t("errors.validation.enterListName"),
         variant: "destructive",
       })
       return
@@ -68,8 +66,8 @@ export default function ListCreationModal({ isOpen, onOpenChange, userId, onSucc
 
     if (selectedCards.length === 0) {
       toast({
-        title: "エラー",
-        description: "少なくとも1枚のカードを選択してください。",
+        title: t("errors.errors.title"),
+        description: t("errors.validation.selectAtLeastOneCard"),
         variant: "destructive",
       })
       return
@@ -91,7 +89,7 @@ export default function ListCreationModal({ isOpen, onOpenChange, userId, onSucc
       handleClose()
     } else {
       toast({
-        title: "エラー",
+        title: t("errors.errors.title"),
         description: result.error,
         variant: "destructive",
       })
@@ -105,27 +103,25 @@ export default function ListCreationModal({ isOpen, onOpenChange, userId, onSucc
       <Dialog open={isOpen} onOpenChange={handleClose}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>新しいリストを作成</DialogTitle>
+            <DialogTitle>{t("forms.lists.createNewList")}</DialogTitle>
           </DialogHeader>
 
           <div className="space-y-6">
-            {/* リスト名入力 */}
             <div className="space-y-2">
-              <Label htmlFor="listName">リスト名</Label>
+              <Label htmlFor="listName">{t("forms.lists.listName")}</Label>
               <Input
                 id="listName"
                 value={listName}
                 onChange={(e) => setListName(e.target.value)}
-                placeholder="リスト名を入力してください"
+                placeholder={t("forms.lists.enterListName")}
                 maxLength={100}
               />
-              <p className="text-sm text-gray-500">{listName.length}/100文字</p>
+              <p className="text-sm text-gray-500">{t("forms.lists.characterCount", { current: listName.length, max: 100 })}</p>
             </div>
 
-            {/* カード選択 */}
             <div className="space-y-4">
               <div className="flex justify-between items-center">
-                <Label>カード選択 ({selectedCards.length}/35)</Label>
+                <Label>{t("forms.lists.cardSelection", { current: selectedCards.length, max: 35 })}</Label>
                 <Button
                   type="button"
                   variant="outline"
@@ -133,11 +129,10 @@ export default function ListCreationModal({ isOpen, onOpenChange, userId, onSucc
                   disabled={selectedCards.length >= 35}
                 >
                   <Search className="h-4 w-4 mr-2" />
-                  カードを検索
+                  {t("common.buttons.searchCards")}
                 </Button>
               </div>
 
-              {/* 選択されたカード一覧 */}
               {selectedCards.length > 0 ? (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 max-h-60 overflow-y-auto">
                   {selectedCards.map((card) => (
@@ -157,7 +152,7 @@ export default function ListCreationModal({ isOpen, onOpenChange, userId, onSucc
                           />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center text-gray-400">
-                            <span className="text-xs">No Image</span>
+                            <span className="text-xs">{t("common.misc.noImage")}</span>
                           </div>
                         )}
                       </div>
@@ -168,34 +163,32 @@ export default function ListCreationModal({ isOpen, onOpenChange, userId, onSucc
               ) : (
                 <div className="text-center py-8 text-gray-500">
                   <Search className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                  <p>カードが選択されていません</p>
-                  <p className="text-sm">「カードを検索」ボタンからカードを選択してください</p>
+                  <p>{t("forms.lists.noCardsSelected")}</p>
+                  <p className="text-sm">{t("forms.lists.selectCardsPrompt")}</p>
                 </div>
               )}
             </div>
 
-            {/* アクションボタン */}
             <div className="flex justify-end space-x-3 pt-4 border-t">
               <Button type="button" variant="outline" onClick={handleClose}>
-                キャンセル
+                {t("common.buttons.cancel")}
               </Button>
               <Button onClick={handleCreate} disabled={isCreating || !listName.trim() || selectedCards.length === 0}>
-                {isCreating ? "作成中..." : "作成"}
+                {isCreating ? t("common.buttons.creating") : t("common.buttons.create")}
               </Button>
             </div>
           </div>
         </DialogContent>
       </Dialog>
 
-      {/* カード検索モーダル */}
       <DetailedSearchModal
         isOpen={isSearchModalOpen}
         onOpenChange={setIsSearchModalOpen}
         onCardSelect={handleCardSelect}
         maxSelection={35}
         selectedCards={selectedCards}
-        title="カードを選択"
-        description={`リストに追加するカードを選択してください（最大35枚、現在${selectedCards.length}枚選択中）`}
+        title={t("forms.lists.selectCards")}
+        description={t("forms.lists.selectCardsDescription", { max: 35, current: selectedCards.length })}
       />
     </>
   )

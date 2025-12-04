@@ -18,8 +18,10 @@ import { PokepokeIdRegistrationModal } from "@/components/pokepoke-id-registrati
 import { UsernameRegistrationModal } from "@/components/username-registration-modal"
 import { updateUserProfile } from "@/lib/services/user-service"
 import { MessageCircle } from "lucide-react"
+import { useTranslations } from "next-intl"
 
 export default function Header() {
+  const t = useTranslations()
   const { user, userProfile, loading, signOut, displayName } = useAuth()
   const router = useRouter()
 
@@ -51,7 +53,7 @@ export default function Header() {
   // ポケポケID保存のハンドラ
   const handleSavePokepokeId = async (pokepokeId: string) => {
     if (!user) {
-      throw new Error("ユーザーが認証されていません。")
+      throw new Error(t('errors.auth.notAuthenticated'))
     }
     try {
       await updateUserProfile(user.id, { pokepoke_id: pokepokeId })
@@ -63,7 +65,7 @@ export default function Header() {
   // ユーザー名保存のハンドラ
   const handleSaveUsername = async (username: string) => {
     if (!user) {
-      throw new Error("ユーザーが認証されていません。")
+      throw new Error(t('errors.auth.notAuthenticated'))
     }
     try {
       await updateUserProfile(user.id, { display_name: username })
@@ -113,18 +115,18 @@ export default function Header() {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuItem onClick={handlePokepokeIdRegistration} className="cursor-pointer">
-                  ポケポケID登録
+                  {t('common.buttons.registerPokepokeId')}
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={handleUsernameRegistration} className="cursor-pointer">
-                  ユーザー名登録
+                  {t('common.buttons.registerUsername')}
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={handleContactClick} className="cursor-pointer">
                   <MessageCircle className="w-4 h-4 mr-2" />
-                  お問い合わせ
+                  {t('common.buttons.contact')}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer">
-                  ログアウト
+                  {t('common.buttons.logout')}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -135,7 +137,7 @@ export default function Header() {
                   variant="default"
                   className="bg-white text-[#1D4ED8] hover:bg-[#DBEAFE] text-xs sm:text-sm px-3 py-1.5 sm:px-4 sm:py-2"
                 >
-                  新規登録
+                  {t('common.buttons.signup')}
                 </Button>
               </Link>
               <Link href="/auth/login">
@@ -143,7 +145,7 @@ export default function Header() {
                   variant="outline"
                   className="bg-white text-[#1D4ED8] border-[#1D4ED8] hover:bg-[#DBEAFE] hover:text-[#1E40AF] text-xs sm:text-sm px-3 py-1.5 sm:px-4 sm:py-2"
                 >
-                  ログイン
+                  {t('common.buttons.login')}
                 </Button>
               </Link>
             </>

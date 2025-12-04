@@ -9,10 +9,12 @@ import LoginPromptModal from "@/components/ui/login-prompt-modal"
 import { Link } from "@/lib/i18n-navigation"
 import { ArrowLeft } from "lucide-react"
 import { useState } from "react"
+import { useTranslations } from "next-intl"
 
 export default function CollagePage() {
   const { user } = useAuth()
   const [showLoginPrompt, setShowLoginPrompt] = useState(false)
+  const t = useTranslations()
 
   if (!user) {
     return (
@@ -22,13 +24,13 @@ export default function CollagePage() {
           <div className="mb-6">
             <Link href="/" className="inline-flex items-center text-blue-600 hover:text-blue-800 transition-colors">
               <ArrowLeft className="h-4 w-4 mr-2" />
-              トップページに戻る
+              {t('common.navigation.backToTop')}
             </Link>
           </div>
           <div className="max-w-2xl mx-auto">
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
-              <h1 className="text-2xl font-bold text-gray-900 mb-6 text-center">コラージュ画像生成</h1>
-              <LoginPromptModal message="コラージュを生成・管理するにはログインが必要です。" />
+              <h1 className="text-2xl font-bold text-gray-900 mb-6 text-center">{t('pages.collages.title')}</h1>
+              <LoginPromptModal message={t('messages.info.loginRequired')} />
             </div>
           </div>
         </div>
@@ -45,7 +47,7 @@ export default function CollagePage() {
         <div className="mb-6">
           <Link href="/" className="inline-flex items-center text-blue-600 hover:text-blue-800 transition-colors">
             <ArrowLeft className="h-4 w-4 mr-2" />
-            タイムラインに戻る
+            {t('common.navigation.backToTimeline')}
           </Link>
         </div>
 
@@ -54,8 +56,8 @@ export default function CollagePage() {
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 gap-4">
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">コラージュ画像</h1>
-                <p className="text-gray-600 mt-2">複数のカードをコラージュにしてXで共有しましょう</p>
+                <h1 className="text-3xl font-bold text-gray-900">{t('pages.collages.title')}</h1>
+                <p className="text-gray-600 mt-2">{t('pages.collages.subtitle')}</p>
               </div>
               <CollageGeneratorButton />
             </div>

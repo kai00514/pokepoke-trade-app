@@ -2,16 +2,18 @@ import type { Metadata } from "next"
 import { getTradePostDetailsById } from "@/lib/actions/trade-actions"
 import TradeDetailClient from "@/components/trade-detail-client"
 import TradeDetail404 from "@/components/trade-detail-404"
+import { getTranslations } from "next-intl/server"
 
 // OGPメタデータの生成（Server Componentでのみ動作）
-export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
-  const { id } = params
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const t = await getTranslations()
+  const { id } = await params
 
   // "create"ページの場合は通常のメタデータを返す
   if (id === "create") {
     return {
-      title: "トレード投稿作成 | PokeLink",
-      description: "新しいトレード投稿を作成します",
+      title: `${t('trades.createPost')} | PokeLink`,
+      description: t('trades.createPostDescription'),
     }
   }
 
@@ -20,26 +22,26 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
 
   if (!result.success || !result.post) {
     return {
-      title: "投稿が見つかりません | PokeLink",
-      description: "お探しの投稿は見つかりませんでした",
+      title: `${t('errors.data.postNotFound')} | PokeLink`,
+      description: t('errors.data.postNotFoundDescription'),
     }
   }
 
   const post = result.post
 
   // カード名のリストを作成
-  const wantedCardNames = post.wantedCards.map((card) => card.name).join("、") || "要相談"
-  const offeredCardNames = post.offeredCards.map((card) => card.name).join("、") || "要相談"
+  const wantedCardNames = post.wantedCards.map((card) => card.name).join("、") || t('trades.negotiable')
+  const offeredCardNames = post.offeredCards.map((card) => card.name).join("、") || t('trades.negotiable')
 
   // OG画像は opengraph-image.tsx が生成する
   const ogImageUrl = `${process.env.NEXT_PUBLIC_SITE_URL || "https://www.pokelnk.com"}/trades/${id}/opengraph-image`
 
   return {
     title: `${post.title} | PokeLink`,
-    description: `求めるカード: ${wantedCardNames} / 譲りたいカード: ${offeredCardNames}`,
+    description: `${t('trades.wantedCards')}: ${wantedCardNames} / ${t('trades.offeredCards')}: ${offeredCardNames}`,
     openGraph: {
       title: post.title,
-      description: `求めるカード: ${wantedCardNames} / 譲りたいカード: ${offeredCardNames}`,
+      description: `${t('trades.wantedCards')}: ${wantedCardNames} / ${t('trades.offeredCards')}: ${offeredCardNames}`,
       url: `${process.env.NEXT_PUBLIC_SITE_URL || "https://www.pokelnk.com"}/trades/${id}`,
       siteName: "PokeLink",
       images: [
@@ -56,19 +58,20 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
     twitter: {
       card: "summary_large_image",
       title: post.title,
-      description: `求めるカード: ${wantedCardNames} / 譲りたいカード: ${offeredCardNames}`,
+      description: `${t('trades.wantedCards')}: ${wantedCardNames} / ${t('trades.offeredCards')}: ${offeredCardNames}`,
       images: [ogImageUrl],
     },
   }
 }
 
 // Server Component（asyncが使える）
-export default async function TradeDetailPage({ params }: { params: { id: string } }) {
-  const { id } = params
+export default async function TradeDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const t = await getTranslations()
+  const { id } = await params
 
   // "create"ページへのアクセスは404を返す（createページは別ルート）
   if (id === "create") {
-    return <TradeDetail404 message="この投稿は存在しません" />
+    return <TradeDetail404 message={t('errors.data.postDoesNotExist')} />
   }
 
   // サーバー側で投稿データを取得
@@ -76,7 +79,7 @@ export default async function TradeDetailPage({ params }: { params: { id: string
 
   // データが取得できない場合はカスタム404を表示
   if (!result.success || !result.post) {
-    return <TradeDetail404 message="投稿が見つかりません" />
+    return <TradeDetail404 message={t('errors.data.postNotFound')} />
   }
 
   // Client Componentに初期データを渡して表示

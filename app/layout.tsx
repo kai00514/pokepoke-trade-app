@@ -1,11 +1,16 @@
 import type React from "react"
+import "./globals.css"
 
-// ルートレイアウト: 最小限の設定のみ
-// 言語別の設定は app/[locale]/layout.tsx で行う
+// ルートレイアウト: すべてのルートで共有される最上位レイアウト
+// 子レイアウト（[locale]/layout.tsx, auth/layout.tsx）はこの中にネストされる
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
-  return children;
+  return (
+    <html suppressHydrationWarning>
+      <body>{children}</body>
+    </html>
+  );
 }

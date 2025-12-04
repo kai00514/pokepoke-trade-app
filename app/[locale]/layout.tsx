@@ -4,7 +4,6 @@ import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 
-import "../globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import { AuthProvider } from "@/contexts/auth-context"
 import { Toaster } from "@/components/ui/toaster"
@@ -22,13 +21,58 @@ const _sourceSerif_4 = V0_Font_Source_Serif_4({ subsets: ['latin'], weight: ["20
 
 const inter = Inter({ subsets: ["latin"] })
 
-export const metadata: Metadata = {
-  title: "ポケリンクトレード掲示板",
-  description: "ポケットモンスターのカードをトレードしましょう!",
-  generator: "v0.dev",
-}
+// Metadata is generated dynamically per locale in generateMetadata function below
 
 // generateStaticParams for all locales
+// Generate metadata dynamically based on locale
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params;
+  
+  // Define metadata translations
+  const metadataTranslations: Record<string, { title: string; description: string }> = {
+    ja: {
+      title: "ポケリンクトレード掲示板",
+      description: "ポケットモンスターのカードをトレードしましょう!"
+    },
+    en: {
+      title: "Pokelink Trade Board",
+      description: "Trade Pokémon cards with other players!"
+    },
+    'zh-cn': {
+      title: "宝可梦交易板",
+      description: "与其他玩家交易宝可梦卡牌！"
+    },
+    'zh-tw': {
+      title: "寶可夢交易板",
+      description: "與其他玩家交易寶可夢卡牌！"
+    },
+    ko: {
+      title: "포켓몬 트레이드 게시판",
+      description: "다른 플레이어와 포켓몬 카드를 교환하세요!"
+    },
+    fr: {
+      title: "Tableau d'échange Pokémon",
+      description: "Échangez des cartes Pokémon avec d'autres joueurs !"
+    },
+    es: {
+      title: "Tablero de intercambio Pokémon",
+      description: "¡Intercambia cartas Pokémon con otros jugadores!"
+    },
+    de: {
+      title: "Pokémon-Tauschbrett",
+      description: "Tausche Pokémon-Karten mit anderen Spielern!"
+    }
+  };
+
+  const metadata = metadataTranslations[locale] || metadataTranslations.ja;
+
+  return {
+    title: metadata.title,
+    description: metadata.description,
+    generator: "v0.dev",
+  };
+}
+
 export function generateStaticParams() {
   return locales.map((locale) => ({ locale }));
 }
@@ -52,22 +96,20 @@ export default async function LocaleLayout({
   const messages = await getMessages();
 
   return (
-    <html lang={locale} suppressHydrationWarning>
-      <body className={`${inter.className} bg-gradient-to-br from-purple-50 to-purple-100 min-h-screen`}>
-        <NextIntlClientProvider messages={messages}>
-          <GoogleAnalytics />
-          <Suspense fallback={null}>
-            <PageViewTracker />
-          </Suspense>
+    <div lang={locale} className={`${inter.className} bg-gradient-to-br from-purple-50 to-purple-100 min-h-screen`}>
+      <NextIntlClientProvider messages={messages}>
+        <GoogleAnalytics />
+        <Suspense fallback={null}>
+          <PageViewTracker />
+        </Suspense>
 
-          <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
-            <AuthProvider>
-              {children}
-              <Toaster />
-            </AuthProvider>
-          </ThemeProvider>
-        </NextIntlClientProvider>
-      </body>
-    </html>
+        <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
+          <AuthProvider>
+            {children}
+            <Toaster />
+          </AuthProvider>
+        </ThemeProvider>
+      </NextIntlClientProvider>
+    </div>
   )
 }

@@ -15,7 +15,9 @@
     "psychic": "エスパー",
     "fighting": "格闘",
     "dark": "悪",
+    "darkness": "悪",
     "steel": "鋼",
+    "metal": "鋼",
     "colorless": "無色",
     "dragon": "ドラゴン"
   },
@@ -29,8 +31,11 @@
     "star2": "星2",
     "star3": "星3",
     "crown": "クラウン",
+    "crownLabel": "クラウン",
     "color1": "色1",
-    "color2": "色2"
+    "color1Label": "色1",
+    "color2": "色2",
+    "color2Label": "色2"
   },
   "packs": {
     "all": "全てのパック"

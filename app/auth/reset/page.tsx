@@ -10,8 +10,10 @@ import { createClient } from "@/lib/supabase/client"
 import { useToast } from "@/components/ui/use-toast"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { AlertCircle, Mail, Lock, Eye, EyeOff, CheckCircle } from "lucide-react"
+import { useTranslations } from "next-intl"
 
 export default function ResetPasswordPage() {
+  const t = useTranslations()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
@@ -21,7 +23,7 @@ export default function ResetPasswordPage() {
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null)
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { toast } = useToast()
+  const { toast} = useToast()
   const supabase = createClient()
 
   // URLパラメータからトークンとタイプを取得
@@ -38,10 +40,10 @@ export default function ResetPasswordPage() {
         })
 
         if (error) {
-          setMessage({ type: "error", text: `セッション設定エラー: ${error.message}` })
+          setMessage({ type: "error", text: `${t('errors.auth.sessionSetupError')}: ${error.message}` })
           toast({
-            title: "エラー",
-            description: `セッション設定エラー: ${error.message}`,
+            title: t('errors.generic.error'),
+            description: `${t('errors.auth.sessionSetupError')}: ${error.message}`,
             variant: "destructive",
           })
         } else {
@@ -61,7 +63,7 @@ export default function ResetPasswordPage() {
 
     try {
       if (!email) {
-        setMessage({ type: "error", text: "メールアドレスを入力してください。" })
+        setMessage({ type: "error", text: t('errors.validation.emailRequired') })
         return
       }
 
@@ -70,28 +72,28 @@ export default function ResetPasswordPage() {
       })
 
       if (error) {
-        setMessage({ type: "error", text: error.message || "パスワードリセットメールの送信に失敗しました。" })
+        setMessage({ type: "error", text: error.message || t('errors.auth.resetEmailSendFailed') })
         toast({
-          title: "エラー",
+          title: t('errors.generic.error'),
           description: error.message,
           variant: "destructive",
         })
       } else {
         setMessage({
           type: "success",
-          text: "パスワードリセットのリンクをメールアドレスに送信しました。メールをご確認ください。",
+          text: t('messages.success.resetLinkSent'),
         })
         toast({
-          title: "メール送信完了",
-          description: "パスワードリセットのリンクを送信しました。",
+          title: t('messages.success.emailSent'),
+          description: t('messages.success.resetLinkSentShort'),
         })
       }
     } catch (error) {
       console.error("Reset password request error:", error)
-      setMessage({ type: "error", text: "予期しないエラーが発生しました。" })
+      setMessage({ type: "error", text: t('errors.generic.unexpectedError') })
       toast({
-        title: "エラー",
-        description: "予期しないエラーが発生しました。",
+        title: t('errors.generic.error'),
+        description: t('errors.generic.unexpectedError'),
         variant: "destructive",
       })
     } finally {
@@ -106,37 +108,37 @@ export default function ResetPasswordPage() {
 
     try {
       if (password !== confirmPassword) {
-        setMessage({ type: "error", text: "パスワードが一致しません。" })
+        setMessage({ type: "error", text: t('errors.validation.passwordMismatch') })
         return
       }
       if (password.length < 6) {
-        setMessage({ type: "error", text: "パスワードは6文字以上で入力してください。" })
+        setMessage({ type: "error", text: t('errors.validation.passwordLength') })
         return
       }
 
       const { error } = await supabase.auth.updateUser({ password })
 
       if (error) {
-        setMessage({ type: "error", text: error.message || "パスワードの更新に失敗しました。" })
+        setMessage({ type: "error", text: error.message || t('errors.auth.passwordUpdateFailed') })
         toast({
-          title: "エラー",
+          title: t('errors.generic.error'),
           description: error.message,
           variant: "destructive",
         })
       } else {
-        setMessage({ type: "success", text: "パスワードが正常に更新されました。ログインページへ移動してください。" })
+        setMessage({ type: "success", text: t('messages.success.passwordUpdatedRedirect') })
         toast({
-          title: "パスワード更新完了",
-          description: "新しいパスワードでログインしてください。",
+          title: t('messages.success.passwordUpdated'),
+          description: t('auth.login.newPasswordPrompt'),
         })
         router.push("/auth/login?reset=success")
       }
     } catch (error) {
       console.error("Update password error:", error)
-      setMessage({ type: "error", text: "予期しないエラーが発生しました。" })
+      setMessage({ type: "error", text: t('errors.generic.unexpectedError') })
       toast({
-        title: "エラー",
-        description: "予期しないエラーが発生しました。",
+        title: t('errors.generic.error'),
+        description: t('errors.generic.unexpectedError'),
         variant: "destructive",
       })
     } finally {
@@ -151,8 +153,8 @@ export default function ResetPasswordPage() {
         <div className="container mx-auto px-4 py-10 sm:py-14 lg:py-16">
           <div className="mx-auto w-full max-w-md sm:max-w-lg">
             <div className="text-center mb-8 sm:mb-10">
-              <h1 className="text-3xl font-bold text-slate-800 mb-2 drop-shadow-sm">新しいパスワードを設定</h1>
-              <p className="text-slate-700">新しいパスワードを入力してください</p>
+              <h1 className="text-3xl font-bold text-slate-800 mb-2 drop-shadow-sm">{t('auth.reset.newPasswordTitle')}</h1>
+              <p className="text-slate-700">{t('auth.reset.newPasswordSubtitle')}</p>
             </div>
 
             <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-6 sm:p-8 shadow-2xl border border-blue-200">
@@ -177,14 +179,14 @@ export default function ResetPasswordPage() {
               <form onSubmit={handleUpdatePassword} className="space-y-6" noValidate>
                 <div className="space-y-2">
                   <label htmlFor="password" className="text-sm font-medium text-gray-700">
-                    新しいパスワード
+                    {t('forms.labels.newPassword')}
                   </label>
                   <div className="relative">
                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-blue-500" />
                     <Input
                       id="password"
                       type={showPassword ? "text" : "password"}
-                      placeholder="6文字以上の新しいパスワード"
+                      placeholder={t('forms.placeholders.newPasswordMin')}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       className="pl-10 pr-10 h-12 rounded-xl border-blue-200 focus:border-blue-500 focus:ring-blue-500 bg-white/80 backdrop-blur-sm"
@@ -197,7 +199,7 @@ export default function ResetPasswordPage() {
                       onClick={() => setShowPassword(!showPassword)}
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-blue-600 transition-colors"
                       aria-pressed={showPassword}
-                      aria-label={showPassword ? "パスワードを隠す" : "パスワードを表示"}
+                      aria-label={showPassword ? t('auth.login.hidePassword') : t('auth.login.showPassword')}
                     >
                       {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                     </button>
@@ -206,14 +208,14 @@ export default function ResetPasswordPage() {
 
                 <div className="space-y-2">
                   <label htmlFor="confirmPassword" className="text-sm font-medium text-gray-700">
-                    パスワード確認
+                    {t('forms.labels.confirmPassword')}
                   </label>
                   <div className="relative">
                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-blue-500" />
                     <Input
                       id="confirmPassword"
                       type={showConfirmPassword ? "text" : "password"}
-                      placeholder="パスワードを再入力"
+                      placeholder={t('forms.placeholders.confirmPassword')}
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       className="pl-10 pr-10 h-12 rounded-xl border-blue-200 focus:border-blue-500 focus:ring-blue-500 bg-white/80 backdrop-blur-sm"
@@ -225,7 +227,7 @@ export default function ResetPasswordPage() {
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-blue-600 transition-colors"
                       aria-pressed={showConfirmPassword}
-                      aria-label={showConfirmPassword ? "パスワード確認を隠す" : "パスワード確認を表示"}
+                      aria-label={showConfirmPassword ? t('auth.signup.hideConfirmPassword') : t('auth.signup.showConfirmPassword')}
                     >
                       {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                     </button>
@@ -238,14 +240,14 @@ export default function ResetPasswordPage() {
                   disabled={loading}
                   aria-busy={loading}
                 >
-                  {loading ? "更新中..." : "パスワードを更新"}
+                  {loading ? t('common.buttons.updating') : t('common.buttons.updatePassword')}
                 </Button>
               </form>
 
               <div className="mt-8 text-center">
-                <p className="text-gray-600 mb-2">ログインページに戻る</p>
+                <p className="text-gray-600 mb-2">{t('auth.reset.backToLogin')}</p>
                 <Link href="/auth/login" className="text-blue-600 hover:text-blue-700 font-medium transition-colors">
-                  ログイン
+                  {t('auth.login.title')}
                 </Link>
               </div>
             </div>
@@ -261,8 +263,8 @@ export default function ResetPasswordPage() {
       <div className="container mx-auto px-4 py-10 sm:py-14 lg:py-16">
         <div className="mx-auto w-full max-w-md sm:max-w-lg">
           <div className="text-center mb-8 sm:mb-10">
-            <h1 className="text-3xl font-bold text-slate-800 mb-2 drop-shadow-sm">パスワードをリセット</h1>
-            <p className="text-slate-700">登録済みのメールアドレスを入力してください</p>
+            <h1 className="text-3xl font-bold text-slate-800 mb-2 drop-shadow-sm">{t('auth.reset.title')}</h1>
+            <p className="text-slate-700">{t('auth.reset.subtitle')}</p>
           </div>
 
           <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-6 sm:p-8 shadow-2xl border border-blue-200">
@@ -285,14 +287,14 @@ export default function ResetPasswordPage() {
             <form onSubmit={handleResetPasswordRequest} className="space-y-6" noValidate>
               <div className="space-y-2">
                 <label htmlFor="email" className="text-sm font-medium text-gray-700">
-                  メールアドレス
+                  {t('forms.labels.email')}
                 </label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-blue-500" />
                   <Input
                     id="email"
                     type="email"
-                    placeholder="あなたのメールアドレス"
+                    placeholder={t('forms.placeholders.email')}
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="pl-10 h-12 rounded-xl border-blue-200 focus:border-blue-500 focus:ring-blue-500 bg-white/80 backdrop-blur-sm"
@@ -307,14 +309,14 @@ export default function ResetPasswordPage() {
                 className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl shadow-2xl transition-all duration-200"
                 disabled={loading}
               >
-                {loading ? "送信中..." : "パスワードリセットメールを送信"}
+                {loading ? t('common.buttons.sending') : t('common.buttons.sendResetEmail')}
               </Button>
             </form>
 
             <div className="mt-8 text-center">
-              <p className="text-gray-600 mb-2">ログインページに戻る</p>
+              <p className="text-gray-600 mb-2">{t('auth.reset.backToLogin')}</p>
               <Link href="/auth/login" className="text-blue-600 hover:text-blue-700 font-medium transition-colors">
-                ログイン
+                {t('auth.login.title')}
               </Link>
             </div>
           </div>

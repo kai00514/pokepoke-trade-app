@@ -10,6 +10,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { ArrowLeft, Mail, MessageCircle, Clock, CheckCircle, AlertCircle } from "lucide-react"
 import { Link } from "@/lib/i18n-navigation"
 import { submitContactForm } from "@/lib/actions/contact"
+import { useTranslations } from "next-intl"
 
 const initialState = {
   success: false,
@@ -17,6 +18,7 @@ const initialState = {
 }
 
 export default function ContactPage() {
+  const t = useTranslations()
   const { user, userProfile } = useAuth()
   const [state, formAction, isPending] = useActionState(submitContactForm, initialState)
 
@@ -30,7 +32,7 @@ export default function ContactPage() {
             className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 transition-colors duration-200"
           >
             <ArrowLeft className="w-5 h-5" />
-            <span className="font-medium">タイムラインに戻る</span>
+            <span className="font-medium">{t('common.navigation.backToTimeline')}</span>
           </Link>
         </div>
       </div>
@@ -38,9 +40,9 @@ export default function ContactPage() {
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-gray-900 mb-4">お問い合わせ</h1>
+            <h1 className="text-4xl font-bold text-gray-900 mb-4">{t('pages.contact.title')}</h1>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              ご質問やご要望がございましたら、お気軽にお問い合わせください。 内容を確認の上、後日ご返信いたします。
+              {t('pages.contact.description')}
             </p>
           </div>
 
@@ -51,9 +53,9 @@ export default function ContactPage() {
                 <CardHeader className="bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-t-lg">
                   <CardTitle className="flex items-center gap-2 text-xl">
                     <MessageCircle className="w-6 h-6" />
-                    お問い合わせフォーム
+                    {t('pages.contact.formTitle')}
                   </CardTitle>
-                  <CardDescription className="text-blue-100">必要事項をご入力の上、送信してください</CardDescription>
+                  <CardDescription className="text-blue-100">{t('pages.contact.formDescription')}</CardDescription>
                 </CardHeader>
                 <CardContent className="p-6">
                   {state?.message && (
@@ -77,21 +79,21 @@ export default function ContactPage() {
                     <div className="grid md:grid-cols-2 gap-4">
                       <div>
                         <label htmlFor="name" className="block text-sm font-semibold text-gray-700 mb-2">
-                          お名前 <span className="text-red-500">*</span>
+                          {t('forms.labels.name')} <span className="text-red-500">*</span>
                         </label>
                         <Input
                           id="name"
                           name="name"
                           type="text"
                           defaultValue={userProfile?.display_name || ""}
-                          placeholder="山田 太郎"
+                          placeholder={t('forms.placeholders.name')}
                           required
                           className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
                         />
                       </div>
                       <div>
                         <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-2">
-                          メールアドレス <span className="text-red-500">*</span>
+                          {t('forms.labels.email')} <span className="text-red-500">*</span>
                         </label>
                         <Input
                           id="email"
@@ -107,13 +109,13 @@ export default function ContactPage() {
 
                     <div>
                       <label htmlFor="subject" className="block text-sm font-semibold text-gray-700 mb-2">
-                        件名 <span className="text-red-500">*</span>
+                        {t('forms.labels.subject')} <span className="text-red-500">*</span>
                       </label>
                       <Input
                         id="subject"
                         name="subject"
                         type="text"
-                        placeholder="お問い合わせの件名をご入力ください"
+                        placeholder={t('forms.placeholders.subject')}
                         required
                         className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
                       />
@@ -121,12 +123,12 @@ export default function ContactPage() {
 
                     <div>
                       <label htmlFor="message" className="block text-sm font-semibold text-gray-700 mb-2">
-                        メッセージ <span className="text-red-500">*</span>
+                        {t('forms.labels.message')} <span className="text-red-500">*</span>
                       </label>
                       <Textarea
                         id="message"
                         name="message"
-                        placeholder="お問い合わせ内容を詳しくご記入ください"
+                        placeholder={t('forms.placeholders.message')}
                         required
                         rows={6}
                         className="border-gray-300 focus:border-blue-500 focus:ring-blue-500 resize-none"
@@ -141,12 +143,12 @@ export default function ContactPage() {
                       {isPending ? (
                         <div className="flex items-center gap-2">
                           <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                          送信中...
+                          {t('common.buttons.sending')}
                         </div>
                       ) : (
                         <div className="flex items-center gap-2">
                           <Mail className="w-5 h-5" />
-                          送信する
+                          {t('common.buttons.send')}
                         </div>
                       )}
                     </Button>
@@ -160,22 +162,22 @@ export default function ContactPage() {
               {/* よくある質問 */}
               <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
                 <CardHeader className="bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-t-lg">
-                  <CardTitle className="text-lg">よくある質問</CardTitle>
+                  <CardTitle className="text-lg">{t('pages.contact.faq.title')}</CardTitle>
                 </CardHeader>
                 <CardContent className="p-4 space-y-4">
                   <div>
-                    <h4 className="font-semibold text-gray-900 mb-2">Q. 返信までどのくらいかかりますか？</h4>
-                    <p className="text-sm text-gray-600">通常、1-3営業日以内にご返信いたします。</p>
+                    <h4 className="font-semibold text-gray-900 mb-2">{t('pages.contact.faq.q1')}</h4>
+                    <p className="text-sm text-gray-600">{t('pages.contact.faq.a1')}</p>
                   </div>
                   <div>
-                    <h4 className="font-semibold text-gray-900 mb-2">Q. アカウントに関する問題</h4>
+                    <h4 className="font-semibold text-gray-900 mb-2">{t('pages.contact.faq.q2')}</h4>
                     <p className="text-sm text-gray-600">
-                      ログインできない場合は、パスワードリセットをお試しください。
+                      {t('pages.contact.faq.a2')}
                     </p>
                   </div>
                   <div>
-                    <h4 className="font-semibold text-gray-900 mb-2">Q. 機能の要望について</h4>
-                    <p className="text-sm text-gray-600">新機能のご要望も大歓迎です。詳しくお聞かせください。</p>
+                    <h4 className="font-semibold text-gray-900 mb-2">{t('pages.contact.faq.q3')}</h4>
+                    <p className="text-sm text-gray-600">{t('pages.contact.faq.a3')}</p>
                   </div>
                 </CardContent>
               </Card>
@@ -183,21 +185,21 @@ export default function ContactPage() {
               {/* 連絡先情報 */}
               <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
                 <CardHeader className="bg-gradient-to-r from-orange-500 to-red-600 text-white rounded-t-lg">
-                  <CardTitle className="text-lg">その他の連絡方法</CardTitle>
+                  <CardTitle className="text-lg">{t('pages.contact.otherContact.title')}</CardTitle>
                 </CardHeader>
                 <CardContent className="p-4 space-y-4">
                   <div className="flex items-center gap-3">
                     <Mail className="w-5 h-5 text-blue-600" />
                     <div>
-                      <p className="font-semibold text-gray-900">メール</p>
+                      <p className="font-semibold text-gray-900">{t('pages.contact.otherContact.email')}</p>
                       <p className="text-sm text-gray-600">support@pokelink.com</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
                     <Clock className="w-5 h-5 text-green-600" />
                     <div>
-                      <p className="font-semibold text-gray-900">対応時間</p>
-                      <p className="text-sm text-gray-600">平日 9:00-18:00</p>
+                      <p className="font-semibold text-gray-900">{t('pages.contact.otherContact.hours')}</p>
+                      <p className="text-sm text-gray-600">{t('pages.contact.otherContact.hoursValue')}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -206,13 +208,13 @@ export default function ContactPage() {
               {/* 注意事項 */}
               <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
                 <CardHeader className="bg-gradient-to-r from-purple-500 to-pink-600 text-white rounded-t-lg">
-                  <CardTitle className="text-lg">ご注意</CardTitle>
+                  <CardTitle className="text-lg">{t('pages.contact.notice.title')}</CardTitle>
                 </CardHeader>
                 <CardContent className="p-4">
                   <ul className="text-sm text-gray-600 space-y-2">
-                    <li>• 土日祝日は返信が遅れる場合があります</li>
-                    <li>• 緊急の場合は件名に【緊急】と記載してください</li>
-                    <li>• スパムメールフィルターをご確認ください</li>
+                    <li>• {t('pages.contact.notice.item1')}</li>
+                    <li>• {t('pages.contact.notice.item2')}</li>
+                    <li>• {t('pages.contact.notice.item3')}</li>
                   </ul>
                 </CardContent>
               </Card>

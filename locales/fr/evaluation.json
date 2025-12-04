@@ -1,0 +1,19 @@
+{
+  "checkError": "Failed to check user evaluation",
+  "checkErrorDetail": "An error occurred while checking user evaluation.",
+  "loginPrompt": "Please log in to evaluate this deck.",
+  "alreadyRated": "Already Rated",
+  "alreadyRatedDetail": "You have already rated this deck.",
+  "submitError": "Failed to submit evaluation",
+  "submitErrorDetail": "An error occurred while submitting evaluation.",
+  "submitSuccess": "Evaluation Submitted",
+  "submitSuccessDetail": "Your evaluation of {score} points has been recorded.",
+  "deckFeatures": "Deck Features",
+  "stats": {
+    "accessibility": "Accessibility",
+    "speed": "Speed",
+    "power": "Power",
+    "durability": "Durability",
+    "stability": "Stability"
+  }
+}

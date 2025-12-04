@@ -22,10 +22,12 @@ import { supabase } from "@/lib/supabase/client"
 import LoginPromptModal from "@/components/ui/login-prompt-modal"
 import { checkTimeSync, formatTimeSkew, type TimeSync } from "@/lib/utils/time-sync"
 import { event as gtagEvent } from "@/lib/analytics/gtag"
+import { useTranslations } from "next-intl"
 
 type SelectionContextType = "wanted" | "offered" | null
 
 export default function CreateTradePage() {
+  const t = useTranslations()
   const [tradeTitle, setTradeTitle] = useState("")
   const [wantedCards, setWantedCards] = useState<SelectedCardType[]>([])
   const [offeredCards, setOfferedCards] = useState<SelectedCardType[]>([])
@@ -40,7 +42,7 @@ export default function CreateTradePage() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [modalSelectionContext, setModalSelectionContext] = useState<SelectionContextType>(null)
   const [modalMaxSelection, setModalMaxSelection] = useState<number | undefined>(undefined)
-  const [currentModalTitle, setCurrentModalTitle] = useState("カードを選択")
+  const [currentModalTitle, setCurrentModalTitle] = useState(t('trades.selectCard'))
   const [modalInitialCards, setModalInitialCards] = useState<SelectedCardType[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [showListSelector, setShowListSelector] = useState(false)
@@ -127,9 +129,9 @@ export default function CreateTradePage() {
 
   const validateForm = () => {
     const errors: { [key: string]: string } = {}
-    if (!tradeTitle.trim()) errors.title = "トレード目的を入力してください。"
-    if (wantedCards.length === 0) errors.wantedCards = "求めるカードを選択してください。"
-    if (offeredCards.length === 0) errors.offeredCards = "譲れるカードを選択してください。"
+    if (!tradeTitle.trim()) errors.title = t('errors.validation.tradeTitleRequired')
+    if (wantedCards.length === 0) errors.wantedCards = t('errors.validation.wantedCardsRequired')
+    if (offeredCards.length === 0) errors.offeredCards = t('errors.validation.offeredCardsRequired')
     setFormErrors(errors)
     return Object.keys(errors).length === 0
   }
@@ -180,12 +182,12 @@ export default function CreateTradePage() {
       if (error) {
         console.error("Failed to refresh session:", error)
         toast({
-          title: "セッション更新エラー",
-          description: "セッションの更新に失敗しました。再ログインしてください。",
+          title: t('errors.auth.sessionRefreshError'),
+          description: t('errors.auth.sessionRefreshFailed'),
           variant: "destructive",
         })
       } else {
-        toast({ title: "セッション更新完了", description: "セッションが正常に更新されました。" })
+        toast({ title: t('messages.success.sessionRefreshed'), description: t('messages.success.sessionUpdated') })
       }
     } catch (error) {
       console.error("Error refreshing session:", error)
@@ -194,13 +196,13 @@ export default function CreateTradePage() {
 
   const handleSubmitClick = () => {
     if (!validateForm()) {
-      toast({ title: "入力エラー", description: "必須項目を入力してください。", variant: "destructive" })
+      toast({ title: t('errors.validation.inputError'), description: t('errors.validation.requiredFields'), variant: "destructive" })
       return
     }
     if (timeSync?.isSkewed)
       toast({
-        title: "時刻同期の問題",
-        description: `デバイスの時計が${formatTimeSkew(timeSync.skew)}ずれています。投稿に失敗する可能性があります。`,
+        title: t('errors.system.timeSyncIssue'),
+        description: t('errors.system.timeSyncWarning', { skew: formatTimeSkew(timeSync.skew) }),
         variant: "destructive",
       })
     if (!isAuthenticated) setShowLoginPrompt(true)
@@ -235,19 +237,19 @@ export default function CreateTradePage() {
         // タイムラインのキャッシュをクリア
         sessionStorage.removeItem("trade-posts-cache-page-1")
 
-        toast({ title: "投稿成功", description: "トレード投稿が作成されました。" })
+        toast({ title: t('messages.success.postSuccess'), description: t('messages.success.tradePostCreated') })
         if (result.postId) router.push(`/trades/${result.postId}`)
         else router.push("/")
       } else {
         toast({
-          title: "投稿エラー",
-          description: result.error || "投稿の作成に失敗しました。",
+          title: t('errors.post.postError'),
+          description: result.error || t('errors.post.postCreationFailed'),
           variant: "destructive",
         })
       }
     } catch (error) {
       console.error("Error submitting trade post:", error)
-      toast({ title: "エラー", description: "予期しないエラーが発生しました。", variant: "destructive" })
+      toast({ title: t('errors.generic.error'), description: t('errors.generic.unexpectedError'), variant: "destructive" })
     } finally {
       setIsSubmitting(false)
     }
@@ -257,7 +259,7 @@ export default function CreateTradePage() {
     if (cards.length === 0) {
       return (
         <div>
-          <p className="text-sm text-slate-500 mt-2">カードが選択されていません</p>
+          <p className="text-sm text-slate-500 mt-2">{t('trades.noCardsSelected')}</p>
           {formErrors[context === "wanted" ? "wantedCards" : "offeredCards"] && (
             <p className="text-sm text-red-500 mt-1">
               {formErrors[context === "wanted" ? "wantedCards" : "offeredCards"]}
@@ -312,17 +314,16 @@ export default function CreateTradePage() {
       <main className="flex-grow container mx-auto px-4 py-8">
         <Link href="/" className="inline-flex items-center text-sm text-blue-600 hover:text-blue-700 mb-6">
           <ArrowLeft className="h-4 w-4 mr-1" />
-          タイムラインに戻る
+          {t('common.navigation.backToTimeline')}
         </Link>
         <div className="bg-white p-6 sm:p-8 rounded-lg shadow-md max-w-2xl mx-auto">
-          <h1 className="text-2xl font-bold text-slate-800 mb-6 text-center">トレードカードを登録</h1>
+          <h1 className="text-2xl font-bold text-slate-800 mb-6 text-center">{t('trades.registerTradeCard')}</h1>
           {timeSync?.isSkewed && (
             <Alert className="mb-6 bg-yellow-50 border-yellow-200">
               <AlertTriangle className="h-5 w-5 text-yellow-600" />
-              <AlertTitle className="text-yellow-700 font-semibold">時刻同期の問題</AlertTitle>
+              <AlertTitle className="text-yellow-700 font-semibold">{t('errors.system.timeSyncIssue')}</AlertTitle>
               <AlertDescription className="text-yellow-600 text-sm">
-                デバイスの時計が{formatTimeSkew(timeSync.skew)}
-                ずれています。これにより認証に問題が発生する可能性があります。
+                {t('errors.system.timeSyncAuthWarning', { skew: formatTimeSkew(timeSync.skew) })}
                 <Button
                   variant="outline"
                   size="sm"
@@ -330,22 +331,22 @@ export default function CreateTradePage() {
                   className="ml-2 text-yellow-700 border-yellow-300 hover:bg-yellow-100 bg-transparent"
                 >
                   <Clock className="h-4 w-4 mr-1" />
-                  セッション更新
+                  {t('common.buttons.refreshSession')}
                 </Button>
               </AlertDescription>
             </Alert>
           )}
           <Alert className="mb-6 bg-blue-50 border-blue-200">
             <InfoIcon className="h-5 w-5 text-blue-600" />
-            <AlertTitle className="text-blue-700 font-semibold">お知らせ</AlertTitle>
+            <AlertTitle className="text-blue-700 font-semibold">{t('common.misc.notice')}</AlertTitle>
             <AlertDescription className="text-blue-600 text-sm">
-              ここで登録された内容はタイムラインに即時反映されます。コメントがあれば、ベルマークから確認できます。トレード状況はマイページのトレード履歴から確認できます。
+              {t('trades.postNotice')}
             </AlertDescription>
           </Alert>
           <form className="space-y-6">
             <div>
               <label htmlFor="tradeTitle" className="block text-sm font-medium text-slate-700 mb-1">
-                トレード目的 <span className="text-red-500">*</span>
+                {t('trades.tradeTitle')} <span className="text-red-500">*</span>
               </label>
               <Input
                 id="tradeTitle"
@@ -354,7 +355,7 @@ export default function CreateTradePage() {
                   setTradeTitle(e.target.value)
                   if (formErrors.title) setFormErrors((prev) => ({ ...prev, title: "" }))
                 }}
-                placeholder="例：リザードンex求む"
+                placeholder={t('trades.tradeTitlePlaceholder')}
                 required
                 disabled={isSubmitting}
                 className={formErrors.title ? "border-red-500" : ""}
@@ -363,26 +364,26 @@ export default function CreateTradePage() {
             </div>
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">
-                求めるカード <span className="text-red-500">*</span>
+                {t('trades.wantedCards')} <span className="text-red-500">*</span>
               </label>
               <Button
                 type="button"
-                onClick={() => openModal("wanted", 20, "求めるカードを選択")}
+                onClick={() => openModal("wanted", 20, t('trades.selectWantedCards'))}
                 className="w-full bg-blue-600 hover:bg-blue-700 text-white"
                 disabled={isSubmitting}
               >
-                カードを選択 (最大20枚)
+                {t('common.buttons.selectCards')}
               </Button>
               {renderSelectedCards(wantedCards, "wanted")}
             </div>
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">
-                譲れるカード <span className="text-red-500">*</span>
+                {t('trades.offeredCards')} <span className="text-red-500">*</span>
               </label>
               {/* リスト選択UI */}
               <div className="mb-1 p-3 bg-blue-50 rounded-lg border border-blue-200">
                 <div className="flex items-center justify-between mb-1">
-                  <span className="text-sm font-medium text-blue-700">保存済みリストから選択</span>
+                  <span className="text-sm font-medium text-blue-700">{t('trades.selectFromSavedList')}</span>
                   <Button
                     type="button"
                     variant="outline"
@@ -391,30 +392,30 @@ export default function CreateTradePage() {
                     className="text-blue-600 border-blue-300 hover:bg-blue-100"
                     disabled={isSubmitting}
                   >
-                    リストを選択
+                    {t('common.buttons.selectFromList')}
                   </Button>
                 </div>
               </div>
 
               <Button
                 type="button"
-                onClick={() => openModal("offered", 20, "譲れるカードを選択")}
+                onClick={() => openModal("offered", 20, t('trades.selectOfferedCards'))}
                 className="w-full bg-blue-600 hover:bg-blue-700 text-white"
                 disabled={isSubmitting}
               >
-                カードを選択 (最大20枚)
+                {t('common.buttons.selectCards')}
               </Button>
               {renderSelectedCards(offeredCards, "offered")}
             </div>
             <div>
               <label htmlFor="appId" className="block text-sm font-medium text-slate-700 mb-1">
-                ポケポケアプリID
+                {t('trades.pokepokeAppId')}
               </label>
               <Input
                 id="appId"
                 value={appId}
                 onChange={handleAppIdChange}
-                placeholder="ポケポケアプリのID (任意)"
+                placeholder={t('trades.pokepokeAppIdPlaceholder')}
                 disabled={isSubmitting || (isAuthenticated && hasRegisteredPokepokeId)}
                 readOnly={isAuthenticated && hasRegisteredPokepokeId}
                 inputMode="numeric"
@@ -423,20 +424,20 @@ export default function CreateTradePage() {
               <p className="text-xs text-slate-500 mt-1">
                 {isAuthenticated
                   ? hasRegisteredPokepokeId
-                    ? "登録済みのポケポケIDが自動入力されています。"
-                    : "ログイン中です。ポケポケIDは任意です。半角数字のみ入力可能です。"
-                  : "ゲストユーザーとして投稿します。ポケポケIDは任意です。半角数字のみ入力可能です。"}
+                    ? t('trades.registeredIdAutoFilled')
+                    : t('trades.loggedInIdOptional')
+                  : t('trades.guestIdOptional')}
               </p>
             </div>
             <div>
               <label htmlFor="comment" className="block text-sm font-medium text-slate-700 mb-1">
-                コメント (任意)
+                {t('comments.title')} {t('common.labels.optional')}
               </label>
               <Textarea
                 id="comment"
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
-                placeholder="コメントを入力 (256文字まで)"
+                placeholder={t('trades.commentPlaceholder')}
                 rows={4}
                 disabled={isSubmitting}
                 maxLength={256}
@@ -453,10 +454,10 @@ export default function CreateTradePage() {
                 {isSubmitting ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    登録中...
+                    {t('common.buttons.submitting')}
                   </>
                 ) : (
-                  "登録する"
+                  t('common.buttons.submit')
                 )}
               </Button>
             </div>
