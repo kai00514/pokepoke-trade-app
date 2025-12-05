@@ -13,8 +13,6 @@ export type InfoArticle = {
   tags?: string[] | null
   category?: string | null
   published_at: string
-  pinned?: boolean | null
-  priority?: number | null
 }
 
 export type InfoArticleMeta = InfoArticle & {
@@ -741,10 +739,8 @@ export async function getInfoList(limit = 12, offset = 0): Promise<InfoArticle[]
 
   const { data, error } = await supabase
     .from("info_articles")
-    .select("id,title,excerpt,tags,category,published_at,pinned,priority")
+    .select("id,title,excerpt,tags,category,published_at")
     .lte("published_at", nowIso)
-    .order("pinned", { ascending: false })
-    .order("priority", { ascending: false })
     .order("published_at", { ascending: false })
     .range(offset, offset + limit - 1)
 
@@ -760,7 +756,7 @@ export async function getInfoDetailById(id: string): Promise<{ meta: InfoArticle
 
   const { data: meta, error: e1 } = await supabase
     .from("info_articles")
-    .select("id,title,excerpt,tags,category,published_at,pinned,priority,slug,updated_at")
+    .select("id,title,excerpt,tags,category,published_at,slug,updated_at")
     .eq("id", id)
     .lte("published_at", nowIso)
     .single()
