@@ -31,7 +31,7 @@ export function DeckEvaluation({
 
   const { user, loading: authLoading } = useAuth()
   const { toast } = useToast()
-  const t = useTranslations()
+  const t = useTranslations("evaluation")
   const [userScore, setUserScore] = useState<number[]>([5])
   const [currentEvalValue, setCurrentEvalValue] = useState(initialEvalValue)
   const [currentEvalCount, setCurrentEvalCount] = useState(initialEvalCount)

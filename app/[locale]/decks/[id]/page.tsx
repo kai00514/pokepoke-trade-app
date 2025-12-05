@@ -30,6 +30,7 @@ export default function DeckDetailPage() {
   const { user, loading: authLoading } = useAuth()
   const t = useTranslations("decks")
   const tComments = useTranslations("comments")
+  const tCards = useTranslations("cards")
   const [deck, setDeck] = useState<DeckWithCards | null>(null)
   const [cardDetails, setCardDetails] = useState<Record<string, CardData>>({})
   const [isLoading, setIsLoading] = useState(true)
@@ -51,8 +52,8 @@ export default function DeckDetailPage() {
     { name: "電気", icon: "/images/types/電気.png", id: "electric", color: "bg-yellow-500" },
     { name: "エスパー", icon: "/images/types/念.png", id: "psychic", color: "bg-purple-500" },
     { name: "格闘", icon: "/images/types/格闘.png", id: "fighting", color: "bg-orange-500" },
-    { name: t('cards.types.dark'), icon: "/images/types/悪.png", id: "dark", color: "bg-gray-800" },
-    { name: t('cards.types.steel'), icon: "/images/types/鋼.png", id: "metal", color: "bg-gray-500" },
+    { name: tCards('types.dark'), icon: "/images/types/悪.png", id: "dark", color: "bg-gray-800" },
+    { name: tCards('types.steel'), icon: "/images/types/鋼.png", id: "metal", color: "bg-gray-500" },
     { name: "無色", icon: "/images/types/無色.png", id: "colorless", color: "bg-gray-400" },
     { name: "ドラゴン", icon: "/images/types/龍.png", id: "dragon", color: "bg-yellow-600" },
   ]
