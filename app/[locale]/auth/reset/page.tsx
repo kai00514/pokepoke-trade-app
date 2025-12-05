@@ -1,10 +1,8 @@
 "use client"
 
-export const dynamic = 'force-dynamic'
-
 import type React from "react"
 import { useState, useEffect } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useRouter, useSearchParams, useParams } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -16,6 +14,8 @@ import { useTranslations } from "next-intl"
 
 export default function ResetPasswordPage() {
   const t = useTranslations()
+  const params = useParams()
+  const locale = params.locale as string
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
@@ -50,7 +50,7 @@ export default function ResetPasswordPage() {
           })
         } else {
           // セッションが設定されたらURLからトークンを削除
-          router.replace("/auth/reset")
+          router.replace(`/${locale}/auth/reset`)
         }
       }
     }
@@ -70,7 +70,7 @@ export default function ResetPasswordPage() {
       }
 
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth/reset`,
+        redirectTo: `${window.location.origin}/${locale}/auth/reset`,
       })
 
       if (error) {
@@ -133,7 +133,7 @@ export default function ResetPasswordPage() {
           title: t('messages.success.passwordUpdated'),
           description: t('auth.login.newPasswordPrompt'),
         })
-        router.push("/auth/login?reset=success")
+        router.push(`/${locale}/auth/login?reset=success`)
       }
     } catch (error) {
       console.error("Update password error:", error)
@@ -248,7 +248,7 @@ export default function ResetPasswordPage() {
 
               <div className="mt-8 text-center">
                 <p className="text-gray-600 mb-2">{t('auth.reset.backToLogin')}</p>
-                <Link href="/auth/login" className="text-blue-600 hover:text-blue-700 font-medium transition-colors">
+                <Link href={`/${locale}/auth/login`} className="text-blue-600 hover:text-blue-700 font-medium transition-colors">
                   {t('auth.login.title')}
                 </Link>
               </div>
