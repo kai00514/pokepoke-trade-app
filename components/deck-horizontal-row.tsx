@@ -9,7 +9,7 @@ import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { useToast } from "@/components/ui/use-toast"
 import { useAuth } from "@/contexts/auth-context"
-import { useTranslations } from "next-intl"
+import { useTranslations, useLocale } from "next-intl"
 import {
   likeDeck,
   unlikeDeck,
@@ -90,6 +90,7 @@ export default function DeckHorizontalRow({
   const { user } = useAuth()
   const { toast } = useToast()
   const t = useTranslations()
+  const locale = useLocale()
 
   const [isLiked, setIsLiked] = useState(false)
   const [isFavorited, setIsFavorited] = useState(false)
@@ -287,7 +288,7 @@ export default function DeckHorizontalRow({
         </div>
         <div className="flex items-center text-xs text-slate-500">
           <CalendarDays className="h-3.5 w-3.5 mr-1 flex-shrink-0" />
-          <span>{t('common.misc.updated')}: {new Date(updatedDate).toLocaleDateString(t('common.language.ja'))}</span>
+          <span>{t('common.misc.updated')}: {new Date(updatedDate).toLocaleDateString(locale)}</span>
         </div>
       </div>
 

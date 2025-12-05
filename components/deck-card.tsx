@@ -9,7 +9,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Badge } from "@/components/ui/badge"
 import { Heart, Star, MessageCircle, CalendarDays, Loader2 } from "lucide-react"
 import { useAuth } from "@/contexts/auth-context"
-import { useTranslations } from "next-intl"
+import { useTranslations, useLocale } from "next-intl"
 import {
   likeDeck,
   unlikeDeck,
@@ -75,6 +75,7 @@ export function DeckCard({ deck, onCountUpdate, currentCategory = "posts", onRem
   const { user } = useAuth()
   const { toast } = useToast()
   const t = useTranslations()
+  const locale = useLocale()
 
   // ローカル状態でいいね・お気に入りの状態とカウントを管理
   const [isLiked, setIsLiked] = useState(false)
@@ -433,7 +434,7 @@ export function DeckCard({ deck, onCountUpdate, currentCategory = "posts", onRem
             </p>
             <div className="flex items-center text-xs text-slate-500 mt-1">
               <CalendarDays className="h-3 w-3 mr-1 flex-shrink-0" />
-              <span className="text-xs">{t('common.misc.updated')}: {new Date(updatedDate).toLocaleDateString(t('common.language.ja'))}</span>
+              <span className="text-xs">{t('common.misc.updated')}: {new Date(updatedDate).toLocaleDateString(locale)}</span>
             </div>
           </CardContent>
           <CardFooter className="p-2 bg-slate-50/70 border-t border-slate-200/80 flex justify-around items-center text-xs text-slate-600">

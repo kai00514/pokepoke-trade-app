@@ -65,7 +65,7 @@ interface DeckPageData {
 }
 
 export default function PokemonDeckPage() {
-  const t = useTranslations()
+  const t = useTranslations("content")
   const params = useParams()
   const [deckData, setDeckData] = useState<DeckPageData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -80,7 +80,7 @@ export default function PokemonDeckPage() {
   useEffect(() => {
     const fetchDeck = async () => {
       if (!params.id || typeof params.id !== "string") {
-        setError("無効なデッキIDです")
+        setError(t("invalidDeckId"))
         setIsLoading(false)
         return
       }
@@ -88,7 +88,7 @@ export default function PokemonDeckPage() {
       try {
         const result = await getDeckPageById(params.id)
         if (!result.success || !result.data) {
-          setError(result.error || "デッキが見つかりません")
+          setError(result.error || t("deckNotFound"))
           setIsLoading(false)
           return
         }
@@ -98,21 +98,21 @@ export default function PokemonDeckPage() {
 
         const convertedData: DeckPageData = {
           id: data.id,
-          title: data.title || "デッキタイトル",
+          title: data.title || t("deckTitle"),
           lastUpdated: new Date(data.updated_at).toLocaleDateString("ja-JP"),
           commentCount: data.comment_count || 0,
           thumbnailImage: data.thumbnail_image_url,
-          thumbnailAlt: data.deck_name || "デッキ画像",
-          deckBadge: data.deck_name || "デッキ",
-          section1Title: "デッキレシピ",
-          section2Title: "強み・弱み",
-          section3Title: "立ち回り・使い方",
-          deckName: data.deck_name || "デッキ",
+          thumbnailAlt: data.deck_name || t("deckImage"),
+          deckBadge: data.deck_name || t("deck"),
+          section1Title: t("deckRecipe"),
+          section2Title: t("strengthsWeaknesses"),
+          section3Title: t("howToPlay"),
+          deckName: data.deck_name || t("deck"),
           energyType: data.energy_type || "無色",
           energyImage: data.energy_image_url,
           cards: data.cards_data || [],
           deckDescription: data.deck_description || "",
-          evaluationTitle: "デッキ評価",
+          evaluationTitle: t("deckEvaluation"),
           tierInfo: data.tier_info || {
             rank: data.tier_rank || "",
             tier: data.tier_name || "",
@@ -146,7 +146,7 @@ export default function PokemonDeckPage() {
         })
       } catch (err) {
         console.error("Failed to fetch deck:", err)
-        setError("デッキの取得に失敗しました")
+        setError(t("fetchError"))
       } finally {
         setIsLoading(false)
       }
@@ -223,14 +223,14 @@ export default function PokemonDeckPage() {
         console.error("❌ JSON parse failed:")
         console.error("   - Error:", jsonError)
         console.error("   - Response was:", responseText)
-        throw new Error(`サーバーエラー (${response.status}): ${responseText.substring(0, 100)}...`)
+        throw new Error(`${t("serverError")} (${response.status}): ${responseText.substring(0, 100)}...`)
       }
 
       if (!response.ok) {
         console.error("❌ Response not OK:")
         console.error("   - Status:", response.status)
         console.error("   - Error data:", responseData)
-        throw new Error(responseData.error || `サーバーエラー (${response.status})`)
+        throw new Error(responseData.error || `${t("serverError")} (${response.status})`)
       }
 
       console.log("🎉 Success! Updating UI state...")
@@ -283,7 +283,7 @@ export default function PokemonDeckPage() {
           <Button asChild variant="outline">
             <Link href="/decks">
               <ArrowLeft className="mr-2 h-4 w-4" />
-              デッキ一覧に戻る
+              {t("backToDeckList")}
             </Link>
           </Button>
         </div>
@@ -297,7 +297,7 @@ export default function PokemonDeckPage() {
       <Dialog open={showSuccessModal} onOpenChange={setShowSuccessModal}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>評価完了</DialogTitle>
+            <DialogTitle>{t("evaluationComplete")}</DialogTitle>
             <DialogDescription>{t('evaluation.submitSuccess')}</DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -317,20 +317,20 @@ export default function PokemonDeckPage() {
             <Button asChild variant="outline">
               <Link href="/decks">
                 <ArrowLeft className="mr-2 h-4 w-4" />
-                戻る
+                {t("back")}
               </Link>
             </Button>
           </div>
 
           <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">{deckData.title}</h1>
           <div className="flex items-center gap-4 text-sm text-gray-600 mb-3">
-            <span>最終更新：{deckData.lastUpdated}</span>
+            <span>{t("lastUpdated")}：{deckData.lastUpdated}</span>
             <div className="flex items-center gap-1 bg-blue-100 text-blue-700 px-2 py-1 rounded">
               <MessageCircle className="w-4 h-4" />
               <span>{deckData.commentCount}</span>
             </div>
             <Button variant="outline" size="sm" className="text-blue-600 border-blue-200 bg-transparent">
-              最新コメントを読む
+              {t("readLatestComments")}
               <ChevronRight className="w-4 h-4 ml-1" />
             </Button>
           </div>
@@ -350,15 +350,15 @@ export default function PokemonDeckPage() {
       <div className="max-w-4xl mx-auto px-4 py-4">
         <Card className="mb-4">
           <CardContent className="py-2 px-4">
-            <h3 className="text-lg font-semibold mb-4 text-blue-600 border-l-4 border-blue-500 pl-3">目次</h3>
+            <h3 className="text-lg font-semibold mb-4 text-blue-600 border-l-4 border-blue-500 pl-3">{t("tableOfContents")}</h3>
             <nav className="space-y-1">
               {[
                 { title: deckData.section1Title, id: "deck-recipe" },
                 { title: deckData.section2Title, id: "strengths-weaknesses" },
                 { title: deckData.section3Title, id: "how-to-play" },
-                { title: "海外大会メタレポートとカード採用率", id: "meta-report" },
-                { title: "その他のデッキレシピ", id: "other-recipes" },
-                { title: "入れ替え代用カード", id: "substitute-cards" },
+                { title: t("metaReport"), id: "meta-report" },
+                { title: t("otherRecipes"), id: "other-recipes" },
+                { title: t("substituteCards"), id: "substitute-cards" },
               ].map((item, index) => (
                 <button
                   key={index}
@@ -411,13 +411,13 @@ export default function PokemonDeckPage() {
             />
 
             <div>
-              <h4 className="font-medium mb-3 text-blue-600 border-l-4 border-blue-500 pl-3">みんなの評価</h4>
+              <h4 className="font-medium mb-3 text-blue-600 border-l-4 border-blue-500 pl-3">{t("everyoneRating")}</h4>
               <div className="bg-gray-50 p-4 rounded-lg">
                 <div className="flex justify-between items-center mb-4">
-                  <span className="text-lg font-medium">スコア平均</span>
+                  <span className="text-lg font-medium">{t("averageScore")}</span>
                   <div className="text-right">
                     <div className="text-3xl font-bold">{evalValue.toFixed(1)}</div>
-                    <div className="text-sm text-gray-600">/10点({evalCount}件)</div>
+                    <div className="text-sm text-gray-600">{t("outOf10", { count: evalCount })}</div>
                   </div>
                 </div>
 
@@ -449,20 +449,20 @@ export default function PokemonDeckPage() {
                   </div>
                 </div>
 
-                <div className="text-center text-sm text-gray-600 mb-4">＼採点してスコアグラフを見てみよう／</div>
+                <div className="text-center text-sm text-gray-600 mb-4">{t("rateToSeeGraph")}</div>
 
                 <Button
                   className="w-full bg-blue-500 hover:bg-blue-600 text-white"
                   onClick={handleScoreSubmit}
                   disabled={isSubmitting || hasEvaluated}
                 >
-                  {isSubmitting ? "送信中..." : hasEvaluated ? "評価済み" : "採点！"}
+                  {isSubmitting ? t("submitting") : hasEvaluated ? t("rated") : t("rate")}
                 </Button>
               </div>
             </div>
 
             <Button className="w-full bg-blue-500 hover:bg-blue-600 text-white mb-4 mt-4">
-              ▶ 環境最強デッキランキング
+              {t("topTierRanking")}
             </Button>
           </CardContent>
         </Card>
@@ -491,9 +491,9 @@ export default function PokemonDeckPage() {
         <Card className="mb-4" id="meta-report">
           <CardContent className="p-4">
             <h3 className="text-lg font-semibold mb-4 text-blue-600 border-l-4 border-blue-500 pl-3">
-              海外大会メタレポートとカード採用率
+              {t("metaReport")}
             </h3>
-            <div className="text-center text-gray-500 py-6">メタレポートデータを読み込み中...</div>
+            <div className="text-center text-gray-500 py-6">{t("loadingMetaReport")}</div>
           </CardContent>
         </Card>
 

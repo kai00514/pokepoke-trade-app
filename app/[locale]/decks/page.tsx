@@ -13,6 +13,7 @@ import type { Deck } from "@/components/deck-card"
 import DeckHorizontalRow from "@/components/deck-horizontal-row"
 import { getDecksList, getDeckPagesList } from "@/lib/actions/deck-posts"
 import { useToast } from "@/components/ui/use-toast"
+import { useTranslations } from "next-intl"
 
 type TabId = "posted" | "tier" | "featured" | "newpack"
 
@@ -22,12 +23,7 @@ interface CategoryInfo {
   icon: React.ComponentType<{ className?: string }>
 }
 
-const categories: CategoryInfo[] = [
-  { id: "tier", title: "Tierデッキ", icon: ListChecks },
-  { id: "featured", title: "注目デッキ", icon: BarChartBig },
-  { id: "newpack", title: "新パックデッキ", icon: Zap },
-  { id: "posted", title: "みんなのデッキを見る", icon: Users },
-]
+// Categories will be defined inside the component to access translations
 
 interface DeckPageData extends Deck {
   is_deck_page?: boolean
@@ -35,6 +31,7 @@ interface DeckPageData extends Deck {
 }
 
 export default function DecksPage() {
+  const t = useTranslations()
   const [selectedCategory, setSelectedCategory] = useState<TabId | null>(null)
   const [decks, setDecks] = useState<DeckPageData[]>([])
   const [isLoading, setIsLoading] = useState(false)
@@ -42,6 +39,13 @@ export default function DecksPage() {
   const [showLoginPrompt, setShowLoginPrompt] = useState(false)
   const { toast } = useToast()
   const { user } = useAuth()
+
+  const categories: CategoryInfo[] = [
+    { id: "tier", title: t('decks.tierDecks'), icon: ListChecks },
+    { id: "featured", title: t('decks.featuredDecks'), icon: BarChartBig },
+    { id: "newpack", title: t('decks.newPackDecks'), icon: Zap },
+    { id: "posted", title: t('decks.viewAllDecks'), icon: Users },
+  ]
 
   // 投稿デッキ取得
   const fetchPostedDecks = useCallback(async () => {
@@ -56,14 +60,14 @@ export default function DecksPage() {
         }))
         setDecks(decksWithFlag)
       } else {
-        const msg = (result as any).error || "デッキの取得に失敗しました"
+        const msg = (result as any).error || t('decks.fetchError')
         setError(msg)
-        toast({ title: "エラー", description: msg, variant: "destructive" })
+        toast({ title: t('errors.generic.error'), description: msg, variant: "destructive" })
       }
     } catch {
-      const msg = "デッキの取得中にエラーが発生しました"
+      const msg = t('decks.fetchErrorOccurred')
       setError(msg)
-      toast({ title: "エラー", description: msg, variant: "destructive" })
+      toast({ title: t('errors.generic.error'), description: msg, variant: "destructive" })
     } finally {
       setIsLoading(false)
     }
@@ -85,9 +89,9 @@ export default function DecksPage() {
           // Step 2: DeckHorizontalRowが期待する形式に変換
           const formatted: DeckPageData[] = (result as any).data.map((deckPage: any) => ({
             id: deckPage.id.toString(),
-            name: deckPage.title || deckPage.deck_name || "無題のデッキ",
+            name: deckPage.title || deckPage.deck_name || t('decks.untitled'),
             imageUrl: deckPage.thumbnail_image_url || "/placeholder.svg?width=120&height=168",
-            cardName: deckPage.deck_name || "カード名不明",
+            cardName: deckPage.deck_name || t('decks.unknownCardName'),
             updatedAt: new Date(deckPage.updated_at).toLocaleDateString("ja-JP"),
             likes: deckPage.like_count || 0,
             favorites: 0,
@@ -99,16 +103,16 @@ export default function DecksPage() {
           }))
           setDecks(formatted)
         } else {
-          const msg = (result as any).error || "デッキの取得に失敗しました"
+          const msg = (result as any).error || t('decks.fetchError')
           setError(msg)
-          toast({ title: "エラー", description: msg, variant: "destructive" })
+          toast({ title: t('errors.generic.error'), description: msg, variant: "destructive" })
         }
       } catch (fetchError) {
         // Step 3: エラーハンドリング
         console.error("Error fetching deck pages:", fetchError)
-        const msg = "デッキの取得中にエラーが発生しました"
+        const msg = t('decks.fetchErrorOccurred')
         setError(msg)
-        toast({ title: "エラー", description: msg, variant: "destructive" })
+        toast({ title: t('errors.generic.error'), description: msg, variant: "destructive" })
       } finally {
         setIsLoading(false)
       }
@@ -133,7 +137,7 @@ export default function DecksPage() {
     if (!user) {
       setShowLoginPrompt(true)
     } else {
-      // お気に入りページに遷移
+      // {t('decks.favorites')}ページに遷移
       window.location.href = "/favorites"
     }
   }
@@ -144,7 +148,7 @@ export default function DecksPage() {
         <div className="flex justify-center items-center py-20">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p className="text-slate-500">デッキを読み込み中...</p>
+            <p className="text-slate-500">{t('decks.loading')}</p>
           </div>
         </div>
       )
@@ -155,7 +159,7 @@ export default function DecksPage() {
         <div className="text-center py-20">
           <p className="text-red-500 mb-4">{error}</p>
           <Button onClick={() => handleCategoryClick(selectedCategory || "posted")} variant="outline">
-            再試行
+            {t('decks.retry')}
           </Button>
         </div>
       )
@@ -166,13 +170,13 @@ export default function DecksPage() {
         <div className="text-center py-20">
           <div className="mb-6">
             <PlusCircle className="h-16 w-16 text-slate-300 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-slate-600 mb-2">まだデッキが投稿されていません</h3>
-            <p className="text-slate-500 mb-6">最初のデッキを投稿してみませんか？</p>
+            <h3 className="text-lg font-semibold text-slate-600 mb-2">{t('decks.noDecksYet')}</h3>
+            <p className="text-slate-500 mb-6">{t('decks.postFirstDeck')}</p>
           </div>
           <Button asChild className="bg-emerald-500 hover:bg-emerald-600 text-white">
             <Link href="/decks/create">
               <PlusCircle className="mr-2 h-4 w-4" />
-              デッキを投稿する
+              {t('decks.postDeckButton')}
             </Link>
           </Button>
         </div>
@@ -204,7 +208,7 @@ export default function DecksPage() {
             >
               <Link href="/decks/create">
                 <PlusCircle className="mr-1.5 h-4 w-4" />
-                デッキを投稿
+                {t('decks.postDeck')}
               </Link>
             </Button>
 
@@ -213,7 +217,7 @@ export default function DecksPage() {
               className="flex-1 bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-white text-sm font-bold py-2.5 px-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 ease-in-out transform hover:-translate-y-0.5 border-0"
             >
               <Star className="mr-1.5 h-4 w-4" />
-              お気に入り
+              {t('decks.favorites')}
             </Button>
           </div>
 
@@ -255,7 +259,7 @@ export default function DecksPage() {
           <div className="space-y-6">
             <div className="flex items-center justify-center">
               <h2 className="text-2xl font-bold text-slate-800">
-                {categories.find((cat) => cat.id === selectedCategory)?.title || "みんなのデッキ"}
+                {categories.find((cat) => cat.id === selectedCategory)?.title || "{t('decks.viewAllDecks')}"}
               </h2>
             </div>
             {renderDeckList()}

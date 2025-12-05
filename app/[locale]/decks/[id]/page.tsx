@@ -28,7 +28,8 @@ export default function DeckDetailPage() {
   const { id } = useParams() as { id: string }
   const router = useRouter()
   const { user, loading: authLoading } = useAuth()
-  const t = useTranslations()
+  const t = useTranslations("decks")
+  const tComments = useTranslations("comments")
   const [deck, setDeck] = useState<DeckWithCards | null>(null)
   const [cardDetails, setCardDetails] = useState<Record<string, CardData>>({})
   const [isLoading, setIsLoading] = useState(true)
@@ -87,7 +88,7 @@ export default function DeckDetailPage() {
     try {
       const { data, error } = await getDeckById(id)
       if (error || !data) {
-        setError(error || "デッキの取得に失敗しました")
+        setError(error || t("fetchError"))
         return
       }
 
@@ -116,7 +117,7 @@ export default function DeckDetailPage() {
         setCardDetails(detailsMap)
       }
     } catch (err) {
-      setError("デッキの読み込み中にエラーが発生しました")
+      setError(t("fetchErrorOccurred"))
     } finally {
       setIsLoading(false)
     }
@@ -141,7 +142,7 @@ export default function DeckDetailPage() {
       const action = originalIsLiked ? unlikeDeck : likeDeck
       const { error } = await action(id)
       if (error) {
-        toast({ title: "エラー", description: error, variant: "destructive" })
+        toast({ title: t("error"), description: error, variant: "destructive" })
         setIsLiked(originalIsLiked)
         setLikeCount(originalLikeCount)
       } else {
@@ -153,7 +154,7 @@ export default function DeckDetailPage() {
         }, 100)
       }
     } catch {
-      toast({ title: t('errors.generic.error'), description: t('errors.operationFailed'), variant: "destructive" })
+      toast({ title: t("error"), description: t("fetchErrorOccurred"), variant: "destructive" })
       setIsLiked(originalIsLiked)
       setLikeCount(originalLikeCount)
     } finally {
@@ -180,7 +181,7 @@ export default function DeckDetailPage() {
       const { error } = await action(id)
 
       if (error) {
-        toast({ title: "エラー", description: error, variant: "destructive" })
+        toast({ title: t("error"), description: error, variant: "destructive" })
         setIsFavorited(originalIsFavorited)
         setFavoriteCount(originalFavoriteCount)
       } else {
@@ -192,7 +193,7 @@ export default function DeckDetailPage() {
         }, 100)
       }
     } catch {
-      toast({ title: t('errors.generic.error'), description: t('errors.operationFailed'), variant: "destructive" })
+      toast({ title: t("error"), description: t("fetchErrorOccurred"), variant: "destructive" })
       setIsFavorited(originalIsFavorited)
       setFavoriteCount(originalFavoriteCount)
     } finally {
@@ -214,7 +215,7 @@ export default function DeckDetailPage() {
               <div className="flex items-center justify-center min-h-[400px]">
                 <div className="text-center">
                   <Loader2 className="h-12 w-12 animate-spin text-blue-600 mx-auto mb-4" />
-                  <p className="text-gray-600 text-lg">デッキ情報を読み込み中...</p>
+                  <p className="text-gray-600 text-lg">{t("loadingDeck")}</p>
                 </div>
               </div>
             </main>
@@ -235,13 +236,13 @@ export default function DeckDetailPage() {
               <div className="flex items-center justify-center min-h-[400px]">
                 <div className="text-center">
                   <div className="bg-red-100 text-red-700 p-4 rounded-lg mb-4">
-                    <p>{error || "デッキが見つかりません"}</p>
+                    <p>{error || t("deckNotFound")}</p>
                   </div>
                   <Button onClick={() => router.back()} variant="outline" className="mr-2">
                     <ArrowLeft className="mr-2 h-4 w-4" />
-                    戻る
+                    {t("back")}
                   </Button>
-                  <Button onClick={() => router.push("/decks")}>デッキ一覧へ</Button>
+                  <Button onClick={() => router.push("/decks")}>{t("deckList")}</Button>
                 </div>
               </div>
             </main>
@@ -298,7 +299,7 @@ export default function DeckDetailPage() {
             <div className="mb-4">
               <Button variant="ghost" size="sm" onClick={() => router.back()} className="text-gray-600">
                 <ArrowLeft className="mr-2 h-4 w-4" />
-                戻る
+                {t("back")}
               </Button>
             </div>
 
@@ -309,11 +310,11 @@ export default function DeckDetailPage() {
                   <div className="flex flex-wrap gap-2 items-center text-sm text-gray-600 mb-3">
                     <div className="flex items-center">
                       <User className="h-4 w-4 mr-1" />
-                      <span>{deck.user_display_name || t('comments.anonymousUser')}</span>
+                      <span>{deck.user_display_name || tComments('anonymousUser')}</span>
                     </div>
                     <div className="flex items-center">
                       <Calendar className="h-4 w-4 mr-1" />
-                      <span>作成日: {new Date(deck.created_at).toLocaleDateString()}</span>
+                      <span>{t("createdDate")}: {new Date(deck.created_at).toLocaleDateString()}</span>
                     </div>
                   </div>
                   {deck.description && <p className="text-gray-700 mb-4 whitespace-pre-wrap">{deck.description}</p>}
@@ -329,7 +330,7 @@ export default function DeckDetailPage() {
                           className={`flex flex-col items-center p-2 rounded-full hover:bg-gray-100 transition-colors ${
                             isLiked ? "text-red-500" : "text-gray-500"
                           } ${isLikeLoading ? "opacity-50 cursor-not-allowed" : ""}`}
-                          aria-label={isLiked ? "いいねを取り消す" : "いいねする"}
+                          aria-label={isLiked ? t("unlike") : t("like")}
                         >
                           {isLikeLoading ? (
                             <Loader2 className="h-6 w-6 animate-spin" />
@@ -340,7 +341,7 @@ export default function DeckDetailPage() {
                         </button>
                       </TooltipTrigger>
                       <TooltipContent>
-                        <p>{isLiked ? "いいねを取り消す" : "いいねする"}</p>
+                        <p>{isLiked ? t("unlike") : t("like")}</p>
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
@@ -354,7 +355,7 @@ export default function DeckDetailPage() {
                           className={`flex flex-col items-center p-2 rounded-full hover:bg-gray-100 transition-colors ${
                             isFavorited ? "text-yellow-500" : "text-gray-500"
                           } ${isFavoriteLoading ? "opacity-50 cursor-not-allowed" : ""}`}
-                          aria-label={isFavorited ? "お気に入りから削除" : "お気に入りに追加"}
+                          aria-label={isFavorited ? t("removeFromFavorites") : t("addToFavorites")}
                         >
                           {isFavoriteLoading ? (
                             <Loader2 className="h-6 w-6 animate-spin" />
@@ -365,7 +366,7 @@ export default function DeckDetailPage() {
                         </button>
                       </TooltipTrigger>
                       <TooltipContent>
-                        <p>{isFavorited ? "お気に入りから削除" : "お気に入りに追加"}</p>
+                        <p>{isFavorited ? t("removeFromFavorites") : t("addToFavorites")}</p>
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
@@ -379,10 +380,10 @@ export default function DeckDetailPage() {
             </div>
 
             <div className="bg-white rounded-lg shadow-md p-6">
-              <h2 className="text-xl font-semibold text-gray-800 mb-4">デッキ内容</h2>
+              <h2 className="text-xl font-semibold text-gray-800 mb-4">{t("deckContent")}</h2>
               <Tabs defaultValue="all" className="w-full">
                 <TabsList className="mb-4">
-                  <TabsTrigger value="all">全てのカード</TabsTrigger>
+                  <TabsTrigger value="all">{t("allCards")}</TabsTrigger>
                   {deck.tags &&
                     deck.tags.length > 0 &&
                     deck.tags.map((tagId) => {
@@ -399,7 +400,7 @@ export default function DeckDetailPage() {
                             className="inline-block mr-1"
                             onError={(e) => {
                               e.currentTarget.src = "/placeholder.svg?width=24&height=24"
-                              e.currentTarget.alt = "不明なタイプ"
+                              e.currentTarget.alt = t("unknownType")
                             }}
                           />
                           <span className="sr-only">{energyType.name}</span>

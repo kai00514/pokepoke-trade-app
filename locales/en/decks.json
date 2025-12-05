@@ -42,5 +42,24 @@
     "featured": "Featured",
     "newPack": "New Pack",
     "post": "Post"
-  }
+  },
+  "loading": "Loading decks...",
+  "retry": "Retry",
+  "noDecksYet": "No decks posted yet",
+  "postFirstDeck": "Why not post the first deck?",
+  "postDeckButton": "Post Deck",
+  "fetchError": "Failed to fetch decks",
+  "fetchErrorOccurred": "An error occurred while fetching decks",
+  "unknownCardName": "Unknown card name",
+  "loadingDeck": "Loading deck information...",
+  "deckNotFound": "Deck not found",
+  "deckList": "To Deck List",
+  "deckContent": "Deck Content",
+  "allCards": "All Cards",
+  "unknownType": "Unknown Type",
+  "like": "Like",
+  "unlike": "Unlike",
+  "addToFavorites": "Add to Favorites",
+  "removeFromFavorites": "Remove from Favorites",
+  "error": "Error"
 }

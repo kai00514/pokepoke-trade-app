@@ -27,6 +27,7 @@
   "guestIdOptional": "ゲストIDの入力（任意）",
   "commentPlaceholder": "トレードに関するコメントを入力してください",
   "selectWantedCards": "欲しいカードを選択",
+  "selectOfferedCards": "譲りたいカードを選択",
   "noSavedLists": "保存済みリストがありません",
   "createListInManagement": "リスト管理画面でリストを作成してください"
 }

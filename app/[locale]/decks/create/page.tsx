@@ -3,6 +3,8 @@
 import { useState, useCallback, useEffect, useMemo } from "react"
 import { Link } from "@/lib/i18n-navigation"
 import Image from "next/image"
+import { useTranslations } from "next-intl"
+import { useParams } from "next/navigation"
 import Header from "@/components/layout/header"
 import Footer from "@/components/footer"
 import { Button } from "@/components/ui/button"
@@ -34,31 +36,35 @@ const energyTypes = [
   { name: "ドラゴン", icon: "/images/types/%E9%BE%8D.png", id: "dragon", color: "bg-yellow-600" },
 ]
 
-const cardCategoriesForFilter = ["全て", "ポケモン", "トレーナーズ", "グッズ", "どうぐ"]
+// Category filter options are now handled by translations
 
 interface RarityOption {
   dbValue: string
-  uiLabel: string
+  translationKey: string
   iconPath: string
 }
 
-const rarityOptions: RarityOption[] = [
-  { dbValue: "all", uiLabel: "全てのレアリティ", iconPath: "" },
-  { dbValue: "ダイヤ1", uiLabel: "1", iconPath: "/images/rarities/diamond_single.png" },
-  { dbValue: "ダイヤ2", uiLabel: "2", iconPath: "/images/rarities/diamond_single.png" },
-  { dbValue: "ダイヤ3", uiLabel: "3", iconPath: "/images/rarities/diamond_single.png" },
-  { dbValue: "ダイヤ4", uiLabel: "4", iconPath: "/images/rarities/diamond_single.png" },
-  { dbValue: "星1", uiLabel: "1", iconPath: "/images/rarities/star_single.png" },
-  { dbValue: "星2", uiLabel: "2", iconPath: "/images/rarities/star_single.png" },
-  { dbValue: "星3", uiLabel: "3", iconPath: "/images/rarities/star_single.png" },
-  { dbValue: "クラウン", uiLabel: "クラウン", iconPath: "/images/rarities/crown.png" },
-  { dbValue: "色1", uiLabel: "色1", iconPath: "/images/rarities/color2.png" },
-  { dbValue: "色2", uiLabel: "2", iconPath: "/images/rarities/color2.png" },
+const rarityOptionsConfig: RarityOption[] = [
+  { dbValue: "all", translationKey: "allRarities", iconPath: "" },
+  { dbValue: "ダイヤ1", translationKey: "rarities.diamond1", iconPath: "/images/rarities/diamond_single.png" },
+  { dbValue: "ダイヤ2", translationKey: "rarities.diamond2", iconPath: "/images/rarities/diamond_single.png" },
+  { dbValue: "ダイヤ3", translationKey: "rarities.diamond3", iconPath: "/images/rarities/diamond_single.png" },
+  { dbValue: "ダイヤ4", translationKey: "rarities.diamond4", iconPath: "/images/rarities/diamond_single.png" },
+  { dbValue: "星1", translationKey: "rarities.star1", iconPath: "/images/rarities/star_single.png" },
+  { dbValue: "星2", translationKey: "rarities.star2", iconPath: "/images/rarities/star_single.png" },
+  { dbValue: "星3", translationKey: "rarities.star3", iconPath: "/images/rarities/star_single.png" },
+  { dbValue: "クラウン", translationKey: "rarities.crown", iconPath: "/images/rarities/crown.png" },
+  { dbValue: "色1", translationKey: "rarities.color1", iconPath: "/images/rarities/color2.png" },
+  { dbValue: "色2", translationKey: "rarities.color2", iconPath: "/images/rarities/color2.png" },
 ]
 
-const allowedRarityDbValues = rarityOptions.filter((opt) => opt.dbValue !== "all").map((opt) => opt.dbValue)
+const allowedRarityDbValues = rarityOptionsConfig.filter((opt) => opt.dbValue !== "all").map((opt) => opt.dbValue)
 
 export default function CreateDeckPage() {
+  const t = useTranslations("deckCreate")
+  const params = useParams()
+  const locale = params.locale as string
+  
   const [deckName, setDeckName] = useState("")
   const [deckDescription, setDeckDescription] = useState("")
   const [selectedEnergyTypes, setSelectedEnergyTypes] = useState<string[]>([])
@@ -69,14 +75,12 @@ export default function CreateDeckPage() {
   const [showLoginPrompt, setShowLoginPrompt] = useState(false)
   const [isDeckInfoExpanded, setIsDeckInfoExpanded] = useState(true)
   const [searchKeyword, setSearchKeyword] = useState("")
-  const [searchCategory, setSearchCategory] = useState("全て")
+  const [searchCategory, setSearchCategory] = useState("")  // Will be set to t("all") after mount
   const [searchedCards, setSearchedCards] = useState<CardType[]>([])
   const [isLoadingSearch, setIsLoadingSearch] = useState(false)
   const [selectedRarity, setSelectedRarity] = useState("all")
   const [selectedPackId, setSelectedPackId] = useState<string | null>(null)
-  const [packOptions, setPackOptions] = useState<{ id: string | null; name: string }[]>([
-    { id: null, name: "全てのパック" },
-  ])
+  const [packOptions, setPackOptions] = useState<{ id: string | null; name: string }[]>([])
   const { toast } = useToast()
   const [user, setUser] = useState<any>(null)
   const [isLoadingAuth, setIsLoadingAuth] = useState(true)
@@ -84,6 +88,18 @@ export default function CreateDeckPage() {
   const totalCardsInDeck = useMemo(() => deckCards.reduce((sum, card) => sum + card.quantity, 0), [deckCards])
   const maxDeckSize = 20
   const displaySlotsCount = 20
+  
+  const cardCategoriesForFilter = useMemo(() => [
+    t("all"),
+    t("pokemon"),
+    t("trainers"),
+    t("goods"),
+    t("tools")
+  ], [t])
+
+  useEffect(() => {
+    setSearchCategory(t("all"))
+  }, [t])
 
   useEffect(() => {
     async function fetchPacks() {
@@ -91,16 +107,16 @@ export default function CreateDeckPage() {
       if (error) {
         console.error("Error fetching packs:", error)
         toast({
-          title: "パック情報エラー",
-          description: "パック情報の読み込みに失敗しました。",
+          title: t("errors.packLoadError"),
+          description: t("errors.packLoadFailed"),
           variant: "destructive",
         })
       } else if (data) {
-        setPackOptions([{ id: null, name: "全てのパック" }, ...data.map((p) => ({ id: String(p.id), name: p.name }))])
+        setPackOptions([{ id: null, name: t("allPacks") }, ...data.map((p) => ({ id: String(p.id), name: p.name }))])
       }
     }
     fetchPacks()
-  }, [toast])
+  }, [toast, t])
 
   useEffect(() => {
     async function fetchCards() {
@@ -110,12 +126,12 @@ export default function CreateDeckPage() {
         .select("id, name, image_url, type_code, rarity_code, category, thumb_url, pack_id")
         .eq("is_visible", true)
       if (searchKeyword.trim()) query = query.ilike("name", `%${searchKeyword.trim()}%`)
-      if (searchCategory !== "全て") {
+      if (searchCategory !== t("all")) {
         let dbCategory: string | undefined
-        if (searchCategory === "ポケモン") dbCategory = "pokemon"
-        else if (searchCategory === "トレーナーズ") dbCategory = "trainers"
-        else if (searchCategory === "グッズ") dbCategory = "goods"
-        else if (searchCategory === "どうぐ") dbCategory = "tools"
+        if (searchCategory === t("pokemon")) dbCategory = "pokemon"
+        else if (searchCategory === t("trainers")) dbCategory = "trainers"
+        else if (searchCategory === t("goods")) dbCategory = "goods"
+        else if (searchCategory === t("tools")) dbCategory = "tools"
         if (dbCategory) query = query.eq("category", dbCategory)
       }
       if (selectedRarity !== "all") query = query.eq("rarity_code", selectedRarity)
@@ -125,8 +141,8 @@ export default function CreateDeckPage() {
       if (error) {
         console.error("Error fetching cards for search:", error)
         toast({
-          title: "カード検索エラー",
-          description: "カード情報の読み込みに失敗しました。",
+          title: t("errors.cardLoadError"),
+          description: t("errors.cardLoadFailed"),
           variant: "destructive",
         })
         setSearchedCards([])
@@ -168,8 +184,8 @@ export default function CreateDeckPage() {
     (cardToAdd: CardType) => {
       if (totalCardsInDeck >= maxDeckSize) {
         toast({
-          title: "デッキ枚数上限",
-          description: `デッキには最大${maxDeckSize}枚までしかカードを追加できません。`,
+          title: t("errors.deckSizeLimitTitle"),
+          description: t("errors.deckSizeLimitDesc", { max: maxDeckSize }),
           variant: "destructive",
         })
         return
@@ -184,7 +200,7 @@ export default function CreateDeckPage() {
         }
       })
     },
-    [totalCardsInDeck, toast],
+    [totalCardsInDeck, toast, t],
   )
 
   const handleRemoveCard = useCallback((cardId: string) => {
@@ -199,7 +215,7 @@ export default function CreateDeckPage() {
 
   const handleDeckSlotClick = (card: DeckCard) => {
     setThumbnailCard(card)
-    toast({ title: "サムネイル設定", description: `${card.name}をサムネイル画像に設定しました。` })
+    toast({ title: t("success.thumbnailSetTitle"), description: t("success.thumbnailSet", { name: card.name }) })
   }
 
   const canSave = useMemo(
@@ -210,18 +226,18 @@ export default function CreateDeckPage() {
   const handleSaveClick = () => {
     if (totalCardsInDeck !== 20) {
       toast({
-        title: "デッキ枚数エラー",
-        description: `デッキは20枚で構築してください。現在の枚数: ${totalCardsInDeck}枚`,
+        title: t("errors.deckSizeErrorTitle"),
+        description: t("errors.deckSizeErrorDesc", { count: totalCardsInDeck }),
         variant: "destructive",
       })
       return
     }
     if (!deckName.trim()) {
-      toast({ title: "入力エラー", description: "デッキ名を入力してください。", variant: "destructive" })
+      toast({ title: t("errors.inputErrorTitle"), description: t("errors.deckNameRequired"), variant: "destructive" })
       return
     }
     if (deckCards.length === 0) {
-      toast({ title: "入力エラー", description: "デッキにカードを追加してください。", variant: "destructive" })
+      toast({ title: t("errors.inputErrorTitle"), description: t("errors.deckCardsRequired"), variant: "destructive" })
       return
     }
     if (!user) setShowLoginPrompt(true)
@@ -239,7 +255,7 @@ export default function CreateDeckPage() {
       const deckInput: CreateDeckInput = {
         title: deckName.trim(),
         user_id: user?.id || null,
-        guestName: !user ? "ゲスト" : undefined,
+        guestName: !user ? t("guest") : undefined,
         description: deckDescription.trim() || undefined,
         is_public: isPublic,
         tags: selectedEnergyTypes.length > 0 ? selectedEnergyTypes : undefined,
@@ -262,22 +278,22 @@ export default function CreateDeckPage() {
           is_public: isPublic,
         })
 
-        toast({ title: "デッキ保存成功", description: `${deckName}を保存しました。` })
+        toast({ title: t("success.deckSaveSuccess"), description: t("success.deckSaved", { name: deckName }) })
         setDeckName("")
         setDeckDescription("")
         setSelectedEnergyTypes([])
         setDeckCards([])
         setThumbnailCard(null)
         setIsPublic(true)
-        window.location.href = "/decks"
+        window.location.href = `/${locale}/decks`
       } else {
-        throw new Error(result.error || "デッキの保存に失敗しました")
+        throw new Error(result.error || t("errors.saveFailed"))
       }
     } catch (error) {
       console.error("デッキ保存中にエラーが発生しました:", error)
       toast({
-        title: "保存エラー",
-        description: error instanceof Error ? error.message : "デッキの保存に失敗しました。",
+        title: t("errors.saveError"),
+        description: error instanceof Error ? error.message : t("errors.saveFailed"),
         variant: "destructive",
       })
     } finally {
@@ -331,9 +347,9 @@ export default function CreateDeckPage() {
   const renderThumbnailSelection = () => (
     <div className="space-y-4">
       <div>
-        <label className="block text-sm font-medium text-slate-700 mb-2">サムネイル画像</label>
+        <label className="block text-sm font-medium text-slate-700 mb-2">{t("thumbnailImage")}</label>
         <p className="text-xs text-slate-500 mb-3">
-          デッキ一覧で表示されるサムネイル画像です。下のデッキ構成からカードをクリックして選択してください。
+          {t("thumbnailDescription")}
         </p>
         <div className="flex justify-center">
           <div className="w-24 h-32 border-2 border-dashed border-gray-300 rounded-md flex items-center justify-center bg-gray-50">
@@ -358,7 +374,7 @@ export default function CreateDeckPage() {
             ) : (
               <div className="text-center">
                 <ImageIcon className="h-8 w-8 text-gray-400 mx-auto mb-1" />
-                <p className="text-xs text-gray-500">未選択</p>
+                <p className="text-xs text-gray-500">{t("notSelected")}</p>
               </div>
             )}
           </div>
@@ -372,32 +388,32 @@ export default function CreateDeckPage() {
     <div className="space-y-4">
       <div>
         <label className="block text-sm font-medium text-slate-700 mb-1">
-          デッキ名 <span className="text-red-500">*</span>
+          {t("deckName")} <span className="text-red-500">*</span>
         </label>
         <Input
           value={deckName}
           onChange={(e) => setDeckName(e.target.value)}
-          placeholder="デッキ名を入力"
+          placeholder={t("deckNamePlaceholder")}
           className="w-full"
         />
       </div>
       <div>
-        <label className="block text-sm font-medium text-slate-700 mb-1">デッキ説明 (任意)</label>
+        <label className="block text-sm font-medium text-slate-700 mb-1">{t("deckDescription")}</label>
         <Textarea
           value={deckDescription}
           onChange={(e) => setDeckDescription(e.target.value)}
-          placeholder={"デッキの説明を入力\n改行も可能です"}
+          placeholder={t("deckDescriptionPlaceholder")}
           rows={4}
           className="w-full"
         />
       </div>
       {!user && (
         <div className="p-3 bg-blue-50 border border-blue-200 rounded-md">
-          <p className="text-sm text-blue-700">ゲストとして投稿されます。投稿者名は「ゲスト」と表示されます。</p>
+          <p className="text-sm text-blue-700">{t("guestPostNotice")}</p>
         </div>
       )}
       <div>
-        <label className="block text-sm font-medium text-slate-700 mb-2">主要エネルギータイプ</label>
+        <label className="block text-sm font-medium text-slate-700 mb-2">{t("mainEnergyType")}</label>
         <div className="flex flex-wrap gap-2">
           {energyTypes.map((type) => (
             <button
@@ -430,7 +446,7 @@ export default function CreateDeckPage() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold text-slate-800">
-          デッキ ({totalCardsInDeck}/{maxDeckSize})
+          {t("deckComposition", { current: totalCardsInDeck, max: maxDeckSize })}
         </h3>
         <div className="flex items-center gap-2">
           <Button
@@ -441,10 +457,10 @@ export default function CreateDeckPage() {
             disabled={deckCards.length === 0}
           >
             <Trash2 className="h-4 w-4 mr-1" />
-            すべて外す
+            {t("removeAll")}
           </Button>
           <div className="flex items-center gap-2">
-            <span className="text-sm text-slate-600">公開</span>
+            <span className="text-sm text-slate-600">{t("public")}</span>
             <button
               onClick={() => setIsPublic(!isPublic)}
               className={cn(
@@ -462,7 +478,7 @@ export default function CreateDeckPage() {
           </div>
         </div>
       </div>
-      <p className="text-xs text-slate-500 mb-2">カードをクリックしてサムネイル画像を選択できます</p>
+      <p className="text-xs text-slate-500 mb-2">{t("clickToSetThumbnail")}</p>
       {renderDeckSlots()}
     </div>
   )
@@ -471,7 +487,7 @@ export default function CreateDeckPage() {
     <div className="space-y-4">
       <Input
         type="text"
-        placeholder="カード名で検索..."
+        placeholder={t("cardSearchPlaceholder")}
         value={searchKeyword}
         onChange={(e) => setSearchKeyword(e.target.value)}
         className="w-full"
@@ -493,7 +509,7 @@ export default function CreateDeckPage() {
         ))}
       </div>
       <div className="flex flex-wrap gap-2 items-center">
-        {rarityOptions.map((option) => (
+        {rarityOptionsConfig.map((option) => (
           <Button
             key={option.dbValue}
             variant={selectedRarity === option.dbValue ? "default" : "outline"}
@@ -507,13 +523,13 @@ export default function CreateDeckPage() {
             {option.iconPath && (
               <Image
                 src={option.iconPath || "/placeholder.svg"}
-                alt={option.uiLabel}
+                alt={t(option.translationKey)}
                 width={option.dbValue.includes("ダイヤ") || option.dbValue.includes("星") ? 16 : 20}
                 height={option.dbValue.includes("ダイヤ") || option.dbValue.includes("星") ? 16 : 20}
                 className="object-contain"
               />
             )}
-            {option.uiLabel}
+            {t(option.translationKey)}
           </Button>
         ))}
       </div>
@@ -539,7 +555,7 @@ export default function CreateDeckPage() {
         </div>
       )}
       {!isLoadingSearch && searchedCards.length === 0 && (
-        <p className="text-center text-slate-500 py-10">該当するカードが見つかりません。</p>
+        <p className="text-center text-slate-500 py-10">{t("noCardsFound")}</p>
       )}
       {!isLoadingSearch && searchedCards.length > 0 && (
         <ScrollArea className="h-[400px] sm:h-[500px] border rounded-md p-2 bg-slate-50">
@@ -599,9 +615,9 @@ export default function CreateDeckPage() {
             <div className="flex items-center justify-between mb-6">
               <Link href="/decks" className="inline-flex items-center text-sm text-purple-600 hover:text-purple-700">
                 <ArrowLeft className="h-4 w-4 mr-1" />
-                デッキ一覧へ
+                {t("backToDeckList")}
               </Link>
-              <h1 className="text-2xl font-bold text-slate-800">デッキ構築</h1>
+              <h1 className="text-2xl font-bold text-slate-800">{t("pageTitle")}</h1>
               <Button
                 onClick={handleSaveClick}
                 className="bg-emerald-500 hover:bg-emerald-600 text-white"
@@ -610,12 +626,12 @@ export default function CreateDeckPage() {
                 {isSaving ? (
                   <>
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    投稿中...
+                    {t("posting")}
                   </>
                 ) : (
                   <>
                     <Save className="h-4 w-4 mr-2" />
-                    投稿
+                    {t("post")}
                   </>
                 )}
               </Button>
@@ -623,14 +639,14 @@ export default function CreateDeckPage() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
               <Card className="sticky top-[calc(var(--header-height,64px)+1.5rem)]">
                 <CardHeader>
-                  <CardTitle>カード検索</CardTitle>
+                  <CardTitle>{t("cardSearch")}</CardTitle>
                 </CardHeader>
                 <CardContent>{renderCardSearchSection()}</CardContent>
               </Card>
               <div className="space-y-6">
                 <Card>
                   <CardHeader>
-                    <CardTitle>デッキ情報</CardTitle>
+                    <CardTitle>{t("deckInfo")}</CardTitle>
                   </CardHeader>
                   <CardContent>{renderDeckInfo()}</CardContent>
                 </Card>
@@ -645,12 +661,12 @@ export default function CreateDeckPage() {
           <main className="container mx-auto px-4 py-6 space-y-6">
             <Link href="/decks" className="inline-flex items-center text-sm text-purple-600 hover:text-purple-700">
               <ArrowLeft className="h-4 w-4 mr-1" />
-              デッキ一覧へ
+              {t("backToDeckList")}
             </Link>
             <Card>
               <CardHeader className="cursor-pointer" onClick={() => setIsDeckInfoExpanded(!isDeckInfoExpanded)}>
                 <div className="flex items-center justify-between">
-                  <CardTitle>デッキ情報</CardTitle>
+                  <CardTitle>{t("deckInfo")}</CardTitle>
                   {isDeckInfoExpanded ? (
                     <ChevronUp className="h-5 w-5 text-slate-500" />
                   ) : (
@@ -665,11 +681,11 @@ export default function CreateDeckPage() {
             </Card>
             <Card>
               <CardHeader>
-                <CardTitle>カード検索</CardTitle>
+                <CardTitle>{t("cardSearch")}</CardTitle>
               </CardHeader>
               <CardContent>{renderCardSearchSection()}</CardContent>
             </Card>
-            {isLoadingAuth && <p className="text-center text-slate-500">認証状態を確認中...</p>}
+            {isLoadingAuth && <p className="text-center text-slate-500">{t("checkingAuth")}</p>}
             <Button
               onClick={handleSaveClick}
               className="w-full bg-emerald-500 hover:bg-emerald-600 text-white py-3 sticky bottom-4 z-10 shadow-lg"
@@ -678,12 +694,12 @@ export default function CreateDeckPage() {
               {isSaving ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  投稿中...
+                  {t("posting")}
                 </>
               ) : (
                 <>
                   <Save className="h-4 w-4 mr-2" />
-                  投稿
+                  {t("post")}
                 </>
               )}
             </Button>

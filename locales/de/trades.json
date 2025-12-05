@@ -27,6 +27,7 @@
   "guestIdOptional": "Guest ID (Optional)",
   "commentPlaceholder": "Enter comment",
   "selectWantedCards": "Select Wanted Cards",
+  "selectOfferedCards": "Select Offered Cards",
   "noSavedLists": "No saved lists",
   "createListInManagement": "Create a list in the list management screen"
 }
