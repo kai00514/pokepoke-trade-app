@@ -1,32 +1,32 @@
 {
-  "title": "We'd Like Your Feedback",
-  "subtitle": "Help us improve the matching feature by taking this 1-minute survey.",
   "incompleteError": "Please answer all required questions.",
-  "submitError": "An error occurred while submitting. Please try again later.",
-  "thankYou": "Thank you for your response!",
-  "thankYouMessage": "We'll use your feedback to deliver a better matching experience. Please stay tuned for the launch.",
   "q1": {
-    "title": "Q1. What do you prioritize when looking for a trading partner?",
     "option1": "Wanted cards match",
     "option2": "Offered cards match",
     "option3": "Search by rarity/type",
-    "option4": "Direct specification by Friend ID"
+    "option4": "Direct specification by Friend ID",
+    "title": "Q1. What do you prioritize when looking for a trading partner?"
   },
   "q2": {
-    "title": "Q2. What experience do you expect from matching? (Multiple selections allowed)",
     "option1": "Find a partner quickly (Speed priority)",
     "option2": "Trade with trustworthy partners (Reliability priority)",
     "option3": "Trade rare/high-demand cards efficiently",
-    "option4": "Use as an opportunity for interaction (Making friends)"
+    "option4": "Use as an opportunity for interaction (Making friends)",
+    "title": "Q2. What experience do you expect from matching? (Multiple selections allowed)"
   },
   "q3": {
-    "title": "Q3. What support features do you want after matching? (Multiple selections allowed)",
     "option1": "In-app chat",
     "option2": "Match notification (Push)",
     "option3": "Visualize trust with reviews/ratings",
-    "option4": "Automatic trade history saving"
+    "option4": "Automatic trade history saving",
+    "title": "Q3. What support features do you want after matching? (Multiple selections allowed)"
   },
   "q4": {
     "title": "Q4. How often would you like to use this feature? (Optional)"
-  }
+  },
+  "submitError": "An error occurred while submitting. Please try again later.",
+  "subtitle": "Help us improve the matching feature by taking this 1-minute survey.",
+  "thankYou": "Thank you for your response!",
+  "thankYouMessage": "We'll use your feedback to deliver a better matching experience. Please stay tuned for the launch.",
+  "title": "We'd Like Your Feedback"
 }

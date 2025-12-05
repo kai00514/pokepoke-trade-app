@@ -1,69 +1,27 @@
 {
   "auth": {
+    "confirmPassword": {
+      "hide": "パスワード確認を隠す",
+      "label": "パスワード確認",
+      "placeholder": "パスワードを再入力",
+      "show": "パスワード確認を表示"
+    },
     "email": {
       "label": "メールアドレス",
       "placeholder": "あなたのメールアドレス"
     },
-    "password": {
-      "label": "パスワード",
-      "placeholder": "あなたのパスワード",
-      "newPlaceholder": "6文字以上のパスワード",
-      "hint": "半角英数6文字以上を推奨します。",
-      "forgotLink": "パスワードを忘れた方はこちら",
-      "show": "パスワードを表示",
-      "hide": "パスワードを隠す"
-    },
-    "confirmPassword": {
-      "label": "パスワード確認",
-      "placeholder": "パスワードを再入力",
-      "show": "パスワード確認を表示",
-      "hide": "パスワード確認を隠す"
-    },
     "newPassword": {
       "label": "新しいパスワード",
       "placeholder": "6文字以上の新しいパスワード"
-    }
-  },
-  "trade": {
-    "title": {
-      "label": "トレード目的",
-      "placeholder": "例：リザードンex求む"
     },
-    "wantedCards": {
-      "label": "求めるカード"
-    },
-    "offeredCards": {
-      "label": "譲れるカード"
-    },
-    "savedList": {
-      "label": "保存済みリストから選択"
-    },
-    "pokepokeId": {
-      "label": "ポケポケアプリID",
-      "placeholder": "ポケポケアプリのID (任意)",
-      "helperAuthenticated": "登録済みのポケポケIDが自動入力されています。",
-      "helperAuthenticatedNoId": "ログイン中です。ポケポケIDは任意です。半角数字のみ入力可能です。",
-      "helperGuest": "ゲストユーザーとして投稿します。ポケポケIDは任意です。半角数字のみ入力可能です。"
-    },
-    "comment": {
-      "label": "コメント (任意)",
-      "placeholder": "コメントを入力 (256文字まで)"
-    }
-  },
-  "list": {
-    "name": {
-      "label": "リスト名",
-      "placeholder": "例: 交換用カードリスト"
-    },
-    "description": {
-      "label": "説明（任意）",
-      "placeholder": "リストの説明を入力してください"
-    }
-  },
-  "search": {
-    "keyword": {
-      "label": "キーワード",
-      "placeholder": "キーワードで検索"
+    "password": {
+      "forgotLink": "パスワードを忘れた方はこちら",
+      "hide": "パスワードを隠す",
+      "hint": "半角英数6文字以上を推奨します。",
+      "label": "パスワード",
+      "newPlaceholder": "6文字以上のパスワード",
+      "placeholder": "あなたのパスワード",
+      "show": "パスワードを表示"
     }
   },
   "collage": {
@@ -76,39 +34,88 @@
       "placeholder": "例: 譲れるカード"
     }
   },
-  "username": {
-    "label": "ユーザー名",
-    "placeholder": "例: ポケモントレーナー"
+  "contact": {
+    "email": {
+      "label": "メールアドレス"
+    },
+    "message": {
+      "label": "メッセージ",
+      "placeholder": "お問い合わせ内容を詳しくご記入ください"
+    },
+    "name": {
+      "label": "お名前",
+      "placeholder": "山田 太郎"
+    },
+    "subject": {
+      "label": "件名",
+      "placeholder": "お問い合わせの件名をご入力ください"
+    }
+  },
+  "labels": {
+    "email": "メールアドレス",
+    "password": "パスワード"
+  },
+  "list": {
+    "description": {
+      "label": "説明（任意）",
+      "placeholder": "リストの説明を入力してください"
+    },
+    "name": {
+      "label": "リスト名",
+      "placeholder": "例: 交換用カードリスト"
+    }
+  },
+  "listCreation": {
+    "cardSelection": "カード選択 ({count}/35)",
+    "charCount": "{count}/100文字",
+    "label": "リスト名",
+    "placeholder": "リスト名を入力してください"
+  },
+  "placeholders": {
+    "email": "あなたのメールアドレス",
+    "enterListName": "リスト名を入力してください",
+    "keyword": "キーワード",
+    "password": "あなたのパスワード",
+    "passwordMin": "6文字以上のパスワード"
   },
   "pokepokeId": {
     "label": "ポケポケID",
     "placeholder": "例: trainer123"
   },
-  "listCreation": {
-    "label": "リスト名",
-    "placeholder": "リスト名を入力してください",
-    "charCount": "{count}/100文字",
-    "cardSelection": "カード選択 ({count}/35)"
-  },
-  "placeholders": {
-    "keyword": "キーワード",
-    "enterListName": "リスト名を入力してください"
-  },
-  "contact": {
-    "name": {
-      "label": "お名前",
-      "placeholder": "山田 太郎"
-    },
-    "email": {
-      "label": "メールアドレス"
-    },
-    "subject": {
-      "label": "件名",
-      "placeholder": "お問い合わせの件名をご入力ください"
-    },
-    "message": {
-      "label": "メッセージ",
-      "placeholder": "お問い合わせ内容を詳しくご記入ください"
+  "search": {
+    "keyword": {
+      "label": "キーワード",
+      "placeholder": "キーワードで検索"
     }
+  },
+  "trade": {
+    "comment": {
+      "label": "コメント (任意)",
+      "placeholder": "コメントを入力 (256文字まで)"
+    },
+    "offeredCards": {
+      "label": "譲れるカード"
+    },
+    "pokepokeId": {
+      "helperAuthenticated": "登録済みのポケポケIDが自動入力されています。",
+      "helperAuthenticatedNoId": "ログイン中です。ポケポケIDは任意です。半角数字のみ入力可能です。",
+      "helperGuest": "ゲストユーザーとして投稿します。ポケポケIDは任意です。半角数字のみ入力可能です。",
+      "label": "ポケポケアプリID",
+      "placeholder": "ポケポケアプリのID (任意)"
+    },
+    "savedList": {
+      "label": "保存済みリストから選択"
+    },
+    "title": {
+      "label": "トレード目的",
+      "placeholder": "例：リザードンex求む"
+    },
+    "wantedCards": {
+      "label": "求めるカード"
+    }
+  },
+  "username": {
+    "label": "ユーザー名",
+    "placeholder": "例: ポケモントレーナー"
   }
 }

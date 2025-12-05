@@ -1,8 +1,7 @@
 {
-  "recruiting": "Recruiting",
-  "inProgress": "In Progress",
+  "canceled": "Canceled",
   "completed": "Trade Completed",
   "completedShort": "Completed",
-  "canceled": "Canceled",
-  "募集中": "Recruiting"
+  "inProgress": "In Progress",
+  "recruiting": "Recruiting"
 }

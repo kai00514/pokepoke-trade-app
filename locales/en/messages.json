@@ -1,54 +1,87 @@
 {
-  "success": {
-    "loginSuccess": "Login Successful",
-    "loginSuccessMessage": "You have been logged in.",
-    "confirmationEmailSent": "Confirmation Email Sent",
-    "confirmationEmailSentMessage": "A confirmation email has been sent. Please check your email and click the link to complete registration.",
-    "checkEmail": "Please check your email.",
-    "signupComplete": "Registration Complete",
-    "accountCreated": "Your account has been created.",
-    "passwordUpdated": "Password Updated",
-    "passwordUpdatedMessage": "Please log in with your new password.",
-    "resetEmailSent": "Email Sent",
-    "resetEmailSentMessage": "A password reset link has been sent.",
-    "resetEmailSentDetail": "A password reset link has been sent to your email address. Please check your email.",
-    "passwordUpdateSuccess": "Password has been successfully updated. Please go to the login page.",
-    "sessionRefreshed": "Session Refreshed",
-    "sessionRefreshedMessage": "Session has been successfully refreshed.",
-    "tradePosted": "Post Successful",
-    "tradePostedMessage": "Trade post has been created.",
-    "listCreated": "List Created",
-    "listCreatedMessage": "Card list has been successfully created.",
-    "urlCopied": "URL Copied",
-    "urlCopiedMessage": "Link has been copied to clipboard.",
-    "copied": "Copied",
-    "idCopied": "Copied",
-    "idCopiedMessage": "ID: {postId} has been copied to clipboard.",
-    "resendConfirmation": "Confirmation Email Resent",
-    "resendConfirmationMessage": "Confirmation email has been resent."
-  },
   "info": {
-    "tradeNotice": "Posts registered here will be immediately reflected on the timeline. Comments can be checked from the notification icon. Trade status can be checked in My Page trade history.",
+    "cardsSelected": "{count} cards selected",
     "collageDescription": "Automatically combine multiple card images to create a single collage image. You can post the generated collage on X.",
     "collageInstruction": "You can select 1-30 cards in each group. Titles will be displayed on the collage image.",
     "loginRequired": "Login required to generate and manage collages.",
-    "cardsSelected": "{count} cards selected",
-    "selectCards": "Please select cards",
-    "noCardsSelected": "No cards selected",
-    "selectedCount": "Selected cards: {count}",
-    "selectedCountWithMax": "{count} selected (max {max})",
-    "selectedCountCards": "{count} selected",
     "maxCards": "(max {max})",
-    "searchCardsInstruction": "Please select cards from the \"Search Cards\" button",
-    "resultCount": "Showing {start}-{end} of {totalCount} results",
-    "noPostsFound": "No matching posts found.",
+    "noCardsFound": "No matching cards found.",
+    "noCardsSelected": "No cards selected",
     "noPosts": "No posts available",
-    "noCardsFound": "No matching cards found."
+    "noPostsFound": "No matching posts found.",
+    "resultCount": "Showing {start}-{end} of {totalCount} results",
+    "searchCardsInstruction": "Please select cards from the \"Search Cards\" button",
+    "selectCards": "Please select cards",
+    "selectedCount": "Selected cards: {count}",
+    "selectedCountCards": "{count} selected",
+    "selectedCountWithMax": "{count} selected (max {max})",
+    "tradeNotice": "Posts registered here will be immediately reflected on the timeline. Comments can be checked from the notification icon. Trade status can be checked in My Page trade history."
+  },
+  "modals": {
+    "collage": {
+      "selectCardsForGroup": "{title}のカードを選択",
+      "title": "コラージュ画像を生成"
+    },
+    "detailedSearch": {
+      "title": "カード詳細検索"
+    },
+    "list": {
+      "createNew": "新しいリストを作成"
+    },
+    "loginPrompt": {
+      "benefit1": "ポケポケID・ユーザー名を自動入力",
+      "benefit2": "希望/譲渡カードのリスト作成",
+      "benefit3": "通知アイコンで最新情報を受け取り",
+      "benefit4": "履歴画面でトレード状況を確認",
+      "benefit5": "デッキをお気に入り登録",
+      "title": "アカウント登録でもっと便利に！"
+    },
+    "pokepokeId": {
+      "description": "あなたのポケポケIDを設定してください。他のユーザーがあなたを見つけやすくなります。",
+      "title": "ポケポケID登録"
+    },
+    "selectCards": {
+      "description": "リストに追加するカードを選択してください（最大35枚、現在{count}枚選択中）",
+      "title": "カードを選択"
+    },
+    "username": {
+      "description": "表示用のユーザー名を設定してください。いつでも変更できます。",
+      "title": "ユーザー名登録"
+    }
+  },
+  "success": {
+    "accountCreated": "Your account has been created.",
+    "checkEmail": "Please check your email.",
+    "confirmationEmailSent": "Confirmation Email Sent",
+    "confirmationEmailSentMessage": "A confirmation email has been sent. Please check your email and click the link to complete registration.",
+    "copied": "Copied",
+    "idCopied": "Copied",
+    "idCopiedMessage": "ID: {postId} has been copied to clipboard.",
+    "listCreated": "List Created",
+    "listCreatedMessage": "Card list has been successfully created.",
+    "loginSuccess": "Login Successful",
+    "loginSuccessMessage": "You have been logged in.",
+    "passwordUpdateSuccess": "Password has been successfully updated. Please go to the login page.",
+    "passwordUpdated": "Password Updated",
+    "passwordUpdatedMessage": "Please log in with your new password.",
+    "resendConfirmation": "Confirmation Email Resent",
+    "resendConfirmationMessage": "Confirmation email has been resent.",
+    "resetEmailSent": "Email Sent",
+    "resetEmailSentDetail": "A password reset link has been sent to your email address. Please check your email.",
+    "resetEmailSentMessage": "A password reset link has been sent.",
+    "sessionRefreshed": "Session Refreshed",
+    "sessionRefreshedMessage": "Session has been successfully refreshed.",
+    "signupComplete": "Registration Complete",
+    "tradePosted": "Post Successful",
+    "tradePostedMessage": "Trade post has been created.",
+    "urlCopied": "URL Copied",
+    "urlCopiedMessage": "Link has been copied to clipboard."
   },
   "warning": {
+    "selectionLimit": "Selection Limit",
     "timeSkew": "Time Sync Issue",
-    "timeSkewMessage": "Your device clock is off by {formatTimeSkew}. Posting may fail.",
     "timeSkewDetail": "Your device clock is off by {formatTimeSkew}. This may cause authentication issues.",
-    "selectionLimit": "Selection Limit"
+    "timeSkewMessage": "Your device clock is off by {formatTimeSkew}. Posting may fail.",
+    "maxSelectionReached": "最大{maxSelection}枚まで選択できます。"
   }
 }

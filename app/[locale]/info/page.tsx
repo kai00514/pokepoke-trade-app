@@ -4,8 +4,10 @@ import InfoSection from "@/components/info-section"
 import LatestInfoSection from "@/components/info/latest-info-section"
 import TournamentCalendar from "@/components/tournament-calendar"
 import { Trophy, CalendarDays, ScrollText, BookMarked, GraduationCap } from "lucide-react"
+import { getTranslations } from "next-intl/server"
 
-export default function InformationPage() {
+export default async function InformationPage() {
+  const t = await getTranslations('info')
   return (
     <div className="flex flex-col min-h-screen">
       <Header />
@@ -17,7 +19,7 @@ export default function InformationPage() {
       >
         <main className="flex-grow container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
           <h1 className="text-3xl sm:text-4xl font-bold text-slate-800 text-center mb-8 sm:mb-12">
-            インフォメーション
+            {t('title')}
           </h1>
 
           <div className="space-y-12 sm:space-y-16">
@@ -25,32 +27,32 @@ export default function InformationPage() {
             <LatestInfoSection />
 
             {/* 大会カレンダー */}
-            <InfoSection icon={CalendarDays} title="大会カレンダー" viewAllLink="/info/calendar">
+            <InfoSection icon={CalendarDays} title={t('sections.calendar')} viewAllLink="/info/calendar">
               <TournamentCalendar />
             </InfoSection>
 
             {/* 以前のセクションを維持 */}
-            <InfoSection icon={Trophy} title="公式トーナメント" viewAllLink="/info/tournaments">
+            <InfoSection icon={Trophy} title={t('sections.tournaments')} viewAllLink="/info/tournaments">
               <div className="bg-white p-6 rounded-lg shadow text-center text-slate-500">
-                公式トーナメント情報がここに表示されます。
+                {t('placeholders.tournaments')}
               </div>
             </InfoSection>
 
-            <InfoSection icon={ScrollText} title="ルールの基本" viewAllLink="/info/rules">
+            <InfoSection icon={ScrollText} title={t('sections.rules')} viewAllLink="/info/rules">
               <div className="bg-white p-6 rounded-lg shadow text-center text-slate-500">
-                ルールの基本情報がここに表示されます。
+                {t('placeholders.rules')}
               </div>
             </InfoSection>
 
-            <InfoSection icon={BookMarked} title="用語集" viewAllLink="/info/glossary">
+            <InfoSection icon={BookMarked} title={t('sections.glossary')} viewAllLink="/info/glossary">
               <div className="bg-white p-6 rounded-lg shadow text-center text-slate-500">
-                用語集がここに表示されます。
+                {t('placeholders.glossary')}
               </div>
             </InfoSection>
 
-            <InfoSection icon={GraduationCap} title="初心者向けガイド" viewAllLink="/info/guides">
+            <InfoSection icon={GraduationCap} title={t('sections.guides')} viewAllLink="/info/guides">
               <div className="bg-white p-6 rounded-lg shadow text-center text-slate-500">
-                初心者向けガイドがここに表示されます。
+                {t('placeholders.guides')}
               </div>
             </InfoSection>
           </div>

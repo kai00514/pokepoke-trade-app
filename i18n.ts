@@ -17,7 +17,7 @@ export default getRequestConfig(async ({ requestLocale }) => {
   }
 
   // Load all message files for the locale
-  const [common, auth, cards, errors, forms, messages, pages, trades, comments, decks, deckCreate, content, status, evaluation, survey, filters] = await Promise.all([
+  const [common, auth, cards, errors, forms, messages, pages, trades, comments, decks, deckCreate, content, status, evaluation, survey, filters, info] = await Promise.all([
     import(`./locales/${locale}/common.json`),
     import(`./locales/${locale}/auth.json`),
     import(`./locales/${locale}/cards.json`),
@@ -34,6 +34,7 @@ export default getRequestConfig(async ({ requestLocale }) => {
     import(`./locales/${locale}/evaluation.json`),
     import(`./locales/${locale}/survey.json`),
     import(`./locales/${locale}/filters.json`),
+    import(`./locales/${locale}/info.json`),
   ]);
 
   return {
@@ -55,6 +56,7 @@ export default getRequestConfig(async ({ requestLocale }) => {
       evaluation: evaluation.default,
       survey: survey.default,
       filters: filters.default,
+      info: info.default,
     }
   };
 });

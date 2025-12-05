@@ -1,64 +1,47 @@
 {
-  "title": "Error",
-  "inputError": "Input Error",
-  "unexpected": "An unexpected error occurred.",
-  "operationFailed": "Operation failed",
-  "loginRequired": "Login Required",
   "auth": {
-    "generic": "An authentication error occurred.",
-    "callbackError": "An error occurred during the authentication process.",
-    "noCode": "Authentication code not found.",
-    "noSession": "Failed to create session.",
-    "unexpected": "An unexpected error occurred.",
-    "emptyCredentials": "Please enter your email and password.",
-    "invalidCredentials": "Invalid email or password.",
-    "emailNotConfirmed": "Email address is not confirmed. Please check your confirmation email.",
-    "tooManyRequests": "Too many login attempts. Please try again later.",
-    "loginFailed": "Login failed.",
-    "socialLoginFailed": "Social login failed.",
-    "resendFailed": "Failed to resend confirmation email.",
-    "passwordMismatch": "Passwords do not match.",
-    "passwordTooShort": "Password must be at least 6 characters.",
-    "userExists": "This email is already registered. Please log in.",
-    "invalidEmail": "Please enter a valid email address.",
-    "signupFailed": "Registration failed.",
     "accountCreationFailed": "Failed to create account.",
-    "socialSignupFailed": "Social signup failed.",
-    "emptyEmail": "Please enter your email address.",
-    "resetEmailFailed": "Failed to send password reset email.",
-    "updatePasswordFailed": "Failed to update password.",
-    "sessionSetupError": "Session setup error",
-    "notAuthenticated": "User not authenticated.",
     "adminAuthFailed": "Authentication failed",
     "adminEmptyCredentials": "Please enter username and password",
+    "callbackError": "An error occurred during the authentication process.",
     "databaseError": "A database error occurred",
-    "serverError": "A server error occurred"
+    "emailNotConfirmed": "Email address is not confirmed. Please check your confirmation email.",
+    "emptyCredentials": "Please enter your email and password.",
+    "emptyEmail": "Please enter your email address.",
+    "generic": "An authentication error occurred.",
+    "invalidCredentials": "Invalid email or password.",
+    "invalidEmail": "Please enter a valid email address.",
+    "loginFailed": "Login failed.",
+    "noCode": "Authentication code not found.",
+    "noSession": "Failed to create session.",
+    "notAuthenticated": "User not authenticated.",
+    "passwordMismatch": "Passwords do not match.",
+    "passwordTooShort": "Password must be at least 6 characters.",
+    "resendFailed": "Failed to resend confirmation email.",
+    "resetEmailFailed": "Failed to send password reset email.",
+    "serverError": "A server error occurred",
+    "sessionSetupError": "Session setup error",
+    "signupFailed": "Registration failed.",
+    "socialLoginFailed": "Social login failed.",
+    "socialSignupFailed": "Social signup failed.",
+    "tooManyRequests": "Too many login attempts. Please try again later.",
+    "unexpected": "An unexpected error occurred.",
+    "updatePasswordFailed": "Failed to update password.",
+    "userExists": "This email is already registered. Please log in."
   },
-  "validation": {
-    "emptyTitle": "Please enter a trade title.",
-    "noWantedCards": "Please select wanted cards.",
-    "noOfferedCards": "Please select offered cards.",
-    "requiredFields": "Please fill in all required fields.",
-    "emptyListName": "Please enter a list name.",
-    "noCardsSelected": "Please select at least one card.",
-    "selectOneCard": "Please select one card.",
-    "maxSelection": "You can select up to {maxSelection} cards."
-  },
-  "trade": {
-    "inputError": "Input Error",
-    "sessionError": "Session Refresh Error",
-    "sessionRefreshFailed": "Failed to refresh session. Please log in again.",
-    "postError": "Post Error",
-    "postCreationFailed": "Failed to create post.",
-    "genericError": "Error"
+  "collage": {
+    "emptyTitle": "Please enter a title",
+    "generationFailed": "Failed to generate collage",
+    "noCards": "Please select cards in at least one group"
   },
   "data": {
+    "cardsFetchFailed": "Failed to load card information.",
     "fetchError": "Data Fetch Error",
-    "postsFetchFailed": "Failed to fetch posts.",
     "packsFetchError": "Pack Information Fetch Error",
     "packsFetchFailed": "Failed to load pack information.",
-    "cardsFetchFailed": "Failed to load card information."
+    "postsFetchFailed": "Failed to fetch posts."
   },
+  "inputError": "Input Error",
   "list": {
     "authRequired": "Login Required",
     "authRequiredMessage": "Please log in to create a list.",
@@ -66,17 +49,51 @@
     "creationFailed": "Failed to create list.",
     "unexpectedError": "An unexpected error occurred while creating the list."
   },
-  "share": {
-    "copyFailed": "Copy failed",
-    "tryAgain": "Please try again."
-  },
-  "collage": {
-    "emptyTitle": "Please enter a title",
-    "noCards": "Please select cards in at least one group",
-    "generationFailed": "Failed to generate collage"
+  "loginRequired": "Login Required",
+  "operationFailed": "Operation failed",
+  "pokepokeId": {
+    "saveFailed": "ポケポケIDの保存に失敗しました。もう一度お試しください。"
   },
   "profile": {
     "fetchFailed": "Failed to fetch profile",
     "fetchFailedMessage": "Displaying with basic information. Retrying in the background."
+  },
+  "selection": {
+    "title": "選択エラー"
+  },
+  "share": {
+    "copyFailed": "Copy failed",
+    "tryAgain": "Please try again."
+  },
+  "title": "Error",
+  "trade": {
+    "genericError": "Error",
+    "inputError": "Input Error",
+    "postCreationFailed": "Failed to create post.",
+    "postError": "Post Error",
+    "sessionError": "Session Refresh Error",
+    "sessionRefreshFailed": "Failed to refresh session. Please log in again."
+  },
+  "unexpected": "An unexpected error occurred.",
+  "username": {
+    "saveFailed": "ユーザー名の保存に失敗しました。もう一度お試しください。"
+  },
+  "validation": {
+    "emptyListName": "Please enter a list name.",
+    "emptyTitle": "Please enter a trade title.",
+    "maxSelection": "You can select up to {maxSelection} cards.",
+    "noCardsSelected": "Please select at least one card.",
+    "noOfferedCards": "Please select offered cards.",
+    "noWantedCards": "Please select wanted cards.",
+    "requiredFields": "Please fill in all required fields.",
+    "selectOneCard": "Please select one card.",
+    "enterListName": "リスト名を入力してください。",
+    "enterPokepokeId": "ポケポケIDを入力してください",
+    "enterTitle": "タイトルを入力してください",
+    "enterUsername": "ユーザー名を入力してください",
+    "pokepokeIdLength": "ポケポケIDは3文字以上20文字以下で入力してください",
+    "selectAtLeastOneCard": "少なくとも1枚のカードを選択してください。",
+    "selectAtLeastOneGroup": "少なくとも1つのグループでカードを選択してください",
+    "usernameLength": "ユーザー名は1文字以上30文字以下で入力してください"
   }
 }

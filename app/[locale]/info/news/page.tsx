@@ -7,9 +7,11 @@ import { Card, CardContent } from "@/components/ui/card"
 import Header from "@/components/layout/header"
 import Footer from "@/components/footer"
 import { getInfoList } from "@/lib/actions/info-articles"
+import { getTranslations } from "next-intl/server"
 
 export default async function NewsListPage() {
   const articles = await getInfoList(50, 0) // より多くの記事を取得
+  const t = await getTranslations('info')
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -27,16 +29,16 @@ export default async function NewsListPage() {
               className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 font-medium transition-colors"
             >
               <ArrowLeft className="h-4 w-4" />
-              インフォメーションに戻る
+              {t('news.backToInfo')}
             </Link>
           </div>
 
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-slate-900 mb-2">最新情報一覧</h1>
-            <p className="text-slate-600">すべての最新情報をご覧いただけます</p>
+            <h1 className="text-3xl font-bold text-slate-900 mb-2">{t('news.title')}</h1>
+            <p className="text-slate-600">{t('news.subtitle')}</p>
           </div>
 
-          <Suspense fallback={<div className="text-center py-8">読み込み中...</div>}>
+          <Suspense fallback={<div className="text-center py-8">{t('news.loading')}</div>}>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {articles.map((article) => (
                 <Link key={article.id} href={`/info/${article.id}`} className="group">
@@ -52,7 +54,7 @@ export default async function NewsListPage() {
                       <div className="absolute top-3 left-3 flex gap-2">
                         {article.pinned && (
                           <Badge variant="destructive" className="text-xs font-medium">
-                            ピン留め
+                            {t('news.pinned')}
                           </Badge>
                         )}
                         {article.category && (
@@ -84,7 +86,7 @@ export default async function NewsListPage() {
 
           {articles.length === 0 && (
             <div className="text-center py-12">
-              <p className="text-slate-500 text-lg">現在、表示できる記事がありません。</p>
+              <p className="text-slate-500 text-lg">{t('news.noArticles')}</p>
             </div>
           )}
         </main>

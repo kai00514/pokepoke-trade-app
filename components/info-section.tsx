@@ -1,6 +1,7 @@
 import { Link } from "@/lib/i18n-navigation"
 import type { LucideIcon } from "lucide-react"
 import type { ReactNode } from "react"
+import { getTranslations } from "next-intl/server"
 
 interface InfoSectionProps {
   icon: LucideIcon
@@ -9,7 +10,9 @@ interface InfoSectionProps {
   children: ReactNode
 }
 
-export default function InfoSection({ icon: Icon, title, viewAllLink, children }: InfoSectionProps) {
+export default async function InfoSection({ icon: Icon, title, viewAllLink, children }: InfoSectionProps) {
+  const t = await getTranslations('info')
+
   return (
     <section className="space-y-4">
       <div className="flex items-center justify-between">
@@ -20,7 +23,7 @@ export default function InfoSection({ icon: Icon, title, viewAllLink, children }
           <h2 className="text-base sm:text-lg font-semibold text-slate-900">{title}</h2>
         </div>
         <Link href={viewAllLink} className="text-sm font-medium text-blue-700 hover:underline" prefetch={false}>
-          すべて見る
+          {t('viewAll')}
         </Link>
       </div>
       {children}

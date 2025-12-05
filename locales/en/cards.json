@@ -1,47 +1,47 @@
 {
   "categories": {
     "all": "All",
-    "pokemon": "Pokemon",
-    "trainers": "Trainers",
     "goods": "Goods",
-    "tools": "Tools"
+    "pokemon": "Pokemon",
+    "tools": "Tools",
+    "trainers": "Trainers"
   },
-  "types": {
-    "all": "All Types",
-    "grass": "Grass",
-    "fire": "Fire",
-    "water": "Water",
-    "electric": "Electric",
-    "psychic": "Psychic",
-    "fighting": "Fighting",
-    "dark": "Dark",
-    "darkness": "Dark",
-    "steel": "Steel",
-    "metal": "Steel",
-    "colorless": "Colorless",
-    "dragon": "Dragon"
+  "filters": {
+    "pack": "Pack Name",
+    "type": "Type"
+  },
+  "packs": {
+    "all": "All Packs"
   },
   "rarities": {
     "all": "All Rarities",
+    "color1": "Color 1",
+    "color1Label": "1",
+    "color2": "Color 2",
+    "color2Label": "2",
+    "crown": "Crown",
+    "crownLabel": "♔",
     "diamond1": "Diamond 1",
     "diamond2": "Diamond 2",
     "diamond3": "Diamond 3",
     "diamond4": "Diamond 4",
     "star1": "Star 1",
     "star2": "Star 2",
-    "star3": "Star 3",
-    "crown": "Crown",
-    "crownLabel": "♔",
-    "color1": "Color 1",
-    "color1Label": "1",
-    "color2": "Color 2",
-    "color2Label": "2"
+    "star3": "Star 3"
   },
-  "packs": {
-    "all": "All Packs"
-  },
-  "filters": {
-    "type": "Type",
-    "pack": "Pack Name"
+  "types": {
+    "all": "All Types",
+    "colorless": "Colorless",
+    "dark": "Dark",
+    "darkness": "Dark",
+    "dragon": "Dragon",
+    "electric": "Electric",
+    "fighting": "Fighting",
+    "fire": "Fire",
+    "grass": "Grass",
+    "metal": "Steel",
+    "psychic": "Psychic",
+    "steel": "Steel",
+    "water": "Water"
   }
 }

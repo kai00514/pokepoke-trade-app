@@ -1,69 +1,27 @@
 {
   "auth": {
+    "confirmPassword": {
+      "hide": "Hide password confirmation",
+      "label": "Confirm Password",
+      "placeholder": "Re-enter password",
+      "show": "Show password confirmation"
+    },
     "email": {
       "label": "Email",
       "placeholder": "Your email address"
     },
-    "password": {
-      "label": "Password",
-      "placeholder": "Your password",
-      "newPlaceholder": "Password (6+ characters)",
-      "hint": "At least 6 alphanumeric characters recommended.",
-      "forgotLink": "Forgot your password?",
-      "show": "Show password",
-      "hide": "Hide password"
-    },
-    "confirmPassword": {
-      "label": "Confirm Password",
-      "placeholder": "Re-enter password",
-      "show": "Show password confirmation",
-      "hide": "Hide password confirmation"
-    },
     "newPassword": {
       "label": "New Password",
       "placeholder": "New password (6+ characters)"
-    }
-  },
-  "trade": {
-    "title": {
-      "label": "Trade Title",
-      "placeholder": "e.g., Looking for Charizard ex"
     },
-    "wantedCards": {
-      "label": "Wanted Cards"
-    },
-    "offeredCards": {
-      "label": "Offered Cards"
-    },
-    "savedList": {
-      "label": "Select from Saved Lists"
-    },
-    "pokepokeId": {
-      "label": "Pokepoke App ID",
-      "placeholder": "Pokepoke App ID (optional)",
-      "helperAuthenticated": "Your registered Pokepoke ID is auto-filled.",
-      "helperAuthenticatedNoId": "You are logged in. Pokepoke ID is optional. Only numbers allowed.",
-      "helperGuest": "Posting as guest. Pokepoke ID is optional. Only numbers allowed."
-    },
-    "comment": {
-      "label": "Comment (optional)",
-      "placeholder": "Enter comment (up to 256 characters)"
-    }
-  },
-  "list": {
-    "name": {
-      "label": "List Name",
-      "placeholder": "e.g., Trading Card List"
-    },
-    "description": {
-      "label": "Description (optional)",
-      "placeholder": "Enter list description"
-    }
-  },
-  "search": {
-    "keyword": {
-      "label": "Keyword",
-      "placeholder": "Search by keyword"
+    "password": {
+      "forgotLink": "Forgot your password?",
+      "hide": "Hide password",
+      "hint": "At least 6 alphanumeric characters recommended.",
+      "label": "Password",
+      "newPlaceholder": "Password (6+ characters)",
+      "placeholder": "Your password",
+      "show": "Show password"
     }
   },
   "collage": {
@@ -77,24 +35,87 @@
     }
   },
   "contact": {
-    "name": {
-      "label": "Name",
-      "placeholder": "John Doe"
-    },
     "email": {
       "label": "Email Address"
-    },
-    "subject": {
-      "label": "Subject",
-      "placeholder": "Enter the subject of your inquiry"
     },
     "message": {
       "label": "Message",
       "placeholder": "Please describe your inquiry in detail"
+    },
+    "name": {
+      "label": "Name",
+      "placeholder": "John Doe"
+    },
+    "subject": {
+      "label": "Subject",
+      "placeholder": "Enter the subject of your inquiry"
     }
   },
+  "labels": {
+    "email": "Email",
+    "password": "Password"
+  },
+  "list": {
+    "description": {
+      "label": "Description (optional)",
+      "placeholder": "Enter list description"
+    },
+    "name": {
+      "label": "List Name",
+      "placeholder": "e.g., Trading Card List"
+    }
+  },
+  "listCreation": {
+    "cardSelection": "Card Selection ({count}/35)",
+    "charCount": "{count}/100 characters",
+    "label": "List Name",
+    "placeholder": "Enter list name"
+  },
   "placeholders": {
+    "email": "Your email address",
+    "enterListName": "Enter list name",
     "keyword": "Keyword",
-    "enterListName": "Enter list name"
+    "password": "Your password",
+    "passwordMin": "Password (6+ characters)"
+  },
+  "pokepokeId": {
+    "label": "Pokepoke ID",
+    "placeholder": "e.g., trainer123"
+  },
+  "search": {
+    "keyword": {
+      "label": "Keyword",
+      "placeholder": "Search by keyword"
+    }
+  },
+  "trade": {
+    "comment": {
+      "label": "Comment (optional)",
+      "placeholder": "Enter comment (up to 256 characters)"
+    },
+    "offeredCards": {
+      "label": "Offered Cards"
+    },
+    "pokepokeId": {
+      "helperAuthenticated": "Your registered Pokepoke ID is auto-filled.",
+      "helperAuthenticatedNoId": "You are logged in. Pokepoke ID is optional. Only numbers allowed.",
+      "helperGuest": "Posting as guest. Pokepoke ID is optional. Only numbers allowed.",
+      "label": "Pokepoke App ID",
+      "placeholder": "Pokepoke App ID (optional)"
+    },
+    "savedList": {
+      "label": "Select from Saved Lists"
+    },
+    "title": {
+      "label": "Trade Title",
+      "placeholder": "e.g., Looking for Charizard ex"
+    },
+    "wantedCards": {
+      "label": "Wanted Cards"
+    }
+  },
+  "username": {
+    "label": "Username",
+    "placeholder": "e.g., Pokemon Trainer"
   }
 }
