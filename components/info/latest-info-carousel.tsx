@@ -30,11 +30,7 @@ function NewsCard({ a }: { a: InfoArticle }) {
     >
       <div className="relative w-full aspect-[16/9] bg-slate-100">
         <Image
-          src={
-            (a.thumbnail_image_url && a.thumbnail_image_url.startsWith("http")
-              ? a.thumbnail_image_url
-              : "/placeholder.svg?height=180&width=320&query=latest-info-card") as string
-          }
+          src="/placeholder.svg?height=180&width=320&query=latest-info-card"
           alt={a.title ?? "最新情報"}
           fill
           className="object-cover transition-transform duration-300 group-hover:scale-[1.02]"
