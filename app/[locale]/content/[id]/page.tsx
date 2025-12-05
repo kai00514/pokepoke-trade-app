@@ -66,6 +66,9 @@ interface DeckPageData {
 
 export default function PokemonDeckPage() {
   const t = useTranslations("content")
+  const tCommon = useTranslations("common")
+  const tEvaluation = useTranslations("evaluation")
+  const tDecks = useTranslations("decks")
   const params = useParams()
   const [deckData, setDeckData] = useState<DeckPageData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -266,7 +269,7 @@ export default function PokemonDeckPage() {
         <div className="flex justify-center items-center py-20">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p className="text-slate-500">{t('common.misc.loading')}</p>
+            <p className="text-slate-500">{tCommon('misc.loading')}</p>
           </div>
         </div>
         <Footer />
@@ -298,7 +301,7 @@ export default function PokemonDeckPage() {
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle>{t("evaluationComplete")}</DialogTitle>
-            <DialogDescription>{t('evaluation.submitSuccess')}</DialogDescription>
+            <DialogDescription>{tEvaluation('submitSuccess')}</DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <DialogClose asChild>
@@ -395,7 +398,7 @@ export default function PokemonDeckPage() {
                   cards={deckData.cards}
                 />
               ) : (
-                <div className="text-center text-gray-500 py-6">{t('decks.noRecipe')}</div>
+                <div className="text-center text-gray-500 py-6">{tDecks('noRecipe')}</div>
               )}
               {deckData.deckDescription && <p className="text-sm text-gray-600 mt-3">{deckData.deckDescription}</p>}
             </div>

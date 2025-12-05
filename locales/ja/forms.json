@@ -117,5 +117,8 @@
   "username": {
     "label": "ユーザー名",
     "placeholder": "例: ポケモントレーナー"
+  },
+  "packs": {
+    "all": "すべてのパック"
   }
 }

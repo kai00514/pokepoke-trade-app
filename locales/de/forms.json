@@ -117,5 +117,8 @@
   "username": {
     "label": "Username",
     "placeholder": "e.g., Pokemon Trainer"
+  },
+  "packs": {
+    "all": "Alle Pakete"
   }
 }
