@@ -52,36 +52,38 @@ export interface TradePostDetails {
 const OwnerActionButtons = ({ post, currentUserId }: { post: TradePostDetails; currentUserId: string | null }) => {
   const [isUpdating, setIsUpdating] = useState(false)
   const { toast } = useToast()
-  const t = useTranslations()
+  const tStatus = useTranslations("status")
+  const tMessages = useTranslations("messages")
+  const tCommon = useTranslations("common")
 
   if (!currentUserId || !post.author?.isOwner || post.author.userId !== currentUserId) return null
-  if (post.status === t("canceled") || post.status === t("completed")) return null
+  if (post.status === tStatus("canceled") || post.status === tStatus("completed")) return null
 
   const handleStatusUpdate = async (status: "CANCELED" | "COMPLETED") => {
     if (isUpdating) return
-    const action = status === "CANCELED" ? t("canceled") : t("completed")
-    if (!confirm(t("confirmAction", { action }))) return
+    const action = status === "CANCELED" ? tStatus("canceled") : tStatus("completed")
+    if (!confirm(tMessages("confirmAction", { action }))) return
     setIsUpdating(true)
     try {
       const result = await updateTradePostStatus(post.id, status)
       if (result.success) {
         toast({
-          title: t("actionCompleted", { action }),
-          description: t("statusChanged", { action })
+          title: tMessages("actionCompleted", { action }),
+          description: tMessages("statusChanged", { action })
         })
         window.location.reload()
       } else {
         toast({
-          title: t("actionFailed", { action }),
-          description: result.error || t("unexpected"),
+          title: tMessages("actionFailed", { action }),
+          description: result.error || tMessages("unexpected"),
           variant: "destructive",
         })
       }
     } catch (error) {
       console.error(`Error updating status to ${status}:`, error)
       toast({
-        title: t("title"),
-        description: t("actionError", { action }),
+        title: tMessages("title"),
+        description: tMessages("actionError", { action }),
         variant: "destructive"
       })
     } finally {
@@ -91,7 +93,7 @@ const OwnerActionButtons = ({ post, currentUserId }: { post: TradePostDetails; c
 
   return (
     <div className="mt-6 p-4 bg-slate-50 rounded-lg border">
-      <h3 className="text-sm font-medium text-slate-700 mb-3">{t("ownerActions")}</h3>
+      <h3 className="text-sm font-medium text-slate-700 mb-3">{tMessages("ownerActions")}</h3>
       <div className="flex gap-3">
         <Button
           onClick={() => handleStatusUpdate("CANCELED")}
@@ -99,14 +101,14 @@ const OwnerActionButtons = ({ post, currentUserId }: { post: TradePostDetails; c
           variant="destructive"
           className="flex-1"
         >
-          {isUpdating ? t("processing") : t("cancel")}
+          {isUpdating ? tMessages("processing") : tMessages("cancel")}
         </Button>
         <Button
           onClick={() => handleStatusUpdate("COMPLETED")}
           disabled={isUpdating}
           className="flex-1 bg-green-500 hover:bg-green-600"
         >
-          {isUpdating ? t("processing") : t("complete")}
+          {isUpdating ? tMessages("processing") : tMessages("complete")}
         </Button>
       </div>
     </div>
@@ -122,7 +124,11 @@ export default function TradeDetailClient({ initialPost, postId }: TradeDetailCl
   const router = useRouter()
   const { toast } = useToast()
   const { user } = useAuth()
-  const t = useTranslations()
+  const t = useTranslations("comments")
+  const tCommon = useTranslations("common")
+  const tTrades = useTranslations("trades")
+  const tStatus = useTranslations("status")
+  const tMessages = useTranslations("messages")
   const [post, setPost] = useState<TradePostDetails>(initialPost)
   const [newComment, setNewComment] = useState("")
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null)
@@ -133,8 +139,8 @@ export default function TradeDetailClient({ initialPost, postId }: TradeDetailCl
     if (post?.originalPostId) {
       navigator.clipboard.writeText(post.originalPostId)
       toast({
-        title: t("messages.success.copied"),
-        description: t("idCopied", { id: post.originalPostId })
+        title: tMessages("success.copied"),
+        description: tMessages("idCopied", { id: post.originalPostId })
       })
     }
   }, [post?.originalPostId, toast, t])
@@ -144,7 +150,7 @@ export default function TradeDetailClient({ initialPost, postId }: TradeDetailCl
   }, [])
 
   const generateOptimisticComment = useCallback((user: any, isAuthenticated: boolean | null) => {
-    const displayName = user?.user_metadata?.display_name || user?.email || t("common.labels.user")
+    const displayName = user?.user_metadata?.display_name || user?.email || tCommon("labels.user")
     const avatarUrl = user?.user_metadata?.avatar_url
     return (commentText: string) => ({
       id: `temp-${Date.now()}`,
@@ -311,7 +317,7 @@ export default function TradeDetailClient({ initialPost, postId }: TradeDetailCl
           ))}
         </div>
       ) : (
-        <p className="text-sm text-slate-500">{t("notApplicable")}</p>
+        <p className="text-sm text-slate-500">{tTrades("notApplicable")}</p>
       )}
     </div>
   )
@@ -327,7 +333,7 @@ export default function TradeDetailClient({ initialPost, postId }: TradeDetailCl
           className="inline-flex items-center text-sm text-blue-600 hover:text-blue-700 mb-6 group cursor-pointer border-none bg-transparent"
         >
           <ArrowLeft className="h-4 w-4 mr-1 transition-transform group-hover:-translate-x-1" />
-          {t("common.navigation.backToTimeline")}
+          {tCommon("navigation.backToTimeline")}
         </button>
         <div className="bg-white p-6 sm:p-8 rounded-lg shadow-xl mb-8">
           <div className="flex justify-between items-start mb-4">
@@ -358,16 +364,16 @@ export default function TradeDetailClient({ initialPost, postId }: TradeDetailCl
                 onClick={handleShare}
               >
                 <Share2 className="mr-2 h-4 w-4" />
-                {t("common.buttons.share")}
+                {tCommon("buttons.share")}
               </Button>
               <Badge
                 variant="outline"
                 className={`whitespace-nowrap ${
-                  post.status === t("recruiting")
+                  post.status === tStatus("recruiting")
                     ? "bg-green-100 text-green-700 border-green-300"
-                    : post.status === t("inProgress")
+                    : post.status === tStatus("inProgress")
                       ? "bg-amber-100 text-amber-700 border-amber-300"
-                      : post.status === t("completedShort")
+                      : post.status === tStatus("completedShort")
                         ? "bg-blue-100 text-blue-700 border-blue-300"
                         : "bg-gray-100 text-gray-700 border-gray-300"
                 }`}
@@ -377,12 +383,12 @@ export default function TradeDetailClient({ initialPost, postId }: TradeDetailCl
             </div>
           </div>
           <div className="space-y-6 mb-6">
-            {renderCardList(post.wantedCards, t("trades.wantedCards"))}
-            {renderCardList(post.offeredCards, t("offeredCards"))}
+            {renderCardList(post.wantedCards, tTrades("wantedCards"))}
+            {renderCardList(post.offeredCards, tTrades("offeredCards"))}
           </div>
           {post.authorNotes && (
             <div className="bg-slate-100 p-4 rounded-md mb-6">
-              <h3 className="font-semibold text-slate-800 mb-2">{t("authorComment")}</h3>
+              <h3 className="font-semibold text-slate-800 mb-2">{tTrades("authorComment")}</h3>
               <p className="text-sm text-slate-700 whitespace-pre-wrap">{post.authorNotes}</p>
             </div>
           )}
@@ -390,14 +396,14 @@ export default function TradeDetailClient({ initialPost, postId }: TradeDetailCl
             <p className="text-sm text-slate-600">ID : {post.originalPostId}</p>
             <Button variant="outline" size="sm" onClick={handleCopyToClipboard} className="text-xs bg-transparent">
               <Copy className="mr-1.5 h-3 w-3" />
-              {t("copy")}
+              {tTrades("copy")}
             </Button>
           </div>
           <OwnerActionButtons post={post} currentUserId={user?.id || null} />
         </div>
         <div className="bg-white rounded-lg shadow-xl">
           <div className="bg-blue-600 text-white p-4 rounded-t-lg">
-            <h2 className="text-xl font-semibold">{t("title")}</h2>
+            <h2 className="text-xl font-semibold">{tMessages("title")}</h2>
           </div>
           <div className="p-4 sm:p-6 space-y-4">
             {post.comments.length > 0 ? (

@@ -29,7 +29,7 @@ interface DeckCommentsProps {
 export default function DeckComments({ deckId, deckTitle, commentType = "deck" }: DeckCommentsProps) {
   const { user, loading } = useAuth()
   const { toast } = useToast()
-  const t = useTranslations()
+  const t = useTranslations("comments")
   const [comments, setComments] = useState<Comment[]>([])
   const [newComment, setNewComment] = useState("")
   const [isLoading, setIsLoading] = useState(true)
