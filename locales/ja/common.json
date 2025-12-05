@@ -153,5 +153,8 @@
     "customizeDisplayName": "表示名をカスタマイズ",
     "online": "オンライン",
     "setYourId": "あなた専用のIDを設定"
+  },
+  "units": {
+    "cards": "枚"
   }
 }

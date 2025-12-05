@@ -62,7 +62,7 @@ export default function LoginPromptModal({
             className="bg-blue-600 text-white rounded-lg py-3 text-center font-medium hover:bg-blue-700 transition-colors flex items-center justify-center"
           >
             <LogIn size={18} className="mr-2" />
-            {t("auth.login")}
+            {t("auth.login.loginButton")}
           </button>
           <button
             onClick={handleRegister}

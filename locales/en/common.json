@@ -153,5 +153,8 @@
     "customizeDisplayName": "Customize display name",
     "online": "Online",
     "setYourId": "Set your exclusive ID"
+  },
+  "units": {
+    "cards": "{count} cards"
   }
 }

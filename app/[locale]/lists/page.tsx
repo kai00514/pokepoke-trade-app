@@ -78,7 +78,7 @@ export default function ListsPage() {
           <div className="mb-6">
             <Link href="/" className="inline-flex items-center text-blue-600 hover:text-blue-800 transition-colors">
               <ArrowLeft className="h-4 w-4 mr-2" />
-              タイムラインに戻る
+              {t('common.navigation.backToTimeline')}
             </Link>
           </div>
 
@@ -207,7 +207,7 @@ export default function ListsPage() {
                             />
                           </svg>
                           <span className="font-medium text-blue-600">
-                            {list.card_ids ? list.card_ids.length : 0}枚
+                            {list.card_ids ? list.card_ids.length : 0}{t('common.units.cards')}
                           </span>
                         </div>
                         <div className="flex items-center">
