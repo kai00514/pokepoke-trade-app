@@ -36,7 +36,7 @@ export interface UserData {
 }
 
 export async function getUsersStats(): Promise<UserStats> {
-  const supabase = createClient()
+  const supabase = await createClient()
 
   try {
     // 総ユーザー数
@@ -74,7 +74,7 @@ export async function getUsersStats(): Promise<UserStats> {
 }
 
 export async function getUsersList(limit = 50): Promise<UserData[]> {
-  const supabase = createClient()
+  const supabase = await createClient()
 
   try {
     const { data, error } = await supabase
