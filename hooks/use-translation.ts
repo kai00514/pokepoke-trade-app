@@ -32,8 +32,16 @@ export function useTranslation() {
     sourceLang: string = 'ja',
     targetLang: string = locale
   ): Promise<string | null> => {
+    console.log('[useTranslation] translate called:', {
+      sourceLang,
+      targetLang,
+      locale,
+      textPreview: text.substring(0, 30),
+    });
+
     // Skip translation if source and target are the same
     if (sourceLang === targetLang) {
+      console.log('[useTranslation] Skipped: source === target');
       return text;
     }
 
@@ -41,6 +49,11 @@ export function useTranslation() {
     setError(null);
 
     try {
+      console.log('[useTranslation] Sending API request:', {
+        sourceLang,
+        targetLang,
+      });
+
       const response = await fetch('/api/translate-comment', {
         method: 'POST',
         headers: {

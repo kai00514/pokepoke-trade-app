@@ -60,8 +60,25 @@ export default function TranslateButton({
       return;
     }
 
+    // Debug logging
+    console.log('[TranslateButton] Translation requested:', {
+      sourceLang,
+      targetLang: targetLang || '(using locale)',
+      locale,
+      effectiveTargetLang,
+      textPreview: text.substring(0, 50),
+    });
+
     // Translate with explicit target language
     const result = await translate(text, sourceLang, effectiveTargetLang);
+    
+    console.log('[TranslateButton] Translation result:', {
+      originalPreview: text.substring(0, 50),
+      translatedPreview: result?.substring(0, 50),
+      sourceLang,
+      effectiveTargetLang,
+    });
+
     if (result) {
       setTranslatedText(result);
       setShowTranslation(true);
