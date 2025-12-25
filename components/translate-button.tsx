@@ -109,18 +109,3 @@ export default function TranslateButton({
     </div>
   );
 }
-      </Button>
-
-      {showTranslation && translatedText && (
-        <div className="pl-3 border-l-2 border-blue-300 bg-blue-50 p-2 rounded-r">
-          <p className="text-xs text-blue-600 font-semibold mb-1">
-            {t('translatedText')}
-          </p>
-          <p className="text-sm text-slate-700 whitespace-pre-wrap">
-            {translatedText}
-          </p>
-        </div>
-      )}
-    </div>
-  );
-}
