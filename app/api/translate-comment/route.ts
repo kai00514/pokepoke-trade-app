@@ -18,6 +18,13 @@ export async function POST(request: NextRequest) {
   try {
     const { text, sourceLang, targetLang } = await request.json();
 
+    // Debug logging
+    console.log('[Translation API] Request:', {
+      textPreview: text.substring(0, 50),
+      sourceLang,
+      targetLang,
+    });
+
     // Validate input
     if (!text || !sourceLang || !targetLang) {
       return Response.json(
@@ -28,6 +35,7 @@ export async function POST(request: NextRequest) {
 
     // Skip translation if source and target are the same
     if (sourceLang === targetLang) {
+      console.log('[Translation API] Skipped: source === target');
       return Response.json({
         translatedText: text,
         cached: false,
@@ -71,6 +79,13 @@ export async function POST(request: NextRequest) {
       targetLang,
       true // useGlossary
     );
+
+    console.log('[Translation API] Translation result:', {
+      original: text.substring(0, 50),
+      translated: translatedText.substring(0, 50),
+      sourceLang,
+      targetLang,
+    });
 
     // Save to cache
     await supabase

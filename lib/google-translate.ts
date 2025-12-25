@@ -40,6 +40,25 @@ export const SUPPORTED_LANGUAGES = ['ja', 'en', 'zh-cn', 'zh-tw', 'ko', 'fr', 'e
 export type SupportedLanguage = typeof SUPPORTED_LANGUAGES[number];
 
 /**
+ * Convert application locale codes to Google Translation API language codes
+ * 
+ * Google Translation API uses different format for Chinese locales:
+ * - Simplified Chinese: zh-CN or zh-Hans (not zh-cn)
+ * - Traditional Chinese: zh-TW or zh-Hant (not zh-tw)
+ * 
+ * @param locale - Application locale code (e.g., 'zh-cn', 'zh-tw')
+ * @returns Google Translation API language code (e.g., 'zh-CN', 'zh-TW')
+ */
+function normalizeLanguageCode(locale: string): string {
+  const mapping: Record<string, string> = {
+    'zh-cn': 'zh-CN',  // Simplified Chinese
+    'zh-tw': 'zh-TW',  // Traditional Chinese (Taiwan)
+  };
+  
+  return mapping[locale.toLowerCase()] || locale;
+}
+
+/**
  * Translate text from one language to another
  *
  * @param text - The text to translate
@@ -63,8 +82,12 @@ export async function translateText(
       return text;
     }
 
+    // Normalize language codes for Google Translation API
+    const normalizedSourceLang = normalizeLanguageCode(sourceLanguage);
+    const normalizedTargetLang = normalizeLanguageCode(targetLanguage);
+
     // Skip translation if source and target languages are the same
-    if (sourceLanguage === targetLanguage) {
+    if (normalizedSourceLang === normalizedTargetLang) {
       return text;
     }
 
@@ -73,8 +96,8 @@ export async function translateText(
       parent: `projects/${PROJECT_ID}/locations/${LOCATION}`,
       contents: [text],
       mimeType: 'text/plain' as const,
-      sourceLanguageCode: sourceLanguage,
-      targetLanguageCode: targetLanguage,
+      sourceLanguageCode: normalizedSourceLang,
+      targetLanguageCode: normalizedTargetLang,
       // Note: Not specifying model uses the default NMT model
     };
 
@@ -118,8 +141,12 @@ export async function translateBatch(
       return texts;
     }
 
+    // Normalize language codes for Google Translation API
+    const normalizedSourceLang = normalizeLanguageCode(sourceLanguage);
+    const normalizedTargetLang = normalizeLanguageCode(targetLanguage);
+
     // Skip translation if source and target languages are the same
-    if (sourceLanguage === targetLanguage) {
+    if (normalizedSourceLang === normalizedTargetLang) {
       return texts;
     }
 
@@ -128,8 +155,8 @@ export async function translateBatch(
       parent: `projects/${PROJECT_ID}/locations/${LOCATION}`,
       contents: texts,
       mimeType: 'text/plain' as const,
-      sourceLanguageCode: sourceLanguage,
-      targetLanguageCode: targetLanguage,
+      sourceLanguageCode: normalizedSourceLang,
+      targetLanguageCode: normalizedTargetLang,
       model: 'nmt', // Use Neural Machine Translation Advanced model for better quality
     };
 
@@ -332,8 +359,17 @@ export async function translateTextWithGlossary(
       return text;
     }
 
+    // Normalize language codes for Google Translation API
+    const normalizedSourceLang = normalizeLanguageCode(sourceLanguage);
+    const normalizedTargetLang = normalizeLanguageCode(targetLanguage);
+
+    console.log('[Google Translate] Language codes:', {
+      original: { source: sourceLanguage, target: targetLanguage },
+      normalized: { source: normalizedSourceLang, target: normalizedTargetLang },
+    });
+
     // Skip translation if source and target languages are the same
-    if (sourceLanguage === targetLanguage) {
+    if (normalizedSourceLang === normalizedTargetLang) {
       return text;
     }
 
@@ -342,15 +378,15 @@ export async function translateTextWithGlossary(
       parent: `projects/${PROJECT_ID}/locations/${GLOSSARY_LOCATION}`,
       contents: [text],
       mimeType: 'text/plain' as const,
-      sourceLanguageCode: sourceLanguage,
-      targetLanguageCode: targetLanguage,
+      sourceLanguageCode: normalizedSourceLang,
+      targetLanguageCode: normalizedTargetLang,
       // Note: Not specifying model uses the default NMT model
     };
 
     // Add glossary if requested and available
     if (useGlossary) {
       try {
-        const glossaryName = getGlossaryName(sourceLanguage, targetLanguage);
+        const glossaryName = getGlossaryName(normalizedSourceLang, normalizedTargetLang);
         request.glossaryConfig = {
           glossary: glossaryName,
         };
@@ -398,8 +434,12 @@ export async function translateBatchWithGlossary(
       return texts;
     }
 
+    // Normalize language codes for Google Translation API
+    const normalizedSourceLang = normalizeLanguageCode(sourceLanguage);
+    const normalizedTargetLang = normalizeLanguageCode(targetLanguage);
+
     // Skip translation if source and target languages are the same
-    if (sourceLanguage === targetLanguage) {
+    if (normalizedSourceLang === normalizedTargetLang) {
       return texts;
     }
 
@@ -408,15 +448,15 @@ export async function translateBatchWithGlossary(
       parent: `projects/${PROJECT_ID}/locations/${GLOSSARY_LOCATION}`,
       contents: texts,
       mimeType: 'text/plain' as const,
-      sourceLanguageCode: sourceLanguage,
-      targetLanguageCode: targetLanguage,
+      sourceLanguageCode: normalizedSourceLang,
+      targetLanguageCode: normalizedTargetLang,
       model: 'nmt',
     };
 
     // Add glossary if requested
     if (useGlossary) {
       try {
-        const glossaryName = getGlossaryName(sourceLanguage, targetLanguage);
+        const glossaryName = getGlossaryName(normalizedSourceLang, normalizedTargetLang);
         request.glossaryConfig = {
           glossary: glossaryName,
         };
