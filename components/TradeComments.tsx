@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react"
 import { addComment, getComments } from "@/lib/actions/trade-comments"
-import { useTranslations } from "next-intl"
+import { useTranslations, useLocale } from "next-intl"
 import TranslateButton from "@/components/translate-button"
 
 interface TradeCommentsProps {
@@ -14,6 +14,7 @@ export default function TradeComments({ postId, currentUser }: TradeCommentsProp
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const t = useTranslations()
+  const locale = useLocale()
 
   useEffect(() => {
     fetchComments()
@@ -84,7 +85,9 @@ export default function TradeComments({ postId, currentUser }: TradeCommentsProp
                 {c.is_edited && <span className="text-xs text-yellow-600 ml-2">{t('comments.edited')}</span>}
               </div>
               <div className="mt-1">{c.content}</div>
-              <TranslateButton text={c.content} sourceLang="ja" className="mt-1" />
+              {locale !== 'ja' && (
+                <TranslateButton text={c.content} sourceLang="ja" className="mt-1" />
+              )}
             </li>
           ))}
         </ul>
