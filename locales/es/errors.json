@@ -1,99 +1,99 @@
 {
   "auth": {
-    "accountCreationFailed": "アカウント作成に失敗しました。",
-    "adminAuthFailed": "認証に失敗しました",
-    "adminEmptyCredentials": "ユーザー名とパスワードを入力してください",
-    "callbackError": "認証プロセスでエラーが発生しました。",
-    "databaseError": "データベースエラーが発生しました",
-    "emailNotConfirmed": "メールアドレスが確認されていません。確認メールをご確認ください。",
-    "emptyCredentials": "メールアドレスとパスワードを入力してください。",
-    "emptyEmail": "メールアドレスを入力してください。",
-    "generic": "認証エラーが発生しました。",
-    "invalidCredentials": "メールアドレスまたはパスワードが正しくありません。",
-    "invalidEmail": "有効なメールアドレスを入力してください。",
-    "loginFailed": "ログインに失敗しました。",
-    "noCode": "認証コードが見つかりませんでした。",
-    "noSession": "セッションの作成に失敗しました。",
-    "notAuthenticated": "ユーザーが認証されていません。",
-    "passwordMismatch": "パスワードが一致しません。",
-    "passwordTooShort": "パスワードは6文字以上で入力してください。",
-    "resendFailed": "確認メールの再送信に失敗しました。",
-    "resetEmailFailed": "パスワードリセットメールの送信に失敗しました。",
-    "serverError": "サーバーエラーが発生しました",
-    "sessionSetupError": "セッション設定エラー",
-    "signupFailed": "登録に失敗しました。",
-    "socialLoginFailed": "ソーシャルログインに失敗しました。",
-    "socialSignupFailed": "ソーシャル登録に失敗しました。",
-    "tooManyRequests": "ログイン試行回数が上限に達しました。しばらく時間をおいてから再試行してください。",
-    "unexpected": "予期しないエラーが発生しました。",
-    "updatePasswordFailed": "パスワードの更新に失敗しました。",
-    "userExists": "このメールアドレスは既に登録されています。ログインページからログインしてください。"
+    "accountCreationFailed": "Error al crear la cuenta.",
+    "adminAuthFailed": "Error de autenticación",
+    "adminEmptyCredentials": "Por favor, ingresa el nombre de usuario y la contraseña",
+    "callbackError": "Ocurrió un error durante el proceso de autenticación.",
+    "databaseError": "Ocurrió un error de base de datos",
+    "emailNotConfirmed": "La dirección de correo electrónico no está confirmada. Por favor, revisa tu correo de confirmación.",
+    "emptyCredentials": "Por favor, ingresa tu correo electrónico y contraseña.",
+    "emptyEmail": "Por favor, ingresa tu dirección de correo electrónico.",
+    "generic": "Ocurrió un error de autenticación.",
+    "invalidCredentials": "Correo electrónico o contraseña inválidos.",
+    "invalidEmail": "Por favor, ingresa una dirección de correo electrónico válida.",
+    "loginFailed": "Error al iniciar sesión.",
+    "noCode": "Código de autenticación no encontrado.",
+    "noSession": "Error al crear la sesión.",
+    "notAuthenticated": "Usuario no autenticado.",
+    "passwordMismatch": "Las contraseñas no coinciden.",
+    "passwordTooShort": "La contraseña debe tener al menos 6 caracteres.",
+    "resendFailed": "Error al reenviar el correo de confirmación.",
+    "resetEmailFailed": "Error al enviar el correo de restablecimiento de contraseña.",
+    "serverError": "Ocurrió un error del servidor",
+    "sessionSetupError": "Error de configuración de sesión",
+    "signupFailed": "Error en el registro.",
+    "socialLoginFailed": "Error en el inicio de sesión social.",
+    "socialSignupFailed": "Error en el registro social.",
+    "tooManyRequests": "Demasiados intentos de inicio de sesión. Por favor, inténtalo de nuevo más tarde.",
+    "unexpected": "Ocurrió un error inesperado.",
+    "updatePasswordFailed": "Error al actualizar la contraseña.",
+    "userExists": "Este correo electrónico ya está registrado. Por favor, inicia sesión."
   },
   "collage": {
-    "emptyTitle": "タイトルを入力してください",
-    "generationFailed": "コラージュ生成に失敗しました",
-    "noCards": "少なくとも1つのグループでカードを選択してください"
+    "emptyTitle": "Por favor, ingresa un título",
+    "generationFailed": "Error al generar el collage",
+    "noCards": "Por favor, selecciona cartas en al menos un grupo"
   },
   "data": {
-    "cardsFetchFailed": "カード情報の読み込みに失敗しました。",
-    "fetchError": "データ取得エラー",
-    "packsFetchError": "パック情報取得エラー",
-    "packsFetchFailed": "パック情報の読み込みに失敗しました。",
-    "postsFetchFailed": "投稿の取得に失敗しました。"
+    "cardsFetchFailed": "Error al cargar la información de las cartas.",
+    "fetchError": "Error al obtener datos",
+    "packsFetchError": "Error al obtener información del paquete",
+    "packsFetchFailed": "Error al cargar la información del paquete.",
+    "postsFetchFailed": "Error al obtener las publicaciones."
   },
-  "inputError": "入力エラー",
+  "inputError": "Error de entrada",
   "list": {
-    "authRequired": "ログインが必要です",
-    "authRequiredMessage": "リストを作成するにはログインしてください。",
-    "creationError": "エラーが発生しました",
-    "creationFailed": "リストの作成に失敗しました。",
-    "unexpectedError": "リストの作成中に予期しないエラーが発生しました。"
+    "authRequired": "Inicio de sesión requerido",
+    "authRequiredMessage": "Por favor, inicia sesión para crear una lista.",
+    "creationError": "Ocurrió un error",
+    "creationFailed": "Error al crear la lista.",
+    "unexpectedError": "Ocurrió un error inesperado al crear la lista."
   },
-  "loginRequired": "ログインが必要です",
-  "operationFailed": "操作に失敗しました",
+  "loginRequired": "Inicio de sesión requerido",
+  "operationFailed": "Error en la operación",
   "pokepokeId": {
-    "saveFailed": "ポケポケIDの保存に失敗しました。もう一度お試しください。"
+    "saveFailed": "Error al guardar el ID de Pokepoke. Por favor, inténtalo de nuevo."
   },
   "profile": {
-    "fetchFailed": "プロファイルの取得に失敗しました",
-    "fetchFailedMessage": "基本情報で表示しています。バックグラウンドで再取得を試行中です。"
+    "fetchFailed": "Error al obtener el perfil",
+    "fetchFailedMessage": "Mostrando con información básica. Reintentando en segundo plano."
   },
   "selection": {
-    "title": "選択エラー"
+    "title": "Error de selección"
   },
   "share": {
-    "copyFailed": "コピーに失敗しました",
-    "tryAgain": "もう一度お試しください。"
+    "copyFailed": "Error al copiar",
+    "tryAgain": "Por favor, inténtalo de nuevo."
   },
-  "title": "エラー",
+  "title": "Error",
   "trade": {
-    "genericError": "エラー",
-    "inputError": "入力エラー",
-    "postCreationFailed": "投稿の作成に失敗しました。",
-    "postError": "投稿エラー",
-    "sessionError": "セッション更新エラー",
-    "sessionRefreshFailed": "セッションの更新に失敗しました。再ログインしてください。"
+    "genericError": "Error",
+    "inputError": "Error de entrada",
+    "postCreationFailed": "Error al crear la publicación.",
+    "postError": "Error en la publicación",
+    "sessionError": "Error al actualizar la sesión",
+    "sessionRefreshFailed": "Error al actualizar la sesión. Por favor, inicia sesión de nuevo."
   },
-  "unexpected": "予期しないエラーが発生しました。",
+  "unexpected": "Ocurrió un error inesperado.",
   "username": {
-    "saveFailed": "ユーザー名の保存に失敗しました。もう一度お試しください。"
+    "saveFailed": "Error al guardar el nombre de usuario. Por favor, inténtalo de nuevo."
   },
   "validation": {
-    "emptyListName": "リスト名を入力してください。",
-    "emptyTitle": "トレード目的を入力してください。",
-    "maxSelection": "最大{maxSelection}枚まで選択できます。",
-    "noCardsSelected": "少なくとも1枚のカードを選択してください。",
-    "noOfferedCards": "譲れるカードを選択してください。",
-    "noWantedCards": "求めるカードを選択してください。",
-    "requiredFields": "必須項目を入力してください。",
-    "selectOneCard": "カードを1枚選択してください。",
-    "enterListName": "リスト名を入力してください。",
-    "enterPokepokeId": "ポケポケIDを入力してください",
-    "enterTitle": "タイトルを入力してください",
-    "enterUsername": "ユーザー名を入力してください",
-    "pokepokeIdLength": "ポケポケIDは3文字以上20文字以下で入力してください",
-    "selectAtLeastOneCard": "少なくとも1枚のカードを選択してください。",
-    "selectAtLeastOneGroup": "少なくとも1つのグループでカードを選択してください",
-    "usernameLength": "ユーザー名は1文字以上30文字以下で入力してください"
+    "emptyListName": "Por favor, ingresa un nombre de lista.",
+    "emptyTitle": "Por favor, ingresa un título de intercambio.",
+    "maxSelection": "Puedes seleccionar hasta {maxSelection} cartas.",
+    "noCardsSelected": "Por favor, selecciona al menos una carta.",
+    "noOfferedCards": "Por favor, selecciona cartas ofrecidas.",
+    "noWantedCards": "Por favor, selecciona cartas deseadas.",
+    "requiredFields": "Por favor, completa todos los campos requeridos.",
+    "selectOneCard": "Por favor, selecciona una carta.",
+    "enterListName": "Por favor, ingresa un nombre de lista.",
+    "enterPokepokeId": "Por favor, ingresa un ID de Pokepoke",
+    "enterTitle": "Por favor, ingresa un título",
+    "enterUsername": "Por favor, ingresa un nombre de usuario",
+    "pokepokeIdLength": "El ID de Pokepoke debe tener entre 3 y 20 caracteres",
+    "selectAtLeastOneCard": "Por favor, selecciona al menos una carta.",
+    "selectAtLeastOneGroup": "Por favor, selecciona cartas en al menos un grupo",
+    "usernameLength": "El nombre de usuario debe tener entre 1 y 30 caracteres"
   }
 }

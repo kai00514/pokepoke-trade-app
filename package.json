@@ -10,6 +10,8 @@
   },
   "dependencies": {
     "@emotion/is-prop-valid": "latest",
+    "@google-cloud/storage": "^7.18.0",
+    "@google-cloud/translate": "^9.3.0",
     "@hello-pangea/dnd": "18.0.1",
     "@hookform/resolvers": "^3.9.1",
     "@radix-ui/react-accordion": "latest",

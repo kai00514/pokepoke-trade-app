@@ -42,7 +42,9 @@ export async function getDecksList(options?: {
         thumbnail_card:cards!thumbnail_card_id (
           id,
           name,
+          name_multilingual,
           image_url,
+          image_url_multilingual,
           thumb_url
         )
       `,
@@ -72,7 +74,9 @@ export async function getDecksList(options?: {
         ? {
             id: deck.thumbnail_card.id,
             name: deck.thumbnail_card.name,
+            name_multilingual: deck.thumbnail_card.name_multilingual,
             image_url: deck.thumbnail_card.image_url,
+            image_url_multilingual: deck.thumbnail_card.image_url_multilingual,
             thumb_url: deck.thumbnail_card.thumb_url,
           }
         : null,
@@ -326,7 +330,9 @@ export async function getDeckPageById(id: string): Promise<{ success: boolean; d
             card_id: card.card_id,
             quantity: card.card_count || 1, // card_countをquantityにマッピング
             name: detail?.name || "不明なカード",
+            name_multilingual: detail?.name_multilingual,
             image_url: detail?.image_url || "/placeholder.svg?height=100&width=70",
+            image_url_multilingual: detail?.image_url_multilingual,
             thumb_url: detail?.thumb_url || detail?.image_url || "/placeholder.svg?height=100&width=70",
             pack_name: card.pack_name || "不明なパック",
             display_order: card.display_order || 0,
@@ -382,10 +388,61 @@ export async function createDeck(input: CreateDeckInput): Promise<{ success: boo
       throw new Error("同じカードは1〜2枚までです。")
     }
 
+    // 自動翻訳: タイトルと説明を全言語に翻訳
+    const sourceLang = 'ja';
+    const targetLangs = ['en', 'zh-tw', 'ko', 'fr', 'es', 'de'];
+    
+    const title_multilingual: Record<string, string> = { ja: input.title };
+    const description_multilingual: Record<string, string> | null = input.description 
+      ? { ja: input.description } 
+      : null;
+
+    console.log("[createDeck] 🌐 Starting auto-translation for", targetLangs.length, "languages...")
+
+    // タイトルと説明を翻訳
+    for (const targetLang of targetLangs) {
+      try {
+        const { translateTextWithGlossary } = await import('@/lib/google-translate');
+        
+        title_multilingual[targetLang] = await translateTextWithGlossary(
+          input.title,
+          sourceLang,
+          targetLang,
+          true
+        );
+        
+        // 説明があれば翻訳
+        if (input.description && description_multilingual) {
+          description_multilingual[targetLang] = await translateTextWithGlossary(
+            input.description,
+            sourceLang,
+            targetLang,
+            true
+          );
+        }
+        
+        console.log(`[createDeck] ✅ Translated to ${targetLang}`);
+        
+        // レート制限対策
+        await new Promise(resolve => setTimeout(resolve, input.description ? 200 : 100));
+      } catch (error) {
+        console.error(`[createDeck] ❌ Translation failed for ${targetLang}:`, error);
+        // エラー時は元のテキストを使用
+        title_multilingual[targetLang] = input.title;
+        if (input.description && description_multilingual) {
+          description_multilingual[targetLang] = input.description;
+        }
+      }
+    }
+
+    console.log("[createDeck] 🎉 Auto-translation completed!")
+
     // 1. decksテーブルにデッキを作成
     const insertData: any = {
       title: input.title,
+      title_multilingual,
       description: input.description || null,
+      description_multilingual,
       is_public: input.is_public,
       tags: input.tags || [],
       thumbnail_card_id: input.thumbnail_card_id || null,
@@ -400,7 +457,11 @@ export async function createDeck(input: CreateDeckInput): Promise<{ success: boo
       insertData.guest_name = "ゲスト" // ゲスト名を固定
     }
 
-    console.log("[createDeck] Insert data:", insertData)
+    console.log("[createDeck] Insert data:", {
+      ...insertData,
+      title_multilingual: `{${Object.keys(title_multilingual).length} languages}`,
+      description_multilingual: description_multilingual ? `{${Object.keys(description_multilingual).length} languages}` : null,
+    })
 
     const { data: deckData, error: deckError } = await supabase.from("decks").insert(insertData).select().single()
 

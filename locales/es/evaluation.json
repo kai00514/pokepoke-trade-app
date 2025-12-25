@@ -1,19 +1,19 @@
 {
-  "alreadyRated": "Already Rated",
-  "alreadyRatedDetail": "You have already rated this deck.",
-  "checkError": "Failed to check user evaluation",
-  "checkErrorDetail": "An error occurred while checking user evaluation.",
-  "deckFeatures": "Deck Features",
-  "loginPrompt": "Please log in to evaluate this deck.",
+  "alreadyRated": "Ya calificado",
+  "alreadyRatedDetail": "Ya has calificado este mazo.",
+  "checkError": "Error al verificar la evaluación del usuario",
+  "checkErrorDetail": "Ocurrió un error al verificar la evaluación del usuario.",
+  "deckFeatures": "Características del mazo",
+  "loginPrompt": "Por favor, inicia sesión para evaluar este mazo.",
   "stats": {
-    "accessibility": "Accessibility",
-    "durability": "Durability",
-    "power": "Power",
-    "speed": "Speed",
-    "stability": "Stability"
+    "accessibility": "Accesibilidad",
+    "durability": "Durabilidad",
+    "power": "Poder",
+    "speed": "Velocidad",
+    "stability": "Estabilidad"
   },
-  "submitError": "Failed to submit evaluation",
-  "submitErrorDetail": "An error occurred while submitting evaluation.",
-  "submitSuccess": "Evaluation Submitted",
-  "submitSuccessDetail": "Your evaluation of {score} points has been recorded."
+  "submitError": "Error al enviar la evaluación",
+  "submitErrorDetail": "Ocurrió un error al enviar la evaluación.",
+  "submitSuccess": "Evaluación enviada",
+  "submitSuccessDetail": "Tu evaluación de {score} puntos ha sido registrada."
 }

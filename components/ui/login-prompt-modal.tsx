@@ -23,7 +23,9 @@ export default function LoginPromptModal({
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
-        onClose()
+        if (typeof onClose === 'function') {
+          onClose()
+        }
       }
     }
 

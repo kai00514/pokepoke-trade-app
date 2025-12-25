@@ -1,7 +1,7 @@
 {
-  "canceled": "Canceled",
-  "completed": "Trade Completed",
-  "completedShort": "Completed",
-  "inProgress": "In Progress",
-  "recruiting": "Recruiting"
+  "canceled": "Abgebrochen",
+  "completed": "Tausch abgeschlossen",
+  "completedShort": "Abgeschlossen",
+  "inProgress": "In Bearbeitung",
+  "recruiting": "Offen für Anfragen"
 }

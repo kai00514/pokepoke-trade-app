@@ -1,19 +1,19 @@
 {
-  "alreadyRated": "Already Rated",
-  "alreadyRatedDetail": "You have already rated this deck.",
-  "checkError": "Failed to check user evaluation",
-  "checkErrorDetail": "An error occurred while checking user evaluation.",
-  "deckFeatures": "Deck Features",
-  "loginPrompt": "Please log in to evaluate this deck.",
+  "alreadyRated": "Déjà évalué",
+  "alreadyRatedDetail": "Vous avez déjà évalué ce deck.",
+  "checkError": "Échec de la vérification de l'évaluation de l'utilisateur",
+  "checkErrorDetail": "Une erreur s'est produite lors de la vérification de l'évaluation de l'utilisateur.",
+  "deckFeatures": "Caractéristiques du deck",
+  "loginPrompt": "Veuillez vous connecter pour évaluer ce deck.",
   "stats": {
-    "accessibility": "Accessibility",
-    "durability": "Durability",
-    "power": "Power",
-    "speed": "Speed",
-    "stability": "Stability"
+    "accessibility": "Accessibilité",
+    "durability": "Durabilité",
+    "power": "Puissance",
+    "speed": "Vitesse",
+    "stability": "Stabilité"
   },
-  "submitError": "Failed to submit evaluation",
-  "submitErrorDetail": "An error occurred while submitting evaluation.",
-  "submitSuccess": "Evaluation Submitted",
-  "submitSuccessDetail": "Your evaluation of {score} points has been recorded."
+  "submitError": "Échec de l'envoi de l'évaluation",
+  "submitErrorDetail": "Une erreur s'est produite lors de l'envoi de l'évaluation.",
+  "submitSuccess": "Évaluation envoyée",
+  "submitSuccessDetail": "Votre évaluation de {score} points a été enregistrée."
 }

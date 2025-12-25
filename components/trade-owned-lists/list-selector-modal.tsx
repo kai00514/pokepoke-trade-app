@@ -86,7 +86,7 @@ function ListSelectorModal({ isOpen, onOpenChange, userId, onListSelect }: ListS
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[70vh] overflow-y-auto" onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-2xl max-h-[70vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{t('trades.selectFromSavedList')}</DialogTitle>
         </DialogHeader>

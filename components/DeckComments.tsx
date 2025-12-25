@@ -10,6 +10,7 @@ import { supabase } from "@/lib/supabase/client"
 import LoginPromptModal from "@/components/ui/login-prompt-modal"
 import { event as gtagEvent } from "@/lib/analytics/gtag"
 import { useTranslations } from "next-intl"
+import TranslateButton from "@/components/translate-button"
 
 interface Comment {
   id: string
@@ -224,6 +225,7 @@ export default function DeckComments({ deckId, deckTitle, commentType = "deck" }
                   <span className="text-xs text-slate-400">{comment.timestamp}</span>
                 </div>
                 <p className="text-sm text-slate-600 mt-0.5 whitespace-pre-wrap">{comment.text}</p>
+                <TranslateButton text={comment.text} sourceLang="ja" className="mt-1" />
               </div>
             </div>
           ))

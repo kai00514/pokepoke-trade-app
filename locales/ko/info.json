@@ -1,29 +1,29 @@
 {
   "news": {
-    "backToInfo": "Back to Information",
-    "loading": "Loading...",
-    "noArticles": "No articles available at this time.",
-    "pinned": "Pinned",
-    "subtitle": "View all the latest news",
-    "title": "Latest News"
+    "backToInfo": "정보 페이지로 돌아가기",
+    "loading": "불러오는 중...",
+    "noArticles": "현재 확인할 수 있는 기사がありません。",
+    "pinned": "고정됨",
+    "subtitle": "최신 소식을 모두 확인하세요",
+    "title": "최신 뉴스"
   },
-  "noLatestInfo": "No latest news yet.",
-  "noTournaments": "No tournaments currently scheduled.",
+  "noLatestInfo": "아직 최신 소식이 없습니다.",
+  "noTournaments": "현재 예정된 토너먼트가 없습니다.",
   "placeholders": {
-    "glossary": "Glossary will be displayed here.",
-    "guides": "Beginner's guide will be displayed here.",
-    "rules": "Basic rules information will be displayed here.",
-    "tournaments": "Official tournament information will be displayed here."
+    "glossary": "여기에 용어집이 표시됩니다.",
+    "guides": "여기에 초보자 가이드가 표시됩니다.",
+    "rules": "여기에 기본 규칙 정보가 표시됩니다.",
+    "tournaments": "여기에 공식 토너먼트 정보가 표시됩니다."
   },
   "sections": {
-    "calendar": "Tournament Calendar",
-    "glossary": "Glossary",
-    "guides": "Beginner's Guide",
-    "latestNews": "Latest News",
-    "rules": "Basic Rules",
-    "tournaments": "Official Tournaments"
+    "calendar": "토너먼트 일정",
+    "glossary": "용어집",
+    "guides": "초보자 가이드",
+    "latestNews": "최신 뉴스",
+    "rules": "기본 규칙",
+    "tournaments": "공식 토너먼트"
   },
-  "title": "Information",
-  "viewAll": "View All",
-  "viewAllLatestInfo": "View All Latest News"
+  "title": "정보",
+  "viewAll": "전체 보기",
+  "viewAllLatestInfo": "최신 뉴스 전체 보기"
 }

@@ -19,6 +19,7 @@ import {
 } from "@/lib/services/deck-service" // 個々の関数をインポート
 import { useToast } from "@/components/ui/use-toast"
 import LoginPromptModal from "@/components/ui/login-prompt-modal"
+import { getLocalizedCardName, getLocalizedCardImage } from "@/lib/i18n-helpers"
 
 export interface Deck {
   id: string
@@ -173,10 +174,9 @@ export function DeckCard({ deck, onCountUpdate, currentCategory = "posts", onRem
     // 新しいサムネイル画像システム（cardsテーブルからJOIN）
     if (deck.thumbnail_image) {
       return {
-        // WebP画像（thumb_url）を優先、フォールバックでimage_url
-        url:
-          deck.thumbnail_image.thumb_url || deck.thumbnail_image.image_url || "/placeholder.svg?width=120&height=168",
-        name: deck.thumbnail_image.name,
+        // WebP画像（thumb_url）を優先、ローカライズされた画像URL、フォールバックでimage_url
+        url: getLocalizedCardImage(deck.thumbnail_image, locale) || "/placeholder.svg?width=120&height=168",
+        name: getLocalizedCardName(deck.thumbnail_image, locale),
       }
     }
 

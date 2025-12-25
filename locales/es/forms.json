@@ -1,124 +1,124 @@
 {
   "auth": {
     "confirmPassword": {
-      "hide": "Hide password confirmation",
-      "label": "Confirm Password",
-      "placeholder": "Re-enter password",
-      "show": "Show password confirmation"
+      "hide": "Ocultar confirmación de contraseña",
+      "label": "Confirmar contraseña",
+      "placeholder": "Vuelve a ingresar la contraseña",
+      "show": "Mostrar confirmación de contraseña"
     },
     "email": {
-      "label": "Email",
-      "placeholder": "Your email address"
+      "label": "Correo electrónico",
+      "placeholder": "Tu dirección de correo"
     },
     "newPassword": {
-      "label": "New Password",
-      "placeholder": "New password (6+ characters)"
+      "label": "Nueva contraseña",
+      "placeholder": "Nueva contraseña (6+ caracteres)"
     },
     "password": {
-      "forgotLink": "Forgot your password?",
-      "hide": "Hide password",
-      "hint": "At least 6 alphanumeric characters recommended.",
-      "label": "Password",
-      "newPlaceholder": "Password (6+ characters)",
-      "placeholder": "Your password",
-      "show": "Show password"
+      "forgotLink": "¿Olvidaste tu contraseña?",
+      "hide": "Ocultar contraseña",
+      "hint": "Se recomiendan al menos 6 caracteres alfanuméricos.",
+      "label": "Contraseña",
+      "newPlaceholder": "Contraseña (6+ caracteres)",
+      "placeholder": "Tu contraseña",
+      "show": "Mostrar contraseña"
     }
   },
   "collage": {
     "group1Title": {
-      "label": "Group 1 Title",
-      "placeholder": "e.g., Wanted Cards"
+      "label": "Título del grupo 1",
+      "placeholder": "Ej.: Cartas buscadas"
     },
     "group2Title": {
-      "label": "Group 2 Title",
-      "placeholder": "e.g., Offered Cards"
+      "label": "Título del grupo 2",
+      "placeholder": "Ej.: Cartas ofrecidas"
     }
   },
   "contact": {
     "email": {
-      "label": "Email Address"
+      "label": "Dirección de correo"
     },
     "message": {
-      "label": "Message",
-      "placeholder": "Please describe your inquiry in detail"
+      "label": "Mensaje",
+      "placeholder": "Describe tu consulta con detalle"
     },
     "name": {
-      "label": "Name",
-      "placeholder": "John Doe"
+      "label": "Nombre",
+      "placeholder": "Juan Pérez"
     },
     "subject": {
-      "label": "Subject",
-      "placeholder": "Enter the subject of your inquiry"
+      "label": "Asunto",
+      "placeholder": "Ingresa el asunto de tu consulta"
     }
   },
   "labels": {
-    "email": "Email",
-    "password": "Password"
+    "email": "Correo electrónico",
+    "password": "Contraseña"
   },
   "list": {
     "description": {
-      "label": "Description (optional)",
-      "placeholder": "Enter list description"
+      "label": "Descripción (opcional)",
+      "placeholder": "Ingresa una descripción de la lista"
     },
     "name": {
-      "label": "List Name",
-      "placeholder": "e.g., Trading Card List"
+      "label": "Nombre de la lista",
+      "placeholder": "Ej.: Lista de cartas para intercambio"
     }
   },
   "listCreation": {
-    "cardSelection": "Card Selection ({count}/35)",
-    "charCount": "{count}/100 characters",
-    "label": "List Name",
-    "placeholder": "Enter list name"
+    "cardSelection": "Selección de cartas ({count}/35)",
+    "charCount": "{count}/100 caracteres",
+    "label": "Nombre de la lista",
+    "placeholder": "Ingresa el nombre de la lista"
   },
   "placeholders": {
-    "email": "Your email address",
-    "enterListName": "Enter list name",
-    "keyword": "Keyword",
-    "password": "Your password",
-    "passwordMin": "Password (6+ characters)"
+    "email": "Tu dirección de correo",
+    "enterListName": "Ingresa el nombre de la lista",
+    "keyword": "Palabra clave",
+    "password": "Tu contraseña",
+    "passwordMin": "Contraseña (6+ caracteres)"
   },
   "pokepokeId": {
-    "label": "Pokepoke ID",
-    "placeholder": "e.g., trainer123"
+    "label": "ID de Pokepoke",
+    "placeholder": "Ej.: trainer123"
   },
   "search": {
     "keyword": {
-      "label": "Keyword",
-      "placeholder": "Search by keyword"
+      "label": "Palabra clave",
+      "placeholder": "Buscar por palabra clave"
     }
   },
   "trade": {
     "comment": {
-      "label": "Comment (optional)",
-      "placeholder": "Enter comment (up to 256 characters)"
+      "label": "Comentario (opcional)",
+      "placeholder": "Ingresa un comentario (hasta 256 caracteres)"
     },
     "offeredCards": {
-      "label": "Offered Cards"
+      "label": "Cartas ofrecidas"
     },
     "pokepokeId": {
-      "helperAuthenticated": "Your registered Pokepoke ID is auto-filled.",
-      "helperAuthenticatedNoId": "You are logged in. Pokepoke ID is optional. Only numbers allowed.",
-      "helperGuest": "Posting as guest. Pokepoke ID is optional. Only numbers allowed.",
-      "label": "Pokepoke App ID",
-      "placeholder": "Pokepoke App ID (optional)"
+      "helperAuthenticated": "Tu ID de Pokepoke registrada se rellenó automáticamente.",
+      "helperAuthenticatedNoId": "Has iniciado sesión. La ID de Pokepoke es opcional. Solo se permiten números.",
+      "helperGuest": "Publicando como invitado. La ID de Pokepoke es opcional. Solo se permiten números.",
+      "label": "ID de la app Pokepoke",
+      "placeholder": "ID de la app Pokepoke (opcional)"
     },
     "savedList": {
-      "label": "Select from Saved Lists"
+      "label": "Seleccionar de listas guardadas"
     },
     "title": {
-      "label": "Trade Title",
-      "placeholder": "e.g., Looking for Charizard ex"
+      "label": "Título del intercambio",
+      "placeholder": "Ej.: Busco Charizard ex"
     },
     "wantedCards": {
-      "label": "Wanted Cards"
+      "label": "Cartas buscadas"
     }
   },
   "username": {
-    "label": "Username",
-    "placeholder": "e.g., Pokemon Trainer"
+    "label": "Nombre de usuario",
+    "placeholder": "Ej.: Entrenador Pokémon"
   },
   "packs": {
-    "all": "Todos los paquetes"
+    "all": "Todos los sobres"
   }
 }

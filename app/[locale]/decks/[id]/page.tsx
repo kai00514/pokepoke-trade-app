@@ -6,9 +6,10 @@ import { useRouter } from "@/lib/i18n-navigation"
 import Image from "next/image"
 import { Heart, StarIcon, ArrowLeft, User, Calendar, MessageCircle, Loader2 } from "lucide-react"
 import { useAuth } from "@/contexts/auth-context"
-import { useTranslations } from "next-intl"
+import { useTranslations, useLocale } from "next-intl"
 import { getDeckById, likeDeck, unlikeDeck, favoriteDeck, unfavoriteDeck } from "@/lib/services/deck-service"
 import { fetchCardDetailsByIds } from "@/lib/card-api"
+import { getLocalizedCardName, getLocalizedCardImage } from "@/lib/i18n-helpers"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
@@ -31,6 +32,7 @@ export default function DeckDetailPage() {
   const t = useTranslations("decks")
   const tComments = useTranslations("comments")
   const tCards = useTranslations("cards")
+  const locale = useLocale()
   const [deck, setDeck] = useState<DeckWithCards | null>(null)
   const [cardDetails, setCardDetails] = useState<Record<string, CardData>>({})
   const [isLoading, setIsLoading] = useState(true)
@@ -110,7 +112,12 @@ export default function DeckDetailPage() {
         const details = await fetchCardDetailsByIds(cardIds)
         const detailsMap = details.reduce(
           (acc, card) => {
-            acc[String(card.id)] = card
+            // Localize card name and image
+            acc[String(card.id)] = {
+              ...card,
+              name: getLocalizedCardName(card, locale),
+              image_url: getLocalizedCardImage(card, locale),
+            }
             return acc
           },
           {} as Record<string, CardData>,

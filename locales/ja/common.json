@@ -156,5 +156,18 @@
   },
   "units": {
     "cards": "枚"
+  },
+  "translation": {
+    "translate": "翻訳する",
+    "translating": "翻訳中...",
+    "hideTranslation": "翻訳を隠す",
+    "translatedText": "翻訳された文章"
+  },
+  "time": {
+    "secondsAgo": "{count}秒前",
+    "minutesAgo": "{count}分前",
+    "hoursAgo": "{count}時間前",
+    "daysAgo": "{count}日前",
+    "today": "今日"
   }
 }

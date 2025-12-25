@@ -21,6 +21,7 @@ import LoginPromptModal from "@/components/ui/login-prompt-modal"
 import type { Deck } from "@/components/deck-card"
 import type { CardData } from "@/lib/card-api"
 import { getCardsByIds } from "@/lib/card-api"
+import { getLocalizedCardName, getLocalizedCardImage } from "@/lib/i18n-helpers"
 import { cn } from "@/lib/utils"
 
 // 20枚選定ロジック
@@ -169,14 +170,32 @@ export default function DeckHorizontalRow({
         const byId = new Map<number, CardData>()
         fetched.forEach((c) => byId.set(Number(c.id), c))
 
-        // twentyIds の順序通りに20枚を組み立て、欠落はプレースホルダー��補完
+        // DEBUG: Check locale and fetched data
+        console.log('🔍 [DeckHorizontalRow] Current locale:', locale)
+        console.log('🔍 [DeckHorizontalRow] Fetched cards count:', fetched.length)
+        if (fetched.length > 0) {
+          const sample = fetched[0]
+          console.log('🔍 [DeckHorizontalRow] Sample card:', {
+            id: sample.id,
+            name: sample.name,
+            name_multilingual: sample.name_multilingual,
+            has_multilingual: !!sample.name_multilingual,
+            en_name: sample.name_multilingual?.en,
+            image_url: sample.image_url,
+            image_url_multilingual: sample.image_url_multilingual,
+            has_image_multilingual: !!sample.image_url_multilingual,
+            en_image: sample.image_url_multilingual?.en
+          })
+        }
+
+        // twentyIds の順序通りに20枚を組み立て、欠落はプレースホルダーを補完
         const tiles: CardTile[] = twentyIds.map((id, idx) => {
           if (id && byId.has(id)) {
             const c = byId.get(id)!
             return {
               id: c.id,
-              name: c.name || "カード",
-              image_url: c.thumb_url || c.image_url || "/placeholder.svg?height=168&width=120",
+              name: getLocalizedCardName(c, locale) || "カード",
+              image_url: getLocalizedCardImage(c, locale) || "/placeholder.svg?height=168&width=120",
             }
           }
           return {
@@ -204,7 +223,7 @@ export default function DeckHorizontalRow({
     return () => {
       mounted = false
     }
-  }, [deck.id, (deck as any).selected_card_ids, JSON.stringify((deck as any).deck_cards)])
+  }, [deck.id, (deck as any).selected_card_ids, JSON.stringify((deck as any).deck_cards), locale])
 
   const handleLike = async (e: React.MouseEvent) => {
     e.preventDefault()
@@ -330,6 +349,9 @@ export default function DeckHorizontalRow({
                       className="object-contain"
                     />
                   </div>
+                  <p className="text-[10px] text-center text-slate-700 mt-1 truncate w-full leading-tight">
+                    {c.name}
+                  </p>
                 </div>
               ))}
             </>

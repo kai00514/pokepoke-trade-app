@@ -17,7 +17,7 @@ import { useAuth } from "@/contexts/auth-context"
 import type { Card as SelectedCardType } from "@/components/detailed-search-modal"
 import { getTradePostsWithCards } from "@/lib/actions/trade-actions"
 import { useToast } from "@/components/ui/use-toast"
-import { useTranslations } from "next-intl"
+import { useTranslations, useLocale } from "next-intl"
 
 const notoSansJP = Noto_Sans_JP({
   subsets: ["latin"],
@@ -42,6 +42,7 @@ export default function TradeBoardPage() {
   const isInitialMount = useRef(true)
   const abortControllerRef = useRef<AbortController | null>(null)
   const t = useTranslations()
+  const locale = useLocale()
 
   // URLパラメータからページ番号を取得
   useEffect(() => {
@@ -127,7 +128,7 @@ export default function TradeBoardPage() {
       setIsLoading(true)
       try {
         const offset = (page - 1) * POSTS_PER_PAGE
-        const result = await getTradePostsWithCards(POSTS_PER_PAGE, offset)
+        const result = await getTradePostsWithCards(POSTS_PER_PAGE, offset, locale)
 
         // リクエストがキャンセルされていないかチェック
         if (signal.aborted) {
@@ -144,7 +145,7 @@ export default function TradeBoardPage() {
             totalCount: result.totalCount || 0,
             timestamp: Date.now(),
           }
-          sessionStorage.setItem(`trade-posts-cache-page-${page}`, JSON.stringify(cacheData))
+          sessionStorage.setItem(`trade-posts-cache-page-${page}-${locale}`, JSON.stringify(cacheData))
         } else {
           toast({
             title: t("errors.dataFetchError"),
@@ -173,12 +174,12 @@ export default function TradeBoardPage() {
         }
       }
     },
-    [toast],
+    [toast, locale],
   )
 
   // データ取得のuseEffect - キャッシュ優先版
   useEffect(() => {
-    const hasCache = sessionStorage.getItem(`trade-posts-cache-page-${currentPage}`)
+    const hasCache = sessionStorage.getItem(`trade-posts-cache-page-${currentPage}-${locale}`)
     const isBackNavigation = sessionStorage.getItem(`trade-list-back-navigation-page-${currentPage}`)
 
     // キャッシュからデータを復元する関数
@@ -197,12 +198,12 @@ export default function TradeBoardPage() {
           return true
         } else {
           // 期限切れキャッシュを削除
-          sessionStorage.removeItem(`trade-posts-cache-page-${currentPage}`)
+          sessionStorage.removeItem(`trade-posts-cache-page-${currentPage}-${locale}`)
           return false
         }
       } catch (error) {
         console.error("Failed to parse cached data:", error)
-        sessionStorage.removeItem(`trade-posts-cache-page-${currentPage}`)
+        sessionStorage.removeItem(`trade-posts-cache-page-${currentPage}-${locale}`)
         return false
       }
     }

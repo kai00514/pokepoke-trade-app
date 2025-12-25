@@ -5,9 +5,10 @@ import TradeDetail404 from "@/components/trade-detail-404"
 import { getTranslations } from "next-intl/server"
 
 // OGPメタデータの生成（Server Componentでのみ動作）
-export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+export async function generateMetadata({ params }: { params: Promise<{ id: string; locale: string }> }): Promise<Metadata> {
   const t = await getTranslations()
-  const { id } = await params
+  const tCommon = await getTranslations('common.labels')
+  const { id, locale } = await params
 
   // "create"ページの場合は通常のメタデータを返す
   if (id === "create") {
@@ -18,7 +19,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   }
 
   // 投稿データを取得
-  const result = await getTradePostDetailsById(id)
+  const result = await getTradePostDetailsById(id, locale)
 
   if (!result.success || !result.post) {
     return {
@@ -30,8 +31,8 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const post = result.post
 
   // カード名のリストを作成
-  const wantedCardNames = post.wantedCards.map((card) => card.name).join("、") || t('trades.negotiable')
-  const offeredCardNames = post.offeredCards.map((card) => card.name).join("、") || t('trades.negotiable')
+  const wantedCardNames = post.wantedCards.map((card) => card.name).join("、") || tCommon('negotiable')
+  const offeredCardNames = post.offeredCards.map((card) => card.name).join("、") || tCommon('negotiable')
 
   // OG画像は opengraph-image.tsx が生成する
   const ogImageUrl = `${process.env.NEXT_PUBLIC_SITE_URL || "https://www.pokelnk.com"}/trades/${id}/opengraph-image`
@@ -65,9 +66,9 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 }
 
 // Server Component（asyncが使える）
-export default async function TradeDetailPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function TradeDetailPage({ params }: { params: Promise<{ id: string; locale: string }> }) {
   const t = await getTranslations()
-  const { id } = await params
+  const { id, locale } = await params
 
   // "create"ページへのアクセスは404を返す（createページは別ルート）
   if (id === "create") {
@@ -75,7 +76,7 @@ export default async function TradeDetailPage({ params }: { params: Promise<{ id
   }
 
   // サーバー側で投稿データを取得
-  const result = await getTradePostDetailsById(id)
+  const result = await getTradePostDetailsById(id, locale)
 
   // データが取得できない場合はカスタム404を表示
   if (!result.success || !result.post) {

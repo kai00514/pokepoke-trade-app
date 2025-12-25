@@ -1,128 +1,128 @@
 {
   "collageGenerator": {
-    "defaultTitle1": "Wanted Cards",
-    "defaultTitle2": "Offered Cards",
-    "editGroup": "Edit {title}",
-    "title": "Generate Collage Image"
+    "defaultTitle1": "Gewünschte Karten",
+    "defaultTitle2": "Angebotene Karten",
+    "editGroup": "{title} bearbeiten",
+    "title": "Collage-Bild erstellen"
   },
   "collages": {
-    "subtitle": "Create collages of multiple cards and share on X",
-    "title": "Collage Images"
+    "subtitle": "Erstellen Sie Collages aus mehreren Karten und teilen Sie sie auf X",
+    "title": "Collage-Bilder"
   },
   "contact": {
     "contactInfo": {
-      "email": "Email",
-      "hours": "Support Hours",
-      "hoursValue": "Weekdays 9:00-18:00",
-      "title": "Other Contact Methods"
+      "email": "E-Mail",
+      "hours": "Supportzeiten",
+      "hoursValue": "Werktags 9:00-18:00",
+      "title": "Weitere Kontaktmöglichkeiten"
     },
     "faq": {
-      "a1": "We usually respond within 1-3 business days.",
-      "a2": "If you can't log in, please try resetting your password.",
-      "a3": "We welcome requests for new features. Please let us know in detail.",
-      "q1": "Q. How long does it take to get a response?",
-      "q2": "Q. Account issues",
-      "q3": "Q. Feature requests",
-      "title": "Frequently Asked Questions"
+      "a1": "Wir antworten normalerweise innerhalb von 1-3 Werktagen.",
+      "a2": "Wenn Sie sich nicht anmelden können, versuchen Sie bitte, Ihr Passwort zurückzusetzen.",
+      "a3": "Wir begrüßen Anfragen für neue Funktionen. Bitte teilen Sie uns dies im Detail mit.",
+      "q1": "F. Wie lange dauert es, bis eine Antwort kommt?",
+      "q2": "F. Kontoprobleme",
+      "q3": "F. Funktionsanfragen",
+      "title": "Häufig gestellte Fragen"
     },
     "form": {
-      "description": "Please fill in the required information and submit",
-      "title": "Contact Form"
+      "description": "Bitte füllen Sie die erforderlichen Informationen aus und senden Sie sie ab",
+      "title": "Kontaktformular"
     },
     "notice": {
-      "item1": "• Responses may be delayed on weekends and holidays",
-      "item2": "• For urgent matters, please add [URGENT] to the subject",
-      "item3": "• Please check your spam filter",
-      "title": "Notice"
+      "item1": "• Antworten können sich an Wochenenden und Feiertagen verzögern",
+      "item2": "• Bei dringenden Angelegenheiten fügen Sie bitte [DRINGEND] zum Betreff hinzu",
+      "item3": "• Bitte überprüfen Sie Ihren Spam-Filter",
+      "title": "Hinweis"
     },
-    "subtitle": "If you have any questions or requests, please feel free to contact us. We will review and respond at a later date.",
-    "title": "Contact Us"
+    "subtitle": "Wenn Sie Fragen oder Anfragen haben, kontaktieren Sie uns bitte. Wir werden die Inhalte überprüfen und zu einem späteren Zeitpunkt antworten.",
+    "title": "Kontakt"
   },
   "createList": {
     "cardSelection": {
-      "description": "Select cards to add to the list",
-      "title": "Card Selection"
+      "description": "Wählen Sie Karten aus, die zur Liste hinzugefügt werden sollen",
+      "title": "Kartenauswahl"
     },
     "listInfo": {
-      "description": "Enter basic list information",
-      "title": "List Information"
+      "description": "Geben Sie grundlegende Listeninformationen ein",
+      "title": "Listeninformationen"
     },
     "loginRequired": {
-      "description": "Please log in to create a card list.",
-      "title": "Don't have any cards?"
+      "description": "Bitte melden Sie sich an, um eine Kartenliste zu erstellen.",
+      "title": "Keine Karten vorhanden?"
     },
-    "subtitle": "Create a card list for trading and exchange with other users.",
-    "title": "Create New Card List"
+    "subtitle": "Erstellen Sie eine Kartenliste für den Handel und den Austausch mit anderen Benutzern.",
+    "title": "Neue Kartenliste erstellen"
   },
   "createTrade": {
-    "noticeTitle": "Notice",
-    "title": "Register Trade Card"
+    "noticeTitle": "Hinweis",
+    "title": "Handelskarte registrieren"
   },
   "decks": {
-    "favorites": "Favorites",
-    "featuredDecks": "Featured Decks",
-    "newPackDecks": "New Pack Decks",
-    "postDeck": "Post Deck",
-    "tierDecks": "Tier Decks",
-    "updated": "Updated:",
-    "viewAllDecks": "View All Decks",
-    "viewDetails": "View Details"
+    "favorites": "Favoriten",
+    "featuredDecks": "Empfohlene Decks",
+    "newPackDecks": "Neue Pack-Decks",
+    "postDeck": "Deck veröffentlichen",
+    "tierDecks": "Tier-Decks",
+    "updated": "Aktualisiert:",
+    "viewAllDecks": "Alle Decks anzeigen",
+    "viewDetails": "Details anzeigen"
   },
   "detailedSearch": {
-    "title": "Detailed Card Search"
+    "title": "Detaillierte Kartensuche"
   },
   "history": {
-    "authenticating": "Checking authentication status...",
-    "commentedPosts": "Commented Posts",
-    "fetchError": "Failed to fetch data.",
-    "loading": "Loading...",
-    "matchingHistory": "Matching History",
-    "myPosts": "My Posts",
-    "noCommentedPosts": "No commented post history.",
-    "noHistory": "No history available.",
-    "noMatchingHistory": "No matching history.",
-    "noMyPosts": "You have no post history.",
-    "title": "History"
+    "authenticating": "Authentifizierungsstatus wird überprüft...",
+    "commentedPosts": "Kommentierte Beiträge",
+    "fetchError": "Daten konnten nicht abgerufen werden.",
+    "loading": "Wird geladen...",
+    "matchingHistory": "Matching-Verlauf",
+    "myPosts": "Meine Beiträge",
+    "noCommentedPosts": "Keine kommentierte Beitragshistorie.",
+    "noHistory": "Kein Verlauf verfügbar.",
+    "noMatchingHistory": "Kein Matching-Verlauf.",
+    "noMyPosts": "Sie haben keine Beitragshistorie.",
+    "title": "Verlauf"
   },
   "home": {
-    "subtitle": "Smoothly exchange the cards you want and the cards you can offer!",
-    "title": "PokeLink Trade Board"
+    "subtitle": "Tauschen Sie die Karten, die Sie wollen, und die Karten, die Sie anbieten können, reibungslos aus!",
+    "title": "PokeLink Handelsbrett"
   },
   "login": {
-    "subtitle": "Log in to your account",
-    "title": "Log In"
+    "subtitle": "Melden Sie sich in Ihrem Konto an",
+    "title": "Anmelden"
   },
   "matching": {
-    "comingSoon": "Coming Soon!",
-    "comingSoonDate": "Coming Soon",
-    "preparingBetterExperience": "We are preparing to provide a better trading experience.",
+    "comingSoon": "Demnächst!",
+    "comingSoonDate": "Demnächst",
+    "preparingBetterExperience": "Wir bereiten vor, ein besseres Handelserlebnis zu bieten.",
     "title": "Matching",
-    "underDevelopment": "Matching feature is currently under development."
+    "underDevelopment": "Die Matching-Funktion befindet sich derzeit in der Entwicklung."
   },
   "reset": {
-    "subtitle": "Enter your registered email address",
-    "title": "Reset Password"
+    "subtitle": "Geben Sie Ihre registrierte E-Mail-Adresse ein",
+    "title": "Passwort zurücksetzen"
   },
   "resultsInfo": {
-    "noPosts": "No posts available",
-    "noResults": "No matching posts found.",
-    "searchResults": "(Search: \"{keyword}\")",
-    "showing": "Showing {start}~{end} of {total}"
+    "noPosts": "Keine Beiträge verfügbar",
+    "noResults": "Keine passenden Beiträge gefunden.",
+    "searchResults": "(Suche: \"{keyword}\")",
+    "showing": "Zeige {start}~{end} von {total}"
   },
   "share": {
-    "snsSection": "Share on Social Media",
-    "subtitle": "Share the post in your preferred way",
-    "tip": "You can also copy the link and share via email or chat",
-    "title": "Share This Post",
-    "urlSection": "Post URL"
+    "snsSection": "In sozialen Medien teilen",
+    "subtitle": "Teilen Sie den Beitrag auf Ihre bevorzugte Weise",
+    "tip": "Sie können auch den Link kopieren und per E-Mail oder Chat teilen",
+    "title": "Diesen Beitrag teilen",
+    "urlSection": "Beitrags-URL"
   },
   "signup": {
-    "subtitle": "Create an account and start trading Pokémon cards",
-    "title": "Sign Up"
+    "subtitle": "Erstellen Sie ein Konto und beginnen Sie mit dem Handel von Pokémon-Karten",
+    "title": "Registrieren"
   },
   "tradePost": {
-    "authorComment": "Author's Comment:",
-    "offeredCards": "Offered Cards",
-    "wantedCards": "Wanted Cards"
+    "authorComment": "Kommentar des Autors:",
+    "offeredCards": "Angebotene Karten",
+    "wantedCards": "Gewünschte Karten"
   }
 }

@@ -22,30 +22,66 @@ export interface TradeFormData {
   userId?: string
 }
 
-// Helper function to convert Card[] to JSONB format
-function prepareCardsForDatabase(cards: Card[]) {
+// Helper function to convert Card[] to ID array for database
+function prepareCardsForDatabase(cards: Card[]): number[] {
+  return cards.map((card) => Number.parseInt(card.id))
+}
+
+// Helper function to fetch card data from cards table with multilingual support
+async function fetchCardsData(cardIds: number[], locale: string): Promise<Card[]> {
+  if (!cardIds || cardIds.length === 0) return []
+
+  const supabase = await createServerClient()
+
+  const { data: cards, error } = await supabase
+    .from('cards')
+    .select('id, name, name_multilingual, image_url, image_url_multilingual, type_code, rarity_code, pack_id')
+    .in('id', cardIds)
+
+  if (error) {
+    console.error('[fetchCardsData] Error fetching cards:', error)
+    return []
+  }
+
+  if (!cards || cards.length === 0) return []
+
+  // Map cards to Card format with localized data
   return cards.map((card) => ({
-    id: Number.parseInt(card.id),
-    name: card.name,
-    image_url: card.imageUrl,
-    pack_name: card.packName || null,
-    type: card.type || null,
-    rarity: card.rarity || null,
+    id: card.id.toString(),
+    name: card.name_multilingual?.[locale] || card.name_multilingual?.ja || card.name || '不明',
+    imageUrl: card.image_url_multilingual?.[locale] || card.image_url_multilingual?.ja || card.image_url || '/placeholder.svg?width=80&height=112',
+    type: card.type_code || undefined,
+    rarity: card.rarity_code || undefined,
+    packName: card.pack_id?.toString() || undefined,
   }))
 }
 
-// Helper function to convert JSONB data back to Card format
-function parseCardsFromDatabase(jsonbData: any[]): Card[] {
-  if (!Array.isArray(jsonbData)) return []
+// Helper function to fetch cards in batch (to avoid N+1 queries)
+async function fetchCardsBatch(posts: any[], locale: string): Promise<Map<number, Card>> {
+  // Collect all unique card IDs from all posts
+  const allCardIds = new Set<number>()
+  
+  posts.forEach(post => {
+    if (Array.isArray(post.wanted_card_id)) {
+      post.wanted_card_id.forEach((id: number) => allCardIds.add(id))
+    }
+    if (Array.isArray(post.offered_card_id)) {
+      post.offered_card_id.forEach((id: number) => allCardIds.add(id))
+    }
+  })
 
-  return jsonbData.map((card) => ({
-    id: card.id?.toString() || "unknown",
-    name: card.name || "不明",
-    imageUrl: card.image_url || "/placeholder.svg?width=80&height=112",
-    packName: card.pack_name || undefined,
-    type: card.type || undefined,
-    rarity: card.rarity || undefined,
-  }))
+  if (allCardIds.size === 0) return new Map()
+
+  // Fetch all cards at once
+  const cards = await fetchCardsData(Array.from(allCardIds), locale)
+  
+  // Create a map for quick lookup
+  const cardsMap = new Map<number, Card>()
+  cards.forEach(card => {
+    cardsMap.set(Number.parseInt(card.id), card)
+  })
+
+  return cardsMap
 }
 
 // 新しい軽量コメント取得関数
@@ -178,30 +214,69 @@ export async function createTradePost(formData: TradeFormData) {
       guestName: isAuthenticated ? null : guestName,
     })
 
-    // カード配列をJSONB形式に変換
-    const wantedCardsJsonb = prepareCardsForDatabase(formData.wantedCards)
-    const offeredCardsJsonb = prepareCardsForDatabase(formData.offeredCards)
+    // カード配列をID配列に変換（JSONB配列ではなくinteger配列に）
+    const wantedCardIds = prepareCardsForDatabase(formData.wantedCards)
+    const offeredCardIds = prepareCardsForDatabase(formData.offeredCards)
+
+    console.log("[createTradePost] Card IDs prepared:", {
+      wantedCardIds: wantedCardIds.length,
+      offeredCardIds: offeredCardIds.length,
+    })
+
+    // 自動翻訳: タイトルのみ翻訳（コメントは翻訳しない）
+    const sourceLang = 'ja';
+    const targetLangs = ['en', 'zh-tw', 'ko', 'fr', 'es', 'de'];
+    
+    const title_multilingual: Record<string, string> = { ja: formData.title.trim() };
+
+    console.log("[createTradePost] 🌐 Starting auto-translation for title in", targetLangs.length, "languages...")
+
+    // タイトルのみ翻訳
+    for (const targetLang of targetLangs) {
+      try {
+        const { translateTextWithGlossary } = await import('@/lib/google-translate');
+        title_multilingual[targetLang] = await translateTextWithGlossary(
+          formData.title.trim(),
+          sourceLang,
+          targetLang,
+          true
+        );
+        
+        console.log(`[createTradePost] ✅ Title translated to ${targetLang}`);
+        
+        // レート制限対策
+        await new Promise(resolve => setTimeout(resolve, 100));
+      } catch (error) {
+        console.error(`[createTradePost] ❌ Translation failed for ${targetLang}:`, error);
+        // エラー時は元のテキストを使用（フェイルセーフ）
+        title_multilingual[targetLang] = formData.title.trim();
+      }
+    }
+
+    console.log("[createTradePost] 🎉 Title auto-translation completed!")
 
     // 投稿データの準備
     const postId = uuidv4()
     const insertData = {
       id: postId,
       title: formData.title.trim(),
+      title_multilingual,
       owner_id: isAuthenticated ? finalUserId : null,
       guest_name: isAuthenticated ? null : guestName,
       custom_id: formData.appId?.trim() || null,
       comment: formData.comment?.trim() || null,
-      wanted_card_id: wantedCardsJsonb, // JSONB配列
-      offered_card_id: offeredCardsJsonb, // JSONB配列
+      wanted_card_id: wantedCardIds, // integer配列
+      offered_card_id: offeredCardIds, // integer配列
       status: "OPEN",
       is_authenticated: isAuthenticated,
-      g8_flg: false, // 新しい行
+      g8_flg: false,
     }
 
     console.log("[createTradePost] Insert data:", {
       ...insertData,
-      wanted_card_id: `[${wantedCardsJsonb.length} cards]`,
-      offered_card_id: `[${offeredCardsJsonb.length} cards]`,
+      wanted_card_id: `[${wantedCardIds.length} cards]`,
+      offered_card_id: `[${offeredCardIds.length} cards]`,
+      title_multilingual: `{${Object.keys(title_multilingual).length} languages}`,
     })
 
     // データベースに挿入
@@ -240,7 +315,7 @@ export async function createTradePost(formData: TradeFormData) {
   }
 }
 
-export async function getTradePostsWithCards(limit = 10, offset = 0) {
+export async function getTradePostsWithCards(limit = 10, offset = 0, locale = 'ja') {
   try {
     const supabase = await createServerClient()
 
@@ -322,6 +397,9 @@ export async function getTradePostsWithCards(limit = 10, offset = 0) {
       })
     }
 
+    // Fetch all cards at once to avoid N+1 queries
+    const cardsMap = await fetchCardsBatch(posts, locale)
+
     // Build posts with card data and user info
     const postsWithCards = posts.map((post: any) => {
       const createdAt = new Date(new Date(post.created_at).getTime() + 9 * 60 * 60 * 1000)
@@ -349,9 +427,14 @@ export async function getTradePostsWithCards(limit = 10, offset = 0) {
         username = post.guest_name || "ゲスト"
       }
 
-      // Parse JSONB card data
-      const wantedCards = parseCardsFromDatabase(post.wanted_card_id || [])
-      const offeredCards = parseCardsFromDatabase(post.offered_card_id || [])
+      // Get card data from cardsMap (integer[] now)
+      const wantedCards = (post.wanted_card_id || [])
+        .map((id: number) => cardsMap.get(id))
+        .filter(Boolean) as Card[]
+      
+      const offeredCards = (post.offered_card_id || [])
+        .map((id: number) => cardsMap.get(id))
+        .filter(Boolean) as Card[]
 
       // Get primary cards for backward compatibility
       const primaryWantedCard = wantedCards[0] || {
@@ -431,7 +514,7 @@ export async function getTradePostsWithCards(limit = 10, offset = 0) {
   }
 }
 
-export async function getTradePostDetailsById(postId: string) {
+export async function getTradePostDetailsById(postId: string, locale: string = 'ja') {
   try {
     // Validate that postId is not "create" or other invalid values
     if (!postId || postId === "create" || postId.length < 8) {
@@ -523,20 +606,30 @@ export async function getTradePostDetailsById(postId: string) {
       console.error(`Error fetching user profiles for post ${postId}:`, usersError)
     }
 
-    // Parse JSONB card data
-    const wantedCards = parseCardsFromDatabase(postData.wanted_card_id || [])
-    const offeredCards = parseCardsFromDatabase(postData.offered_card_id || [])
+    // Fetch card data from cards table (integer[] now)
+    const allCardIds = [
+      ...(postData.wanted_card_id || []),
+      ...(postData.offered_card_id || [])
+    ]
+    const cards = await fetchCardsData(allCardIds, locale)
+    const cardsMap = new Map(cards.map(card => [Number.parseInt(card.id), card]))
+    
+    const wantedCards = (postData.wanted_card_id || [])
+      .map((id: number) => cardsMap.get(id))
+      .filter(Boolean) as Card[]
+    
+    const offeredCards = (postData.offered_card_id || [])
+      .map((id: number) => cardsMap.get(id))
+      .filter(Boolean) as Card[]
 
     // Map comments with author info
     const comments =
       commentsData?.map((comment: any) => {
         const createdAt = new Date(comment.created_at)
         const diffSeconds = Math.floor((Date.now() - createdAt.getTime()) / 1000)
-        let timestamp = `${createdAt.toLocaleDateString()}`
-        if (diffSeconds < 60) timestamp = `${diffSeconds}秒前`
-        else if (diffSeconds < 3600) timestamp = `${Math.floor(diffSeconds / 60)}分前`
-        else if (diffSeconds < 86400) timestamp = `${Math.floor(diffSeconds / 3600)}時間前`
-        else if (diffSeconds < 2592000) timestamp = `${Math.floor(diffSeconds / 86400)}日前`
+        
+        // Return diffSeconds for client-side translation
+        const timestamp = diffSeconds
 
         let commentAuthor: string
         let commentAvatar: string | null = null
@@ -562,17 +655,13 @@ export async function getTradePostDetailsById(postId: string) {
         }
       }) || []
 
+    // Get localized title (comment is NOT localized - always use Japanese)
+    const localizedTitle = postData.title_multilingual?.[locale] || postData.title
+    
     const formattedPost = {
       id: postData.id,
-      title: postData.title,
-      status:
-        postData.status === "OPEN"
-          ? "募集中"
-          : postData.status === "MATCHED"
-            ? "進行中"
-            : postData.status === "COMPLETED"
-              ? "完了"
-              : "キャンセル",
+      title: localizedTitle,
+      status: postData.status, // Return status code instead of translated text
       wantedCards: wantedCards,
       offeredCards: offeredCards,
       description: postData.comment || "",
@@ -735,6 +824,9 @@ export async function getMyTradePosts(userId: string) {
       })
     }
 
+    // Fetch all cards at once
+    const cardsMap = await fetchCardsBatch(posts, 'ja')
+
     // 投稿データを整形
     const formattedPosts = posts.map((post: any) => {
       const commentCount = commentCountsMap.get(post.id) || 0
@@ -751,8 +843,10 @@ export async function getMyTradePosts(userId: string) {
         displayStatus = "open"
       }
 
-      // Parse JSONB card data
-      const wantedCards = parseCardsFromDatabase(post.wanted_card_id || [])
+      // Get card data from cardsMap (integer[] now)
+      const wantedCards = (post.wanted_card_id || [])
+        .map((id: number) => cardsMap.get(id))
+        .filter(Boolean) as Card[]
       const primaryWantedCard = wantedCards[0] || {
         name: "不明",
         imageUrl: "/placeholder.svg?width=80&height=112",
@@ -851,6 +945,9 @@ export async function getCommentedTradePosts(userId: string) {
       })
     }
 
+    // Fetch all cards at once
+    const cardsMap = await fetchCardsBatch(posts, 'ja')
+
     // 投稿データを整形
     const formattedPosts = posts.map((post: any) => {
       const commentCount = commentCountsMap.get(post.id) || 0
@@ -867,8 +964,10 @@ export async function getCommentedTradePosts(userId: string) {
         displayStatus = "open"
       }
 
-      // Parse JSONB card data
-      const wantedCards = parseCardsFromDatabase(post.wanted_card_id || [])
+      // Get card data from cardsMap (integer[] now)
+      const wantedCards = (post.wanted_card_id || [])
+        .map((id: number) => cardsMap.get(id))
+        .filter(Boolean) as Card[]
       const primaryWantedCard = wantedCards[0] || {
         id: "unknown",
         name: "不明",

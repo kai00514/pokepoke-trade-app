@@ -64,6 +64,7 @@
     "passwordUpdateSuccess": "Password has been successfully updated. Please go to the login page.",
     "passwordUpdated": "Password Updated",
     "passwordUpdatedMessage": "Please log in with your new password.",
+    "postSuccess": "Post Successful",
     "resendConfirmation": "Confirmation Email Resent",
     "resendConfirmationMessage": "Confirmation email has been resent.",
     "resetEmailSent": "Email Sent",
@@ -73,10 +74,12 @@
     "sessionRefreshedMessage": "Session has been successfully refreshed.",
     "signupComplete": "Registration Complete",
     "tradePosted": "Post Successful",
+    "tradePostCreated": "Trade post has been created.",
     "tradePostedMessage": "Trade post has been created.",
     "urlCopied": "URL Copied",
     "urlCopiedMessage": "Link has been copied to clipboard."
   },
+  "title": "Message",
   "warning": {
     "selectionLimit": "Selection Limit",
     "timeSkew": "Time Sync Issue",

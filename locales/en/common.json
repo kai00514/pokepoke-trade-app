@@ -156,5 +156,18 @@
   },
   "units": {
     "cards": "{count} cards"
+  },
+  "translation": {
+    "translate": "Translate",
+    "translating": "Translating...",
+    "hideTranslation": "Hide translation",
+    "translatedText": "Translated text"
+  },
+  "time": {
+    "secondsAgo": "{count} seconds ago",
+    "minutesAgo": "{count} minutes ago",
+    "hoursAgo": "{count} hours ago",
+    "daysAgo": "{count} days ago",
+    "today": "Today"
   }
 }

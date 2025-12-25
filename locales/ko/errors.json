@@ -1,99 +1,99 @@
 {
   "auth": {
-    "accountCreationFailed": "アカウント作成に失敗しました。",
-    "adminAuthFailed": "認証に失敗しました",
-    "adminEmptyCredentials": "ユーザー名とパスワードを入力してください",
-    "callbackError": "認証プロセスでエラーが発生しました。",
-    "databaseError": "データベースエラーが発生しました",
-    "emailNotConfirmed": "メールアドレスが確認されていません。確認メールをご確認ください。",
-    "emptyCredentials": "メールアドレスとパスワードを入力してください。",
-    "emptyEmail": "メールアドレスを入力してください。",
-    "generic": "認証エラーが発生しました。",
-    "invalidCredentials": "メールアドレスまたはパスワードが正しくありません。",
-    "invalidEmail": "有効なメールアドレスを入力してください。",
-    "loginFailed": "ログインに失敗しました。",
-    "noCode": "認証コードが見つかりませんでした。",
-    "noSession": "セッションの作成に失敗しました。",
-    "notAuthenticated": "ユーザーが認証されていません。",
-    "passwordMismatch": "パスワードが一致しません。",
-    "passwordTooShort": "パスワードは6文字以上で入力してください。",
-    "resendFailed": "確認メールの再送信に失敗しました。",
-    "resetEmailFailed": "パスワードリセットメールの送信に失敗しました。",
-    "serverError": "サーバーエラーが発生しました",
-    "sessionSetupError": "セッション設定エラー",
-    "signupFailed": "登録に失敗しました。",
-    "socialLoginFailed": "ソーシャルログインに失敗しました。",
-    "socialSignupFailed": "ソーシャル登録に失敗しました。",
-    "tooManyRequests": "ログイン試行回数が上限に達しました。しばらく時間をおいてから再試行してください。",
-    "unexpected": "予期しないエラーが発生しました。",
-    "updatePasswordFailed": "パスワードの更新に失敗しました。",
-    "userExists": "このメールアドレスは既に登録されています。ログインページからログインしてください。"
+    "accountCreationFailed": "계정 생성에 실패했습니다.",
+    "adminAuthFailed": "인증에 실패했습니다.",
+    "adminEmptyCredentials": "사용자명과 비밀번호를 입력해주세요.",
+    "callbackError": "인증 과정에서 오류가 발생했습니다.",
+    "databaseError": "데이터베이스 오류가 발생했습니다.",
+    "emailNotConfirmed": "이메일이 확인되지 않았습니다. 확인 메일을 확인해주세요.",
+    "emptyCredentials": "이메일과 비밀번호를 입력해주세요.",
+    "emptyEmail": "이메일을 입력해주세요.",
+    "generic": "인증 오류가 발생했습니다.",
+    "invalidCredentials": "이메일 또는 비밀번호가 올바르지 않습니다.",
+    "invalidEmail": "유효한 이메일 주소를 입력해주세요.",
+    "loginFailed": "로그인에 실패했습니다.",
+    "noCode": "인증 코드를 찾을 수 없습니다.",
+    "noSession": "세션 생성에 실패했습니다.",
+    "notAuthenticated": "사용자가 인증되지 않았습니다.",
+    "passwordMismatch": "비밀번호가 일치하지 않습니다.",
+    "passwordTooShort": "비밀번호는 6자 이상 입력해주세요.",
+    "resendFailed": "확인 이메일 재전송에 실패했습니다.",
+    "resetEmailFailed": "비밀번호 재설정 이메일 전송에 실패했습니다.",
+    "serverError": "서버 오류가 발생했습니다.",
+    "sessionSetupError": "세션 설정 오류",
+    "signupFailed": "회원가입에 실패했습니다.",
+    "socialLoginFailed": "소셜 로그인에 실패했습니다.",
+    "socialSignupFailed": "소셜 회원가입에 실패했습니다.",
+    "tooManyRequests": "로그인 시도 횟수가 초과되었습니다. 잠시 후 다시 시도해주세요.",
+    "unexpected": "예기치 않은 오류가 발생했습니다.",
+    "updatePasswordFailed": "비밀번호 업데이트에 실패했습니다.",
+    "userExists": "해당 이메일은 이미 등록되어 있습니다. 로그인 페이지에서 로그인해주세요."
   },
   "collage": {
-    "emptyTitle": "タイトルを入力してください",
-    "generationFailed": "コラージュ生成に失敗しました",
-    "noCards": "少なくとも1つのグループでカードを選択してください"
+    "emptyTitle": "제목을 입력해주세요.",
+    "generationFailed": "콜라주 생성에 실패했습니다.",
+    "noCards": "최소 한 그룹에 카드를 선택해주세요."
   },
   "data": {
-    "cardsFetchFailed": "カード情報の読み込みに失敗しました。",
-    "fetchError": "データ取得エラー",
-    "packsFetchError": "パック情報取得エラー",
-    "packsFetchFailed": "パック情報の読み込みに失敗しました。",
-    "postsFetchFailed": "投稿の取得に失敗しました。"
+    "cardsFetchFailed": "카드 정보를 불러오지 못했습니다.",
+    "fetchError": "데이터 불러오기 오류",
+    "packsFetchError": "팩 정보 가져오기 오류",
+    "packsFetchFailed": "팩 정보를 불러오지 못했습니다.",
+    "postsFetchFailed": "게시글을 불러오지 못했습니다."
   },
-  "inputError": "入力エラー",
+  "inputError": "입력 오류",
   "list": {
-    "authRequired": "ログインが必要です",
-    "authRequiredMessage": "リストを作成するにはログインしてください。",
-    "creationError": "エラーが発生しました",
-    "creationFailed": "リストの作成に失敗しました。",
-    "unexpectedError": "リストの作成中に予期しないエラーが発生しました。"
+    "authRequired": "로그인이 필요합니다",
+    "authRequiredMessage": "리스트를 생성하려면 로그인해주세요.",
+    "creationError": "오류가 발생했습니다",
+    "creationFailed": "리스트 생성에 실패했습니다.",
+    "unexpectedError": "리스트 생성 중 예기치 않은 오류가 발생했습니다."
   },
-  "loginRequired": "ログインが必要です",
-  "operationFailed": "操作に失敗しました",
+  "loginRequired": "로그인이 필요합니다",
+  "operationFailed": "작업에 실패했습니다",
   "pokepokeId": {
-    "saveFailed": "ポケポケIDの保存に失敗しました。もう一度お試しください。"
+    "saveFailed": "포케포케 ID 저장에 실패했습니다. 다시 시도해주세요."
   },
   "profile": {
-    "fetchFailed": "プロファイルの取得に失敗しました",
-    "fetchFailedMessage": "基本情報で表示しています。バックグラウンドで再取得を試行中です。"
+    "fetchFailed": "프로필 정보를 불러오지 못했습니다.",
+    "fetchFailedMessage": "기본 정보로 표시하고 있습니다. 백그라운드에서 다시 불러오는 중입니다."
   },
   "selection": {
-    "title": "選択エラー"
+    "title": "선택 오류"
   },
   "share": {
-    "copyFailed": "コピーに失敗しました",
-    "tryAgain": "もう一度お試しください。"
+    "copyFailed": "복사에 실패했습니다.",
+    "tryAgain": "다시 시도해주세요."
   },
-  "title": "エラー",
+  "title": "오류",
   "trade": {
-    "genericError": "エラー",
-    "inputError": "入力エラー",
-    "postCreationFailed": "投稿の作成に失敗しました。",
-    "postError": "投稿エラー",
-    "sessionError": "セッション更新エラー",
-    "sessionRefreshFailed": "セッションの更新に失敗しました。再ログインしてください。"
+    "genericError": "오류",
+    "inputError": "입력 오류",
+    "postCreationFailed": "게시글 생성에 실패했습니다.",
+    "postError": "게시 오류",
+    "sessionError": "세션 갱신 오류",
+    "sessionRefreshFailed": "세션 갱신에 실패했습니다. 다시 로그인해주세요."
   },
-  "unexpected": "予期しないエラーが発生しました。",
+  "unexpected": "예기치 않은 오류가 발생했습니다.",
   "username": {
-    "saveFailed": "ユーザー名の保存に失敗しました。もう一度お試しください。"
+    "saveFailed": "사용자명 저장에 실패했습니다. 다시 시도해주세요."
   },
   "validation": {
-    "emptyListName": "リスト名を入力してください。",
-    "emptyTitle": "トレード目的を入力してください。",
-    "maxSelection": "最大{maxSelection}枚まで選択できます。",
-    "noCardsSelected": "少なくとも1枚のカードを選択してください。",
-    "noOfferedCards": "譲れるカードを選択してください。",
-    "noWantedCards": "求めるカードを選択してください。",
-    "requiredFields": "必須項目を入力してください。",
-    "selectOneCard": "カードを1枚選択してください。",
-    "enterListName": "リスト名を入力してください。",
-    "enterPokepokeId": "ポケポケIDを入力してください",
-    "enterTitle": "タイトルを入力してください",
-    "enterUsername": "ユーザー名を入力してください",
-    "pokepokeIdLength": "ポケポケIDは3文字以上20文字以下で入力してください",
-    "selectAtLeastOneCard": "少なくとも1枚のカードを選択してください。",
-    "selectAtLeastOneGroup": "少なくとも1つのグループでカードを選択してください",
-    "usernameLength": "ユーザー名は1文字以上30文字以下で入力してください"
+    "emptyListName": "리스트 이름을 입력해주세요.",
+    "emptyTitle": "트레이드 목적을 입력해주세요.",
+    "maxSelection": "최대 {maxSelection}장까지 선택할 수 있습니다.",
+    "noCardsSelected": "최소 1장의 카드를 선택해주세요.",
+    "noOfferedCards": "제공할 카드를 선택해주세요.",
+    "noWantedCards": "희망 카드를 선택해주세요.",
+    "requiredFields": "필수 항목을 입력해주세요.",
+    "selectOneCard": "카드를 1장 선택해주세요.",
+    "enterListName": "리스트 이름을 입력해주세요.",
+    "enterPokepokeId": "포케포케 ID를 입력해주세요.",
+    "enterTitle": "제목을 입력해주세요.",
+    "enterUsername": "사용자명을 입력해주세요.",
+    "pokepokeIdLength": "포케포케 ID는 3자 이상 20자 이하로 입력해주세요.",
+    "selectAtLeastOneCard": "최소 1장의 카드를 선택해주세요.",
+    "selectAtLeastOneGroup": "최소 한 그룹에 카드를 선택해주세요.",
+    "usernameLength": "사용자명은 1자 이상 30자 이하로 입력해주세요."
   }
 }

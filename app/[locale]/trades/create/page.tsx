@@ -242,8 +242,8 @@ export default function CreateTradePage() {
         else router.push("/")
       } else {
         toast({
-          title: t('errors.post.postError'),
-          description: result.error || t('errors.post.postCreationFailed'),
+          title: t('errors.trade.postError'),
+          description: result.error || t('errors.trade.postCreationFailed'),
           variant: "destructive",
         })
       }

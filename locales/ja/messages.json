@@ -72,11 +72,14 @@
     "sessionRefreshed": "セッション更新完了",
     "sessionRefreshedMessage": "セッションが正常に更新されました。",
     "signupComplete": "登録完了",
+    "postSuccess": "投稿成功",
+    "tradePostCreated": "トレード投稿が作成されました。",
     "tradePosted": "投稿成功",
     "tradePostedMessage": "トレード投稿が作成されました。",
     "urlCopied": "URLをコピーしました",
     "urlCopiedMessage": "リンクがクリップボードにコピーされました。"
   },
+  "title": "メッセージ",
   "warning": {
     "selectionLimit": "選択上限",
     "timeSkew": "時刻同期の問題",

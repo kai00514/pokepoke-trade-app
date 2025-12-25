@@ -1,32 +1,32 @@
 {
-  "incompleteError": "Please answer all required questions.",
+  "incompleteError": "모든 필수 질문에 답변해주세요.",
   "q1": {
-    "option1": "Wanted cards match",
-    "option2": "Offered cards match",
-    "option3": "Search by rarity/type",
-    "option4": "Direct specification by Friend ID",
-    "title": "Q1. What do you prioritize when looking for a trading partner?"
+    "option1": "원하는 카드가 맞는 상대",
+    "option2": "제공 가능한 카드가 맞는 상대",
+    "option3": "희귀도/타입으로 검색",
+    "option4": "친구 ID로 직접 지정",
+    "title": "Q1. 트레이드 파트너를 찾을 때 무엇을 가장 우선으로 생각하나요?"
   },
   "q2": {
-    "option1": "Find a partner quickly (Speed priority)",
-    "option2": "Trade with trustworthy partners (Reliability priority)",
-    "option3": "Trade rare/high-demand cards efficiently",
-    "option4": "Use as an opportunity for interaction (Making friends)",
-    "title": "Q2. What experience do you expect from matching? (Multiple selections allowed)"
+    "option1": "빠르게 상대를 찾고 싶다 (속도 우선)",
+    "option2": "신뢰할 수 있는 상대와 거래하고 싶다 (신뢰 우선)",
+    "option3": "희귀/수요 높은 카드를 효율적으로 교환하고 싶다",
+    "option4": "교류를 위한 기회로 활용하고 싶다 (친구 만들기)",
+    "title": "Q2. 매칭을 통해 어떤 경험을 기대하나요? (복수 선택 가능)"
   },
   "q3": {
-    "option1": "In-app chat",
-    "option2": "Match notification (Push)",
-    "option3": "Visualize trust with reviews/ratings",
-    "option4": "Automatic trade history saving",
-    "title": "Q3. What support features do you want after matching? (Multiple selections allowed)"
+    "option1": "앱 내 채팅 기능",
+    "option2": "매칭 알림 (푸시)",
+    "option3": "리뷰/평점으로 신뢰도 표시",
+    "option4": "자동 트레이드 내역 저장",
+    "title": "Q3. 매칭 후 어떤 지원 기능이 있으면 좋겠나요? (복수 선택 가능)"
   },
   "q4": {
-    "title": "Q4. How often would you like to use this feature? (Optional)"
+    "title": "Q4. 이 기능을 얼마나 자주 사용할 것 같나요? (선택 사항)"
   },
-  "submitError": "An error occurred while submitting. Please try again later.",
-  "subtitle": "Help us improve the matching feature by taking this 1-minute survey.",
-  "thankYou": "Thank you for your response!",
-  "thankYouMessage": "We'll use your feedback to deliver a better matching experience. Please stay tuned for the launch.",
-  "title": "We'd Like Your Feedback"
+  "submitError": "제출 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.",
+  "subtitle": "1분 설문에 참여해 매칭 기능 개선에 도움을 주세요.",
+  "thankYou": "응답해주셔서 감사합니다!",
+  "thankYouMessage": "더 나은 매칭 경험을 제공하는 데 소중한 의견을 반영하겠습니다. 정식 출시를 기대해주세요.",
+  "title": "매칭 기능에 대한 의견을 듣고 싶어요"
 }

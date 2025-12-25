@@ -12,7 +12,8 @@ import { cn } from "@/lib/utils"
 import { useToast } from "@/components/ui/use-toast"
 import { supabase } from "@/lib/supabase/client"
 import ImagePreviewOverlay from "./image-preview-overlay"
-import { useTranslations } from "next-intl"
+import { useTranslations, useLocale } from "next-intl"
+import { getLocalizedCardName, getLocalizedCardImage } from "@/lib/i18n-helpers"
 
 export interface Card {
   id: string
@@ -49,6 +50,7 @@ export default function DetailedSearchModal({
   modalTitle,
 }: DetailedSearchModalProps) {
   const t = useTranslations()
+  const locale = useLocale()
   const [keyword, setKeyword] = useState("")
   const [selectedCategoryUI, setSelectedCategoryUI] = useState(t("cards.categories.all"))
   const [selectedRarityDBValue, setSelectedRarityDBValue] = useState("all")
@@ -140,7 +142,7 @@ export default function DetailedSearchModal({
       setIsLoading(true)
       let query = supabase
         .from("cards")
-        .select("id, name, image_url, type_code, rarity_code, category, thumb_url, pack_id")
+        .select("id, name, name_multilingual, image_url, image_url_multilingual, type_code, rarity_code, category, thumb_url, pack_id")
         .eq("is_visible", true)
       if (keyword.trim()) query = query.ilike("name", `%${keyword.trim()}%`)
       if (selectedCategoryUI !== t("decks.categories.all")) {
@@ -166,8 +168,8 @@ export default function DetailedSearchModal({
       } else if (data) {
         const mappedData: Card[] = data.map((dbCard) => ({
           id: String(dbCard.id),
-          name: dbCard.name,
-          imageUrl: dbCard.image_url,
+          name: getLocalizedCardName(dbCard, locale),
+          imageUrl: getLocalizedCardImage(dbCard, locale),
           type: dbCard.type_code,
           rarity: dbCard.rarity_code,
           category: String(dbCard.category),

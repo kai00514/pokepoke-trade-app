@@ -18,14 +18,14 @@ import LoginPromptModal from "@/components/ui/login-prompt-modal"
 import { useAuth } from "@/contexts/auth-context"
 import ShareModal from "@/components/share-modal"
 import { event as gtagEvent } from "@/lib/analytics/gtag"
-import { useTranslations } from "next-intl"
+import { useTranslations, useLocale } from "next-intl"
 
 export interface Comment {
   id: string
   author: string
   avatar?: string | null
   text: string
-  timestamp: string
+  timestamp: string | number
 }
 
 export interface Author {
@@ -57,7 +57,7 @@ const OwnerActionButtons = ({ post, currentUserId }: { post: TradePostDetails; c
   const tCommon = useTranslations("common")
 
   if (!currentUserId || !post.author?.isOwner || post.author.userId !== currentUserId) return null
-  if (post.status === tStatus("canceled") || post.status === tStatus("completed")) return null
+  if (post.status === "CANCELED" || post.status === "COMPLETED") return null
 
   const handleStatusUpdate = async (status: "CANCELED" | "COMPLETED") => {
     if (isUpdating) return
@@ -124,16 +124,42 @@ export default function TradeDetailClient({ initialPost, postId }: TradeDetailCl
   const router = useRouter()
   const { toast } = useToast()
   const { user } = useAuth()
+  const locale = useLocale()
   const t = useTranslations("comments")
   const tCommon = useTranslations("common")
   const tTrades = useTranslations("trades")
   const tStatus = useTranslations("status")
   const tMessages = useTranslations("messages")
+
+  // Helper function to format relative time
+  const formatRelativeTime = useCallback((timestamp: string | number): string => {
+    if (typeof timestamp === 'string') return timestamp
+    const diffSeconds = timestamp
+    if (diffSeconds < 60) return tCommon('time.secondsAgo', { count: Math.floor(diffSeconds) })
+    if (diffSeconds < 3600) return tCommon('time.minutesAgo', { count: Math.floor(diffSeconds / 60) })
+    if (diffSeconds < 86400) return tCommon('time.hoursAgo', { count: Math.floor(diffSeconds / 3600) })
+    if (diffSeconds < 2592000) return tCommon('time.daysAgo', { count: Math.floor(diffSeconds / 86400) })
+    return new Date(Date.now() - diffSeconds * 1000).toLocaleDateString()
+  }, [tCommon])
+
+  // Helper function to get status badge
+  const getStatusBadge = useCallback((status: string) => {
+    const statusMap: Record<string, { key: string; className: string }> = {
+      'OPEN': { key: 'recruiting', className: 'bg-green-100 text-green-700 border-green-300' },
+      'MATCHED': { key: 'inProgress', className: 'bg-amber-100 text-amber-700 border-amber-300' },
+      'COMPLETED': { key: 'completedShort', className: 'bg-blue-100 text-blue-700 border-blue-300' },
+      'CANCELED': { key: 'canceled', className: 'bg-gray-100 text-gray-700 border-gray-300' }
+    }
+    const config = statusMap[status] || statusMap['CANCELED']
+    return { text: tStatus(config.key), className: config.className }
+  }, [tStatus])
   const [post, setPost] = useState<TradePostDetails>(initialPost)
   const [newComment, setNewComment] = useState("")
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null)
   const [showLoginPrompt, setShowLoginPrompt] = useState(false)
   const [isShareModalOpen, setIsShareModalOpen] = useState(false)
+  const [translatedComments, setTranslatedComments] = useState<Record<string, { text: string; isVisible: boolean; isLoading: boolean }>>({})
+  const [translatedAuthorNotes, setTranslatedAuthorNotes] = useState<{ text: string; isVisible: boolean; isLoading: boolean }>({ text: '', isVisible: false, isLoading: false })
 
   const handleCopyToClipboard = useCallback(() => {
     if (post?.originalPostId) {
@@ -246,6 +272,107 @@ export default function TradeDetailClient({ initialPost, postId }: TradeDetailCl
     },
     [router],
   )
+
+  const handleTranslateComment = useCallback(async (commentId: string, commentText: string) => {
+    // If already visible, toggle off
+    if (translatedComments[commentId]?.isVisible) {
+      setTranslatedComments(prev => ({
+        ...prev,
+        [commentId]: { ...prev[commentId], isVisible: false }
+      }))
+      return
+    }
+
+    // If already translated, just show it
+    if (translatedComments[commentId]?.text) {
+      setTranslatedComments(prev => ({
+        ...prev,
+        [commentId]: { ...prev[commentId], isVisible: true }
+      }))
+      return
+    }
+
+    // New translation needed
+    setTranslatedComments(prev => ({
+      ...prev,
+      [commentId]: { text: '', isVisible: true, isLoading: true }
+    }))
+
+    try {
+      const response = await fetch('/api/translate-comment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          text: commentText,
+          sourceLang: 'ja',
+          targetLang: locale
+        })
+      })
+
+      if (!response.ok) throw new Error('Translation failed')
+
+      const data = await response.json()
+      setTranslatedComments(prev => ({
+        ...prev,
+        [commentId]: { text: data.translatedText, isVisible: true, isLoading: false }
+      }))
+    } catch (error) {
+      console.error('Translation error:', error)
+      setTranslatedComments(prev => ({
+        ...prev,
+        [commentId]: { text: '', isVisible: false, isLoading: false }
+      }))
+      toast({
+        title: tCommon('translation.translate'),
+        description: 'Translation failed. Please try again.',
+        variant: 'destructive'
+      })
+    }
+  }, [translatedComments, locale, toast, tCommon])
+
+  const handleTranslateAuthorNotes = useCallback(async () => {
+    if (!post.authorNotes) return
+
+    // If already visible, toggle off
+    if (translatedAuthorNotes.isVisible) {
+      setTranslatedAuthorNotes(prev => ({ ...prev, isVisible: false }))
+      return
+    }
+
+    // If already translated, just show it
+    if (translatedAuthorNotes.text) {
+      setTranslatedAuthorNotes(prev => ({ ...prev, isVisible: true }))
+      return
+    }
+
+    // New translation needed
+    setTranslatedAuthorNotes({ text: '', isVisible: true, isLoading: true })
+
+    try {
+      const response = await fetch('/api/translate-comment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          text: post.authorNotes,
+          sourceLang: 'ja',
+          targetLang: locale
+        })
+      })
+
+      if (!response.ok) throw new Error('Translation failed')
+
+      const data = await response.json()
+      setTranslatedAuthorNotes({ text: data.translatedText, isVisible: true, isLoading: false })
+    } catch (error) {
+      console.error('Translation error:', error)
+      setTranslatedAuthorNotes({ text: '', isVisible: false, isLoading: false })
+      toast({
+        title: tCommon('translation.translate'),
+        description: 'Translation failed. Please try again.',
+        variant: 'destructive'
+      })
+    }
+  }, [post.authorNotes, translatedAuthorNotes, locale, toast, tCommon])
 
   useEffect(() => {
     if (postId && post) {
@@ -368,17 +495,9 @@ export default function TradeDetailClient({ initialPost, postId }: TradeDetailCl
               </Button>
               <Badge
                 variant="outline"
-                className={`whitespace-nowrap ${
-                  post.status === tStatus("recruiting")
-                    ? "bg-green-100 text-green-700 border-green-300"
-                    : post.status === tStatus("inProgress")
-                      ? "bg-amber-100 text-amber-700 border-amber-300"
-                      : post.status === tStatus("completedShort")
-                        ? "bg-blue-100 text-blue-700 border-blue-300"
-                        : "bg-gray-100 text-gray-700 border-gray-300"
-                }`}
+                className={`whitespace-nowrap ${getStatusBadge(post.status).className}`}
               >
-                {post.status}
+                {getStatusBadge(post.status).text}
               </Badge>
             </div>
           </div>
@@ -388,8 +507,34 @@ export default function TradeDetailClient({ initialPost, postId }: TradeDetailCl
           </div>
           {post.authorNotes && (
             <div className="bg-slate-100 p-4 rounded-md mb-6">
-              <h3 className="font-semibold text-slate-800 mb-2">{tTrades("authorComment")}</h3>
+              <div className="flex justify-between items-start mb-2">
+                <h3 className="font-semibold text-slate-800">{tTrades("authorComment")}</h3>
+                {locale !== 'ja' && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleTranslateAuthorNotes}
+                    disabled={translatedAuthorNotes.isLoading}
+                    className="text-xs"
+                  >
+                    {translatedAuthorNotes.isVisible
+                      ? tCommon('translation.hideTranslation')
+                      : tCommon('translation.translate')
+                    }
+                  </Button>
+                )}
+              </div>
               <p className="text-sm text-slate-700 whitespace-pre-wrap">{post.authorNotes}</p>
+              {translatedAuthorNotes.isVisible && (
+                <div className="mt-3 p-3 bg-blue-50 border-l-2 border-blue-400 rounded">
+                  <p className="text-xs text-blue-600 font-medium mb-1">{tCommon('translation.translatedText')}</p>
+                  {translatedAuthorNotes.isLoading ? (
+                    <p className="text-sm text-slate-500 italic">{tCommon('translation.translating')}</p>
+                  ) : (
+                    <p className="text-sm text-slate-700 whitespace-pre-wrap">{translatedAuthorNotes.text}</p>
+                  )}
+                </div>
+              )}
             </div>
           )}
           <div className="flex justify-between items-center bg-slate-100 p-3 rounded-md">
@@ -426,9 +571,33 @@ export default function TradeDetailClient({ initialPost, postId }: TradeDetailCl
                   <div className="flex-grow">
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-semibold text-slate-700">{comment.author}</span>
-                      <span className="text-xs text-slate-400">{comment.timestamp}</span>
+                      <span className="text-xs text-slate-400">{formatRelativeTime(comment.timestamp)}</span>
                     </div>
                     <p className="text-sm text-slate-600 mt-0.5 whitespace-pre-wrap">{comment.text}</p>
+                    {translatedComments[comment.id]?.isVisible && (
+                      <div className="mt-2 p-2 bg-blue-50 border-l-2 border-blue-400 rounded">
+                        <p className="text-xs text-blue-600 font-medium mb-1">{tCommon('translation.translatedText')}</p>
+                        {translatedComments[comment.id]?.isLoading ? (
+                          <p className="text-sm text-slate-500 italic">{tCommon('translation.translating')}</p>
+                        ) : (
+                          <p className="text-sm text-slate-700 whitespace-pre-wrap">{translatedComments[comment.id]?.text}</p>
+                        )}
+                      </div>
+                    )}
+                    {locale !== 'ja' && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="mt-1 h-6 px-2 text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                        onClick={() => handleTranslateComment(comment.id, comment.text)}
+                        disabled={translatedComments[comment.id]?.isLoading}
+                      >
+                        {translatedComments[comment.id]?.isVisible 
+                          ? tCommon('translation.hideTranslation')
+                          : tCommon('translation.translate')
+                        }
+                      </Button>
+                    )}
                   </div>
                 </div>
               ))

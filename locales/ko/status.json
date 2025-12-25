@@ -1,7 +1,7 @@
 {
-  "canceled": "Canceled",
-  "completed": "Trade Completed",
-  "completedShort": "Completed",
-  "inProgress": "In Progress",
-  "recruiting": "Recruiting"
+  "canceled": "취소됨",
+  "completed": "트레이드 완료",
+  "completedShort": "완료",
+  "inProgress": "진행 중",
+  "recruiting": "모집 중"
 }

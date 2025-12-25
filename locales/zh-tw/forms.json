@@ -1,122 +1,122 @@
 {
   "auth": {
     "confirmPassword": {
-      "hide": "Hide password confirmation",
-      "label": "Confirm Password",
-      "placeholder": "Re-enter password",
-      "show": "Show password confirmation"
+      "hide": "隱藏確認密碼",
+      "label": "確認密碼",
+      "placeholder": "請再次輸入密碼",
+      "show": "顯示確認密碼"
     },
     "email": {
       "label": "Email",
-      "placeholder": "Your email address"
+      "placeholder": "請輸入您的 Email"
     },
     "newPassword": {
-      "label": "New Password",
-      "placeholder": "New password (6+ characters)"
+      "label": "新密碼",
+      "placeholder": "新密碼（至少 6 碼）"
     },
     "password": {
-      "forgotLink": "Forgot your password?",
-      "hide": "Hide password",
-      "hint": "At least 6 alphanumeric characters recommended.",
-      "label": "Password",
-      "newPlaceholder": "Password (6+ characters)",
-      "placeholder": "Your password",
-      "show": "Show password"
+      "forgotLink": "忘記密碼？",
+      "hide": "隱藏密碼",
+      "hint": "建議使用 6 位以上的英數組合。",
+      "label": "密碼",
+      "newPlaceholder": "密碼（至少 6 碼）",
+      "placeholder": "請輸入密碼",
+      "show": "顯示密碼"
     }
   },
   "collage": {
     "group1Title": {
-      "label": "Group 1 Title",
-      "placeholder": "e.g., Wanted Cards"
+      "label": "群組 1 標題",
+      "placeholder": "例如：想要的卡片"
     },
     "group2Title": {
-      "label": "Group 2 Title",
-      "placeholder": "e.g., Offered Cards"
+      "label": "群組 2 標題",
+      "placeholder": "例如：可提供的卡片"
     }
   },
   "contact": {
     "email": {
-      "label": "Email Address"
+      "label": "Email 地址"
     },
     "message": {
-      "label": "Message",
-      "placeholder": "Please describe your inquiry in detail"
+      "label": "訊息內容",
+      "placeholder": "請詳細描述您的問題或需求"
     },
     "name": {
-      "label": "Name",
-      "placeholder": "John Doe"
+      "label": "姓名",
+      "placeholder": "例：John Doe"
     },
     "subject": {
-      "label": "Subject",
-      "placeholder": "Enter the subject of your inquiry"
+      "label": "主旨",
+      "placeholder": "請輸入您的詢問主旨"
     }
   },
   "labels": {
     "email": "Email",
-    "password": "Password"
+    "password": "密碼"
   },
   "list": {
     "description": {
-      "label": "Description (optional)",
-      "placeholder": "Enter list description"
+      "label": "描述（可選）",
+      "placeholder": "請輸入清單描述"
     },
     "name": {
-      "label": "List Name",
-      "placeholder": "e.g., Trading Card List"
+      "label": "清單名稱",
+      "placeholder": "例如：交換卡片清單"
     }
   },
   "listCreation": {
-    "cardSelection": "Card Selection ({count}/35)",
-    "charCount": "{count}/100 characters",
-    "label": "List Name",
-    "placeholder": "Enter list name"
+    "cardSelection": "卡片選擇（{count}/35）",
+    "charCount": "{count}/100 字",
+    "label": "清單名稱",
+    "placeholder": "請輸入清單名稱"
   },
   "placeholders": {
-    "email": "Your email address",
-    "enterListName": "Enter list name",
-    "keyword": "Keyword",
-    "password": "Your password",
-    "passwordMin": "Password (6+ characters)"
+    "email": "請輸入您的 Email",
+    "enterListName": "請輸入清單名稱",
+    "keyword": "關鍵字",
+    "password": "請輸入密碼",
+    "passwordMin": "密碼（至少 6 碼）"
   },
   "pokepokeId": {
     "label": "Pokepoke ID",
-    "placeholder": "e.g., trainer123"
+    "placeholder": "例：trainer123"
   },
   "search": {
     "keyword": {
-      "label": "Keyword",
-      "placeholder": "Search by keyword"
+      "label": "關鍵字",
+      "placeholder": "以關鍵字搜尋"
     }
   },
   "trade": {
     "comment": {
-      "label": "Comment (optional)",
-      "placeholder": "Enter comment (up to 256 characters)"
+      "label": "留言（可選）",
+      "placeholder": "請輸入留言（最多 256 字）"
     },
     "offeredCards": {
-      "label": "Offered Cards"
+      "label": "可提供的卡片"
     },
     "pokepokeId": {
-      "helperAuthenticated": "Your registered Pokepoke ID is auto-filled.",
-      "helperAuthenticatedNoId": "You are logged in. Pokepoke ID is optional. Only numbers allowed.",
-      "helperGuest": "Posting as guest. Pokepoke ID is optional. Only numbers allowed.",
+      "helperAuthenticated": "已自動帶入您註冊的 Pokepoke ID。",
+      "helperAuthenticatedNoId": "您已登入。Pokepoke ID 可選填，只能輸入數字。",
+      "helperGuest": "您以訪客身份發文。Pokepoke ID 可選填，只能輸入數字。",
       "label": "Pokepoke App ID",
-      "placeholder": "Pokepoke App ID (optional)"
+      "placeholder": "Pokepoke App ID（可選）"
     },
     "savedList": {
-      "label": "Select from Saved Lists"
+      "label": "從已儲存清單中選擇"
     },
     "title": {
-      "label": "Trade Title",
-      "placeholder": "e.g., Looking for Charizard ex"
+      "label": "交換標題",
+      "placeholder": "例如：徵求噴火龍 ex"
     },
     "wantedCards": {
-      "label": "Wanted Cards"
+      "label": "想要的卡片"
     }
   },
   "username": {
-    "label": "Username",
-    "placeholder": "e.g., Pokemon Trainer"
+    "label": "使用者名稱",
+    "placeholder": "例：Pokemon Trainer"
   },
   "packs": {
     "all": "所有卡包"

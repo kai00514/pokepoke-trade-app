@@ -1,29 +1,29 @@
 {
   "news": {
-    "backToInfo": "Back to Information",
-    "loading": "Loading...",
-    "noArticles": "No articles available at this time.",
-    "pinned": "Pinned",
-    "subtitle": "View all the latest news",
-    "title": "Latest News"
+    "backToInfo": "Retour aux informations",
+    "loading": "Chargement...",
+    "noArticles": "Aucun article disponible pour le moment.",
+    "pinned": "Épinglé",
+    "subtitle": "Voir toutes les dernières actualités",
+    "title": "Dernières actualités"
   },
-  "noLatestInfo": "No latest news yet.",
-  "noTournaments": "No tournaments currently scheduled.",
+  "noLatestInfo": "Aucune actualité pour le moment.",
+  "noTournaments": "Aucun tournoi prévu actuellement.",
   "placeholders": {
-    "glossary": "Glossary will be displayed here.",
-    "guides": "Beginner's guide will be displayed here.",
-    "rules": "Basic rules information will be displayed here.",
-    "tournaments": "Official tournament information will be displayed here."
+    "glossary": "Le glossaire s’affichera ici.",
+    "guides": "Le guide pour débutants s’affichera ici.",
+    "rules": "Les règles de base seront affichées ici.",
+    "tournaments": "Les informations officielles des tournois s’afficheront ici."
   },
   "sections": {
-    "calendar": "Tournament Calendar",
-    "glossary": "Glossary",
-    "guides": "Beginner's Guide",
-    "latestNews": "Latest News",
-    "rules": "Basic Rules",
-    "tournaments": "Official Tournaments"
+    "calendar": "Calendrier des tournois",
+    "glossary": "Glossaire",
+    "guides": "Guide pour débutants",
+    "latestNews": "Dernières actualités",
+    "rules": "Règles de base",
+    "tournaments": "Tournois officiels"
   },
-  "title": "Information",
-  "viewAll": "View All",
-  "viewAllLatestInfo": "View All Latest News"
+  "title": "Informations",
+  "viewAll": "Tout voir",
+  "viewAllLatestInfo": "Voir toutes les actualités"
 }

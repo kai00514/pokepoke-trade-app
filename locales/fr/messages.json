@@ -1,87 +1,90 @@
 {
   "info": {
-    "cardsSelected": "{count}枚のカードが選択されています",
-    "collageDescription": "複数のカード画像を自動で合成して、1つのコラージュ画像を作成できます。生成したコラージュはXに投稿できます。",
-    "collageInstruction": "各グループで1～30枚のカードを選択できます。タイトルはコラージュ画像に表示されます。",
-    "loginRequired": "コラージュを生成・管理するにはログインが必要です。",
+    "cardsSelected": "{count} cartes sélectionnées",
+    "collageDescription": "Combine automatiquement plusieurs images de cartes pour créer une seule image de collage. Vous pouvez publier le collage généré sur X.",
+    "collageInstruction": "Vous pouvez sélectionner 1-30 cartes dans chaque groupe. Les titres seront affichés sur l'image du collage.",
+    "loginRequired": "Connexion requise pour générer et gérer les collages.",
     "maxCards": "(max {max})",
-    "noCardsFound": "該当するカードが見つかりません。",
-    "noCardsSelected": "カードが選択されていません",
-    "noPosts": "投稿がありません",
-    "noPostsFound": "該当する投稿が見つかりませんでした。",
-    "resultCount": "全{totalCount}件中 {start}〜{end}件を表示",
-    "searchCardsInstruction": "Please select cards from the \"Search Cards\" button",
-    "selectCards": "カードを選択してください",
-    "selectedCount": "選択されたカード: {count}枚",
-    "selectedCountCards": "{count} selected",
-    "selectedCountWithMax": "{count}枚選択中 (最大{max}枚)",
-    "tradeNotice": "ここで登録された内容はタイムラインに即時反映されます。コメントがあれば、ベルマークから確認できます。トレード状況はマイページのトレード履歴から確認できます。"
+    "noCardsFound": "Aucune carte correspondante trouvée.",
+    "noCardsSelected": "Aucune carte sélectionnée",
+    "noPosts": "Aucune publication disponible",
+    "noPostsFound": "Aucune publication correspondante trouvée.",
+    "resultCount": "Affichage de {start}-{end} sur {totalCount} résultats",
+    "searchCardsInstruction": "Veuillez sélectionner des cartes depuis le bouton \"Rechercher des cartes\"",
+    "selectCards": "Veuillez sélectionner des cartes",
+    "selectedCount": "Cartes sélectionnées : {count}",
+    "selectedCountCards": "{count} sélectionnées",
+    "selectedCountWithMax": "{count} sélectionnées (max {max})",
+    "tradeNotice": "Les publications enregistrées ici seront immédiatement reflétées dans la chronologie. Les commentaires peuvent être vérifiés depuis l'icône de notification. L'état de l'échange peut être vérifié dans l'historique des échanges de Ma Page."
   },
   "modals": {
     "collage": {
-      "selectCardsForGroup": "{title}のカードを選択",
-      "title": "コラージュ画像を生成"
+      "selectCardsForGroup": "Sélectionner les cartes pour {title}",
+      "title": "Générer une image de collage"
     },
     "detailedSearch": {
-      "title": "カード詳細検索"
+      "title": "Recherche détaillée de cartes"
     },
     "list": {
-      "createNew": "新しいリストを作成"
+      "createNew": "Créer une nouvelle liste"
     },
     "loginPrompt": {
-      "benefit1": "ポケポケID・ユーザー名を自動入力",
-      "benefit2": "希望/譲渡カードのリスト作成",
-      "benefit3": "通知アイコンで最新情報を受け取り",
-      "benefit4": "履歴画面でトレード状況を確認",
-      "benefit5": "デッキをお気に入り登録",
-      "title": "アカウント登録でもっと便利に！"
+      "benefit1": "Remplissage automatique de l'ID Pokepoke et du nom d'utilisateur",
+      "benefit2": "Créer une liste de cartes souhaitées/offertes",
+      "benefit3": "Recevoir les dernières informations depuis l'icône de notification",
+      "benefit4": "Vérifier l'état de l'échange dans l'écran d'historique",
+      "benefit5": "Enregistrer les decks en favoris",
+      "title": "Plus pratique avec l'enregistrement de compte !"
     },
     "pokepokeId": {
-      "description": "あなたのポケポケIDを設定してください。他のユーザーがあなたを見つけやすくなります。",
-      "title": "ポケポケID登録"
+      "description": "Veuillez définir votre ID Pokepoke. Cela facilitera la recherche par d'autres utilisateurs.",
+      "title": "Enregistrer l'ID Pokepoke"
     },
     "selectCards": {
-      "description": "リストに追加するカードを選択してください（最大35枚、現在{count}枚選択中）",
-      "title": "カードを選択"
+      "description": "Veuillez sélectionner des cartes à ajouter à la liste (max 35, actuellement {count} sélectionnées)",
+      "title": "Sélectionner des cartes"
     },
     "username": {
-      "description": "表示用のユーザー名を設定してください。いつでも変更できます。",
-      "title": "ユーザー名登録"
+      "description": "Veuillez définir un nom d'utilisateur pour l'affichage. Vous pouvez le modifier à tout moment.",
+      "title": "Enregistrer le nom d'utilisateur"
     }
   },
   "success": {
-    "accountCreated": "アカウントが作成されました。",
-    "checkEmail": "メールをご確認ください。",
-    "confirmationEmailSent": "確認メール送信",
-    "confirmationEmailSentMessage": "確認メールを送信しました。メールをご確認の上、リンクをクリックして登録を完了してください。",
-    "copied": "Copied",
-    "idCopied": "コピーしました",
-    "idCopiedMessage": "ID: {postId} をクリップボードにコピーしました。",
-    "listCreated": "リスト作成完了",
-    "listCreatedMessage": "カードリストが正常に作成されました。",
-    "loginSuccess": "ログイン成功",
-    "loginSuccessMessage": "ログインしました。",
-    "passwordUpdateSuccess": "パスワードが正常に更新されました。ログインページへ移動してください。",
-    "passwordUpdated": "パスワード更新完了",
-    "passwordUpdatedMessage": "新しいパスワードでログインしてください。",
-    "resendConfirmation": "確認メール再送信",
-    "resendConfirmationMessage": "確認メールを再送信しました。",
-    "resetEmailSent": "メール送信完了",
-    "resetEmailSentDetail": "パスワードリセットのリンクをメールアドレスに送信しました。メールをご確認ください。",
-    "resetEmailSentMessage": "パスワードリセットのリンクを送信しました。",
-    "sessionRefreshed": "セッション更新完了",
-    "sessionRefreshedMessage": "セッションが正常に更新されました。",
-    "signupComplete": "登録完了",
-    "tradePosted": "投稿成功",
-    "tradePostedMessage": "トレード投稿が作成されました。",
-    "urlCopied": "URLをコピーしました",
-    "urlCopiedMessage": "リンクがクリップボードにコピーされました。"
+    "accountCreated": "Votre compte a été créé.",
+    "checkEmail": "Veuillez vérifier votre e-mail.",
+    "confirmationEmailSent": "E-mail de confirmation envoyé",
+    "confirmationEmailSentMessage": "Un e-mail de confirmation a été envoyé. Veuillez vérifier votre e-mail et cliquer sur le lien pour terminer l'enregistrement.",
+    "copied": "Copié",
+    "idCopied": "Copié",
+    "idCopiedMessage": "ID : {postId} a été copié dans le presse-papiers.",
+    "listCreated": "Liste créée",
+    "listCreatedMessage": "La liste de cartes a été créée avec succès.",
+    "loginSuccess": "Connexion réussie",
+    "loginSuccessMessage": "Vous êtes connecté.",
+    "passwordUpdateSuccess": "Le mot de passe a été mis à jour avec succès. Veuillez aller à la page de connexion.",
+    "passwordUpdated": "Mot de passe mis à jour",
+    "passwordUpdatedMessage": "Veuillez vous connecter avec votre nouveau mot de passe.",
+    "resendConfirmation": "E-mail de confirmation renvoyé",
+    "resendConfirmationMessage": "L'e-mail de confirmation a été renvoyé.",
+    "resetEmailSent": "E-mail envoyé",
+    "resetEmailSentDetail": "Un lien de réinitialisation de mot de passe a été envoyé à votre adresse e-mail. Veuillez vérifier votre e-mail.",
+    "resetEmailSentMessage": "Un lien de réinitialisation de mot de passe a été envoyé.",
+    "sessionRefreshed": "Session actualisée",
+    "sessionRefreshedMessage": "La session a été actualisée avec succès.",
+    "signupComplete": "Inscription terminée",
+    "postSuccess": "Publication réussie",
+    "tradePostCreated": "La publication d'échange a été créée.",
+    "tradePosted": "Publication réussie",
+    "tradePostedMessage": "La publication d'échange a été créée.",
+    "urlCopied": "URL copiée",
+    "urlCopiedMessage": "Le lien a été copié dans le presse-papiers."
   },
+  "title": "Message",
   "warning": {
-    "selectionLimit": "選択上限",
-    "timeSkew": "時刻同期の問題",
-    "timeSkewDetail": "デバイスの時計が{formatTimeSkew}ずれています。これにより認証に問題が発生する可能性があります。",
-    "timeSkewMessage": "デバイスの時計が{formatTimeSkew}ずれています。投稿に失敗する可能性があります。",
-    "maxSelectionReached": "最大{maxSelection}枚まで選択できます。"
+    "selectionLimit": "Limite de sélection",
+    "timeSkew": "Problème de synchronisation de l'heure",
+    "timeSkewDetail": "L'horloge de votre appareil est décalée de {formatTimeSkew}. Cela peut causer des problèmes d'authentification.",
+    "timeSkewMessage": "L'horloge de votre appareil est décalée de {formatTimeSkew}. La publication peut échouer.",
+    "maxSelectionReached": "Vous pouvez sélectionner jusqu'à {maxSelection}."
   }
 }

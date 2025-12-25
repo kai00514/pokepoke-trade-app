@@ -145,11 +145,11 @@ export function DeckEvaluation({
   }
 
   const statsArray = [
-    { label: t("evaluation.stats.accessibility"), value: deckStats.accessibility, max: 5 },
-    { label: t("evaluation.stats.speed"), value: deckStats.speed, max: 5 },
-    { label: t("evaluation.stats.power"), value: deckStats.power, max: 5 },
-    { label: t("evaluation.stats.durability"), value: deckStats.durability, max: 5 },
-    { label: t("evaluation.stats.stability"), value: deckStats.stability, max: 5 },
+    { label: t("stats.accessibility"), value: deckStats.accessibility, max: 5 },
+    { label: t("stats.speed"), value: deckStats.speed, max: 5 },
+    { label: t("stats.power"), value: deckStats.power, max: 5 },
+    { label: t("stats.durability"), value: deckStats.durability, max: 5 },
+    { label: t("stats.stability"), value: deckStats.stability, max: 5 },
   ]
 
   // レーダーチャート描画のuseEffectを削除

@@ -3,6 +3,7 @@
   "actionError": "An error occurred while {action}.",
   "actionFailed": "Failed to {action}",
   "authorComment": "Author's Comment",
+  "copy": "Copy",
   "authorCommentWithText": "Author's Comment: {comment}",
   "commentPlaceholder": "Enter a comment about the trade",
   "complete": "Complete Trade",

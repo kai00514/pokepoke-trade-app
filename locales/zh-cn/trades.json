@@ -29,5 +29,6 @@
   "statusChanged": "Post status changed to {action}.",
   "tradeTitle": "Trade Title",
   "tradeTitlePlaceholder": "Enter trade description",
-  "wantedCards": "Wanted Cards"
+  "wantedCards": "Wanted Cards",
+  "copy": "复制"
 }

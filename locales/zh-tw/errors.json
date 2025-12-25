@@ -1,99 +1,99 @@
 {
   "auth": {
-    "accountCreationFailed": "アカウント作成に失敗しました。",
-    "adminAuthFailed": "認証に失敗しました",
-    "adminEmptyCredentials": "ユーザー名とパスワードを入力してください",
-    "callbackError": "認証プロセスでエラーが発生しました。",
-    "databaseError": "データベースエラーが発生しました",
-    "emailNotConfirmed": "メールアドレスが確認されていません。確認メールをご確認ください。",
-    "emptyCredentials": "メールアドレスとパスワードを入力してください。",
-    "emptyEmail": "メールアドレスを入力してください。",
-    "generic": "認証エラーが発生しました。",
-    "invalidCredentials": "メールアドレスまたはパスワードが正しくありません。",
-    "invalidEmail": "有効なメールアドレスを入力してください。",
-    "loginFailed": "ログインに失敗しました。",
-    "noCode": "認証コードが見つかりませんでした。",
-    "noSession": "セッションの作成に失敗しました。",
-    "notAuthenticated": "ユーザーが認証されていません。",
-    "passwordMismatch": "パスワードが一致しません。",
-    "passwordTooShort": "パスワードは6文字以上で入力してください。",
-    "resendFailed": "確認メールの再送信に失敗しました。",
-    "resetEmailFailed": "パスワードリセットメールの送信に失敗しました。",
-    "serverError": "サーバーエラーが発生しました",
-    "sessionSetupError": "セッション設定エラー",
-    "signupFailed": "登録に失敗しました。",
-    "socialLoginFailed": "ソーシャルログインに失敗しました。",
-    "socialSignupFailed": "ソーシャル登録に失敗しました。",
-    "tooManyRequests": "ログイン試行回数が上限に達しました。しばらく時間をおいてから再試行してください。",
-    "unexpected": "予期しないエラーが発生しました。",
-    "updatePasswordFailed": "パスワードの更新に失敗しました。",
-    "userExists": "このメールアドレスは既に登録されています。ログインページからログインしてください。"
+    "accountCreationFailed": "帳號建立失敗。",
+    "adminAuthFailed": "驗證失敗。",
+    "adminEmptyCredentials": "請輸入使用者名稱與密碼。",
+    "callbackError": "驗證程序發生錯誤。",
+    "databaseError": "資料庫發生錯誤。",
+    "emailNotConfirmed": "您的 Email 尚未完成驗證，請檢查確認信。",
+    "emptyCredentials": "請輸入 Email 與密碼。",
+    "emptyEmail": "請輸入 Email。",
+    "generic": "發生驗證錯誤。",
+    "invalidCredentials": "Email 或密碼不正確。",
+    "invalidEmail": "請輸入有效的 Email。",
+    "loginFailed": "登入失敗。",
+    "noCode": "找不到驗證碼。",
+    "noSession": "Session 建立失敗。",
+    "notAuthenticated": "尚未登入。",
+    "passwordMismatch": "密碼不一致。",
+    "passwordTooShort": "密碼至少需 6 碼。",
+    "resendFailed": "確認信重新發送失敗。",
+    "resetEmailFailed": "密碼重設信發送失敗。",
+    "serverError": "伺服器發生錯誤。",
+    "sessionSetupError": "Session 設定錯誤。",
+    "signupFailed": "註冊失敗。",
+    "socialLoginFailed": "社群登入失敗。",
+    "socialSignupFailed": "社群註冊失敗。",
+    "tooManyRequests": "登入嘗試次數過多，請稍後再試。",
+    "unexpected": "發生非預期錯誤。",
+    "updatePasswordFailed": "密碼更新失敗。",
+    "userExists": "此 Email 已被註冊，請至登入頁面登入。"
   },
   "collage": {
-    "emptyTitle": "タイトルを入力してください",
-    "generationFailed": "コラージュ生成に失敗しました",
-    "noCards": "少なくとも1つのグループでカードを選択してください"
+    "emptyTitle": "請輸入標題。",
+    "generationFailed": "拼貼圖片產生失敗。",
+    "noCards": "請在至少一個群組中選擇卡片。"
   },
   "data": {
-    "cardsFetchFailed": "カード情報の読み込みに失敗しました。",
-    "fetchError": "データ取得エラー",
-    "packsFetchError": "パック情報取得エラー",
-    "packsFetchFailed": "パック情報の読み込みに失敗しました。",
-    "postsFetchFailed": "投稿の取得に失敗しました。"
+    "cardsFetchFailed": "無法載入卡片資訊。",
+    "fetchError": "資料取得錯誤。",
+    "packsFetchError": "卡包資料取得錯誤。",
+    "packsFetchFailed": "無法載入卡包資訊。",
+    "postsFetchFailed": "無法取得貼文資料。"
   },
-  "inputError": "入力エラー",
+  "inputError": "輸入錯誤",
   "list": {
-    "authRequired": "ログインが必要です",
-    "authRequiredMessage": "リストを作成するにはログインしてください。",
-    "creationError": "エラーが発生しました",
-    "creationFailed": "リストの作成に失敗しました。",
-    "unexpectedError": "リストの作成中に予期しないエラーが発生しました。"
+    "authRequired": "需要登入",
+    "authRequiredMessage": "建立清單前請先登入。",
+    "creationError": "發生錯誤。",
+    "creationFailed": "清單建立失敗。",
+    "unexpectedError": "建立清單時發生非預期的錯誤。"
   },
-  "loginRequired": "ログインが必要です",
-  "operationFailed": "操作に失敗しました",
+  "loginRequired": "需要登入",
+  "operationFailed": "操作失敗",
   "pokepokeId": {
-    "saveFailed": "ポケポケIDの保存に失敗しました。もう一度お試しください。"
+    "saveFailed": "Pokepoke ID 儲存失敗，請再試一次。"
   },
   "profile": {
-    "fetchFailed": "プロファイルの取得に失敗しました",
-    "fetchFailedMessage": "基本情報で表示しています。バックグラウンドで再取得を試行中です。"
+    "fetchFailed": "無法取得個人資料。",
+    "fetchFailedMessage": "目前顯示預設資訊，系統正在後台重新取得資料。"
   },
   "selection": {
-    "title": "選択エラー"
+    "title": "選擇錯誤"
   },
   "share": {
-    "copyFailed": "コピーに失敗しました",
-    "tryAgain": "もう一度お試しください。"
+    "copyFailed": "複製失敗。",
+    "tryAgain": "請再試一次。"
   },
-  "title": "エラー",
+  "title": "錯誤",
   "trade": {
-    "genericError": "エラー",
-    "inputError": "入力エラー",
-    "postCreationFailed": "投稿の作成に失敗しました。",
-    "postError": "投稿エラー",
-    "sessionError": "セッション更新エラー",
-    "sessionRefreshFailed": "セッションの更新に失敗しました。再ログインしてください。"
+    "genericError": "錯誤",
+    "inputError": "輸入錯誤",
+    "postCreationFailed": "貼文建立失敗。",
+    "postError": "貼文錯誤",
+    "sessionError": "Session 更新錯誤",
+    "sessionRefreshFailed": "Session 更新失敗，請重新登入。"
   },
-  "unexpected": "予期しないエラーが発生しました。",
+  "unexpected": "發生非預期的錯誤。",
   "username": {
-    "saveFailed": "ユーザー名の保存に失敗しました。もう一度お試しください。"
+    "saveFailed": "使用者名稱儲存失敗，請再試一次。"
   },
   "validation": {
-    "emptyListName": "リスト名を入力してください。",
-    "emptyTitle": "トレード目的を入力してください。",
-    "maxSelection": "最大{maxSelection}枚まで選択できます。",
-    "noCardsSelected": "少なくとも1枚のカードを選択してください。",
-    "noOfferedCards": "譲れるカードを選択してください。",
-    "noWantedCards": "求めるカードを選択してください。",
-    "requiredFields": "必須項目を入力してください。",
-    "selectOneCard": "カードを1枚選択してください。",
-    "enterListName": "リスト名を入力してください。",
-    "enterPokepokeId": "ポケポケIDを入力してください",
-    "enterTitle": "タイトルを入力してください",
-    "enterUsername": "ユーザー名を入力してください",
-    "pokepokeIdLength": "ポケポケIDは3文字以上20文字以下で入力してください",
-    "selectAtLeastOneCard": "少なくとも1枚のカードを選択してください。",
-    "selectAtLeastOneGroup": "少なくとも1つのグループでカードを選択してください",
-    "usernameLength": "ユーザー名は1文字以上30文字以下で入力してください"
+    "emptyListName": "請輸入清單名稱。",
+    "emptyTitle": "請輸入交換目的。",
+    "maxSelection": "最多可選擇 {maxSelection} 張。",
+    "noCardsSelected": "請至少選擇 1 張卡片。",
+    "noOfferedCards": "請選擇可提供的卡片。",
+    "noWantedCards": "請選擇想要的卡片。",
+    "requiredFields": "請填寫所有必填欄位。",
+    "selectOneCard": "請選擇 1 張卡片。",
+    "enterListName": "請輸入清單名稱。",
+    "enterPokepokeId": "請輸入 Pokepoke ID。",
+    "enterTitle": "請輸入標題。",
+    "enterUsername": "請輸入使用者名稱。",
+    "pokepokeIdLength": "Pokepoke ID 長度需為 3〜20 個字元。",
+    "selectAtLeastOneCard": "請至少選擇 1 張卡片。",
+    "selectAtLeastOneGroup": "請在至少 1 個群組中選擇卡片。",
+    "usernameLength": "使用者名稱長度需為 1〜30 個字元。"
   }
 }

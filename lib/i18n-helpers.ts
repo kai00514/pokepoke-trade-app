@@ -283,11 +283,12 @@ export function localizeTradePost<T extends Record<string, any>>(
   post: T,
   locale: string
 ): T {
+  // wanted_card_id and offered_card_id are now integer[] (not JSONB)
+  // Card data is fetched from cards table with multilingual support
+  // So we only need to localize title and comment
   return localizeObject(post, locale, [
     'title',
     'comment',
-    'wanted_card_id',
-    'offered_card_id',
   ]);
 }
 
@@ -364,4 +365,65 @@ export function parseAcceptLanguage(
   }
 
   return DEFAULT_LANGUAGE;
+}
+
+/**
+ * Get localized card name from card data
+ * 
+ * @param card - Card object with name and name_multilingual fields
+ * @param locale - Language code to retrieve
+ * @returns Localized card name, fallback to Japanese if not found
+ * 
+ * @example
+ * const card = { 
+ *   name: "ピカチュウex", 
+ *   name_multilingual: { ja: "ピカチュウex", en: "Pikachu ex" } 
+ * };
+ * const localizedName = getLocalizedCardName(card, 'en'); // "Pikachu ex"
+ */
+export function getLocalizedCardName(
+  card: { name: string; name_multilingual?: Record<string, string> | null },
+  locale: string
+): string {
+  if (card.name_multilingual && card.name_multilingual[locale]) {
+    return card.name_multilingual[locale];
+  }
+  
+  // Fallback to Japanese (card.name is always Japanese)
+  return card.name;
+}
+
+/**
+ * Get localized card image URL from card data
+ * 
+ * @param card - Card object with image_url and image_url_multilingual fields
+ * @param locale - Language code to retrieve
+ * @returns Localized card image URL, fallback to Japanese/default if not found
+ * 
+ * @example
+ * const card = { 
+ *   image_url: "https://.../ja.webp", 
+ *   image_url_multilingual: { 
+ *     ja: "https://.../ja.webp", 
+ *     en: "https://assets.tcgdex.net/en/tcgp/P-A/013/low.webp" 
+ *   },
+ *   thumb_url: "https://.../thumb.webp"
+ * };
+ * const localizedImage = getLocalizedCardImage(card, 'en'); // "https://assets.tcgdex.net/en/..."
+ */
+export function getLocalizedCardImage(
+  card: { 
+    image_url: string; 
+    image_url_multilingual?: Record<string, string> | null;
+    thumb_url?: string;
+  },
+  locale: string
+): string {
+  // Try to get localized image URL
+  if (card.image_url_multilingual && card.image_url_multilingual[locale]) {
+    return card.image_url_multilingual[locale];
+  }
+  
+  // Fallback to thumb_url if available, otherwise image_url
+  return card.thumb_url || card.image_url;
 }

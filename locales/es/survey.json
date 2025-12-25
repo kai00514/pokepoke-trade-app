@@ -1,32 +1,32 @@
 {
-  "incompleteError": "Please answer all required questions.",
+  "incompleteError": "Por favor, responde todas las preguntas obligatorias.",
   "q1": {
-    "option1": "Wanted cards match",
-    "option2": "Offered cards match",
-    "option3": "Search by rarity/type",
-    "option4": "Direct specification by Friend ID",
-    "title": "Q1. What do you prioritize when looking for a trading partner?"
+    "option1": "Coincidencia con las cartas buscadas",
+    "option2": "Coincidencia con las cartas ofrecidas",
+    "option3": "Búsqueda por rareza/tipo",
+    "option4": "Especificación directa mediante ID de amigo",
+    "title": "P1. ¿Qué priorizas al buscar un compañero de intercambio?"
   },
   "q2": {
-    "option1": "Find a partner quickly (Speed priority)",
-    "option2": "Trade with trustworthy partners (Reliability priority)",
-    "option3": "Trade rare/high-demand cards efficiently",
-    "option4": "Use as an opportunity for interaction (Making friends)",
-    "title": "Q2. What experience do you expect from matching? (Multiple selections allowed)"
+    "option1": "Encontrar un compañero rápidamente (prioridad: velocidad)",
+    "option2": "Intercambiar con personas confiables (prioridad: fiabilidad)",
+    "option3": "Intercambiar cartas raras o muy solicitadas de manera eficiente",
+    "option4": "Aprovecharlo como oportunidad para interactuar (hacer amigos)",
+    "title": "P2. ¿Qué tipo de experiencia esperas del sistema de emparejamiento? (Puedes seleccionar varias opciones)"
   },
   "q3": {
-    "option1": "In-app chat",
-    "option2": "Match notification (Push)",
-    "option3": "Visualize trust with reviews/ratings",
-    "option4": "Automatic trade history saving",
-    "title": "Q3. What support features do you want after matching? (Multiple selections allowed)"
+    "option1": "Chat dentro de la aplicación",
+    "option2": "Notificaciones de coincidencia (push)",
+    "option3": "Visualizar confianza mediante reseñas/calificaciones",
+    "option4": "Guardado automático del historial de intercambios",
+    "title": "P3. ¿Qué funciones de soporte te gustaría tener después del emparejamiento? (Puedes seleccionar varias opciones)"
   },
   "q4": {
-    "title": "Q4. How often would you like to use this feature? (Optional)"
+    "title": "P4. ¿Con qué frecuencia te gustaría usar esta función? (Opcional)"
   },
-  "submitError": "An error occurred while submitting. Please try again later.",
-  "subtitle": "Help us improve the matching feature by taking this 1-minute survey.",
-  "thankYou": "Thank you for your response!",
-  "thankYouMessage": "We'll use your feedback to deliver a better matching experience. Please stay tuned for the launch.",
-  "title": "We'd Like Your Feedback"
+  "submitError": "Ocurrió un error al enviar tus respuestas. Inténtalo nuevamente más tarde.",
+  "subtitle": "Ayúdanos a mejorar la función de emparejamiento respondiendo esta encuesta de 1 minuto.",
+  "thankYou": "¡Gracias por tu respuesta!",
+  "thankYouMessage": "Utilizaremos tus comentarios para ofrecerte una mejor experiencia de emparejamiento. ¡Estate atento al lanzamiento!",
+  "title": "Queremos conocer tu opinión"
 }

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react"
 import { addComment, getComments } from "@/lib/actions/trade-comments"
 import { useTranslations } from "next-intl"
+import TranslateButton from "@/components/translate-button"
 
 interface TradeCommentsProps {
   postId: string
@@ -83,6 +84,7 @@ export default function TradeComments({ postId, currentUser }: TradeCommentsProp
                 {c.is_edited && <span className="text-xs text-yellow-600 ml-2">{t('comments.edited')}</span>}
               </div>
               <div className="mt-1">{c.content}</div>
+              <TranslateButton text={c.content} sourceLang="ja" className="mt-1" />
             </li>
           ))}
         </ul>

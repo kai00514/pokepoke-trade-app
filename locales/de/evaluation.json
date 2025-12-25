@@ -1,19 +1,19 @@
 {
-  "alreadyRated": "Already Rated",
-  "alreadyRatedDetail": "You have already rated this deck.",
-  "checkError": "Failed to check user evaluation",
-  "checkErrorDetail": "An error occurred while checking user evaluation.",
-  "deckFeatures": "Deck Features",
-  "loginPrompt": "Please log in to evaluate this deck.",
+  "alreadyRated": "Bereits bewertet",
+  "alreadyRatedDetail": "Sie haben dieses Deck bereits bewertet.",
+  "checkError": "Benutzerbewertung konnte nicht überprüft werden",
+  "checkErrorDetail": "Beim Überprüfen der Benutzerbewertung ist ein Fehler aufgetreten.",
+  "deckFeatures": "Deck-Eigenschaften",
+  "loginPrompt": "Bitte melden Sie sich an, um dieses Deck zu bewerten.",
   "stats": {
-    "accessibility": "Accessibility",
-    "durability": "Durability",
-    "power": "Power",
-    "speed": "Speed",
-    "stability": "Stability"
+    "accessibility": "Zugänglichkeit",
+    "durability": "Haltbarkeit",
+    "power": "Stärke",
+    "speed": "Geschwindigkeit",
+    "stability": "Stabilität"
   },
-  "submitError": "Failed to submit evaluation",
-  "submitErrorDetail": "An error occurred while submitting evaluation.",
-  "submitSuccess": "Evaluation Submitted",
-  "submitSuccessDetail": "Your evaluation of {score} points has been recorded."
+  "submitError": "Bewertung konnte nicht übermittelt werden",
+  "submitErrorDetail": "Beim Übermitteln der Bewertung ist ein Fehler aufgetreten.",
+  "submitSuccess": "Bewertung übermittelt",
+  "submitSuccessDetail": "Ihre Bewertung von {score} Punkten wurde aufgezeichnet."
 }

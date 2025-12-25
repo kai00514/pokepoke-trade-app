@@ -1,32 +1,32 @@
 {
-  "incompleteError": "Please answer all required questions.",
+  "incompleteError": "請回答所有必填問題。",
   "q1": {
-    "option1": "Wanted cards match",
-    "option2": "Offered cards match",
-    "option3": "Search by rarity/type",
-    "option4": "Direct specification by Friend ID",
-    "title": "Q1. What do you prioritize when looking for a trading partner?"
+    "option1": "想要的卡片相符",
+    "option2": "可提供的卡片相符",
+    "option3": "依稀有度／屬性搜尋",
+    "option4": "使用好友 ID 直接指定",
+    "title": "Q1. 在尋找交換對象時，您最重視什麼？"
   },
   "q2": {
-    "option1": "Find a partner quickly (Speed priority)",
-    "option2": "Trade with trustworthy partners (Reliability priority)",
-    "option3": "Trade rare/high-demand cards efficiently",
-    "option4": "Use as an opportunity for interaction (Making friends)",
-    "title": "Q2. What experience do you expect from matching? (Multiple selections allowed)"
+    "option1": "想快速找到交換對象（速度優先）",
+    "option2": "希望與可信任的對象交換（可靠性優先）",
+    "option3": "更有效率地交換稀有／熱門卡片",
+    "option4": "想藉此互動、交朋友",
+    "title": "Q2. 您希望透過配對獲得什麼樣的體驗？（可複選）"
   },
   "q3": {
-    "option1": "In-app chat",
-    "option2": "Match notification (Push)",
-    "option3": "Visualize trust with reviews/ratings",
-    "option4": "Automatic trade history saving",
-    "title": "Q3. What support features do you want after matching? (Multiple selections allowed)"
+    "option1": "內建聊天功能",
+    "option2": "配對通知（推播）",
+    "option3": "透過評價／評論可視化信任度",
+    "option4": "自動保存交換紀錄",
+    "title": "Q3. 您希望配對後有哪些輔助功能？（可複選）"
   },
   "q4": {
-    "title": "Q4. How often would you like to use this feature? (Optional)"
+    "title": "Q4. 您希望這個功能的使用頻率為何？（選答）"
   },
-  "submitError": "An error occurred while submitting. Please try again later.",
-  "subtitle": "Help us improve the matching feature by taking this 1-minute survey.",
-  "thankYou": "Thank you for your response!",
-  "thankYouMessage": "We'll use your feedback to deliver a better matching experience. Please stay tuned for the launch.",
-  "title": "We'd Like Your Feedback"
+  "submitError": "提交時發生問題，請稍後再試。",
+  "subtitle": "花 1 分鐘協助我們改善配對功能，感謝您的意見！",
+  "thankYou": "感謝您的回覆！",
+  "thankYouMessage": "您的意見將協助我們提供更好的配對體驗，敬請期待功能上線。",
+  "title": "希望聽聽您的回饋"
 }

@@ -1,29 +1,29 @@
 {
   "news": {
-    "backToInfo": "Back to Information",
-    "loading": "Loading...",
-    "noArticles": "No articles available at this time.",
-    "pinned": "Pinned",
-    "subtitle": "View all the latest news",
-    "title": "Latest News"
+    "backToInfo": "返回資訊頁",
+    "loading": "載入中...",
+    "noArticles": "目前沒有可查看的文章。",
+    "pinned": "置頂",
+    "subtitle": "查看所有最新消息",
+    "title": "最新消息"
   },
-  "noLatestInfo": "No latest news yet.",
-  "noTournaments": "No tournaments currently scheduled.",
+  "noLatestInfo": "目前尚無最新消息。",
+  "noTournaments": "目前沒有預定的官方賽事。",
   "placeholders": {
-    "glossary": "Glossary will be displayed here.",
-    "guides": "Beginner's guide will be displayed here.",
-    "rules": "Basic rules information will be displayed here.",
-    "tournaments": "Official tournament information will be displayed here."
+    "glossary": "名詞解釋將會顯示在此。",
+    "guides": "新手指南將會顯示在此。",
+    "rules": "基礎規則資訊將會顯示在此。",
+    "tournaments": "官方賽事資訊將會顯示在此。"
   },
   "sections": {
-    "calendar": "Tournament Calendar",
-    "glossary": "Glossary",
-    "guides": "Beginner's Guide",
-    "latestNews": "Latest News",
-    "rules": "Basic Rules",
-    "tournaments": "Official Tournaments"
+    "calendar": "賽事日曆",
+    "glossary": "名詞解釋",
+    "guides": "新手指南",
+    "latestNews": "最新消息",
+    "rules": "基本規則",
+    "tournaments": "官方賽事"
   },
-  "title": "Information",
-  "viewAll": "View All",
-  "viewAllLatestInfo": "View All Latest News"
+  "title": "資訊總覽",
+  "viewAll": "查看全部",
+  "viewAllLatestInfo": "查看所有最新消息"
 }

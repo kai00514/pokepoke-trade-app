@@ -15,6 +15,7 @@ import { useAuth } from "@/contexts/auth-context"
 import { useRouter } from "@/lib/i18n-navigation"
 import { event as gtagEvent } from "@/lib/analytics/gtag"
 import { useTranslations } from "next-intl"
+import TranslateButton from "@/components/translate-button"
 
 interface Notification {
   id: string
@@ -294,6 +295,14 @@ export function NotificationDropdown() {
                         )}
 
                         <p className="text-sm text-gray-800 line-clamp-2 leading-relaxed">{notification.content}</p>
+                        
+                        <TranslateButton 
+                          text={notification.content} 
+                          sourceLang="ja"
+                          size="sm"
+                          variant="ghost"
+                          className="mt-1"
+                        />
 
                         {!notification.is_read && (
                           <div className="flex justify-end pt-1">

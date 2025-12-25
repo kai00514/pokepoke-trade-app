@@ -3,7 +3,9 @@
 import type React from "react"
 import Image from "next/image"
 import { useEffect, useState } from "react"
+import { useLocale } from "next-intl"
 import { fetchCardById } from "@/lib/card-api"
+import { getLocalizedCardImage } from "@/lib/i18n-helpers"
 
 interface CardDisplayProps {
   cardId: number | string
@@ -24,6 +26,7 @@ const CardDisplay: React.FC<CardDisplayProps> = ({
   fill = false,
   objectFit = "contain",
 }) => {
+  const locale = useLocale()
   const [imageUrl, setImageUrl] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -44,7 +47,9 @@ const CardDisplay: React.FC<CardDisplayProps> = ({
       try {
         const cardData = await fetchCardById(String(cardId))
         if (cardData) {
-          const url = useThumb ? cardData.thumb_url || cardData.image_url : cardData.image_url
+          // Use localized image URL
+          const localizedImageUrl = getLocalizedCardImage(cardData, locale)
+          const url = useThumb ? cardData.thumb_url || localizedImageUrl : localizedImageUrl
           if (url) {
             // URLの有効性を簡単にチェック
             if (url.startsWith("http://") || url.startsWith("https://") || url.startsWith("/")) {
@@ -70,7 +75,7 @@ const CardDisplay: React.FC<CardDisplayProps> = ({
     }
 
     getImageUrl()
-  }, [cardId, useThumb, width, height])
+  }, [cardId, useThumb, width, height, locale])
 
   // ローディング状態
   if (loading) {

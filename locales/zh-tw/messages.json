@@ -1,87 +1,90 @@
 {
   "info": {
-    "cardsSelected": "{count}枚のカードが選択されています",
-    "collageDescription": "複数のカード画像を自動で合成して、1つのコラージュ画像を作成できます。生成したコラージュはXに投稿できます。",
-    "collageInstruction": "各グループで1～30枚のカードを選択できます。タイトルはコラージュ画像に表示されます。",
-    "loginRequired": "コラージュを生成・管理するにはログインが必要です。",
-    "maxCards": "(max {max})",
-    "noCardsFound": "該当するカードが見つかりません。",
-    "noCardsSelected": "カードが選択されていません",
-    "noPosts": "投稿がありません",
-    "noPostsFound": "該当する投稿が見つかりませんでした。",
-    "resultCount": "全{totalCount}件中 {start}〜{end}件を表示",
-    "searchCardsInstruction": "Please select cards from the \"Search Cards\" button",
-    "selectCards": "カードを選択してください",
-    "selectedCount": "選択されたカード: {count}枚",
-    "selectedCountCards": "{count} selected",
-    "selectedCountWithMax": "{count}枚選択中 (最大{max}枚)",
-    "tradeNotice": "ここで登録された内容はタイムラインに即時反映されます。コメントがあれば、ベルマークから確認できます。トレード状況はマイページのトレード履歴から確認できます。"
+    "cardsSelected": "已選擇 {count} 張卡片",
+    "collageDescription": "可自動將多張卡片圖片合成為一張拼貼圖。生成後即可分享到 X。",
+    "collageInstruction": "每個群組可選擇 1～30 張卡片。標題將會顯示在拼貼圖上。",
+    "loginRequired": "需要登入後才能生成與管理拼貼圖。",
+    "maxCards": "(最多 {max} 張)",
+    "noCardsFound": "找不到符合條件的卡片。",
+    "noCardsSelected": "尚未選擇任何卡片",
+    "noPosts": "目前沒有任何貼文",
+    "noPostsFound": "找不到符合條件的貼文。",
+    "resultCount": "顯示第 {start}～{end} 筆，共 {totalCount} 筆",
+    "searchCardsInstruction": "請從「搜尋卡片」按鈕中選擇卡片",
+    "selectCards": "請選擇卡片",
+    "selectedCount": "已選擇卡片：{count} 張",
+    "selectedCountCards": "已選擇 {count} 張",
+    "selectedCountWithMax": "已選擇 {count} 張（最多 {max} 張）",
+    "tradeNotice": "此處登錄的內容會立即反映在時間軸上。如有留言，將可從通知鈴查看。交易狀態可於「我的頁面」的交易紀錄中查看。"
   },
   "modals": {
     "collage": {
-      "selectCardsForGroup": "{title}のカードを選択",
-      "title": "コラージュ画像を生成"
+      "selectCardsForGroup": "選擇 {title} 的卡片",
+      "title": "生成拼貼圖"
     },
     "detailedSearch": {
-      "title": "カード詳細検索"
+      "title": "卡片詳細搜尋"
     },
     "list": {
-      "createNew": "新しいリストを作成"
+      "createNew": "建立新清單"
     },
     "loginPrompt": {
-      "benefit1": "ポケポケID・ユーザー名を自動入力",
-      "benefit2": "希望/譲渡カードのリスト作成",
-      "benefit3": "通知アイコンで最新情報を受け取り",
-      "benefit4": "履歴画面でトレード状況を確認",
-      "benefit5": "デッキをお気に入り登録",
-      "title": "アカウント登録でもっと便利に！"
+      "benefit1": "自動填入 Pokepoke ID 與使用者名稱",
+      "benefit2": "建立欲換／可讓卡片清單",
+      "benefit3": "透過通知圖示接收最新資訊",
+      "benefit4": "在歷史紀錄中確認交易狀況",
+      "benefit5": "將牌組加入收藏",
+      "title": "註冊帳號，更加方便！"
     },
     "pokepokeId": {
-      "description": "あなたのポケポケIDを設定してください。他のユーザーがあなたを見つけやすくなります。",
-      "title": "ポケポケID登録"
+      "description": "請設定您的 Pokepoke ID，讓其他使用者更容易找到您。",
+      "title": "設定 Pokepoke ID"
     },
     "selectCards": {
-      "description": "リストに追加するカードを選択してください（最大35枚、現在{count}枚選択中）",
-      "title": "カードを選択"
+      "description": "請選擇要加入清單的卡片（最多 35 張，目前已選 {count} 張）",
+      "title": "選擇卡片"
     },
     "username": {
-      "description": "表示用のユーザー名を設定してください。いつでも変更できます。",
-      "title": "ユーザー名登録"
+      "description": "請設定顯示名稱，可隨時變更。",
+      "title": "設定使用者名稱"
     }
   },
   "success": {
-    "accountCreated": "アカウントが作成されました。",
-    "checkEmail": "メールをご確認ください。",
-    "confirmationEmailSent": "確認メール送信",
-    "confirmationEmailSentMessage": "確認メールを送信しました。メールをご確認の上、リンクをクリックして登録を完了してください。",
-    "copied": "Copied",
-    "idCopied": "コピーしました",
-    "idCopiedMessage": "ID: {postId} をクリップボードにコピーしました。",
-    "listCreated": "リスト作成完了",
-    "listCreatedMessage": "カードリストが正常に作成されました。",
-    "loginSuccess": "ログイン成功",
-    "loginSuccessMessage": "ログインしました。",
-    "passwordUpdateSuccess": "パスワードが正常に更新されました。ログインページへ移動してください。",
-    "passwordUpdated": "パスワード更新完了",
-    "passwordUpdatedMessage": "新しいパスワードでログインしてください。",
-    "resendConfirmation": "確認メール再送信",
-    "resendConfirmationMessage": "確認メールを再送信しました。",
-    "resetEmailSent": "メール送信完了",
-    "resetEmailSentDetail": "パスワードリセットのリンクをメールアドレスに送信しました。メールをご確認ください。",
-    "resetEmailSentMessage": "パスワードリセットのリンクを送信しました。",
-    "sessionRefreshed": "セッション更新完了",
-    "sessionRefreshedMessage": "セッションが正常に更新されました。",
-    "signupComplete": "登録完了",
-    "tradePosted": "投稿成功",
-    "tradePostedMessage": "トレード投稿が作成されました。",
-    "urlCopied": "URLをコピーしました",
-    "urlCopiedMessage": "リンクがクリップボードにコピーされました。"
+    "accountCreated": "帳號已成功建立。",
+    "checkEmail": "請查看您的電子郵件。",
+    "confirmationEmailSent": "確認信已寄出",
+    "confirmationEmailSentMessage": "已寄出確認信，請點擊郵件中的連結完成註冊。",
+    "copied": "已複製",
+    "idCopied": "已複製",
+    "idCopiedMessage": "已將 ID: {postId} 複製到剪貼簿。",
+    "listCreated": "清單建立完成",
+    "listCreatedMessage": "卡片清單已成功建立。",
+    "loginSuccess": "登入成功",
+    "loginSuccessMessage": "您已成功登入。",
+    "passwordUpdateSuccess": "密碼已更新。請前往登入頁重新登入。",
+    "passwordUpdated": "密碼更新完成",
+    "passwordUpdatedMessage": "請使用新密碼重新登入。",
+    "resendConfirmation": "重新寄送確認信",
+    "resendConfirmationMessage": "已重新寄出確認信。",
+    "resetEmailSent": "郵件已寄出",
+    "resetEmailSentDetail": "密碼重設連結已寄送至您的電子郵件。請查看收件匣。",
+    "resetEmailSentMessage": "已寄送密碼重設連結。",
+    "sessionRefreshed": "Session 更新完成",
+    "sessionRefreshedMessage": "Session 已成功更新。",
+    "signupComplete": "註冊完成",
+    "tradePosted": "貼文已發佈",
+    "tradePostedMessage": "已成功建立交易貼文。",
+    "urlCopied": "已複製網址",
+    "urlCopiedMessage": "已將連結複製到剪貼簿。",
+    "postSuccess": "發布成功",
+    "tradePostCreated": "交易貼文已建立。"
   },
   "warning": {
-    "selectionLimit": "選択上限",
-    "timeSkew": "時刻同期の問題",
-    "timeSkewDetail": "デバイスの時計が{formatTimeSkew}ずれています。これにより認証に問題が発生する可能性があります。",
-    "timeSkewMessage": "デバイスの時計が{formatTimeSkew}ずれています。投稿に失敗する可能性があります。",
-    "maxSelectionReached": "最大{maxSelection}枚まで選択できます。"
-  }
+    "selectionLimit": "選擇上限",
+    "timeSkew": "時間同步問題",
+    "timeSkewDetail": "您的裝置時間與標準時間相差 {formatTimeSkew}，可能會造成認證問題。",
+    "timeSkewMessage": "您的裝置時間相差 {formatTimeSkew}，可能導致貼文失敗。",
+    "maxSelectionReached": "最多可選擇 {maxSelection} 張。"
+  },
+  "title": "訊息"
 }

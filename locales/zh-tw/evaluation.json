@@ -1,19 +1,19 @@
 {
-  "alreadyRated": "Already Rated",
-  "alreadyRatedDetail": "You have already rated this deck.",
-  "checkError": "Failed to check user evaluation",
-  "checkErrorDetail": "An error occurred while checking user evaluation.",
-  "deckFeatures": "Deck Features",
-  "loginPrompt": "Please log in to evaluate this deck.",
+  "alreadyRated": "已評分",
+  "alreadyRatedDetail": "您已經替此牌組評分過了。",
+  "checkError": "無法取得評分資訊",
+  "checkErrorDetail": "檢查評分資料時發生錯誤。",
+  "deckFeatures": "牌組特性",
+  "loginPrompt": "請先登入後再進行評分。",
   "stats": {
-    "accessibility": "Accessibility",
-    "durability": "Durability",
-    "power": "Power",
-    "speed": "Speed",
-    "stability": "Stability"
+    "accessibility": "上手度",
+    "durability": "耐久度",
+    "power": "火力",
+    "speed": "速度",
+    "stability": "穩定度"
   },
-  "submitError": "Failed to submit evaluation",
-  "submitErrorDetail": "An error occurred while submitting evaluation.",
-  "submitSuccess": "Evaluation Submitted",
-  "submitSuccessDetail": "Your evaluation of {score} points has been recorded."
+  "submitError": "評分提交失敗",
+  "submitErrorDetail": "提交評分時發生錯誤。",
+  "submitSuccess": "評分已提交",
+  "submitSuccessDetail": "您的評分（{score} 分）已成功記錄。"
 }

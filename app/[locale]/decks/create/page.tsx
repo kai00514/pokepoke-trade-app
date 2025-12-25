@@ -3,7 +3,8 @@
 import { useState, useCallback, useEffect, useMemo } from "react"
 import { Link } from "@/lib/i18n-navigation"
 import Image from "next/image"
-import { useTranslations } from "next-intl"
+import { useTranslations, useLocale } from "next-intl"
+import { getLocalizedCardName, getLocalizedCardImage } from "@/lib/i18n-helpers"
 import { useParams } from "next/navigation"
 import Header from "@/components/layout/header"
 import Footer from "@/components/footer"
@@ -63,7 +64,7 @@ const allowedRarityDbValues = rarityOptionsConfig.filter((opt) => opt.dbValue !=
 export default function CreateDeckPage() {
   const t = useTranslations("deckCreate")
   const params = useParams()
-  const locale = params.locale as string
+  const locale = useLocale()
   
   const [deckName, setDeckName] = useState("")
   const [deckDescription, setDeckDescription] = useState("")
@@ -123,7 +124,7 @@ export default function CreateDeckPage() {
       setIsLoadingSearch(true)
       let query = supabase
         .from("cards")
-        .select("id, name, image_url, type_code, rarity_code, category, thumb_url, pack_id")
+        .select("id, name, name_multilingual, image_url, image_url_multilingual, type_code, rarity_code, category, thumb_url, pack_id")
         .eq("is_visible", true)
       if (searchKeyword.trim()) query = query.ilike("name", `%${searchKeyword.trim()}%`)
       if (searchCategory !== t("all")) {
@@ -149,8 +150,8 @@ export default function CreateDeckPage() {
       } else if (data) {
         const mappedData: CardType[] = data.map((dbCard) => ({
           id: String(dbCard.id),
-          name: dbCard.name,
-          imageUrl: dbCard.image_url,
+          name: getLocalizedCardName(dbCard, locale),
+          imageUrl: getLocalizedCardImage(dbCard, locale),
           type: dbCard.type_code,
           rarity: dbCard.rarity_code,
           category: String(dbCard.category),
@@ -164,7 +165,7 @@ export default function CreateDeckPage() {
       fetchCards()
     }, 300)
     return () => clearTimeout(debounceFetch)
-  }, [searchKeyword, searchCategory, selectedRarity, selectedPackId, toast])
+  }, [searchKeyword, searchCategory, selectedRarity, selectedPackId, toast, locale, t])
 
   useEffect(() => {
     async function getUser() {

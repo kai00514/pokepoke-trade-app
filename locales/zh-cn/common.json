@@ -156,5 +156,18 @@
   },
   "units": {
     "cards": "{count}张"
+  },
+  "translation": {
+    "translate": "翻译",
+    "translating": "翻译中...",
+    "hideTranslation": "隐藏翻译",
+    "translatedText": "翻译文本"
+  },
+  "time": {
+    "secondsAgo": "{count}秒前",
+    "minutesAgo": "{count}分钟前",
+    "hoursAgo": "{count}小时前",
+    "daysAgo": "{count}天前",
+    "today": "今天"
   }
 }

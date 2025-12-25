@@ -49,7 +49,6 @@ export async function GET(request: NextRequest) {
         title,
         title_multilingual,
         comment,
-        comment_multilingual,
         status,
         translation_status,
         created_at,

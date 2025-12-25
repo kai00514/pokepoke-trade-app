@@ -25,7 +25,8 @@ import {
 } from "@/components/ui/dialog"
 import DeckComments from "@/components/DeckComments"
 import { event as gtagEvent } from "@/lib/analytics/gtag"
-import { useTranslations } from "next-intl"
+import { useTranslations, useLocale } from "next-intl"
+import { getLocalizedCardName, getLocalizedCardImage } from "@/lib/i18n-helpers"
 
 interface DeckPageData {
   id: string
@@ -69,6 +70,7 @@ export default function PokemonDeckPage() {
   const tCommon = useTranslations("common")
   const tEvaluation = useTranslations("evaluation")
   const tDecks = useTranslations("decks")
+  const locale = useLocale()
   const params = useParams()
   const [deckData, setDeckData] = useState<DeckPageData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -113,7 +115,11 @@ export default function PokemonDeckPage() {
           deckName: data.deck_name || t("deck"),
           energyType: data.energy_type || "無色",
           energyImage: data.energy_image_url,
-          cards: data.cards_data || [],
+          cards: (data.cards_data || []).map((card: any) => ({
+            ...card,
+            name: getLocalizedCardName(card, locale),
+            image_url: getLocalizedCardImage(card, locale),
+          })),
           deckDescription: data.deck_description || "",
           evaluationTitle: t("deckEvaluation"),
           tierInfo: data.tier_info || {
