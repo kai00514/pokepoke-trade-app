@@ -13,7 +13,13 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  serverComponentsExternalPackages: ['@google-cloud/translate'],
+  serverComponentsExternalPackages: [
+    '@google-cloud/translate',
+    '@supabase/supabase-js',
+    '@supabase/postgrest-js',
+    '@supabase/realtime-js',
+    '@supabase/storage-js',
+  ],
 }
 
 export default withNextIntl(nextConfig);
