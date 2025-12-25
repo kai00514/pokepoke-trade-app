@@ -73,40 +73,65 @@ export async function POST(request: NextRequest) {
     }
 
     // New translation with glossary support
-    const translatedText = await translateTextWithGlossary(
-      text,
-      sourceLang,
-      targetLang,
-      true // useGlossary
-    );
+    let translatedText: string;
+    let translationError: string | null = null;
+    
+    try {
+      translatedText = await translateTextWithGlossary(
+        text,
+        sourceLang,
+        targetLang,
+        true // useGlossary
+      );
+    } catch (error) {
+      translationError = error instanceof Error ? error.message : 'Unknown error';
+      console.error('[Translation API] Google Translate error:', error);
+      translatedText = text; // Fallback to original text
+    }
 
     console.log('[Translation API] Translation result:', {
       original: text.substring(0, 50),
       translated: translatedText.substring(0, 50),
       sourceLang,
       targetLang,
+      wasTranslated: text !== translatedText,
+      error: translationError,
     });
 
-    // Save to cache
-    await supabase
-      .from('translation_cache')
-      .insert({
-        source_text: text,
-        source_language: sourceLang,
-        target_language: targetLang,
-        translated_text: translatedText,
-        service_used: 'google-translate-with-glossary',
-        char_count: text.length
-      });
+    // Check if translation actually happened
+    if (text === translatedText && !translationError) {
+      console.warn('[Translation API] Warning: Translation returned same text without error');
+    }
+
+    // Save to cache only if translation was successful
+    if (text !== translatedText || !translationError) {
+      await supabase
+        .from('translation_cache')
+        .insert({
+          source_text: text,
+          source_language: sourceLang,
+          target_language: targetLang,
+          translated_text: translatedText,
+          service_used: translationError ? 'failed' : 'google-translate-with-glossary',
+          char_count: text.length
+        });
+    }
 
     return Response.json({
       translatedText,
-      cached: false
+      cached: false,
+      debug: {
+        wasTranslated: text !== translatedText,
+        error: translationError,
+      }
     });
   } catch (error) {
     console.error('Translation API error:', error);
     return Response.json(
-      { error: 'Translation failed' },
+      { 
+        error: 'Translation failed',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      },
       { status: 500 }
     );
   }

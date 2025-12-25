@@ -355,8 +355,14 @@ export async function translateTextWithGlossary(
   try {
     // Return original text if translation is not available
     if (!translationClient) {
-      console.warn('Translation client not available, returning original text');
-      return text;
+      const errorMsg = 'Translation client not initialized. Check Google Cloud credentials.';
+      console.error('[Google Translate] ERROR:', errorMsg);
+      console.error('[Google Translate] Environment check:', {
+        hasProjectId: !!process.env.GOOGLE_CLOUD_PROJECT_ID,
+        hasCredentials: !!(process.env.GOOGLE_APPLICATION_CREDENTIALS || process.env.GOOGLE_CLOUD_CREDENTIALS),
+        isTranslationEnabled,
+      });
+      throw new Error(errorMsg);
     }
 
     // Normalize language codes for Google Translation API
@@ -370,6 +376,7 @@ export async function translateTextWithGlossary(
 
     // Skip translation if source and target languages are the same
     if (normalizedSourceLang === normalizedTargetLang) {
+      console.log('[Google Translate] Skipped: source === target');
       return text;
     }
 
@@ -398,17 +405,40 @@ export async function translateTextWithGlossary(
     }
 
     // Run request
+    console.log('[Google Translate] Sending request to Google API...');
     const [response] = await translationClient.translateText(request);
+    console.log('[Google Translate] Response received:', {
+      translationCount: response.translations?.length || 0,
+      hasGlossaryTranslations: !!response.glossaryTranslations,
+    });
 
     if (response.translations && response.translations.length > 0) {
-      return response.translations[0].translatedText || text;
+      const translatedText = response.translations[0].translatedText || text;
+      console.log('[Google Translate] Translation successful:', {
+        originalPreview: text.substring(0, 50),
+        translatedPreview: translatedText.substring(0, 50),
+        wasActuallyTranslated: text !== translatedText,
+      });
+      return translatedText;
     }
 
+    console.warn('[Google Translate] No translations in response, returning original text');
     return text;
   } catch (error) {
-    console.error('Translation with glossary error:', error);
+    console.error('[Google Translate] Translation with glossary error:', error);
+    console.error('[Google Translate] Error details:', {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+    });
+    
     // Fallback to standard translation without glossary
-    return translateText(text, sourceLanguage, targetLanguage);
+    console.log('[Google Translate] Attempting fallback to standard translation...');
+    try {
+      return await translateText(text, sourceLanguage, targetLanguage);
+    } catch (fallbackError) {
+      console.error('[Google Translate] Fallback translation also failed:', fallbackError);
+      throw error; // Re-throw original error
+    }
   }
 }
 
