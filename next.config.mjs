@@ -13,6 +13,21 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
+  serverComponentsExternalPackages: ['@google-cloud/translate'],
+  webpack: (config, { isServer }) => {
+    if (!isServer) {
+      // Don't bundle Google Cloud libraries on the client side
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        stream: false,
+        tls: false,
+        net: false,
+        crypto: false,
+      };
+    }
+    return config;
+  },
 }
 
 export default withNextIntl(nextConfig);

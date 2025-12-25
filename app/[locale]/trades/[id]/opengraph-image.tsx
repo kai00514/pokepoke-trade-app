@@ -1,8 +1,8 @@
 import { ImageResponse } from "next/og"
 import { getTradePostDetailsById } from "@/lib/actions/trade-actions"
 
-// Edge Runtime で実行（高速化）
-export const runtime = "edge"
+// Node.js Runtime で実行（Google Cloud Translation API互換性のため）
+export const runtime = "nodejs"
 
 // 画像サイズ（Twitter Card推奨）
 export const size = {
