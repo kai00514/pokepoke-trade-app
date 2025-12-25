@@ -20,14 +20,29 @@ const isTranslationEnabled = !!(
 
 if (isTranslationEnabled) {
   try {
-    translationClient = new TranslationServiceClient();
-    console.log('Google Cloud Translation API initialized');
+    // Initialize client with credentials
+    // Priority: GOOGLE_CLOUD_CREDENTIALS (JSON string for Vercel) > GOOGLE_APPLICATION_CREDENTIALS (file path for local)
+    if (process.env.GOOGLE_CLOUD_CREDENTIALS) {
+      // Parse JSON credentials from environment variable (Vercel deployment)
+      const credentials = JSON.parse(process.env.GOOGLE_CLOUD_CREDENTIALS);
+      translationClient = new TranslationServiceClient({ credentials });
+      console.log('Google Cloud Translation API initialized with GOOGLE_CLOUD_CREDENTIALS');
+    } else {
+      // Use file path from GOOGLE_APPLICATION_CREDENTIALS (local development)
+      translationClient = new TranslationServiceClient();
+      console.log('Google Cloud Translation API initialized with GOOGLE_APPLICATION_CREDENTIALS');
+    }
   } catch (error) {
-    console.warn('Failed to initialize Google Cloud Translation API:', error);
+    console.error('Failed to initialize Google Cloud Translation API:', error);
     translationClient = null;
   }
 } else {
   console.warn('Google Cloud Translation API not configured - translation features will be disabled');
+  console.warn('Required environment variables:', {
+    GOOGLE_CLOUD_PROJECT_ID: !!process.env.GOOGLE_CLOUD_PROJECT_ID,
+    GOOGLE_APPLICATION_CREDENTIALS: !!process.env.GOOGLE_APPLICATION_CREDENTIALS,
+    GOOGLE_CLOUD_CREDENTIALS: !!process.env.GOOGLE_CLOUD_CREDENTIALS,
+  });
 }
 
 // Project configuration
