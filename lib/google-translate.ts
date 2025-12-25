@@ -8,9 +8,27 @@
 import 'server-only';
 import { TranslationServiceClient } from '@google-cloud/translate';
 
-// Initialize the Translation client
+// Initialize the Translation client only if credentials are available
 // Note: In production, use service account credentials
-const translationClient = new TranslationServiceClient();
+let translationClient: TranslationServiceClient | null = null;
+
+// Check if Google Cloud credentials are configured
+const isTranslationEnabled = !!(
+  process.env.GOOGLE_CLOUD_PROJECT_ID && 
+  (process.env.GOOGLE_APPLICATION_CREDENTIALS || process.env.GOOGLE_CLOUD_CREDENTIALS)
+);
+
+if (isTranslationEnabled) {
+  try {
+    translationClient = new TranslationServiceClient();
+    console.log('Google Cloud Translation API initialized');
+  } catch (error) {
+    console.warn('Failed to initialize Google Cloud Translation API:', error);
+    translationClient = null;
+  }
+} else {
+  console.warn('Google Cloud Translation API not configured - translation features will be disabled');
+}
 
 // Project configuration
 const PROJECT_ID = process.env.GOOGLE_CLOUD_PROJECT_ID || 'project-poke-trade';
@@ -39,6 +57,12 @@ export async function translateText(
   targetLanguage: string
 ): Promise<string> {
   try {
+    // Return original text if translation is not available
+    if (!translationClient) {
+      console.warn('Translation client not available, returning original text');
+      return text;
+    }
+
     // Skip translation if source and target languages are the same
     if (sourceLanguage === targetLanguage) {
       return text;
@@ -88,6 +112,12 @@ export async function translateBatch(
   targetLanguage: string
 ): Promise<string[]> {
   try {
+    // Return original texts if translation is not available
+    if (!translationClient) {
+      console.warn('Translation client not available, returning original texts');
+      return texts;
+    }
+
     // Skip translation if source and target languages are the same
     if (sourceLanguage === targetLanguage) {
       return texts;
@@ -235,6 +265,12 @@ function escapeRegExp(string: string): string {
  */
 export async function detectLanguage(text: string): Promise<string> {
   try {
+    // Return default language if translation is not available
+    if (!translationClient) {
+      console.warn('Translation client not available, returning default language');
+      return 'ja';
+    }
+
     const [response] = await translationClient.detectLanguage({
       parent: `projects/${PROJECT_ID}/locations/${LOCATION}`,
       content: text,
@@ -290,6 +326,12 @@ export async function translateTextWithGlossary(
   useGlossary: boolean = true
 ): Promise<string> {
   try {
+    // Return original text if translation is not available
+    if (!translationClient) {
+      console.warn('Translation client not available, returning original text');
+      return text;
+    }
+
     // Skip translation if source and target languages are the same
     if (sourceLanguage === targetLanguage) {
       return text;
@@ -350,6 +392,12 @@ export async function translateBatchWithGlossary(
   useGlossary: boolean = true
 ): Promise<string[]> {
   try {
+    // Return original texts if translation is not available
+    if (!translationClient) {
+      console.warn('Translation client not available, returning original texts');
+      return texts;
+    }
+
     // Skip translation if source and target languages are the same
     if (sourceLanguage === targetLanguage) {
       return texts;
