@@ -14,7 +14,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Languages, Loader2, X } from 'lucide-react';
 import { useTranslation } from '@/hooks/use-translation';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 
 interface TranslateButtonProps {
   text: string;
@@ -34,9 +34,18 @@ export default function TranslateButton({
   size = 'sm',
 }: TranslateButtonProps) {
   const t = useTranslations('common.translation');
+  const locale = useLocale();
   const { translate, isTranslating } = useTranslation();
   const [translatedText, setTranslatedText] = useState<string | null>(null);
   const [showTranslation, setShowTranslation] = useState(false);
+
+  // Use provided targetLang or fallback to current locale
+  const effectiveTargetLang = targetLang || locale;
+
+  // Don't render button if source and target languages are the same
+  if (sourceLang === effectiveTargetLang) {
+    return null;
+  }
 
   const handleTranslate = async () => {
     if (showTranslation) {
@@ -51,8 +60,8 @@ export default function TranslateButton({
       return;
     }
 
-    // Translate
-    const result = await translate(text, sourceLang, targetLang);
+    // Translate with explicit target language
+    const result = await translate(text, sourceLang, effectiveTargetLang);
     if (result) {
       setTranslatedText(result);
       setShowTranslation(true);
@@ -85,6 +94,21 @@ export default function TranslateButton({
             <span className="text-xs">{t('translate')}</span>
           </>
         )}
+      </Button>
+
+      {showTranslation && translatedText && (
+        <div className="pl-3 border-l-2 border-blue-300 bg-blue-50 p-2 rounded-r">
+          <p className="text-xs text-blue-600 font-semibold mb-1">
+            {t('translatedText')}
+          </p>
+          <p className="text-sm text-slate-700 whitespace-pre-wrap">
+            {translatedText}
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
       </Button>
 
       {showTranslation && translatedText && (

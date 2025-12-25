@@ -85,9 +85,7 @@ export default function TradeComments({ postId, currentUser }: TradeCommentsProp
                 {c.is_edited && <span className="text-xs text-yellow-600 ml-2">{t('comments.edited')}</span>}
               </div>
               <div className="mt-1">{c.content}</div>
-              {locale !== 'ja' && (
-                <TranslateButton text={c.content} sourceLang="ja" className="mt-1" />
-              )}
+              <TranslateButton text={c.content} sourceLang="ja" className="mt-1" />
             </li>
           ))}
         </ul>

@@ -226,9 +226,7 @@ export default function DeckComments({ deckId, deckTitle, commentType = "deck" }
                   <span className="text-xs text-slate-400">{comment.timestamp}</span>
                 </div>
                 <p className="text-sm text-slate-600 mt-0.5 whitespace-pre-wrap">{comment.text}</p>
-                {locale !== 'ja' && (
-                  <TranslateButton text={comment.text} sourceLang="ja" className="mt-1" />
-                )}
+                <TranslateButton text={comment.text} sourceLang="ja" className="mt-1" />
               </div>
             </div>
           ))
