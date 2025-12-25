@@ -5,6 +5,7 @@
  * It supports text translation with caching and card name replacement for Pokemon card names.
  */
 
+import 'server-only';
 import { TranslationServiceClient } from '@google-cloud/translate';
 
 // Initialize the Translation client
