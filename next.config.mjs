@@ -4,16 +4,13 @@ const withNextIntl = createNextIntlPlugin('./i18n.ts');
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
   typescript: {
     ignoreBuildErrors: true,
   },
   images: {
     unoptimized: true,
   },
-  serverComponentsExternalPackages: [
+  serverExternalPackages: [
     '@google-cloud/translate',
     '@supabase/supabase-js',
     '@supabase/postgrest-js',

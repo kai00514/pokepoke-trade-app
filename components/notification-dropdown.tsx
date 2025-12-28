@@ -300,6 +300,7 @@ export function NotificationDropdown() {
                         <TranslateButton 
                           text={notification.content} 
                           sourceLang="ja"
+                          targetLang={locale === 'ja' ? 'en' : undefined}
                           size="sm"
                           variant="ghost"
                           className="mt-1"
