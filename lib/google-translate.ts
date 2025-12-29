@@ -425,14 +425,34 @@ export async function translateTextWithGlossary(
     console.log('[Google Translate] Response received:', {
       translationCount: response.translations?.length || 0,
       hasGlossaryTranslations: !!response.glossaryTranslations,
+      glossaryTranslationCount: response.glossaryTranslations?.length || 0,
     });
 
-    if (response.translations && response.translations.length > 0) {
-      const translatedText = response.translations[0].translatedText || text;
-      console.log('[Google Translate] Translation successful:', {
+    // IMPORTANT: Prioritize glossaryTranslations over translations
+    // glossaryTranslations contains dictionary-based translations (more accurate for card names)
+    // translations contains AI model translations (may differ from dictionary)
+    let translatedText = text;
+    let usedGlossary = false;
+
+    if (response.glossaryTranslations && response.glossaryTranslations.length > 0) {
+      translatedText = response.glossaryTranslations[0].translatedText || text;
+      usedGlossary = true;
+      console.log('[Google Translate] Using GLOSSARY translation (priority):', {
         originalPreview: text.substring(0, 50),
         translatedPreview: translatedText.substring(0, 50),
-        wasActuallyTranslated: text !== translatedText,
+      });
+    } else if (response.translations && response.translations.length > 0) {
+      translatedText = response.translations[0].translatedText || text;
+      console.log('[Google Translate] Using standard AI translation (fallback):', {
+        originalPreview: text.substring(0, 50),
+        translatedPreview: translatedText.substring(0, 50),
+      });
+    }
+
+    if (translatedText !== text) {
+      console.log('[Google Translate] Translation successful:', {
+        usedGlossary,
+        wasActuallyTranslated: true,
       });
       return translatedText;
     }
