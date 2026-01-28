@@ -23,7 +23,7 @@
       "title": "生成拼貼圖"
     },
     "detailedSearch": {
-      "title": "卡片詳細搜尋"
+      "title": "詳細卡片搜尋"
     },
     "list": {
       "createNew": "建立新清單"
@@ -77,7 +77,33 @@
     "urlCopied": "已複製網址",
     "urlCopiedMessage": "已將連結複製到剪貼簿。",
     "postSuccess": "發布成功",
-    "tradePostCreated": "交易貼文已建立。"
+    "tradePostCreated": "交易貼文已建立。",
+    "listCreationComplete": "列表建立完成",
+    "listCreatedSuccessfully": "卡片列表已成功建立。",
+    "unfavorited": "已從收藏中移除。"
+  },
+  "notifications": {
+    "title": "通知",
+    "noNotifications": "沒有通知",
+    "loading": "載入中...",
+    "markAsRead": "標記為已讀",
+    "markAllAsRead": "全部標記為已讀",
+    "unreadCount": "{count}條未讀通知",
+    "count": "{count}條",
+    "showing50": "50條以上",
+    "types": {
+      "trade": "交易",
+      "deck": "卡組",
+      "other": "其他"
+    },
+    "time": {
+      "now": "剛剛",
+      "minutesAgo": "{count}分鐘前",
+      "hoursAgo": "{count}小時前"
+    },
+    "unknownUser": "未知使用者",
+    "unknownDetails": "無詳情",
+    "fromAbout": "{sender}關於「{content}」"
   },
   "warning": {
     "selectionLimit": "選擇上限",
@@ -86,5 +112,11 @@
     "timeSkewMessage": "您的裝置時間相差 {formatTimeSkew}，可能導致貼文失敗。",
     "maxSelectionReached": "最多可選擇 {maxSelection} 張。"
   },
-  "title": "訊息"
+  "title": "訊息",
+  "auth": {
+    "listsLoginRequired": "請登入以建立和檢視卡片列表。"
+  },
+  "ownerActions": "發布者操作",
+  "cancel": "取消",
+  "complete": "完成"
 }

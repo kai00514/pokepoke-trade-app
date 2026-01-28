@@ -123,7 +123,7 @@ export default function CollageGeneratorModal({ isOpen, onOpenChange }: CollageG
       <Dialog open={isOpen} onOpenChange={handleClose}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>{t("common.modals.collage.title")}</DialogTitle>
+            <DialogTitle>{t("messages.modals.collage.title")}</DialogTitle>
           </DialogHeader>
 
           {step === "input" && (
@@ -152,7 +152,7 @@ export default function CollageGeneratorModal({ isOpen, onOpenChange }: CollageG
 
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                 <p className="text-sm text-blue-800">
-                  {t("messages.collageInstruction")}
+                  {t("messages.info.collageInstruction")}
                 </p>
               </div>
 
@@ -174,8 +174,8 @@ export default function CollageGeneratorModal({ isOpen, onOpenChange }: CollageG
                 <h3 className="font-semibold text-lg mb-2">{title1 || t("forms.collage.group1Title.placeholder")}</h3>
                 <p className="text-sm text-gray-600 mb-4">
                   {selectedCards1.length > 0
-                    ? t("messages.cardsSelected", { count: selectedCards1.length })
-                    : t("messages.selectCards")}
+                    ? t("messages.info.cardsSelected", { count: selectedCards1.length })
+                    : t("messages.info.selectCards")}
                 </p>
               </div>
 
@@ -216,8 +216,8 @@ export default function CollageGeneratorModal({ isOpen, onOpenChange }: CollageG
                 <h3 className="font-semibold text-lg mb-2">{title2 || t("forms.collage.group2Title.placeholder")}</h3>
                 <p className="text-sm text-gray-600 mb-4">
                   {selectedCards2.length > 0
-                    ? t("messages.cardsSelected", { count: selectedCards2.length })
-                    : t("messages.selectCards")}
+                    ? t("messages.info.cardsSelected", { count: selectedCards2.length })
+                    : t("messages.info.selectCards")}
                 </p>
               </div>
 
@@ -331,7 +331,7 @@ export default function CollageGeneratorModal({ isOpen, onOpenChange }: CollageG
         onSelectionComplete={handlePreviewSearch}
         maxSelection={30}
         initialSelectedCards={currentSearchGroup === 1 ? selectedCards1 : selectedCards2}
-        modalTitle={t("common.modals.collage.selectCardsForGroup", {
+        modalTitle={t("messages.modals.collage.selectCardsForGroup", {
           title: currentSearchGroup === 1
             ? (title1 || t("forms.collage.group1Title.placeholder"))
             : (title2 || t("forms.collage.group2Title.placeholder"))

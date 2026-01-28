@@ -27,12 +27,15 @@
     "tooManyRequests": "ログイン試行回数が上限に達しました。しばらく時間をおいてから再試行してください。",
     "unexpected": "予期しないエラーが発生しました。",
     "updatePasswordFailed": "パスワードの更新に失敗しました。",
-    "userExists": "このメールアドレスは既に登録されています。ログインページからログインしてください。"
+    "userExists": "このメールアドレスは既に登録されています。ログインページからログインしてください。",
+    "loginRequiredForList": "请登录以创建列表。",
+    "loginRequired": "需要登录"
   },
   "collage": {
-    "emptyTitle": "タイトルを入力してください",
-    "generationFailed": "コラージュ生成に失敗しました",
-    "noCards": "少なくとも1つのグループでカードを選択してください"
+    "emptyTitle": "请输入标题",
+    "generationFailed": "生成拼贴图失败",
+    "noCards": "请至少在一个组中选择卡片",
+    "fetchFailed": "获取拼贴图失败"
   },
   "data": {
     "cardsFetchFailed": "カード情報の読み込みに失敗しました。",
@@ -47,7 +50,9 @@
     "authRequiredMessage": "リストを作成するにはログインしてください。",
     "creationError": "エラーが発生しました",
     "creationFailed": "リストの作成に失敗しました。",
-    "unexpectedError": "リストの作成中に予期しないエラーが発生しました。"
+    "unexpectedError": "リストの作成中に予期しないエラーが発生しました。",
+    "listCreationFailed": "创建列表失败。",
+    "unexpectedErrorDuringCreation": "创建列表时发生意外错误。"
   },
   "loginRequired": "ログインが必要です",
   "operationFailed": "操作に失敗しました",
@@ -94,6 +99,17 @@
     "pokepokeIdLength": "ポケポケIDは3文字以上20文字以下で入力してください",
     "selectAtLeastOneCard": "少なくとも1枚のカードを選択してください。",
     "selectAtLeastOneGroup": "少なくとも1つのグループでカードを選択してください",
-    "usernameLength": "ユーザー名は1文字以上30文字以下で入力してください"
+    "usernameLength": "ユーザー名は1文字以上30文字以下で入力してください",
+    "listNameRequired": "请输入列表名称。"
+  },
+  "generic": {
+    "error": "错误",
+    "errorOccurred": "发生错误"
+  },
+  "favorites": {
+    "fetchFailed": "获取收藏卡组失败。",
+    "unexpectedError": "获取收藏卡组时发生意外错误。",
+    "loginToUnfavorite": "请登录以取消收藏。",
+    "unfavoriteFailed": "取消收藏失败"
   }
 }

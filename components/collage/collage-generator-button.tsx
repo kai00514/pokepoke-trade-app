@@ -17,7 +17,7 @@ export default function CollageGeneratorButton() {
         onClick={() => setIsModalOpen(true)}
       >
         <Sparkles className="h-4 w-4 mr-2" />
-        {t("buttons.generateCollage")}
+        {t("common.buttons.generateCollage")}
       </Button>
 
       <CollageGeneratorModal isOpen={isModalOpen} onOpenChange={setIsModalOpen} />

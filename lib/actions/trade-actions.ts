@@ -48,7 +48,7 @@ async function fetchCardsData(cardIds: number[], locale: string): Promise<Card[]
   // Map cards to Card format with localized data
   return cards.map((card) => ({
     id: card.id.toString(),
-    name: card.name_multilingual?.[locale] || card.name_multilingual?.ja || card.name || '不明',
+    name: card.name_multilingual?.[locale] || card.name_multilingual?.ja || card.name || 'Unknown',
     imageUrl: card.image_url_multilingual?.[locale] || card.image_url_multilingual?.ja || card.image_url || '/placeholder.svg?width=80&height=112',
     type: card.type_code || undefined,
     rarity: card.rarity_code || undefined,
@@ -225,7 +225,7 @@ export async function createTradePost(formData: TradeFormData) {
 
     // 自動翻訳: タイトルのみ翻訳（コメントは翻訳しない）
     const sourceLang = 'ja';
-    const targetLangs = ['en', 'zh-tw', 'ko', 'fr', 'es', 'de'];
+    const targetLangs = ['en', 'zh-cn', 'zh-tw', 'ko', 'fr', 'es', 'de'];
     
     const title_multilingual: Record<string, string> = { ja: formData.title.trim() };
 
@@ -334,6 +334,7 @@ export async function getTradePostsWithCards(limit = 10, offset = 0, locale = 'j
       .select(`
         id, 
         title, 
+        title_multilingual,
         owner_id, 
         guest_name,
         custom_id, 
@@ -439,18 +440,26 @@ export async function getTradePostsWithCards(limit = 10, offset = 0, locale = 'j
       // Get primary cards for backward compatibility
       const primaryWantedCard = wantedCards[0] || {
         id: "unknown",
-        name: "不明",
+        name: "Unknown",
         imageUrl: "/placeholder.svg?width=80&height=112",
       }
       const primaryOfferedCard = offeredCards[0] || {
         id: "unknown",
-        name: "不明",
+        name: "Unknown",
         imageUrl: "/placeholder.svg?width=80&height=112",
+      }
+
+      // Get localized title
+      const localizedTitle = post.title_multilingual?.[locale] || post.title
+      
+      // Debug log for troubleshooting
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`[Trade ${post.id}] locale: ${locale}, title_multilingual:`, post.title_multilingual, `-> localized: ${localizedTitle}`)
       }
 
       return {
         id: post.id,
-        title: post.title,
+        title: localizedTitle,
         date: formattedDate,
         status:
           post.status === "OPEN"
@@ -479,7 +488,7 @@ export async function getTradePostsWithCards(limit = 10, offset = 0, locale = 'j
           // 詳細画面用の追加データ
           fullPostData: {
             id: post.id,
-            title: post.title,
+            title: localizedTitle,
             status:
               post.status === "OPEN"
                 ? "募集中"
@@ -776,7 +785,7 @@ export async function updateTradePostStatus(postId: string, status: "CANCELED" |
   }
 }
 
-export async function getMyTradePosts(userId: string) {
+export async function getMyTradePosts(userId: string, locale: string = 'ja') {
   try {
     const supabase = await createServerClient()
 
@@ -786,6 +795,7 @@ export async function getMyTradePosts(userId: string) {
       .select(`
         id, 
         title, 
+        title_multilingual,
         owner_id, 
         custom_id, 
         status, 
@@ -825,7 +835,7 @@ export async function getMyTradePosts(userId: string) {
     }
 
     // Fetch all cards at once
-    const cardsMap = await fetchCardsBatch(posts, 'ja')
+    const cardsMap = await fetchCardsBatch(posts, locale)
 
     // 投稿データを整形
     const formattedPosts = posts.map((post: any) => {
@@ -848,26 +858,28 @@ export async function getMyTradePosts(userId: string) {
         .map((id: number) => cardsMap.get(id))
         .filter(Boolean) as Card[]
       const primaryWantedCard = wantedCards[0] || {
-        name: "不明",
+        name: "Unknown",
         imageUrl: "/placeholder.svg?width=80&height=112",
       }
 
       const createdAt = new Date(post.created_at)
       const now = new Date()
       const diffDays = Math.floor((now.getTime() - createdAt.getTime()) / (1000 * 60 * 60 * 24))
-      const postedDateRelative = diffDays === 0 ? "今日" : `${diffDays}日前`
+
+      // Get localized title
+      const localizedTitle = post.title_multilingual?.[locale] || post.title
 
       return {
         id: post.id,
-        title: post.title,
+        title: localizedTitle,
         primaryCardName: primaryWantedCard.name,
         primaryCardImageUrl: primaryWantedCard.imageUrl,
-        postedDateRelative,
+        postedDaysAgo: diffDays,
         status: displayStatus,
         commentCount,
         authorComment: post.comment || null,
         postUrl: `/trades/${post.id}`,
-        g8_flg: post.g8_flg || false, // 新しい行
+        g8_flg: post.g8_flg || false,
       }
     })
 
@@ -878,7 +890,7 @@ export async function getMyTradePosts(userId: string) {
   }
 }
 
-export async function getCommentedTradePosts(userId: string) {
+export async function getCommentedTradePosts(userId: string, locale: string = 'ja') {
   try {
     const supabase = await createServerClient()
 
@@ -906,6 +918,7 @@ export async function getCommentedTradePosts(userId: string) {
       .select(`
         id, 
         title, 
+        title_multilingual,
         owner_id, 
         guest_name,
         custom_id, 
@@ -946,7 +959,7 @@ export async function getCommentedTradePosts(userId: string) {
     }
 
     // Fetch all cards at once
-    const cardsMap = await fetchCardsBatch(posts, 'ja')
+    const cardsMap = await fetchCardsBatch(posts, locale)
 
     // 投稿データを整形
     const formattedPosts = posts.map((post: any) => {
@@ -970,26 +983,28 @@ export async function getCommentedTradePosts(userId: string) {
         .filter(Boolean) as Card[]
       const primaryWantedCard = wantedCards[0] || {
         id: "unknown",
-        name: "不明",
+        name: "Unknown",
         imageUrl: "/placeholder.svg?width=80&height=112",
       }
 
       const createdAt = new Date(post.created_at)
       const now = new Date()
       const diffDays = Math.floor((now.getTime() - createdAt.getTime()) / (1000 * 60 * 60 * 24))
-      const postedDateRelative = diffDays === 0 ? "今日" : `${diffDays}日前`
+
+      // Get localized title
+      const localizedTitle = post.title_multilingual?.[locale] || post.title
 
       return {
         id: post.id,
-        title: post.title,
+        title: localizedTitle,
         primaryCardName: primaryWantedCard.name,
         primaryCardImageUrl: primaryWantedCard.imageUrl,
-        postedDateRelative,
+        postedDaysAgo: diffDays,
         status: displayStatus,
         commentCount,
         authorComment: post.comment || null,
         postUrl: `/trades/${post.id}`,
-        g8_flg: post.g8_flg || false, // 新しい行
+        g8_flg: post.g8_flg || false,
       }
     })
 

@@ -8,10 +8,12 @@ import Footer from "@/components/footer"
 import CollagePreview from "@/components/collage/collage-preview"
 import { Loader2, ArrowLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { useTranslations } from "next-intl"
 
 import type { CollageData } from "@/types/collage"
 
 export default function CollagePageClient() {
+  const t = useTranslations()
   const params = useParams()
   const router = useRouter()
   const collageId = params.id as string
@@ -24,7 +26,7 @@ export default function CollagePageClient() {
     const fetchCollage = async () => {
       try {
         const response = await fetch(`/api/collages/${collageId}`)
-        if (!response.ok) throw new Error("Failed to fetch collage")
+        if (!response.ok) throw new Error(t('errors.collage.fetchFailed'))
 
         const result = await response.json()
 
@@ -69,9 +71,9 @@ export default function CollagePageClient() {
         <Header />
         <div className="container mx-auto px-4 py-8">
           <div className="text-center">
-            <p className="text-gray-600 mb-4">コラージュが見つかりません</p>
+            <p className="text-gray-600 mb-4">{t('pages.collages.notFound')}</p>
             <Button onClick={() => router.push("/collages")} className="bg-blue-600 hover:bg-blue-700">
-              一覧に戻る
+              {t('common.buttons.backToList')}
             </Button>
           </div>
         </div>
@@ -91,7 +93,7 @@ export default function CollagePageClient() {
             className="inline-flex items-center text-blue-600 hover:text-blue-800 transition-colors"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
-            コラージュ一覧に戻る
+            {t('pages.collages.backToList')}
           </Link>
         </div>
 

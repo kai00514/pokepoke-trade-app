@@ -53,7 +53,12 @@
   },
   "labels": {
     "email": "E-mail",
-    "password": "Mot de passe"
+    "password": "Mot de passe",
+    "name": "Nom",
+    "subject": "Objet",
+    "message": "Message",
+    "listName": "Nom de la Liste",
+    "description": "Description"
   },
   "list": {
     "description": {
@@ -76,7 +81,12 @@
     "enterListName": "Entrez le nom de la liste",
     "keyword": "Mot-clé",
     "password": "Votre mot de passe",
-    "passwordMin": "Mot de passe (6+ caractères)"
+    "passwordMin": "Mot de passe (6+ caractères)",
+    "name": "Jean Dupont",
+    "subject": "Entrez l'objet de votre demande",
+    "message": "Veuillez décrire votre demande en détail",
+    "listName": "Entrez le nom de la liste",
+    "listDescription": "Entrez la description de la liste (facultatif)"
   },
   "pokepokeId": {
     "label": "ID Pokepoke",
@@ -120,5 +130,12 @@
   },
   "packs": {
     "all": "Tous les paquets"
+  },
+  "lists": {
+    "listInfo": "Informations sur la Liste",
+    "listInfoDescription": "Entrez les informations de base de la liste",
+    "cardSelection": "Sélection de Cartes",
+    "cardSelectionDescription": "Sélectionnez les cartes à ajouter à la liste",
+    "selectedCards": "{count} sélectionnées"
   }
 }

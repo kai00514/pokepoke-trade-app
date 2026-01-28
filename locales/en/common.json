@@ -55,10 +55,11 @@
     "viewDetails": "View Details",
     "xLogin": "Sign in with X",
     "create": "作成",
-    "editGroup": "{title}を編集",
+    "editGroup": "Edit {title}",
     "save": "保存",
     "saving": "保存中...",
-    "searchCards": "カードを検索"
+    "searchCards": "Search Cards",
+    "backToList": "Back to list"
   },
   "contact": {
     "prompt": "Share your questions or requests"
@@ -82,7 +83,9 @@
     "profileBanner": "Profile Banner",
     "recruiting": "Recruiting",
     "soon": "SOON",
-    "user": "User"
+    "unknown": "Unknown",
+    "user": "User",
+    "details": "Details"
   },
   "language": {
     "de": "Deutsch",
@@ -155,7 +158,7 @@
     "setYourId": "Set your exclusive ID"
   },
   "units": {
-    "cards": "{count} cards"
+    "cards": " cards"
   },
   "translation": {
     "translate": "Translate",

@@ -19,6 +19,7 @@ import { useAuth } from "@/contexts/auth-context"
 import ShareModal from "@/components/share-modal"
 import { event as gtagEvent } from "@/lib/analytics/gtag"
 import { useTranslations, useLocale } from "next-intl"
+import TranslateButton from "@/components/translate-button"
 
 export interface Comment {
   id: string
@@ -507,34 +508,13 @@ export default function TradeDetailClient({ initialPost, postId }: TradeDetailCl
           </div>
           {post.authorNotes && (
             <div className="bg-slate-100 p-4 rounded-md mb-6">
-              <div className="flex justify-between items-start mb-2">
-                <h3 className="font-semibold text-slate-800">{tTrades("authorComment")}</h3>
-                {locale !== 'ja' && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleTranslateAuthorNotes}
-                    disabled={translatedAuthorNotes.isLoading}
-                    className="text-xs"
-                  >
-                    {translatedAuthorNotes.isVisible
-                      ? tCommon('translation.hideTranslation')
-                      : tCommon('translation.translate')
-                    }
-                  </Button>
-                )}
-              </div>
+              <h3 className="font-semibold text-slate-800 mb-2">{tTrades("authorComment")}</h3>
               <p className="text-sm text-slate-700 whitespace-pre-wrap">{post.authorNotes}</p>
-              {translatedAuthorNotes.isVisible && (
-                <div className="mt-3 p-3 bg-blue-50 border-l-2 border-blue-400 rounded">
-                  <p className="text-xs text-blue-600 font-medium mb-1">{tCommon('translation.translatedText')}</p>
-                  {translatedAuthorNotes.isLoading ? (
-                    <p className="text-sm text-slate-500 italic">{tCommon('translation.translating')}</p>
-                  ) : (
-                    <p className="text-sm text-slate-700 whitespace-pre-wrap">{translatedAuthorNotes.text}</p>
-                  )}
-                </div>
-              )}
+              <TranslateButton 
+                text={post.authorNotes} 
+                sourceLang="ja" 
+                className="mt-2" 
+              />
             </div>
           )}
           <div className="flex justify-between items-center bg-slate-100 p-3 rounded-md">

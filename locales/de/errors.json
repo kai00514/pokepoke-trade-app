@@ -27,12 +27,15 @@
     "tooManyRequests": "Zu viele Anmeldeversuche. Bitte versuchen Sie es später erneut.",
     "unexpected": "Ein unerwarteter Fehler ist aufgetreten.",
     "updatePasswordFailed": "Passwortaktualisierung fehlgeschlagen.",
-    "userExists": "Diese E-Mail-Adresse ist bereits registriert. Bitte melden Sie sich an."
+    "userExists": "Diese E-Mail-Adresse ist bereits registriert. Bitte melden Sie sich an.",
+    "loginRequiredForList": "Bitte melden Sie sich an, um eine Liste zu erstellen.",
+    "loginRequired": "Anmeldung erforderlich"
   },
   "collage": {
     "emptyTitle": "Bitte geben Sie einen Titel ein",
     "generationFailed": "Collage-Generierung fehlgeschlagen",
-    "noCards": "Bitte wählen Sie Karten in mindestens einer Gruppe aus"
+    "noCards": "Bitte wählen Sie Karten in mindestens einer Gruppe aus",
+    "fetchFailed": "Fehler beim Abrufen der Collage"
   },
   "data": {
     "cardsFetchFailed": "Karteninformationen konnten nicht geladen werden.",
@@ -47,7 +50,9 @@
     "authRequiredMessage": "Bitte melden Sie sich an, um eine Liste zu erstellen.",
     "creationError": "Ein Fehler ist aufgetreten",
     "creationFailed": "Listenerstellung fehlgeschlagen.",
-    "unexpectedError": "Beim Erstellen der Liste ist ein unerwarteter Fehler aufgetreten."
+    "unexpectedError": "Beim Erstellen der Liste ist ein unerwarteter Fehler aufgetreten.",
+    "listCreationFailed": "Fehler beim Erstellen der Liste.",
+    "unexpectedErrorDuringCreation": "Beim Erstellen der Liste ist ein unerwarteter Fehler aufgetreten."
   },
   "loginRequired": "Anmeldung erforderlich",
   "operationFailed": "Vorgang fehlgeschlagen",
@@ -94,6 +99,17 @@
     "pokepokeIdLength": "Die Pokepoke-ID muss zwischen 3 und 20 Zeichen lang sein",
     "selectAtLeastOneCard": "Bitte wählen Sie mindestens eine Karte aus.",
     "selectAtLeastOneGroup": "Bitte wählen Sie Karten in mindestens einer Gruppe aus",
-    "usernameLength": "Der Benutzername muss zwischen 1 und 30 Zeichen lang sein"
+    "usernameLength": "Der Benutzername muss zwischen 1 und 30 Zeichen lang sein",
+    "listNameRequired": "Bitte geben Sie einen Listennamen ein."
+  },
+  "generic": {
+    "error": "Fehler",
+    "errorOccurred": "Ein Fehler ist aufgetreten"
+  },
+  "favorites": {
+    "fetchFailed": "Fehler beim Abrufen der Favoriten-Decks.",
+    "unexpectedError": "Ein unerwarteter Fehler ist beim Abrufen der Favoriten-Decks aufgetreten.",
+    "loginToUnfavorite": "Bitte melden Sie sich an, um aus Favoriten zu entfernen.",
+    "unfavoriteFailed": "Fehler beim Entfernen aus Favoriten"
   }
 }

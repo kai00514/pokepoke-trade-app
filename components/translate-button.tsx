@@ -47,7 +47,13 @@ export default function TranslateButton({
     return null;
   }
 
-  const handleTranslate = async () => {
+  const handleTranslate = async (e?: React.MouseEvent) => {
+    // Prevent event propagation to parent elements (e.g., card click to navigate to detail page)
+    if (e) {
+      e.stopPropagation();
+      e.preventDefault();
+    }
+
     if (showTranslation) {
       // Hide translation
       setShowTranslation(false);
@@ -77,48 +83,61 @@ export default function TranslateButton({
       translatedPreview: result?.substring(0, 50),
       sourceLang,
       effectiveTargetLang,
+      wasTranslated: result !== text,
     });
 
-    if (result) {
+    if (result && result !== text) {
       setTranslatedText(result);
       setShowTranslation(true);
+    } else {
+      console.warn('[TranslateButton] Translation returned original text (API may be unavailable)');
     }
   };
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-2" onClick={(e) => e.stopPropagation()}>
       <Button
         type="button"
         variant={variant}
         size={size}
         onClick={handleTranslate}
         disabled={isTranslating}
-        className={className}
+        className={`
+          ${className} 
+          ${variant === 'ghost' 
+            ? 'border border-blue-200 hover:border-blue-400 hover:bg-blue-50 text-blue-700 hover:text-blue-800' 
+            : ''
+          }
+          transition-all duration-200 shadow-sm hover:shadow-md
+        `}
       >
         {isTranslating ? (
           <>
-            <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-            <span className="text-xs">{t('translating')}</span>
+            <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" />
+            <span className="text-xs font-medium">{t('translating')}</span>
           </>
         ) : showTranslation ? (
           <>
-            <X className="h-3 w-3 mr-1" />
-            <span className="text-xs">{t('hideTranslation')}</span>
+            <X className="h-3.5 w-3.5 mr-1" />
+            <span className="text-xs font-medium">{t('hideTranslation')}</span>
           </>
         ) : (
           <>
-            <Languages className="h-3 w-3 mr-1" />
-            <span className="text-xs">{t('translate')}</span>
+            <Languages className="h-3.5 w-3.5 mr-1" />
+            <span className="text-xs font-medium">{t('translate')}</span>
           </>
         )}
       </Button>
 
       {showTranslation && translatedText && (
-        <div className="pl-3 border-l-2 border-blue-300 bg-blue-50 p-2 rounded-r">
-          <p className="text-xs text-blue-600 font-semibold mb-1">
-            {t('translatedText')}
-          </p>
-          <p className="text-sm text-slate-700 whitespace-pre-wrap">
+        <div className="pl-4 border-l-4 border-blue-400 bg-gradient-to-r from-blue-50 to-blue-100/50 p-3 rounded-r-lg shadow-sm">
+          <div className="flex items-center gap-2 mb-2">
+            <Languages className="h-3.5 w-3.5 text-blue-600" />
+            <p className="text-xs text-blue-700 font-bold">
+              {t('translatedText')}
+            </p>
+          </div>
+          <p className="text-sm text-slate-800 whitespace-pre-wrap leading-relaxed">
             {translatedText}
           </p>
         </div>

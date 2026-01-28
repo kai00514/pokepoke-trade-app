@@ -53,7 +53,12 @@
   },
   "labels": {
     "email": "メールアドレス",
-    "password": "パスワード"
+    "password": "パスワード",
+    "name": "お名前",
+    "subject": "件名",
+    "message": "メッセージ",
+    "listName": "リスト名",
+    "description": "説明"
   },
   "list": {
     "description": {
@@ -76,7 +81,12 @@
     "enterListName": "リスト名を入力してください",
     "keyword": "キーワード",
     "password": "あなたのパスワード",
-    "passwordMin": "6文字以上のパスワード"
+    "passwordMin": "6文字以上のパスワード",
+    "name": "山田 太郎",
+    "subject": "お問い合わせの件名をご入力ください",
+    "message": "お問い合わせ内容を詳しくご記入ください",
+    "listName": "リスト名を入力してください",
+    "listDescription": "リストの説明を入力してください（任意）"
   },
   "pokepokeId": {
     "label": "ポケポケID",
@@ -120,5 +130,12 @@
   },
   "packs": {
     "all": "すべてのパック"
+  },
+  "lists": {
+    "listInfo": "リスト情報",
+    "listInfoDescription": "リストの基本情報を入力してください",
+    "cardSelection": "カード選択",
+    "cardSelectionDescription": "リストに追加するカードを選択してください",
+    "selectedCards": "選択中: {count}枚"
   }
 }

@@ -67,7 +67,28 @@ export function useTranslation() {
       });
 
       if (!response.ok) {
-        throw new Error('Translation failed');
+        // Try to get error details from response
+        let errorData: any = {};
+        try {
+          errorData = await response.json();
+        } catch {
+          // If JSON parsing fails, try to get text
+          try {
+            const errorText = await response.text();
+            errorData = { rawError: errorText };
+          } catch {
+            errorData = { message: 'Unable to parse error response' };
+          }
+        }
+        
+        console.warn('[useTranslation] Translation API unavailable, showing original text:', {
+          status: response.status,
+          statusText: response.statusText,
+          error: errorData,
+        });
+        
+        // Return original text on API error (graceful degradation)
+        return text;
       }
 
       const data: TranslationResult = await response.json();
@@ -75,8 +96,9 @@ export function useTranslation() {
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Translation error';
       setError(errorMessage);
-      console.error('Translation error:', err);
-      return null;
+      console.warn('[useTranslation] Translation error, showing original text:', err);
+      // Return original text on error (graceful degradation)
+      return text;
     } finally {
       setIsTranslating(false);
     }

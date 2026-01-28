@@ -30,5 +30,10 @@
   "statusChanged": "El estado de la publicación cambió a {action}.",
   "tradeTitle": "Título del intercambio",
   "tradeTitlePlaceholder": "Ingresa una descripción del intercambio",
-  "wantedCards": "Cartas buscadas"
+  "wantedCards": "Cartas buscadas",
+  "cardCount": "Cartas: {count}",
+  "updated": "Actualizado: {date}",
+  "select": "Seleccionar",
+  "registeredIdAutoFilled": "Su ID de PokePoke registrado se ha completado automáticamente.",
+  "loggedInIdOptional": "Ha iniciado sesión. El ID de PokePoke es opcional. Solo se permiten números."
 }

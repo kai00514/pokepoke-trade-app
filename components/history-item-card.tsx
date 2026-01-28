@@ -13,7 +13,7 @@ export interface HistoryItem {
   title: string
   primaryCardName: string
   primaryCardImageUrl: string
-  postedDateRelative: string // e.g., "9日前"
+  postedDaysAgo: number // Number of days since posted (0 = today)
   status: HistoryStatus
   commentCount: number
   postUrl: string
@@ -52,6 +52,11 @@ export default function HistoryItemCard({ item }: { item: HistoryItem }) {
   }
   
   const statusInfo = statusMap[item.status]
+  
+  // Format relative date
+  const postedDateRelative = item.postedDaysAgo === 0 
+    ? t('common.time.today')
+    : t('common.time.daysAgo', { count: item.postedDaysAgo })
 
   return (
     <Link href={item.postUrl} className="block group">
@@ -70,8 +75,10 @@ export default function HistoryItemCard({ item }: { item: HistoryItem }) {
             <h3 className="text-base sm:text-lg font-semibold text-slate-800 group-hover:text-blue-600 truncate transition-colors">
               {item.title}
             </h3>
-            <p className="text-xs sm:text-sm text-slate-600 truncate">{item.primaryCardName}</p>
-            <p className="text-xs text-slate-400 mt-0.5">{item.postedDateRelative}</p>
+            <p className="text-xs sm:text-sm text-slate-600 truncate">
+              {item.primaryCardName === 'Unknown' ? t('common.labels.unknown') : item.primaryCardName}
+            </p>
+            <p className="text-xs text-slate-400 mt-0.5">{postedDateRelative}</p>
           </div>
           <div className="flex-shrink-0 flex flex-col items-end space-y-1.5 text-right">
             <Badge variant="outline" className={cn("text-xs px-2 py-0.5 font-medium", statusInfo.badgeClass)}>

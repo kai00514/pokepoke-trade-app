@@ -27,12 +27,15 @@
     "tooManyRequests": "Demasiados intentos de inicio de sesión. Por favor, inténtalo de nuevo más tarde.",
     "unexpected": "Ocurrió un error inesperado.",
     "updatePasswordFailed": "Error al actualizar la contraseña.",
-    "userExists": "Este correo electrónico ya está registrado. Por favor, inicia sesión."
+    "userExists": "Este correo electrónico ya está registrado. Por favor, inicia sesión.",
+    "loginRequiredForList": "Por favor, inicia sesión para crear una lista.",
+    "loginRequired": "Inicio de sesión requerido"
   },
   "collage": {
     "emptyTitle": "Por favor, ingresa un título",
     "generationFailed": "Error al generar el collage",
-    "noCards": "Por favor, selecciona cartas en al menos un grupo"
+    "noCards": "Por favor, selecciona cartas en al menos un grupo",
+    "fetchFailed": "Error al obtener el collage"
   },
   "data": {
     "cardsFetchFailed": "Error al cargar la información de las cartas.",
@@ -47,7 +50,9 @@
     "authRequiredMessage": "Por favor, inicia sesión para crear una lista.",
     "creationError": "Ocurrió un error",
     "creationFailed": "Error al crear la lista.",
-    "unexpectedError": "Ocurrió un error inesperado al crear la lista."
+    "unexpectedError": "Ocurrió un error inesperado al crear la lista.",
+    "listCreationFailed": "Error al crear la lista.",
+    "unexpectedErrorDuringCreation": "Ocurrió un error inesperado al crear la lista."
   },
   "loginRequired": "Inicio de sesión requerido",
   "operationFailed": "Error en la operación",
@@ -94,6 +99,17 @@
     "pokepokeIdLength": "El ID de Pokepoke debe tener entre 3 y 20 caracteres",
     "selectAtLeastOneCard": "Por favor, selecciona al menos una carta.",
     "selectAtLeastOneGroup": "Por favor, selecciona cartas en al menos un grupo",
-    "usernameLength": "El nombre de usuario debe tener entre 1 y 30 caracteres"
+    "usernameLength": "El nombre de usuario debe tener entre 1 y 30 caracteres",
+    "listNameRequired": "Por favor, ingresa un nombre de lista."
+  },
+  "generic": {
+    "error": "Error",
+    "errorOccurred": "Ocurrió un error"
+  },
+  "favorites": {
+    "fetchFailed": "Error al obtener los mazos favoritos.",
+    "unexpectedError": "Ocurrió un error inesperado al obtener los mazos favoritos.",
+    "loginToUnfavorite": "Por favor, inicia sesión para eliminar de favoritos.",
+    "unfavoriteFailed": "Error al eliminar de favoritos"
   }
 }

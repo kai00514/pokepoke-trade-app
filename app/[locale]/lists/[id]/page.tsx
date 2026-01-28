@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, use } from "react"
 import { useRouter } from "@/lib/i18n-navigation"
 import { ArrowLeft, Edit, Trash2, Plus, Search } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -17,11 +17,11 @@ import type { TradeOwnedList } from "@/lib/actions/trade-owned-lists"
 import { useTranslations } from "next-intl"
 
 interface ListDetailPageProps {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }
 
 export default function ListDetailPage({ params }: ListDetailPageProps) {
-  const { id } = params
+  const { id } = use(params)
   const router = useRouter()
   const { toast } = useToast()
   const t = useTranslations()

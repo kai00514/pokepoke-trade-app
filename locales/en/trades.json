@@ -30,5 +30,10 @@
   "statusChanged": "Post status changed to {action}.",
   "tradeTitle": "Trade Title",
   "tradeTitlePlaceholder": "Enter a brief description of the trade",
-  "wantedCards": "Wanted Cards"
+  "wantedCards": "Wanted Cards",
+  "cardCount": "Cards: {count}",
+  "updated": "Updated: {date}",
+  "select": "Select",
+  "registeredIdAutoFilled": "Your registered PokePoke ID is auto-filled.",
+  "loggedInIdOptional": "You are logged in. PokePoke ID is optional. Only numbers are allowed."
 }

@@ -19,11 +19,11 @@
   },
   "modals": {
     "collage": {
-      "selectCardsForGroup": "{title}のカードを選択",
-      "title": "コラージュ画像を生成"
+      "selectCardsForGroup": "Select cards for {title}",
+      "title": "Generate Collage Image"
     },
     "detailedSearch": {
-      "title": "カード詳細検索"
+      "title": "Detailed Card Search"
     },
     "list": {
       "createNew": "新しいリストを作成"
@@ -37,16 +37,16 @@
       "title": "アカウント登録でもっと便利に！"
     },
     "pokepokeId": {
-      "description": "あなたのポケポケIDを設定してください。他のユーザーがあなたを見つけやすくなります。",
-      "title": "ポケポケID登録"
+      "description": "Set your PokePoke ID. It helps other users find you easily.",
+      "title": "Register PokePoke ID"
     },
     "selectCards": {
       "description": "リストに追加するカードを選択してください（最大35枚、現在{count}枚選択中）",
       "title": "カードを選択"
     },
     "username": {
-      "description": "表示用のユーザー名を設定してください。いつでも変更できます。",
-      "title": "ユーザー名登録"
+      "description": "Set your display username. You can change it anytime.",
+      "title": "Register Username"
     }
   },
   "success": {
@@ -77,7 +77,33 @@
     "tradePostCreated": "Trade post has been created.",
     "tradePostedMessage": "Trade post has been created.",
     "urlCopied": "URL Copied",
-    "urlCopiedMessage": "Link has been copied to clipboard."
+    "urlCopiedMessage": "Link has been copied to clipboard.",
+    "listCreationComplete": "List Created",
+    "listCreatedSuccessfully": "Card list has been successfully created.",
+    "unfavorited": "Removed from favorites."
+  },
+  "notifications": {
+    "title": "Notifications",
+    "noNotifications": "No notifications",
+    "loading": "Loading...",
+    "markAsRead": "Mark as read",
+    "markAllAsRead": "Mark all as read",
+    "unreadCount": "{count} unread notification(s)",
+    "count": "{count} notification(s)",
+    "showing50": "50+ notifications",
+    "types": {
+      "trade": "Trade",
+      "deck": "Deck",
+      "other": "Other"
+    },
+    "time": {
+      "now": "Just now",
+      "minutesAgo": "{count} minute(s) ago",
+      "hoursAgo": "{count} hour(s) ago"
+    },
+    "unknownUser": "Unknown user",
+    "unknownDetails": "No details",
+    "fromAbout": "{sender} about \"{content}\""
   },
   "title": "Message",
   "warning": {
@@ -86,5 +112,11 @@
     "timeSkewDetail": "Your device clock is off by {formatTimeSkew}. This may cause authentication issues.",
     "timeSkewMessage": "Your device clock is off by {formatTimeSkew}. Posting may fail.",
     "maxSelectionReached": "最大{maxSelection}枚まで選択できます。"
-  }
+  },
+  "auth": {
+    "listsLoginRequired": "Please log in to create and view card lists."
+  },
+  "ownerActions": "Owner Actions",
+  "cancel": "Cancel",
+  "complete": "Complete"
 }

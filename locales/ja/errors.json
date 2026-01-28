@@ -27,12 +27,15 @@
     "tooManyRequests": "ログイン試行回数が上限に達しました。しばらく時間をおいてから再試行してください。",
     "unexpected": "予期しないエラーが発生しました。",
     "updatePasswordFailed": "パスワードの更新に失敗しました。",
-    "userExists": "このメールアドレスは既に登録されています。ログインページからログインしてください。"
+    "userExists": "このメールアドレスは既に登録されています。ログインページからログインしてください。",
+    "loginRequiredForList": "リストを作成するにはログインしてください。",
+    "loginRequired": "ログインが必要です"
   },
   "collage": {
     "emptyTitle": "タイトルを入力してください",
     "generationFailed": "コラージュ生成に失敗しました",
-    "noCards": "少なくとも1つのグループでカードを選択してください"
+    "noCards": "少なくとも1つのグループでカードを選択してください",
+    "fetchFailed": "コラージュの取得に失敗しました"
   },
   "data": {
     "cardsFetchFailed": "カード情報の読み込みに失敗しました。",
@@ -47,7 +50,9 @@
     "authRequiredMessage": "リストを作成するにはログインしてください。",
     "creationError": "エラーが発生しました",
     "creationFailed": "リストの作成に失敗しました。",
-    "unexpectedError": "リストの作成中に予期しないエラーが発生しました。"
+    "unexpectedError": "リストの作成中に予期しないエラーが発生しました。",
+    "listCreationFailed": "リストの作成に失敗しました。",
+    "unexpectedErrorDuringCreation": "リストの作成中に予期しないエラーが発生しました。"
   },
   "loginRequired": "ログインが必要です",
   "operationFailed": "操作に失敗しました",
@@ -94,6 +99,17 @@
     "pokepokeIdLength": "ポケポケIDは3文字以上20文字以下で入力してください",
     "selectAtLeastOneCard": "少なくとも1枚のカードを選択してください。",
     "selectAtLeastOneGroup": "少なくとも1つのグループでカードを選択してください",
-    "usernameLength": "ユーザー名は1文字以上30文字以下で入力してください"
+    "usernameLength": "ユーザー名は1文字以上30文字以下で入力してください",
+    "listNameRequired": "リスト名を入力してください。"
+  },
+  "generic": {
+    "error": "エラー",
+    "errorOccurred": "エラーが発生しました"
+  },
+  "favorites": {
+    "fetchFailed": "お気に入りデッキの取得に失敗しました。",
+    "unexpectedError": "お気に入りデッキの取得中に予期せぬエラーが発生しました。",
+    "loginToUnfavorite": "ログインしてお気に入りを解除してください。",
+    "unfavoriteFailed": "お気に入りの解除に失敗しました"
   }
 }

@@ -30,5 +30,10 @@
   "statusChanged": "Beitragsstatus wurde zu {action} geändert.",
   "tradeTitle": "Tauschtitel",
   "tradeTitlePlaceholder": "Tauschbeschreibung eingeben",
-  "wantedCards": "Gesuchte Karten"
+  "wantedCards": "Gesuchte Karten",
+  "cardCount": "Karten: {count}",
+  "updated": "Aktualisiert: {date}",
+  "select": "Auswählen",
+  "registeredIdAutoFilled": "Ihre registrierte PokePoke-ID wurde automatisch ausgefüllt.",
+  "loggedInIdOptional": "Sie sind angemeldet. PokePoke-ID ist optional. Nur Zahlen sind erlaubt."
 }

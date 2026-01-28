@@ -30,5 +30,10 @@
   "statusChanged": "募集のステータスを{action}に変更しました。",
   "tradeTitle": "トレードタイトル",
   "tradeTitlePlaceholder": "トレードの内容を簡潔に入力してください",
-  "wantedCards": "求めるカード"
+  "wantedCards": "求めるカード",
+  "cardCount": "カード数: {count}枚",
+  "updated": "更新: {date}",
+  "select": "選択",
+  "registeredIdAutoFilled": "登録済みのポケポケIDが自動入力されています。",
+  "loggedInIdOptional": "ログイン中です。ポケポケIDは任意です。半角数字のみ入力可能です。"
 }

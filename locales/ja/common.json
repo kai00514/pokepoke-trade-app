@@ -58,7 +58,8 @@
     "editGroup": "{title}を編集",
     "save": "保存",
     "saving": "保存中...",
-    "searchCards": "カードを検索"
+    "searchCards": "カードを検索",
+    "backToList": "一覧に戻る"
   },
   "contact": {
     "prompt": "ご質問やご要望をお聞かせください"
@@ -82,7 +83,9 @@
     "profileBanner": "自己紹介バナー",
     "recruiting": "募集中",
     "soon": "SOON",
-    "user": "ユーザー"
+    "unknown": "不明",
+    "user": "ユーザー",
+    "details": "詳細"
   },
   "language": {
     "de": "Deutsch",

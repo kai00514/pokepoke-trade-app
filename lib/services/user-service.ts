@@ -174,13 +174,18 @@ export async function getUserProfile(userId: string): Promise<UserProfile | null
   }
 }
 
-export async function createUserProfile(userId: string, email: string): Promise<UserProfile> {
-  console.log("🆕 Creating new user profile:", { userId, email })
+export async function createUserProfile(userId: string, email: string, avatarUrl?: string): Promise<UserProfile> {
+  console.log("🆕 Creating new user profile:", { userId, email, avatarUrl })
 
   const displayName = email.split("@")[0]
   const { data, error } = await supabase
     .from("users")
-    .insert({ id: userId, display_name: displayName, name: displayName })
+    .insert({ 
+      id: userId, 
+      display_name: displayName, 
+      name: displayName,
+      avatar_url: avatarUrl || null
+    })
     .select()
     .single()
 

@@ -30,5 +30,10 @@
   "tradeTitle": "Trade Title",
   "tradeTitlePlaceholder": "Enter trade description",
   "wantedCards": "Wanted Cards",
-  "copy": "复制"
+  "copy": "复制",
+  "cardCount": "卡片数: {count}张",
+  "updated": "更新: {date}",
+  "select": "选择",
+  "registeredIdAutoFilled": "已自动填写您注册的PokePoke ID。",
+  "loggedInIdOptional": "您已登录。PokePoke ID是可选的。仅允许数字。"
 }

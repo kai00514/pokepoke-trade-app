@@ -53,7 +53,12 @@
   },
   "labels": {
     "email": "Email",
-    "password": "Password"
+    "password": "Password",
+    "name": "姓名",
+    "subject": "主题",
+    "message": "留言",
+    "listName": "列表名称",
+    "description": "描述"
   },
   "list": {
     "description": {
@@ -76,7 +81,12 @@
     "enterListName": "Enter list name",
     "keyword": "Keyword",
     "password": "Your password",
-    "passwordMin": "Password (6+ characters)"
+    "passwordMin": "Password (6+ characters)",
+    "name": "张三",
+    "subject": "请输入咨询主题",
+    "message": "请详细描述您的咨询内容",
+    "listName": "输入列表名称",
+    "listDescription": "输入列表描述（可选）"
   },
   "pokepokeId": {
     "label": "Pokepoke ID",
@@ -120,5 +130,12 @@
   },
   "packs": {
     "all": "所有卡包"
+  },
+  "lists": {
+    "listInfo": "列表信息",
+    "listInfoDescription": "输入基本列表信息",
+    "cardSelection": "选择卡片",
+    "cardSelectionDescription": "选择要添加到列表的卡片",
+    "selectedCards": "已选择{count}张"
   }
 }

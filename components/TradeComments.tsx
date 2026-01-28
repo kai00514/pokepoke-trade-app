@@ -88,7 +88,6 @@ export default function TradeComments({ postId, currentUser }: TradeCommentsProp
               <TranslateButton 
                 text={c.content} 
                 sourceLang="ja" 
-                targetLang={locale === 'ja' ? 'en' : undefined}
                 className="mt-1" 
               />
             </li>

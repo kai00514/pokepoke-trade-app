@@ -7,7 +7,15 @@
   },
   "collages": {
     "subtitle": "Créez des collages de plusieurs cartes et partagez-les sur X",
-    "title": "Images de collage"
+    "title": "Images de collage",
+    "noCollagesYet": "Pas encore de collages",
+    "cardCount": "{count1} + {count2} cartes",
+    "deleteConfirm": "Êtes-vous sûr de vouloir supprimer ce collage ?",
+    "deleteSuccess": "Collage supprimé avec succès",
+    "deleteFailed": "Échec de la suppression du collage",
+    "fetchFailed": "Échec de la récupération des collages",
+    "notFound": "Collage introuvable",
+    "backToList": "Retour à la liste des collages"
   },
   "contact": {
     "contactInfo": {
@@ -124,5 +132,29 @@
     "authorComment": "Commentaire de l'auteur :",
     "offeredCards": "Cartes offertes",
     "wantedCards": "Cartes souhaitées"
+  },
+  "lists": {
+    "title": "Listes de Cartes",
+    "createNewList": "Créer une Nouvelle Liste",
+    "createListDescription": "Créez des listes de cartes pour échanger avec d'autres utilisateurs.",
+    "description": "Vous pouvez créer plusieurs listes de cartes. Lors de la publication d'un échange, vous pouvez sélectionner parmi vos listes enregistrées pour spécifier facilement les cartes.",
+    "maxListsWarning": "Vous pouvez créer jusqu'à 10 listes. Pour créer une nouvelle liste, veuillez en supprimer une existante.",
+    "untitledList": "Liste sans titre",
+    "noDescription": "Aucune description",
+    "noLists": "Aucune liste pour le moment",
+    "createFirstList": "Créez une liste de cartes pour rendre les échanges plus pratiques."
+  },
+  "favorites": {
+    "title": "Decks Favoris",
+    "count": "{count} éléments",
+    "checkingAuth": "Vérification du statut d'authentification...",
+    "viewFavorites": "Afficher les Decks Favoris",
+    "loginRequired": "Connexion requise pour enregistrer et gérer vos decks favoris.",
+    "loginPromptTitle": "Connexion requise pour afficher les decks favoris",
+    "loginPromptDescription": "Enregistrez vos decks favoris et accédez-y facilement à tout moment.",
+    "noFavorites": "Aucun Deck Favori",
+    "noFavoritesDescription": "Trouvez des decks intéressants et ajoutez-les à vos favoris !",
+    "browseDecks": "Parcourir les Decks",
+    "retry": "Réessayer"
   }
 }

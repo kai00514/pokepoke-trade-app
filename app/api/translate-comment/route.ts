@@ -60,7 +60,6 @@ export async function POST(request: NextRequest) {
         .from('translation_cache')
         .update({
           last_accessed_at: new Date().toISOString(),
-          access_count: supabase.sql`access_count + 1`
         })
         .eq('source_text', text)
         .eq('source_language', sourceLang)
@@ -85,7 +84,7 @@ export async function POST(request: NextRequest) {
       );
     } catch (error) {
       translationError = error instanceof Error ? error.message : 'Unknown error';
-      console.error('[Translation API] Google Translate error:', error);
+      console.warn('[Translation API] Google Translate unavailable, returning original text:', error);
       translatedText = text; // Fallback to original text
     }
 
@@ -103,8 +102,8 @@ export async function POST(request: NextRequest) {
       console.warn('[Translation API] Warning: Translation returned same text without error');
     }
 
-    // Save to cache only if translation was successful
-    if (text !== translatedText || !translationError) {
+    // Save to cache only if translation was successful (no error and text changed)
+    if (text !== translatedText && !translationError) {
       await supabase
         .from('translation_cache')
         .insert({
@@ -112,14 +111,16 @@ export async function POST(request: NextRequest) {
           source_language: sourceLang,
           target_language: targetLang,
           translated_text: translatedText,
-          service_used: translationError ? 'failed' : 'google-translate-with-glossary',
+          service_used: 'google-translate-with-glossary',
           char_count: text.length
         });
     }
 
+    // Return success even if translation failed (graceful degradation)
     return Response.json({
       translatedText,
       cached: false,
+      translationAvailable: !translationError,
       debug: {
         wasTranslated: text !== translatedText,
         error: translationError,
@@ -129,7 +130,7 @@ export async function POST(request: NextRequest) {
     console.error('Translation API error:', error);
     return Response.json(
       { 
-        error: 'Translation failed',
+        error: 'Translation request failed',
         details: error instanceof Error ? error.message : 'Unknown error'
       },
       { status: 500 }

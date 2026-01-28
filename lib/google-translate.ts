@@ -370,14 +370,13 @@ export async function translateTextWithGlossary(
   try {
     // Return original text if translation is not available
     if (!translationClient) {
-      const errorMsg = 'Translation client not initialized. Check Google Cloud credentials.';
-      console.error('[Google Translate] ERROR:', errorMsg);
-      console.error('[Google Translate] Environment check:', {
+      console.warn('[Google Translate] Translation client not initialized, returning original text');
+      console.warn('[Google Translate] Environment check:', {
         hasProjectId: !!process.env.GOOGLE_CLOUD_PROJECT_ID,
         hasCredentials: !!(process.env.GOOGLE_APPLICATION_CREDENTIALS || process.env.GOOGLE_CLOUD_CREDENTIALS),
         isTranslationEnabled,
       });
-      throw new Error(errorMsg);
+      return text;
     }
 
     // Normalize language codes for Google Translation API

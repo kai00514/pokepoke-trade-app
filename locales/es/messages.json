@@ -23,7 +23,7 @@
       "title": "Generar imagen de collage"
     },
     "detailedSearch": {
-      "title": "Búsqueda detallada de cartas"
+      "title": "Búsqueda Detallada de Cartas"
     },
     "list": {
       "createNew": "Crear nueva lista"
@@ -77,7 +77,33 @@
     "tradePosted": "Publicación exitosa",
     "tradePostedMessage": "Se ha creado la publicación de intercambio.",
     "urlCopied": "URL copiada",
-    "urlCopiedMessage": "El enlace ha sido copiado al portapapeles."
+    "urlCopiedMessage": "El enlace ha sido copiado al portapapeles.",
+    "listCreationComplete": "Lista Creada",
+    "listCreatedSuccessfully": "La lista de cartas se ha creado exitosamente.",
+    "unfavorited": "Eliminado de favoritos."
+  },
+  "notifications": {
+    "title": "Notificaciones",
+    "noNotifications": "Sin notificaciones",
+    "loading": "Cargando...",
+    "markAsRead": "Marcar como leído",
+    "markAllAsRead": "Marcar todo como leído",
+    "unreadCount": "{count} notificación(es) sin leer",
+    "count": "{count} notificación(es)",
+    "showing50": "Más de 50 notificaciones",
+    "types": {
+      "trade": "Intercambio",
+      "deck": "Mazo",
+      "other": "Otro"
+    },
+    "time": {
+      "now": "Justo ahora",
+      "minutesAgo": "hace {count} minuto(s)",
+      "hoursAgo": "hace {count} hora(s)"
+    },
+    "unknownUser": "Usuario desconocido",
+    "unknownDetails": "Sin detalles",
+    "fromAbout": "{sender} sobre \"{content}\""
   },
   "warning": {
     "selectionLimit": "Límite de selección",
@@ -86,5 +112,11 @@
     "timeSkewMessage": "El reloj de tu dispositivo está desincronizado por {formatTimeSkew}. La publicación puede fallar.",
     "maxSelectionReached": "Puedes seleccionar hasta {maxSelection}."
   },
-  "title": "Mensaje"
+  "title": "Mensaje",
+  "auth": {
+    "listsLoginRequired": "Por favor, inicia sesión para crear y ver listas de cartas."
+  },
+  "ownerActions": "Acciones del Propietario",
+  "cancel": "Cancelar",
+  "complete": "Completar"
 }

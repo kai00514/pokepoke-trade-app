@@ -12,7 +12,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import { useAuth } from "@/contexts/auth-context"
 import LoginPromptModal from "@/components/ui/login-prompt-modal"
 import { getMyTradePosts, getCommentedTradePosts } from "@/lib/actions/trade-actions"
-import { useTranslations } from "next-intl"
+import { useTranslations, useLocale } from "next-intl"
 
 type TabId = "myPosts" | "commentedPosts" | "matchingHistory"
 
@@ -50,6 +50,7 @@ const variants = {
 
 function HistoryPageContent() {
   const t = useTranslations()
+  const locale = useLocale()
   const tabs = getTabs(t)
   const [activeTabIndex, setActiveTabIndex] = useState(0)
   const [direction, setDirection] = useState(0)
@@ -75,10 +76,10 @@ function HistoryPageContent() {
       try {
         setLoading(true)
         setError(null)
-        const myPostsResult = await getMyTradePosts(user.id)
+        const myPostsResult = await getMyTradePosts(user.id, locale)
         if (myPostsResult.success) setMyPosts(myPostsResult.posts)
 
-        const commentedPostsResult = await getCommentedTradePosts(user.id)
+        const commentedPostsResult = await getCommentedTradePosts(user.id, locale)
         if (commentedPostsResult.success) setCommentedPosts(commentedPostsResult.posts)
       } catch (err) {
         console.error("Error fetching history data:", err)

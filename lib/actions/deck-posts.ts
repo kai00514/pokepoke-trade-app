@@ -390,7 +390,7 @@ export async function createDeck(input: CreateDeckInput): Promise<{ success: boo
 
     // 自動翻訳: タイトルと説明を全言語に翻訳
     const sourceLang = 'ja';
-    const targetLangs = ['en', 'zh-tw', 'ko', 'fr', 'es', 'de'];
+    const targetLangs = ['en', 'zh-cn', 'zh-tw', 'ko', 'fr', 'es', 'de'];
     
     const title_multilingual: Record<string, string> = { ja: input.title };
     const description_multilingual: Record<string, string> | null = input.description 

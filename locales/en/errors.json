@@ -27,12 +27,15 @@
     "tooManyRequests": "Too many login attempts. Please try again later.",
     "unexpected": "An unexpected error occurred.",
     "updatePasswordFailed": "Failed to update password.",
-    "userExists": "This email is already registered. Please log in."
+    "userExists": "This email is already registered. Please log in.",
+    "loginRequiredForList": "Please log in to create a list.",
+    "loginRequired": "Login Required"
   },
   "collage": {
     "emptyTitle": "Please enter a title",
     "generationFailed": "Failed to generate collage",
-    "noCards": "Please select cards in at least one group"
+    "noCards": "Please select cards in at least one group",
+    "fetchFailed": "Failed to fetch collage"
   },
   "data": {
     "cardsFetchFailed": "Failed to load card information.",
@@ -47,7 +50,9 @@
     "authRequiredMessage": "Please log in to create a list.",
     "creationError": "An error occurred",
     "creationFailed": "Failed to create list.",
-    "unexpectedError": "An unexpected error occurred while creating the list."
+    "unexpectedError": "An unexpected error occurred while creating the list.",
+    "listCreationFailed": "Failed to create list.",
+    "unexpectedErrorDuringCreation": "An unexpected error occurred while creating the list."
   },
   "loginRequired": "Login Required",
   "operationFailed": "Operation failed",
@@ -94,6 +99,17 @@
     "pokepokeIdLength": "ポケポケIDは3文字以上20文字以下で入力してください",
     "selectAtLeastOneCard": "少なくとも1枚のカードを選択してください。",
     "selectAtLeastOneGroup": "少なくとも1つのグループでカードを選択してください",
-    "usernameLength": "ユーザー名は1文字以上30文字以下で入力してください"
+    "usernameLength": "ユーザー名は1文字以上30文字以下で入力してください",
+    "listNameRequired": "Please enter a list name."
+  },
+  "generic": {
+    "error": "Error",
+    "errorOccurred": "An error occurred"
+  },
+  "favorites": {
+    "fetchFailed": "Failed to fetch favorite decks.",
+    "unexpectedError": "An unexpected error occurred while fetching favorite decks.",
+    "loginToUnfavorite": "Please log in to remove from favorites.",
+    "unfavoriteFailed": "Failed to remove from favorites"
   }
 }

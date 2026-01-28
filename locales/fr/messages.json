@@ -23,7 +23,7 @@
       "title": "Générer une image de collage"
     },
     "detailedSearch": {
-      "title": "Recherche détaillée de cartes"
+      "title": "Recherche Détaillée de Cartes"
     },
     "list": {
       "createNew": "Créer une nouvelle liste"
@@ -77,7 +77,33 @@
     "tradePosted": "Publication réussie",
     "tradePostedMessage": "La publication d'échange a été créée.",
     "urlCopied": "URL copiée",
-    "urlCopiedMessage": "Le lien a été copié dans le presse-papiers."
+    "urlCopiedMessage": "Le lien a été copié dans le presse-papiers.",
+    "listCreationComplete": "Liste Créée",
+    "listCreatedSuccessfully": "La liste de cartes a été créée avec succès.",
+    "unfavorited": "Retiré des favoris."
+  },
+  "notifications": {
+    "title": "Notifications",
+    "noNotifications": "Aucune notification",
+    "loading": "Chargement...",
+    "markAsRead": "Marquer comme lu",
+    "markAllAsRead": "Tout marquer comme lu",
+    "unreadCount": "{count} notification(s) non lue(s)",
+    "count": "{count} notification(s)",
+    "showing50": "Plus de 50 notifications",
+    "types": {
+      "trade": "Échange",
+      "deck": "Deck",
+      "other": "Autre"
+    },
+    "time": {
+      "now": "À l'instant",
+      "minutesAgo": "il y a {count} minute(s)",
+      "hoursAgo": "il y a {count} heure(s)"
+    },
+    "unknownUser": "Utilisateur inconnu",
+    "unknownDetails": "Aucun détail",
+    "fromAbout": "{sender} à propos de \"{content}\""
   },
   "title": "Message",
   "warning": {
@@ -86,5 +112,11 @@
     "timeSkewDetail": "L'horloge de votre appareil est décalée de {formatTimeSkew}. Cela peut causer des problèmes d'authentification.",
     "timeSkewMessage": "L'horloge de votre appareil est décalée de {formatTimeSkew}. La publication peut échouer.",
     "maxSelectionReached": "Vous pouvez sélectionner jusqu'à {maxSelection}."
-  }
+  },
+  "auth": {
+    "listsLoginRequired": "Veuillez vous connecter pour créer et afficher les listes de cartes."
+  },
+  "ownerActions": "Actions du Propriétaire",
+  "cancel": "Annuler",
+  "complete": "Terminer"
 }

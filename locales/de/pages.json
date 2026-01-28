@@ -7,7 +7,15 @@
   },
   "collages": {
     "subtitle": "Erstellen Sie Collages aus mehreren Karten und teilen Sie sie auf X",
-    "title": "Collage-Bilder"
+    "title": "Collage-Bilder",
+    "noCollagesYet": "Noch keine Collagen",
+    "cardCount": "{count1} + {count2} Karten",
+    "deleteConfirm": "Möchten Sie diese Collage wirklich löschen?",
+    "deleteSuccess": "Collage erfolgreich gelöscht",
+    "deleteFailed": "Fehler beim Löschen der Collage",
+    "fetchFailed": "Fehler beim Abrufen der Collagen",
+    "notFound": "Collage nicht gefunden",
+    "backToList": "Zurück zur Collage-Liste"
   },
   "contact": {
     "contactInfo": {
@@ -124,5 +132,29 @@
     "authorComment": "Kommentar des Autors:",
     "offeredCards": "Angebotene Karten",
     "wantedCards": "Gewünschte Karten"
+  },
+  "lists": {
+    "title": "Kartenlisten",
+    "createNewList": "Neue Liste erstellen",
+    "createListDescription": "Erstellen Sie Kartenlisten zum Handeln und Tauschen mit anderen Benutzern.",
+    "description": "Sie können mehrere Kartenlisten erstellen. Beim Posten eines Handels können Sie aus Ihren gespeicherten Listen auswählen, um Karten einfach anzugeben.",
+    "maxListsWarning": "Sie können bis zu 10 Listen erstellen. Um eine neue Liste zu erstellen, löschen Sie bitte eine vorhandene.",
+    "untitledList": "Unbenannte Liste",
+    "noDescription": "Keine Beschreibung",
+    "noLists": "Noch keine Listen",
+    "createFirstList": "Erstellen Sie eine Kartenliste, um den Handel bequemer zu gestalten."
+  },
+  "favorites": {
+    "title": "Favoriten-Decks",
+    "count": "{count} Einträge",
+    "checkingAuth": "Authentifizierungsstatus wird überprüft...",
+    "viewFavorites": "Favoriten-Decks anzeigen",
+    "loginRequired": "Anmeldung erforderlich, um Ihre Favoriten-Decks zu speichern und zu verwalten.",
+    "loginPromptTitle": "Anmeldung erforderlich, um Favoriten-Decks anzuzeigen",
+    "loginPromptDescription": "Speichern Sie Ihre Favoriten-Decks und greifen Sie jederzeit einfach darauf zu.",
+    "noFavorites": "Keine Favoriten-Decks",
+    "noFavoritesDescription": "Finden Sie interessante Decks und fügen Sie sie zu Ihren Favoriten hinzu!",
+    "browseDecks": "Decks durchsuchen",
+    "retry": "Wiederholen"
   }
 }

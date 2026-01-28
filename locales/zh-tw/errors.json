@@ -27,12 +27,15 @@
     "tooManyRequests": "登入嘗試次數過多，請稍後再試。",
     "unexpected": "發生非預期錯誤。",
     "updatePasswordFailed": "密碼更新失敗。",
-    "userExists": "此 Email 已被註冊，請至登入頁面登入。"
+    "userExists": "此 Email 已被註冊，請至登入頁面登入。",
+    "loginRequiredForList": "請登入以建立列表。",
+    "loginRequired": "需要登入"
   },
   "collage": {
     "emptyTitle": "請輸入標題。",
     "generationFailed": "拼貼圖片產生失敗。",
-    "noCards": "請在至少一個群組中選擇卡片。"
+    "noCards": "請在至少一個群組中選擇卡片。",
+    "fetchFailed": "取得拼貼圖失敗"
   },
   "data": {
     "cardsFetchFailed": "無法載入卡片資訊。",
@@ -47,7 +50,9 @@
     "authRequiredMessage": "建立清單前請先登入。",
     "creationError": "發生錯誤。",
     "creationFailed": "清單建立失敗。",
-    "unexpectedError": "建立清單時發生非預期的錯誤。"
+    "unexpectedError": "建立清單時發生非預期的錯誤。",
+    "listCreationFailed": "建立列表失敗。",
+    "unexpectedErrorDuringCreation": "建立列表時發生非預期錯誤。"
   },
   "loginRequired": "需要登入",
   "operationFailed": "操作失敗",
@@ -94,6 +99,17 @@
     "pokepokeIdLength": "Pokepoke ID 長度需為 3〜20 個字元。",
     "selectAtLeastOneCard": "請至少選擇 1 張卡片。",
     "selectAtLeastOneGroup": "請在至少 1 個群組中選擇卡片。",
-    "usernameLength": "使用者名稱長度需為 1〜30 個字元。"
+    "usernameLength": "使用者名稱長度需為 1〜30 個字元。",
+    "listNameRequired": "請輸入列表名稱。"
+  },
+  "generic": {
+    "error": "錯誤",
+    "errorOccurred": "發生錯誤"
+  },
+  "favorites": {
+    "fetchFailed": "取得收藏卡組失敗。",
+    "unexpectedError": "取得收藏卡組時發生非預期錯誤。",
+    "loginToUnfavorite": "請登入以取消收藏。",
+    "unfavoriteFailed": "取消收藏失敗"
   }
 }

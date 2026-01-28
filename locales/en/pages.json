@@ -7,7 +7,15 @@
   },
   "collages": {
     "subtitle": "Create collages of multiple cards and share on X",
-    "title": "Collage Images"
+    "title": "Collage Images",
+    "noCollagesYet": "No collages yet",
+    "cardCount": "{count1} + {count2} cards",
+    "deleteConfirm": "Are you sure you want to delete this collage?",
+    "deleteSuccess": "Collage deleted successfully",
+    "deleteFailed": "Failed to delete collage",
+    "fetchFailed": "Failed to fetch collages",
+    "notFound": "Collage not found",
+    "backToList": "Back to collage list"
   },
   "contact": {
     "contactInfo": {
@@ -124,5 +132,29 @@
     "authorComment": "Author's Comment:",
     "offeredCards": "Offered Cards",
     "wantedCards": "Wanted Cards"
+  },
+  "lists": {
+    "title": "Card Lists",
+    "createNewList": "Create New List",
+    "createListDescription": "Create card lists for trading and exchange with other users.",
+    "description": "You can create multiple card lists. When posting a trade, you can select from your saved lists to easily specify cards.",
+    "maxListsWarning": "You can create up to 10 lists. To create a new list, please delete an existing one.",
+    "untitledList": "Untitled List",
+    "noDescription": "No description",
+    "noLists": "No lists yet",
+    "createFirstList": "Create a card list to make trading more convenient."
+  },
+  "favorites": {
+    "title": "Favorite Decks",
+    "count": "{count} items",
+    "checkingAuth": "Checking authentication status...",
+    "viewFavorites": "View Favorite Decks",
+    "loginRequired": "Login is required to save and manage your favorite decks.",
+    "loginPromptTitle": "Login required to view favorite decks",
+    "loginPromptDescription": "Save your favorite decks and access them easily anytime.",
+    "noFavorites": "No Favorite Decks",
+    "noFavoritesDescription": "Find interesting decks and add them to your favorites!",
+    "browseDecks": "Browse Decks",
+    "retry": "Retry"
   }
 }

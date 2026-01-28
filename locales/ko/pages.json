@@ -7,7 +7,15 @@
   },
   "collages": {
     "subtitle": "여러 장의 카드를 콜라주로 만들고 X에 공유하세요",
-    "title": "콜라주 이미지"
+    "title": "콜라주 이미지",
+    "noCollagesYet": "아직 콜라주가 없습니다",
+    "cardCount": "{count1}장 + {count2}장",
+    "deleteConfirm": "이 콜라주를 삭제하시겠습니까?",
+    "deleteSuccess": "콜라주가 삭제되었습니다",
+    "deleteFailed": "콜라주 삭제에 실패했습니다",
+    "fetchFailed": "콜라주 목록을 가져오는데 실패했습니다",
+    "notFound": "콜라주를 찾을 수 없습니다",
+    "backToList": "콜라주 목록으로 돌아가기"
   },
   "contact": {
     "contactInfo": {
@@ -124,5 +132,29 @@
     "authorComment": "작성자 코멘트:",
     "offeredCards": "제공 카드",
     "wantedCards": "원하는 카드"
+  },
+  "lists": {
+    "title": "카드 리스트",
+    "createNewList": "새 리스트 만들기",
+    "createListDescription": "트레이드용 카드 리스트를 만들어 다른 사용자와 교환하세요.",
+    "description": "여러 카드 리스트를 만들 수 있습니다. 트레이드 게시물 작성 시 저장된 리스트에서 선택하여 쉽게 카드를 지정할 수 있습니다.",
+    "maxListsWarning": "최대 10개의 리스트를 만들 수 있습니다. 새 리스트를 만들려면 기존 리스트를 삭제하세요.",
+    "untitledList": "제목 없는 리스트",
+    "noDescription": "설명 없음",
+    "noLists": "아직 리스트가 없습니다",
+    "createFirstList": "카드 리스트를 만들어 트레이드를 더 편리하게 이용하세요."
+  },
+  "favorites": {
+    "title": "즐겨찾기 덱",
+    "count": "{count}개",
+    "checkingAuth": "인증 상태 확인 중...",
+    "viewFavorites": "즐겨찾기 덱 보기",
+    "loginRequired": "즐겨찾기 덱을 저장하고 관리하려면 로그인이 필요합니다.",
+    "loginPromptTitle": "즐겨찾기 덱을 보려면 로그인이 필요합니다",
+    "loginPromptDescription": "즐겨찾기 덱을 저장하고 언제든지 쉽게 액세스하세요.",
+    "noFavorites": "즐겨찾기 덱 없음",
+    "noFavoritesDescription": "흥미로운 덱을 찾아 즐겨찾기에 추가하세요!",
+    "browseDecks": "덱 둘러보기",
+    "retry": "다시 시도"
   }
 }

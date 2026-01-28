@@ -3,7 +3,7 @@
 import type React from "react"
 import { useState, useEffect, useMemo, useRef } from "react"
 import Image from "next/image"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
@@ -34,7 +34,7 @@ interface RarityOption {
 
 interface DetailedSearchModalProps {
   isOpen: boolean
-  onOpenChange: (isOpen: boolean) => void
+  onOpenChange?: (isOpen: boolean) => void
   onSelectionComplete: (selectedCards: Card[]) => void
   maxSelection?: number
   initialSelectedCards?: Card[]
@@ -122,7 +122,7 @@ export default function DetailedSearchModal({
   useEffect(() => {
     async function fetchPackOptions() {
       if (!isOpen) return
-      const { data, error } = await supabase.from("packs").select("id, name").order("name", { ascending: true })
+      const { data, error } = await supabase.from("packs").select("id, name, name_multilingual").order("id", { ascending: true })
       if (error) {
         toast({
           title: t("errors.data.packsFetchError"),
@@ -130,11 +130,16 @@ export default function DetailedSearchModal({
           variant: "destructive",
         })
       } else if (data) {
-        setPackOptions([{ id: "all", name: t("forms.packs.all") }, ...data])
+        // Localize pack names
+        const localizedPacks = data.map(pack => ({
+          id: pack.id,
+          name: pack.name_multilingual?.[locale] || pack.name
+        }))
+        setPackOptions([{ id: "all", name: t("forms.packs.all") }, ...localizedPacks])
       }
     }
     fetchPackOptions()
-  }, [isOpen, toast])
+  }, [isOpen, toast, locale, t])
 
   useEffect(() => {
     async function fetchCardsFromSupabase() {
@@ -277,7 +282,7 @@ export default function DetailedSearchModal({
       return
     }
     onSelectionComplete([...currentSelectedCards])
-    onOpenChange(false)
+    onOpenChange?.(false)
   }
 
   const handlePreviewClose = () => {
@@ -333,19 +338,7 @@ export default function DetailedSearchModal({
       <Dialog open={isOpen} onOpenChange={handleMainModalClose}>
         <DialogContent className="max-w-3xl w-[95vw] h-[85vh] p-0 flex flex-col gap-0">
           <DialogHeader className="p-4 border-b flex-shrink-0">
-            <DialogTitle className="text-lg font-semibold">{modalTitle || t("modals.detailedSearch.title")}</DialogTitle>
-            <DialogClose
-              className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground"
-              onClick={(e) => {
-                if (isPreviewOverlayOpen) {
-                  e.preventDefault()
-                  handlePreviewClose()
-                }
-              }}
-            >
-              <X className="h-5 w-5" />
-              <span className="sr-only">{t("common.buttons.close")}</span>
-            </DialogClose>
+            <DialogTitle className="text-lg font-semibold">{modalTitle || t("messages.modals.detailedSearch.title")}</DialogTitle>
           </DialogHeader>
           <ScrollArea className="flex-grow bg-slate-50/50 min-h-0">
             <div className="p-4 space-y-4 border-b">

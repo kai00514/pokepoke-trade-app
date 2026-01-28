@@ -55,10 +55,11 @@
     "viewDetails": "View Details",
     "xLogin": "Xでログイン",
     "create": "作成",
-    "editGroup": "{title}を編集",
+    "editGroup": "编辑{title}",
     "save": "保存",
     "saving": "保存中...",
-    "searchCards": "カードを検索"
+    "searchCards": "搜索卡片",
+    "backToList": "返回列表"
   },
   "contact": {
     "prompt": "Share your questions or requests"
@@ -82,7 +83,9 @@
     "profileBanner": "自己紹介バナー",
     "recruiting": "募集中",
     "soon": "SOON",
-    "user": "ユーザー"
+    "unknown": "未知",
+    "user": "ユーザー",
+    "details": "详情"
   },
   "language": {
     "de": "Deutsch",
@@ -155,7 +158,7 @@
     "setYourId": "Set your exclusive ID"
   },
   "units": {
-    "cards": "{count}张"
+    "cards": "张"
   },
   "translation": {
     "translate": "翻译",

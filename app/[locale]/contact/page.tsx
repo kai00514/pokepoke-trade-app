@@ -42,7 +42,7 @@ export default function ContactPage() {
           <div className="text-center mb-8">
             <h1 className="text-4xl font-bold text-gray-900 mb-4">{t('pages.contact.title')}</h1>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              {t('pages.contact.description')}
+              {t('pages.contact.subtitle')}
             </p>
           </div>
 
@@ -53,9 +53,9 @@ export default function ContactPage() {
                 <CardHeader className="bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-t-lg">
                   <CardTitle className="flex items-center gap-2 text-xl">
                     <MessageCircle className="w-6 h-6" />
-                    {t('pages.contact.formTitle')}
+                    {t('pages.contact.form.title')}
                   </CardTitle>
-                  <CardDescription className="text-blue-100">{t('pages.contact.formDescription')}</CardDescription>
+                  <CardDescription className="text-blue-100">{t('pages.contact.form.description')}</CardDescription>
                 </CardHeader>
                 <CardContent className="p-6">
                   {state?.message && (
@@ -185,21 +185,21 @@ export default function ContactPage() {
               {/* 連絡先情報 */}
               <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
                 <CardHeader className="bg-gradient-to-r from-orange-500 to-red-600 text-white rounded-t-lg">
-                  <CardTitle className="text-lg">{t('pages.contact.otherContact.title')}</CardTitle>
+                  <CardTitle className="text-lg">{t('pages.contact.contactInfo.title')}</CardTitle>
                 </CardHeader>
                 <CardContent className="p-4 space-y-4">
                   <div className="flex items-center gap-3">
                     <Mail className="w-5 h-5 text-blue-600" />
                     <div>
-                      <p className="font-semibold text-gray-900">{t('pages.contact.otherContact.email')}</p>
+                      <p className="font-semibold text-gray-900">{t('pages.contact.contactInfo.email')}</p>
                       <p className="text-sm text-gray-600">support@pokelink.com</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
                     <Clock className="w-5 h-5 text-green-600" />
                     <div>
-                      <p className="font-semibold text-gray-900">{t('pages.contact.otherContact.hours')}</p>
-                      <p className="text-sm text-gray-600">{t('pages.contact.otherContact.hoursValue')}</p>
+                      <p className="font-semibold text-gray-900">{t('pages.contact.contactInfo.hours')}</p>
+                      <p className="text-sm text-gray-600">{t('pages.contact.contactInfo.hoursValue')}</p>
                     </div>
                   </div>
                 </CardContent>

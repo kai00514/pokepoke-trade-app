@@ -11,7 +11,8 @@ import { Copy, MessageSquare, UserCircle, Share2 } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
 import ShareModal from "@/components/share-modal"
 import { event as gtagEvent } from "@/lib/analytics/gtag"
-import { useTranslations } from "next-intl"
+import { useTranslations, useLocale } from "next-intl"
+import TranslateButton from "@/components/translate-button"
 
 type CardInfo = {
   name: string
@@ -41,6 +42,7 @@ export default function TradePostCard({ post }: TradePostCardProps) {
   const { toast } = useToast()
   const router = useRouter()
   const t = useTranslations()
+  const locale = useLocale()
   const [isShareModalOpen, setIsShareModalOpen] = useState(false)
 
   const handleCopyToClipboard = (e: React.MouseEvent) => {
@@ -229,6 +231,11 @@ export default function TradePostCard({ post }: TradePostCardProps) {
               {post.authorComment ? (
                 <div className="mb-1">
                   <p className="text-xs font-medium text-[#374151] mb-1">{t("trades.authorCommentWithText", { comment: post.authorComment })}</p>
+                  <TranslateButton 
+                    text={post.authorComment} 
+                    sourceLang="ja" 
+                    className="mt-1.5" 
+                  />
                 </div>
               ) : null}
             </div>

@@ -104,7 +104,7 @@ export default function CreateDeckPage() {
 
   useEffect(() => {
     async function fetchPacks() {
-      const { data, error } = await supabase.from("packs").select("id, name").order("name", { ascending: true })
+      const { data, error } = await supabase.from("packs").select("id, name, name_multilingual").order("id", { ascending: true })
       if (error) {
         console.error("Error fetching packs:", error)
         toast({
@@ -113,11 +113,17 @@ export default function CreateDeckPage() {
           variant: "destructive",
         })
       } else if (data) {
-        setPackOptions([{ id: null, name: t("allPacks") }, ...data.map((p) => ({ id: String(p.id), name: p.name }))])
+        setPackOptions([
+          { id: null, name: t("allPacks") }, 
+          ...data.map((p) => ({ 
+            id: String(p.id), 
+            name: p.name_multilingual?.[locale] || p.name 
+          }))
+        ])
       }
     }
     fetchPacks()
-  }, [toast, t])
+  }, [toast, t, locale])
 
   useEffect(() => {
     async function fetchCards() {

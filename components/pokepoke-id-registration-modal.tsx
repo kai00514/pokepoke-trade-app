@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Hash } from "lucide-react"
+import { useTranslations } from "next-intl"
 
 interface PokepokeIdRegistrationModalProps {
   isOpen: boolean
@@ -30,6 +31,7 @@ export function PokepokeIdRegistrationModal({
   currentPokepokeId,
   onSave,
 }: PokepokeIdRegistrationModalProps) {
+  const t = useTranslations()
   const [pokepokeId, setPokepokeId] = useState(currentPokepokeId || "")
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -38,12 +40,12 @@ export function PokepokeIdRegistrationModal({
     e.preventDefault()
 
     if (!pokepokeId.trim()) {
-      setError("ポケポケIDを入力してください")
+      setError(t("errors.validation.enterPokepokeId"))
       return
     }
 
     if (pokepokeId.length < 3 || pokepokeId.length > 20) {
-      setError("ポケポケIDは3文字以上20文字以下で入力してください")
+      setError(t("errors.validation.pokepokeIdLength"))
       return
     }
 
@@ -56,7 +58,7 @@ export function PokepokeIdRegistrationModal({
       setPokepokeId("")
     } catch (error) {
       console.error("ポケポケID保存エラー:", error)
-      setError("ポケポケIDの保存に失敗しました。もう一度お試しください。")
+      setError(t("errors.pokepokeId.saveFailed"))
     } finally {
       setIsLoading(false)
     }
@@ -75,22 +77,22 @@ export function PokepokeIdRegistrationModal({
           <div className="mx-auto w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4">
             <Hash className="w-8 h-8 text-blue-600" />
           </div>
-          <DialogTitle className="text-xl font-bold text-gray-900">ポケポケID登録</DialogTitle>
+          <DialogTitle className="text-xl font-bold text-gray-900">{t("messages.modals.pokepokeId.title")}</DialogTitle>
           <DialogDescription className="text-gray-600 mt-2">
-            あなたのポケポケIDを設定してください。他のユーザーがあなたを見つけやすくなります。
+            {t("messages.modals.pokepokeId.description")}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <Label htmlFor="pokepoke-id" className="text-sm font-medium text-gray-700">
-                ポケポケID
+                {t("forms.pokepokeId.label")}
               </Label>
               <Input
                 id="pokepoke-id"
                 value={pokepokeId}
                 onChange={(e) => setPokepokeId(e.target.value)}
-                placeholder="例: trainer123"
+                placeholder={t("forms.pokepokeId.placeholder")}
                 disabled={isLoading}
                 className="bg-white border-gray-300 focus:border-blue-500 focus:ring-blue-500"
               />
@@ -109,10 +111,10 @@ export function PokepokeIdRegistrationModal({
               disabled={isLoading}
               className="flex-1 border-gray-300 hover:bg-gray-50 bg-transparent"
             >
-              キャンセル
+              {t("common.buttons.cancel")}
             </Button>
             <Button type="submit" disabled={isLoading} className="flex-1 bg-blue-600 hover:bg-blue-700 text-white">
-              {isLoading ? "保存中..." : "保存"}
+              {isLoading ? t("common.buttons.saving") : t("common.buttons.save")}
             </Button>
           </DialogFooter>
         </form>

@@ -6,8 +6,16 @@
     "title": "Generate Collage Image"
   },
   "collages": {
-    "subtitle": "Create collages of multiple cards and share on X",
-    "title": "Collage Images"
+    "subtitle": "创建拼贴图并在X上分享",
+    "title": "拼贴图",
+    "noCollagesYet": "还没有拼贴图",
+    "cardCount": "{count1}张 + {count2}张",
+    "deleteConfirm": "确定要删除此拼贴图吗？",
+    "deleteSuccess": "拼贴图已删除",
+    "deleteFailed": "删除拼贴图失败",
+    "fetchFailed": "获取拼贴图列表失败",
+    "notFound": "未找到拼贴图",
+    "backToList": "返回拼贴图列表"
   },
   "contact": {
     "contactInfo": {
@@ -124,5 +132,29 @@
     "authorComment": "Author's Comment:",
     "offeredCards": "Offered Cards",
     "wantedCards": "Wanted Cards"
+  },
+  "lists": {
+    "title": "卡片列表",
+    "createNewList": "创建新列表",
+    "createListDescription": "创建卡片列表以便与其他用户交易和交换。",
+    "description": "您可以创建多个卡片列表。发布交易时，可以从保存的列表中选择以便轻松指定卡片。",
+    "maxListsWarning": "最多可以创建10个列表。要创建新列表，请删除现有列表。",
+    "untitledList": "无标题列表",
+    "noDescription": "无描述",
+    "noLists": "暂无列表",
+    "createFirstList": "创建卡片列表，让交易更便捷。"
+  },
+  "favorites": {
+    "title": "收藏卡组",
+    "count": "{count}个",
+    "checkingAuth": "正在检查认证状态...",
+    "viewFavorites": "查看收藏卡组",
+    "loginRequired": "需要登录才能保存和管理您的收藏卡组。",
+    "loginPromptTitle": "需要登录才能查看收藏卡组",
+    "loginPromptDescription": "保存您的收藏卡组，随时轻松访问。",
+    "noFavorites": "无收藏卡组",
+    "noFavoritesDescription": "找到感兴趣的卡组并添加到收藏夹！",
+    "browseDecks": "浏览卡组",
+    "retry": "重试"
   }
 }

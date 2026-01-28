@@ -30,5 +30,10 @@
   "statusChanged": "Le statut de la publication a été modifié en {action}.",
   "tradeTitle": "Titre de l’échange",
   "tradeTitlePlaceholder": "Entrez une description de l’échange",
-  "wantedCards": "Cartes recherchées"
+  "wantedCards": "Cartes recherchées",
+  "cardCount": "Cartes : {count}",
+  "updated": "Mis à jour : {date}",
+  "select": "Sélectionner",
+  "registeredIdAutoFilled": "Votre ID PokePoke enregistré est pré-rempli.",
+  "loggedInIdOptional": "Vous êtes connecté. L'ID PokePoke est facultatif. Seuls les chiffres sont autorisés."
 }

@@ -53,7 +53,12 @@
   },
   "labels": {
     "email": "Email",
-    "password": "Password"
+    "password": "Password",
+    "name": "Name",
+    "subject": "Subject",
+    "message": "Message",
+    "listName": "List Name",
+    "description": "Description"
   },
   "list": {
     "description": {
@@ -76,7 +81,12 @@
     "enterListName": "Enter list name",
     "keyword": "Keyword",
     "password": "Your password",
-    "passwordMin": "Password (6+ characters)"
+    "passwordMin": "Password (6+ characters)",
+    "name": "John Doe",
+    "subject": "Enter your inquiry subject",
+    "message": "Please describe your inquiry in detail",
+    "listName": "Enter list name",
+    "listDescription": "Enter list description (optional)"
   },
   "pokepokeId": {
     "label": "Pokepoke ID",
@@ -120,5 +130,12 @@
   },
   "packs": {
     "all": "All Packs"
+  },
+  "lists": {
+    "listInfo": "List Information",
+    "listInfoDescription": "Enter basic list information",
+    "cardSelection": "Card Selection",
+    "cardSelectionDescription": "Select cards to add to the list",
+    "selectedCards": "{count} selected"
   }
 }

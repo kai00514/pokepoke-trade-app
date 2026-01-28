@@ -27,12 +27,15 @@
     "tooManyRequests": "Trop de tentatives de connexion. Veuillez réessayer plus tard.",
     "unexpected": "Une erreur inattendue s'est produite.",
     "updatePasswordFailed": "Échec de la mise à jour du mot de passe.",
-    "userExists": "Cette adresse e-mail est déjà enregistrée. Veuillez vous connecter."
+    "userExists": "Cette adresse e-mail est déjà enregistrée. Veuillez vous connecter.",
+    "loginRequiredForList": "Veuillez vous connecter pour créer une liste.",
+    "loginRequired": "Connexion requise"
   },
   "collage": {
     "emptyTitle": "Veuillez saisir un titre",
     "generationFailed": "Échec de la génération du collage",
-    "noCards": "Veuillez sélectionner des cartes dans au moins un groupe"
+    "noCards": "Veuillez sélectionner des cartes dans au moins un groupe",
+    "fetchFailed": "Échec de la récupération du collage"
   },
   "data": {
     "cardsFetchFailed": "Échec du chargement des informations de cartes.",
@@ -47,7 +50,9 @@
     "authRequiredMessage": "Veuillez vous connecter pour créer une liste.",
     "creationError": "Une erreur s'est produite",
     "creationFailed": "Échec de la création de la liste.",
-    "unexpectedError": "Une erreur inattendue s'est produite lors de la création de la liste."
+    "unexpectedError": "Une erreur inattendue s'est produite lors de la création de la liste.",
+    "listCreationFailed": "Échec de la création de la liste.",
+    "unexpectedErrorDuringCreation": "Une erreur inattendue s'est produite lors de la création de la liste."
   },
   "loginRequired": "Connexion requise",
   "operationFailed": "Échec de l'opération",
@@ -94,6 +99,17 @@
     "pokepokeIdLength": "L'ID Pokepoke doit contenir entre 3 et 20 caractères",
     "selectAtLeastOneCard": "Veuillez sélectionner au moins une carte.",
     "selectAtLeastOneGroup": "Veuillez sélectionner des cartes dans au moins un groupe",
-    "usernameLength": "Le nom d'utilisateur doit contenir entre 1 et 30 caractères"
+    "usernameLength": "Le nom d'utilisateur doit contenir entre 1 et 30 caractères",
+    "listNameRequired": "Veuillez saisir un nom de liste."
+  },
+  "generic": {
+    "error": "Erreur",
+    "errorOccurred": "Une erreur s'est produite"
+  },
+  "favorites": {
+    "fetchFailed": "Échec de la récupération des decks favoris.",
+    "unexpectedError": "Une erreur inattendue s'est produite lors de la récupération des decks favoris.",
+    "loginToUnfavorite": "Veuillez vous connecter pour retirer des favoris.",
+    "unfavoriteFailed": "Échec de la suppression des favoris"
   }
 }

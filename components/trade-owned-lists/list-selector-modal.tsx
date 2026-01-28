@@ -108,12 +108,12 @@ function ListSelectorModal({ isOpen, onOpenChange, userId, onListSelect }: ListS
                       <div className="flex-1">
                         <h3 className="font-medium text-[#111827] mb-1">{list.list_name}</h3>
                         <div className="flex items-center gap-4 text-sm text-[#6B7280]">
-                          <span>カード数: {list.card_ids.length}枚</span>
-                          <span>更新: {formatDate(list.updated_at)}</span>
+                          <span>{t('trades.cardCount', { count: list.card_ids.length })}</span>
+                          <span>{t('trades.updated', { date: formatDate(list.updated_at) })}</span>
                         </div>
                       </div>
                       <Button variant="outline" size="sm">
-                        選択
+                        {t('trades.select')}
                       </Button>
                     </div>
                   </CardContent>

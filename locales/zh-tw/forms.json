@@ -53,7 +53,12 @@
   },
   "labels": {
     "email": "Email",
-    "password": "密碼"
+    "password": "密碼",
+    "name": "姓名",
+    "subject": "主旨",
+    "message": "訊息",
+    "listName": "列表名稱",
+    "description": "描述"
   },
   "list": {
     "description": {
@@ -76,7 +81,12 @@
     "enterListName": "請輸入清單名稱",
     "keyword": "關鍵字",
     "password": "請輸入密碼",
-    "passwordMin": "密碼（至少 6 碼）"
+    "passwordMin": "密碼（至少 6 碼）",
+    "name": "王小明",
+    "subject": "請輸入諮詢主旨",
+    "message": "請詳細描述您的諮詢內容",
+    "listName": "輸入列表名稱",
+    "listDescription": "輸入列表描述（選填）"
   },
   "pokepokeId": {
     "label": "Pokepoke ID",
@@ -120,5 +130,12 @@
   },
   "packs": {
     "all": "所有卡包"
+  },
+  "lists": {
+    "listInfo": "列表資訊",
+    "listInfoDescription": "輸入基本列表資訊",
+    "cardSelection": "選擇卡片",
+    "cardSelectionDescription": "選擇要新增到列表的卡片",
+    "selectedCards": "已選擇{count}張"
   }
 }

@@ -7,7 +7,15 @@
   },
   "collages": {
     "subtitle": "複数のカードをコラージュにしてXで共有しましょう",
-    "title": "コラージュ画像"
+    "title": "コラージュ画像",
+    "noCollagesYet": "コラージュがまだありません",
+    "cardCount": "{count1}枚 + {count2}枚",
+    "deleteConfirm": "このコラージュを削除しますか？",
+    "deleteSuccess": "コラージュを削除しました",
+    "deleteFailed": "コラージュの削除に失敗しました",
+    "fetchFailed": "コラージュ一覧の取得に失敗しました",
+    "notFound": "コラージュが見つかりません",
+    "backToList": "コラージュ一覧に戻る"
   },
   "contact": {
     "contactInfo": {
@@ -72,17 +80,17 @@
     "title": "カード詳細検索"
   },
   "history": {
-    "authenticating": "Checking authentication status...",
-    "commentedPosts": "Commented Posts",
-    "fetchError": "Failed to fetch data.",
-    "loading": "Loading...",
-    "matchingHistory": "Matching History",
-    "myPosts": "My Posts",
-    "noCommentedPosts": "No commented post history.",
-    "noHistory": "No history available.",
-    "noMatchingHistory": "No matching history.",
-    "noMyPosts": "You have no post history.",
-    "title": "History"
+    "authenticating": "認証状態を確認中...",
+    "commentedPosts": "コメントした投稿",
+    "fetchError": "データの取得に失敗しました。",
+    "loading": "読み込み中...",
+    "matchingHistory": "マッチング履歴",
+    "myPosts": "自分の投稿",
+    "noCommentedPosts": "コメントした投稿の履歴はありません。",
+    "noHistory": "履歴がありません。",
+    "noMatchingHistory": "マッチング履歴がありません。",
+    "noMyPosts": "投稿履歴がありません。",
+    "title": "履歴"
   },
   "home": {
     "subtitle": "欲しいカードと譲れるカードをスムーズに交換しよう！",
@@ -104,10 +112,10 @@
     "title": "パスワードをリセット"
   },
   "resultsInfo": {
-    "noPosts": "No posts available",
-    "noResults": "No matching posts found.",
-    "searchResults": "(Search: \"{keyword}\")",
-    "showing": "Showing {start}~{end} of {total}"
+    "noPosts": "投稿がありません",
+    "noResults": "該当する投稿が見つかりませんでした。",
+    "searchResults": "（検索: 「{keyword}」）",
+    "showing": "{total}件中 {start}〜{end}件を表示"
   },
   "share": {
     "snsSection": "SNSでシェア",
@@ -124,5 +132,29 @@
     "authorComment": "投稿者コメント：",
     "offeredCards": "譲れるカード",
     "wantedCards": "求めるカード"
+  },
+  "lists": {
+    "title": "カードリスト",
+    "createNewList": "新しいリストを作成",
+    "createListDescription": "トレード用のカードリストを作成して、他のユーザーと交換しましょう。",
+    "description": "複数のカードリストを作成できます。トレード投稿時に保存したリストを選択して、簡単にカードを指定できます。",
+    "maxListsWarning": "リストは最大10個まで作成できます。新しいリストを作成するには、既存のリストを削除してください。",
+    "untitledList": "無題のリスト",
+    "noDescription": "説明なし",
+    "noLists": "まだリストがありません",
+    "createFirstList": "カードリストを作成して、トレードをもっと便利にしましょう。"
+  },
+  "favorites": {
+    "title": "お気に入りデッキ",
+    "count": "{count}件",
+    "checkingAuth": "認証状態を確認中...",
+    "viewFavorites": "お気に入りデッキを確認",
+    "loginRequired": "お気に入りのデッキを保存・管理するにはログインが必要です。",
+    "loginPromptTitle": "お気に入りデッキを表示するにはログインが必要です",
+    "loginPromptDescription": "お気に入りのデッキを保存して、いつでも簡単にアクセスできるようにしましょう。",
+    "noFavorites": "お気に入りデッキがありません",
+    "noFavoritesDescription": "気になるデッキを見つけてお気に入りに追加しましょう！",
+    "browseDecks": "デッキを探す",
+    "retry": "再試行"
   }
 }

@@ -23,7 +23,7 @@
       "title": "콜라주 이미지 생성"
     },
     "detailedSearch": {
-      "title": "카드 상세 검색"
+      "title": "상세 카드 검색"
     },
     "list": {
       "createNew": "새 리스트 만들기"
@@ -77,7 +77,33 @@
     "urlCopied": "URL을 복사했습니다",
     "urlCopiedMessage": "링크가 클립보드에 복사되었습니다.",
     "postSuccess": "게시 성공",
-    "tradePostCreated": "트레이드 게시물이 생성되었습니다."
+    "tradePostCreated": "트레이드 게시물이 생성되었습니다.",
+    "listCreationComplete": "리스트 생성 완료",
+    "listCreatedSuccessfully": "카드 리스트가 성공적으로 생성되었습니다.",
+    "unfavorited": "즐겨찾기에서 제거되었습니다."
+  },
+  "notifications": {
+    "title": "알림",
+    "noNotifications": "알림 없음",
+    "loading": "로딩 중...",
+    "markAsRead": "읽음으로 표시",
+    "markAllAsRead": "모두 읽음으로 표시",
+    "unreadCount": "{count}개의 읽지 않은 알림",
+    "count": "{count}개",
+    "showing50": "50개 이상",
+    "types": {
+      "trade": "트레이드",
+      "deck": "덱",
+      "other": "기타"
+    },
+    "time": {
+      "now": "방금 전",
+      "minutesAgo": "{count}분 전",
+      "hoursAgo": "{count}시간 전"
+    },
+    "unknownUser": "알 수 없는 사용자",
+    "unknownDetails": "세부 정보 없음",
+    "fromAbout": "{sender}님이 \"{content}\"에 대해"
   },
   "title": "메시지",
   "warning": {
@@ -86,5 +112,11 @@
     "timeSkewDetail": "기기 시간이 {formatTimeSkew}만큼 어긋나 있습니다. 인증에 문제가 발생할 수 있습니다.",
     "timeSkewMessage": "기기 시간이 {formatTimeSkew}만큼 어긋나 있어 게시가 실패할 수 있습니다.",
     "maxSelectionReached": "최대 {maxSelection}장까지 선택할 수 있습니다."
-  }
+  },
+  "auth": {
+    "listsLoginRequired": "카드 리스트를 생성하고 보려면 로그인하세요."
+  },
+  "ownerActions": "작성자 작업",
+  "cancel": "취소",
+  "complete": "완료"
 }

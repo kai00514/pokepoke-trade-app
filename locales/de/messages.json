@@ -77,7 +77,33 @@
     "tradePosted": "Beitrag erfolgreich",
     "tradePostedMessage": "Handelsbeitrag wurde erstellt.",
     "urlCopied": "URL kopiert",
-    "urlCopiedMessage": "Link wurde in die Zwischenablage kopiert."
+    "urlCopiedMessage": "Link wurde in die Zwischenablage kopiert.",
+    "listCreationComplete": "Liste erstellt",
+    "listCreatedSuccessfully": "Kartenliste wurde erfolgreich erstellt.",
+    "unfavorited": "Aus Favoriten entfernt."
+  },
+  "notifications": {
+    "title": "Benachrichtigungen",
+    "noNotifications": "Keine Benachrichtigungen",
+    "loading": "Lädt...",
+    "markAsRead": "Als gelesen markieren",
+    "markAllAsRead": "Alle als gelesen markieren",
+    "unreadCount": "{count} ungelesene Benachrichtigung(en)",
+    "count": "{count} Benachrichtigung(en)",
+    "showing50": "50+ Benachrichtigungen",
+    "types": {
+      "trade": "Handel",
+      "deck": "Deck",
+      "other": "Andere"
+    },
+    "time": {
+      "now": "Gerade eben",
+      "minutesAgo": "vor {count} Minute(n)",
+      "hoursAgo": "vor {count} Stunde(n)"
+    },
+    "unknownUser": "Unbekannter Benutzer",
+    "unknownDetails": "Keine Details",
+    "fromAbout": "{sender} über \"{content}\""
   },
   "title": "Nachricht",
   "warning": {
@@ -86,5 +112,11 @@
     "timeSkewDetail": "Die Uhr Ihres Geräts ist um {formatTimeSkew} falsch. Dies kann zu Authentifizierungsproblemen führen.",
     "timeSkewMessage": "Die Uhr Ihres Geräts ist um {formatTimeSkew} falsch. Das Posten kann fehlschlagen.",
     "maxSelectionReached": "Sie können bis zu {maxSelection} auswählen."
-  }
+  },
+  "auth": {
+    "listsLoginRequired": "Bitte melden Sie sich an, um Kartenlisten zu erstellen und anzuzeigen."
+  },
+  "ownerActions": "Besitzeraktionen",
+  "cancel": "Abbrechen",
+  "complete": "Abschließen"
 }

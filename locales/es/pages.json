@@ -7,7 +7,15 @@
   },
   "collages": {
     "subtitle": "Crea collages de múltiples cartas y compártelos en X",
-    "title": "Imágenes de collage"
+    "title": "Imágenes de collage",
+    "noCollagesYet": "Aún no hay collages",
+    "cardCount": "{count1} + {count2} cartas",
+    "deleteConfirm": "¿Estás seguro de que quieres eliminar este collage?",
+    "deleteSuccess": "Collage eliminado exitosamente",
+    "deleteFailed": "Error al eliminar el collage",
+    "fetchFailed": "Error al obtener los collages",
+    "notFound": "Collage no encontrado",
+    "backToList": "Volver a la lista de collages"
   },
   "contact": {
     "contactInfo": {
@@ -124,5 +132,29 @@
     "authorComment": "Comentario del autor:",
     "offeredCards": "Cartas ofrecidas",
     "wantedCards": "Cartas deseadas"
+  },
+  "lists": {
+    "title": "Listas de Cartas",
+    "createNewList": "Crear Nueva Lista",
+    "createListDescription": "Crea listas de cartas para comerciar e intercambiar con otros usuarios.",
+    "description": "Puedes crear múltiples listas de cartas. Al publicar un intercambio, puedes seleccionar de tus listas guardadas para especificar cartas fácilmente.",
+    "maxListsWarning": "Puedes crear hasta 10 listas. Para crear una nueva lista, elimina una existente.",
+    "untitledList": "Lista sin título",
+    "noDescription": "Sin descripción",
+    "noLists": "Aún no hay listas",
+    "createFirstList": "Crea una lista de cartas para hacer el comercio más conveniente."
+  },
+  "favorites": {
+    "title": "Mazos Favoritos",
+    "count": "{count} elementos",
+    "checkingAuth": "Verificando estado de autenticación...",
+    "viewFavorites": "Ver Mazos Favoritos",
+    "loginRequired": "Se requiere iniciar sesión para guardar y administrar tus mazos favoritos.",
+    "loginPromptTitle": "Inicio de sesión requerido para ver mazos favoritos",
+    "loginPromptDescription": "Guarda tus mazos favoritos y accede a ellos fácilmente en cualquier momento.",
+    "noFavorites": "Sin Mazos Favoritos",
+    "noFavoritesDescription": "¡Encuentra mazos interesantes y agrégalos a tus favoritos!",
+    "browseDecks": "Explorar Mazos",
+    "retry": "Reintentar"
   }
 }

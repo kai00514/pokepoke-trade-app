@@ -58,7 +58,8 @@
     "editGroup": "Modifier {title}",
     "save": "Enregistrer",
     "saving": "Enregistrement...",
-    "searchCards": "Rechercher des cartes"
+    "searchCards": "Rechercher des cartes",
+    "backToList": "Retour à la liste"
   },
   "contact": {
     "prompt": "Partagez vos questions ou demandes"
@@ -82,7 +83,9 @@
     "profileBanner": "Bannière de profil",
     "recruiting": "Recrutement",
     "soon": "BIENTÔT",
-    "user": "Utilisateur"
+    "unknown": "Inconnu",
+    "user": "Utilisateur",
+    "details": "Détails"
   },
   "language": {
     "de": "Deutsch",
@@ -155,7 +158,7 @@
     "setYourId": "Définir votre ID exclusif"
   },
   "units": {
-    "cards": "{count} cartes"
+    "cards": " cartes"
   },
   "translation": {
     "translate": "Traduire",
