@@ -1,6 +1,6 @@
 "use client"
 
-import Link from "next/link"
+import { Link } from "@/lib/i18n-navigation"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -10,6 +10,7 @@ import { useAuth } from "@/contexts/auth-context"
 import { useState, useEffect, memo } from "react"
 import { getNotifications } from "@/lib/services/notification-service"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { useTranslations } from "next-intl"
 
 // ユーザーアバター部分をメモ化
 const UserAvatar = memo(function UserAvatar({
@@ -36,7 +37,7 @@ const UserAvatar = memo(function UserAvatar({
         {userProfile?.avatar_url ? (
           <Image
             src={userProfile.avatar_url || "/placeholder.svg"}
-            alt="ユーザーアバター"
+            alt={t('common.header.userAvatar')}
             width={32}
             height={32}
             className="rounded-full object-cover w-full h-full"
@@ -53,6 +54,7 @@ const UserAvatar = memo(function UserAvatar({
 })
 
 function Header() {
+  const t = useTranslations()
   const { user, userProfile, isLoading, signOut, displayName } = useAuth()
   const [unreadCount, setUnreadCount] = useState(0)
 
@@ -125,17 +127,17 @@ function Header() {
     <header className="bg-violet-500 text-white shadow-md">
       <div className="container mx-auto px-4 py-3 flex items-center justify-between">
         <Link href="/" className="flex items-center">
-          <Image src="/pokelink-logo.png" alt="PokeLink ロゴ" width={160} height={40} className="object-contain h-10" />
+          <Image src="/pokelink-logo.png" alt={t('common.header.logoAlt')} width={160} height={40} className="object-contain h-10" />
         </Link>
         <div className="flex items-center gap-2 sm:gap-3">
           <Button
             variant="ghost"
             size="icon"
             className="bg-white text-violet-600 hover:bg-violet-100 rounded-full h-9 w-9 sm:h-10 sm:w-10"
-            aria-label="新規投稿作成"
+            aria-label={t('common.buttons.createPost')}
           >
             <Plus className="h-5 w-5 sm:h-6 sm:w-6" />
-            <span className="sr-only">新規投稿作成</span>
+            <span className="sr-only">{t('common.buttons.createPost')}</span>
           </Button>
 
           {user && (
@@ -144,7 +146,7 @@ function Header() {
               size="icon"
               className="relative text-white hover:bg-white/20 rounded-full h-9 w-9 sm:h-10 sm:w-10 transition-all duration-200"
               onClick={handleNotificationClick}
-              aria-label={`通知 ${unreadCount > 0 ? `(${unreadCount}件の未読)` : ""}`}
+              aria-label={`${t('common.header.notifications')} ${unreadCount > 0 ? `(${unreadCount}${t('common.header.unread')})` : ""}`}
             >
               <Bell className="h-5 w-5 sm:h-6 sm:w-6" />
               {unreadCount > 0 && (
@@ -161,7 +163,7 @@ function Header() {
           {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="p-0 h-auto" aria-label="ユーザーメニューを開く">
+                <Button variant="ghost" className="p-0 h-auto" aria-label={t('common.header.openUserMenu')}>
                   <UserAvatar userProfile={userProfile} displayName={displayName} isLoading={isLoading} />
                 </Button>
               </DropdownMenuTrigger>
@@ -183,7 +185,7 @@ function Header() {
                       {userProfile?.avatar_url ? (
                         <Image
                           src={userProfile.avatar_url || "/placeholder.svg"}
-                          alt="ユーザーアバター"
+                          alt={t('common.header.userAvatar')}
                           width={56}
                           height={56}
                           className="rounded-full object-cover w-14 h-14 ring-4 ring-white/30 shadow-lg"
@@ -197,7 +199,7 @@ function Header() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-xl font-bold text-white truncate drop-shadow-sm">{displayName}</p>
-                      <p className="text-sm text-white/90 font-medium">オンライン</p>
+                      <p className="text-sm text-white/90 font-medium">{t('common.user.online')}</p>
                     </div>
                   </div>
                 </div>
@@ -213,10 +215,10 @@ function Header() {
                     </div>
                     <div className="flex-1">
                       <p className="font-bold text-gray-900 group-hover:text-blue-700 transition-colors duration-200">
-                        ポケポケID登録
+                        {t('common.user.pokepokeIdRegistration')}
                       </p>
                       <p className="text-xs text-gray-500 group-hover:text-blue-600 transition-colors duration-200">
-                        あなた専用のIDを設定
+                        {t('common.user.setYourId')}
                       </p>
                     </div>
                     <div className="w-3 h-3 bg-blue-400 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:scale-125"></div>
@@ -231,10 +233,10 @@ function Header() {
                     </div>
                     <div className="flex-1">
                       <p className="font-bold text-gray-900 group-hover:text-emerald-700 transition-colors duration-200">
-                        ユーザー名登録
+                        {t('common.user.usernameRegistration')}
                       </p>
                       <p className="text-xs text-gray-500 group-hover:text-emerald-600 transition-colors duration-200">
-                        表示名をカスタマイズ
+                        {t('common.user.customizeDisplayName')}
                       </p>
                     </div>
                     <div className="w-3 h-3 bg-emerald-400 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:scale-125"></div>
@@ -249,10 +251,10 @@ function Header() {
                     </div>
                     <div className="flex-1">
                       <p className="font-bold text-gray-900 group-hover:text-orange-700 transition-colors duration-200">
-                        お問い合わせ
+                        {t('common.contact.title')}
                       </p>
                       <p className="text-xs text-gray-500 group-hover:text-orange-600 transition-colors duration-200">
-                        ご質問やご要望をお聞かせください
+                        {t('common.contact.prompt')}
                       </p>
                     </div>
                     <div className="w-3 h-3 bg-orange-400 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:scale-125"></div>
@@ -270,10 +272,10 @@ function Header() {
                     </div>
                     <div className="flex-1">
                       <p className="font-bold text-gray-900 group-hover:text-red-700 transition-colors duration-200">
-                        ログアウト
+                        {t('auth.logout.title')}
                       </p>
                       <p className="text-xs text-gray-500 group-hover:text-red-600 transition-colors duration-200">
-                        アカウントから安全に退出
+                        {t('common.auth.safeLogout')}
                       </p>
                     </div>
                     <div className="w-3 h-3 bg-red-400 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:scale-125"></div>
@@ -293,7 +295,7 @@ function Header() {
                   variant="default"
                   className="bg-white text-violet-600 hover:bg-violet-100 text-xs sm:text-sm px-3 py-1.5 sm:px-4 sm:py-2"
                 >
-                  新規登録
+                  {t('auth.signup.title')}
                 </Button>
               </Link>
               <Link href="/auth/login">
@@ -301,7 +303,7 @@ function Header() {
                   variant="outline"
                   className="bg-white text-violet-600 border-violet-600 hover:bg-violet-100 hover:text-violet-700 text-xs sm:text-sm px-3 py-1.5 sm:px-4 sm:py-2"
                 >
-                  ログイン
+                  {t('auth.login.title')}
                 </Button>
               </Link>
             </>

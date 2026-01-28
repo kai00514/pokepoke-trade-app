@@ -1,12 +1,16 @@
-import type { ReactNode } from "react"
-import { AuthHeader } from "@/components/auth-header"
+import type React from "react"
+import { AuthProvider } from "@/contexts/auth-context"
+import { Toaster } from "@/components/ui/toaster"
 
-export default function AuthLayout({ children }: { children: ReactNode }) {
+export default function AuthLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
   return (
-    <div className="min-h-screen bg-blue-50">
-      {/* ヘッダーは透明背景。下地の薄い青がそのまま出ます */}
-      <AuthHeader />
-      <main>{children}</main>
-    </div>
+    <AuthProvider>
+      {children}
+      <Toaster />
+    </AuthProvider>
   )
 }

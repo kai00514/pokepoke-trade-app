@@ -1,50 +1,122 @@
 {
-  "success": {
-    "loginSuccess": "ログイン成功",
-    "loginSuccessMessage": "ログインしました。",
-    "confirmationEmailSent": "確認メール送信",
-    "confirmationEmailSentMessage": "確認メールを送信しました。メールをご確認の上、リンクをクリックして登録を完了してください。",
-    "checkEmail": "メールをご確認ください。",
-    "signupComplete": "登録完了",
-    "accountCreated": "アカウントが作成されました。",
-    "passwordUpdated": "パスワード更新完了",
-    "passwordUpdatedMessage": "新しいパスワードでログインしてください。",
-    "resetEmailSent": "メール送信完了",
-    "resetEmailSentMessage": "パスワードリセットのリンクを送信しました。",
-    "resetEmailSentDetail": "パスワードリセットのリンクをメールアドレスに送信しました。メールをご確認ください。",
-    "passwordUpdateSuccess": "パスワードが正常に更新されました。ログインページへ移動してください。",
-    "sessionRefreshed": "セッション更新完了",
-    "sessionRefreshedMessage": "セッションが正常に更新されました。",
-    "tradePosted": "投稿成功",
-    "tradePostedMessage": "トレード投稿が作成されました。",
-    "listCreated": "リスト作成完了",
-    "listCreatedMessage": "カードリストが正常に作成されました。",
-    "urlCopied": "URLをコピーしました",
-    "urlCopiedMessage": "リンクがクリップボードにコピーされました。",
-    "idCopied": "コピーしました",
-    "idCopiedMessage": "ID: {postId} をクリップボードにコピーしました。",
-    "resendConfirmation": "確認メール再送信",
-    "resendConfirmationMessage": "確認メールを再送信しました。"
-  },
   "info": {
-    "tradeNotice": "ここで登録された内容はタイムラインに即時反映されます。コメントがあれば、ベルマークから確認できます。トレード状況はマイページのトレード履歴から確認できます。",
-    "collageDescription": "複数のカード画像を自動で合成して、1つのコラージュ画像を作成できます。生成したコラージュはXに投稿できます。",
-    "collageInstruction": "各グループで1～30枚のカードを選択できます。タイトルはコラージュ画像に表示されます。",
-    "loginRequired": "コラージュを生成・管理するにはログインが必要です。",
-    "cardsSelected": "{count}枚のカードが選択されています",
-    "selectCards": "カードを選択してください",
-    "noCardsSelected": "カードが選択されていません",
-    "selectedCount": "選択されたカード: {count}枚",
-    "selectedCountWithMax": "{count}枚選択中 (最大{max}枚)",
-    "resultCount": "全{totalCount}件中 {start}〜{end}件を表示",
-    "noPostsFound": "該当する投稿が見つかりませんでした。",
-    "noPosts": "投稿がありません",
-    "noCardsFound": "該当するカードが見つかりません。"
+    "cardsSelected": "{count} cartes sélectionnées",
+    "collageDescription": "Combine automatiquement plusieurs images de cartes pour créer une seule image de collage. Vous pouvez publier le collage généré sur X.",
+    "collageInstruction": "Vous pouvez sélectionner 1-30 cartes dans chaque groupe. Les titres seront affichés sur l'image du collage.",
+    "loginRequired": "Connexion requise pour générer et gérer les collages.",
+    "maxCards": "(max {max})",
+    "noCardsFound": "Aucune carte correspondante trouvée.",
+    "noCardsSelected": "Aucune carte sélectionnée",
+    "noPosts": "Aucune publication disponible",
+    "noPostsFound": "Aucune publication correspondante trouvée.",
+    "resultCount": "Affichage de {start}-{end} sur {totalCount} résultats",
+    "searchCardsInstruction": "Veuillez sélectionner des cartes depuis le bouton \"Rechercher des cartes\"",
+    "selectCards": "Veuillez sélectionner des cartes",
+    "selectedCount": "Cartes sélectionnées : {count}",
+    "selectedCountCards": "{count} sélectionnées",
+    "selectedCountWithMax": "{count} sélectionnées (max {max})",
+    "tradeNotice": "Les publications enregistrées ici seront immédiatement reflétées dans la chronologie. Les commentaires peuvent être vérifiés depuis l'icône de notification. L'état de l'échange peut être vérifié dans l'historique des échanges de Ma Page."
   },
+  "modals": {
+    "collage": {
+      "selectCardsForGroup": "Sélectionner les cartes pour {title}",
+      "title": "Générer une image de collage"
+    },
+    "detailedSearch": {
+      "title": "Recherche Détaillée de Cartes"
+    },
+    "list": {
+      "createNew": "Créer une nouvelle liste"
+    },
+    "loginPrompt": {
+      "benefit1": "Remplissage automatique de l'ID Pokepoke et du nom d'utilisateur",
+      "benefit2": "Créer une liste de cartes souhaitées/offertes",
+      "benefit3": "Recevoir les dernières informations depuis l'icône de notification",
+      "benefit4": "Vérifier l'état de l'échange dans l'écran d'historique",
+      "benefit5": "Enregistrer les decks en favoris",
+      "title": "Plus pratique avec l'enregistrement de compte !"
+    },
+    "pokepokeId": {
+      "description": "Veuillez définir votre ID Pokepoke. Cela facilitera la recherche par d'autres utilisateurs.",
+      "title": "Enregistrer l'ID Pokepoke"
+    },
+    "selectCards": {
+      "description": "Veuillez sélectionner des cartes à ajouter à la liste (max 35, actuellement {count} sélectionnées)",
+      "title": "Sélectionner des cartes"
+    },
+    "username": {
+      "description": "Veuillez définir un nom d'utilisateur pour l'affichage. Vous pouvez le modifier à tout moment.",
+      "title": "Enregistrer le nom d'utilisateur"
+    }
+  },
+  "success": {
+    "accountCreated": "Votre compte a été créé.",
+    "checkEmail": "Veuillez vérifier votre e-mail.",
+    "confirmationEmailSent": "E-mail de confirmation envoyé",
+    "confirmationEmailSentMessage": "Un e-mail de confirmation a été envoyé. Veuillez vérifier votre e-mail et cliquer sur le lien pour terminer l'enregistrement.",
+    "copied": "Copié",
+    "idCopied": "Copié",
+    "idCopiedMessage": "ID : {postId} a été copié dans le presse-papiers.",
+    "listCreated": "Liste créée",
+    "listCreatedMessage": "La liste de cartes a été créée avec succès.",
+    "loginSuccess": "Connexion réussie",
+    "loginSuccessMessage": "Vous êtes connecté.",
+    "passwordUpdateSuccess": "Le mot de passe a été mis à jour avec succès. Veuillez aller à la page de connexion.",
+    "passwordUpdated": "Mot de passe mis à jour",
+    "passwordUpdatedMessage": "Veuillez vous connecter avec votre nouveau mot de passe.",
+    "resendConfirmation": "E-mail de confirmation renvoyé",
+    "resendConfirmationMessage": "L'e-mail de confirmation a été renvoyé.",
+    "resetEmailSent": "E-mail envoyé",
+    "resetEmailSentDetail": "Un lien de réinitialisation de mot de passe a été envoyé à votre adresse e-mail. Veuillez vérifier votre e-mail.",
+    "resetEmailSentMessage": "Un lien de réinitialisation de mot de passe a été envoyé.",
+    "sessionRefreshed": "Session actualisée",
+    "sessionRefreshedMessage": "La session a été actualisée avec succès.",
+    "signupComplete": "Inscription terminée",
+    "postSuccess": "Publication réussie",
+    "tradePostCreated": "La publication d'échange a été créée.",
+    "tradePosted": "Publication réussie",
+    "tradePostedMessage": "La publication d'échange a été créée.",
+    "urlCopied": "URL copiée",
+    "urlCopiedMessage": "Le lien a été copié dans le presse-papiers.",
+    "listCreationComplete": "Liste Créée",
+    "listCreatedSuccessfully": "La liste de cartes a été créée avec succès.",
+    "unfavorited": "Retiré des favoris."
+  },
+  "notifications": {
+    "title": "Notifications",
+    "noNotifications": "Aucune notification",
+    "loading": "Chargement...",
+    "markAsRead": "Marquer comme lu",
+    "markAllAsRead": "Tout marquer comme lu",
+    "unreadCount": "{count} notification(s) non lue(s)",
+    "count": "{count} notification(s)",
+    "showing50": "Plus de 50 notifications",
+    "types": {
+      "trade": "Échange",
+      "deck": "Deck",
+      "other": "Autre"
+    },
+    "time": {
+      "now": "À l'instant",
+      "minutesAgo": "il y a {count} minute(s)",
+      "hoursAgo": "il y a {count} heure(s)"
+    },
+    "unknownUser": "Utilisateur inconnu",
+    "unknownDetails": "Aucun détail",
+    "fromAbout": "{sender} à propos de \"{content}\""
+  },
+  "title": "Message",
   "warning": {
-    "timeSkew": "時刻同期の問題",
-    "timeSkewMessage": "デバイスの時計が{formatTimeSkew}ずれています。投稿に失敗する可能性があります。",
-    "timeSkewDetail": "デバイスの時計が{formatTimeSkew}ずれています。これにより認証に問題が発生する可能性があります。",
-    "selectionLimit": "選択上限"
-  }
+    "selectionLimit": "Limite de sélection",
+    "timeSkew": "Problème de synchronisation de l'heure",
+    "timeSkewDetail": "L'horloge de votre appareil est décalée de {formatTimeSkew}. Cela peut causer des problèmes d'authentification.",
+    "timeSkewMessage": "L'horloge de votre appareil est décalée de {formatTimeSkew}. La publication peut échouer.",
+    "maxSelectionReached": "Vous pouvez sélectionner jusqu'à {maxSelection}."
+  },
+  "auth": {
+    "listsLoginRequired": "Veuillez vous connecter pour créer et afficher les listes de cartes."
+  },
+  "ownerActions": "Actions du Propriétaire",
+  "cancel": "Annuler",
+  "complete": "Terminer"
 }

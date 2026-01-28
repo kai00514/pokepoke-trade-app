@@ -4,11 +4,12 @@ import type React from "react"
 
 import { useState, useEffect } from "react"
 import Image from "next/image"
-import Link from "next/link"
+import { Link } from "@/lib/i18n-navigation"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Heart, Star, MessageCircle, CalendarDays, Loader2 } from "lucide-react"
 import { useAuth } from "@/contexts/auth-context"
+import { useTranslations, useLocale } from "next-intl"
 import {
   likeDeck,
   unlikeDeck,
@@ -18,6 +19,7 @@ import {
 } from "@/lib/services/deck-service" // 個々の関数をインポート
 import { useToast } from "@/components/ui/use-toast"
 import LoginPromptModal from "@/components/ui/login-prompt-modal"
+import { getLocalizedCardName, getLocalizedCardImage } from "@/lib/i18n-helpers"
 
 export interface Deck {
   id: string
@@ -73,6 +75,8 @@ export function DeckCard({ deck, onCountUpdate, currentCategory = "posts", onRem
 
   const { user } = useAuth()
   const { toast } = useToast()
+  const t = useTranslations()
+  const locale = useLocale()
 
   // ローカル状態でいいね・お気に入りの状態とカウントを管理
   const [isLiked, setIsLiked] = useState(false)
@@ -125,7 +129,7 @@ export function DeckCard({ deck, onCountUpdate, currentCategory = "posts", onRem
     }
   }, [user, deck.id, deck.is_deck_page]) // Add deck.is_deck_page to dependency array
 
-  const deckName = deck.title || deck.name || deck.deck_name || "無題のデッキ"
+  const deckName = deck.title || deck.name || deck.deck_name || t('decks.untitled')
   const updatedDate = deck.updated_at || deck.updatedAt || deck.created_at || new Date().toISOString()
 
   // リンク先を決定（deck_pagesテーブルのデータは/content/[id]、通常のデッキは/decks/[id]）
@@ -170,10 +174,9 @@ export function DeckCard({ deck, onCountUpdate, currentCategory = "posts", onRem
     // 新しいサムネイル画像システム（cardsテーブルからJOIN）
     if (deck.thumbnail_image) {
       return {
-        // WebP画像（thumb_url）を優先、フォールバックでimage_url
-        url:
-          deck.thumbnail_image.thumb_url || deck.thumbnail_image.image_url || "/placeholder.svg?width=120&height=168",
-        name: deck.thumbnail_image.name,
+        // WebP画像（thumb_url）を優先、ローカライズされた画像URL、フォールバックでimage_url
+        url: getLocalizedCardImage(deck.thumbnail_image, locale) || "/placeholder.svg?width=120&height=168",
+        name: getLocalizedCardName(deck.thumbnail_image, locale),
       }
     }
 
@@ -244,7 +247,7 @@ export function DeckCard({ deck, onCountUpdate, currentCategory = "posts", onRem
 
         if (result.error) {
           console.error("❤️ Action failed with error:", result.error)
-          toast({ title: "エラー", description: result.error, variant: "destructive" })
+          toast({ title: t('errors.generic.error'), description: result.error, variant: "destructive" })
           // エラー時はUIの状態を元に戻す
           console.log("❤️ Reverting UI state due to error")
           setIsLiked(originalIsLiked)
@@ -264,7 +267,7 @@ export function DeckCard({ deck, onCountUpdate, currentCategory = "posts", onRem
         }
       } catch (actionError) {
         console.error("❤️ Exception during action:", actionError)
-        toast({ title: "エラー", description: "操作に失敗しました", variant: "destructive" })
+        toast({ title: t('errors.generic.error'), description: t('errors.operationFailed'), variant: "destructive" })
         console.log("❤️ Reverting UI state due to exception")
         setIsLiked(originalIsLiked)
         setLikeCount(originalLikeCount)
@@ -343,7 +346,7 @@ export function DeckCard({ deck, onCountUpdate, currentCategory = "posts", onRem
 
         if (result.error) {
           console.error("⭐ Action failed with error:", result.error)
-          toast({ title: "エラー", description: result.error, variant: "destructive" })
+          toast({ title: t('errors.generic.error'), description: result.error, variant: "destructive" })
           // エラー時はUIの状態を元に戻す
           console.log("⭐ Reverting UI state due to error")
           setIsFavorited(originalIsFavorited)
@@ -362,7 +365,7 @@ export function DeckCard({ deck, onCountUpdate, currentCategory = "posts", onRem
         }
       } catch (actionError) {
         console.error("⭐ Exception during action:", actionError)
-        toast({ title: "エラー", description: "操作に失敗しました", variant: "destructive" })
+        toast({ title: t('errors.generic.error'), description: t('errors.operationFailed'), variant: "destructive" })
         console.log("⭐ Reverting UI state due to exception")
         setIsFavorited(originalIsFavorited)
         setFavoriteCount(originalFavoriteCount)
@@ -431,7 +434,7 @@ export function DeckCard({ deck, onCountUpdate, currentCategory = "posts", onRem
             </p>
             <div className="flex items-center text-xs text-slate-500 mt-1">
               <CalendarDays className="h-3 w-3 mr-1 flex-shrink-0" />
-              <span className="text-xs">更新: {new Date(updatedDate).toLocaleDateString("ja-JP")}</span>
+              <span className="text-xs">{t('common.misc.updated')}: {new Date(updatedDate).toLocaleDateString(locale)}</span>
             </div>
           </CardContent>
           <CardFooter className="p-2 bg-slate-50/70 border-t border-slate-200/80 flex justify-around items-center text-xs text-slate-600">

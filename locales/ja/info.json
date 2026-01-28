@@ -1,0 +1,29 @@
+{
+  "news": {
+    "backToInfo": "インフォメーションに戻る",
+    "loading": "読み込み中...",
+    "noArticles": "現在、表示できる記事がありません。",
+    "pinned": "ピン留め",
+    "subtitle": "すべての最新情報をご覧いただけます",
+    "title": "最新情報一覧"
+  },
+  "noLatestInfo": "最新情報はまだありません。",
+  "noTournaments": "現在開催予定の大会はありません。",
+  "placeholders": {
+    "glossary": "用語集がここに表示されます。",
+    "guides": "初心者向けガイドがここに表示されます。",
+    "rules": "ルールの基本情報がここに表示されます。",
+    "tournaments": "公式トーナメント情報がここに表示されます。"
+  },
+  "sections": {
+    "calendar": "大会カレンダー",
+    "glossary": "用語集",
+    "guides": "初心者向けガイド",
+    "latestNews": "最新情報",
+    "rules": "ルールの基本",
+    "tournaments": "公式トーナメント"
+  },
+  "title": "インフォメーション",
+  "viewAll": "すべて見る",
+  "viewAllLatestInfo": "すべての最新情報を見る"
+}

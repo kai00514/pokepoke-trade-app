@@ -1,0 +1,22 @@
+{
+  "anonymousUser": "Utilisateur anonyme",
+  "edited": "Modifié",
+  "guest": "Invité",
+  "justNow": "À l’instant",
+  "loadError": "Impossible de charger les commentaires.",
+  "loggedInAs": "Connecté en tant que : {name}",
+  "noComments": "Aucun commentaire pour le moment.",
+  "placeholder": "Entrez votre commentaire...",
+  "placeholderGuest": "Entrez votre commentaire en tant qu’invité...",
+  "pleaseEnter": "Veuillez entrer un commentaire.",
+  "post": "Publier",
+  "postError": "Échec de la publication du commentaire",
+  "postErrorRetry": "Échec de la publication du commentaire. Veuillez réessayer.",
+  "postErrorTitle": "Erreur de publication du commentaire",
+  "posted": "Publié",
+  "postedAsGuest": "Commentaire publié en tant qu’invité",
+  "postedSuccess": "Commentaire publié avec succès",
+  "shortcutHint": "Appuyez sur Ctrl+Entrée pour envoyer",
+  "title": "Commentaires",
+  "titleWithCount": "Commentaires ({count})"
+}

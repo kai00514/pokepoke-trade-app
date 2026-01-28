@@ -21,6 +21,7 @@ import {
   type Q2Value,
   type Q3Feature,
 } from "@/lib/survey/constants"
+import { useTranslations } from "next-intl"
 
 interface MatchingSurveyProps {
   onSuccess: () => void
@@ -28,7 +29,39 @@ interface MatchingSurveyProps {
 
 export default function MatchingSurvey({ onSuccess }: MatchingSurveyProps) {
   const { toast } = useToast()
+  const t = useTranslations()
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  // Translation key mappings for survey options
+  const getQ1Label = (value: string) => {
+    const keyMap: Record<string, string> = {
+      want_match: "survey.q1.option1",
+      offer_match: "survey.q1.option2",
+      facet_search: "survey.q1.option3",
+      direct_specify: "survey.q1.option4"
+    }
+    return t(keyMap[value] || value)
+  }
+
+  const getQ2Label = (value: string) => {
+    const keyMap: Record<string, string> = {
+      speed: "survey.q2.option1",
+      trust: "survey.q2.option2",
+      rare_efficiency: "survey.q2.option3",
+      social: "survey.q2.option4"
+    }
+    return t(keyMap[value] || value)
+  }
+
+  const getQ3Label = (value: string) => {
+    const keyMap: Record<string, string> = {
+      chat: "survey.q3.option1",
+      notify: "survey.q3.option2",
+      review: "survey.q3.option3",
+      history: "survey.q3.option4"
+    }
+    return t(keyMap[value] || value)
+  }
   const [formData, setFormData] = useState<SurveyResponse>({
     q1_primary: "" as MatchingPrimaryPref,
     q2_values: [],
@@ -91,7 +124,7 @@ export default function MatchingSurvey({ onSuccess }: MatchingSurveyProps) {
 
     if (!validateForm()) {
       toast({
-        title: "未回答の項目があります。",
+        title: t("survey.incompleteError"),
         variant: "destructive",
       })
       return
@@ -125,7 +158,7 @@ export default function MatchingSurvey({ onSuccess }: MatchingSurveyProps) {
     } catch (error) {
       console.error("Survey submission error:", error)
       toast({
-        title: "送信中にエラーが発生しました。時間をおいて再度お試しください。",
+        title: t("survey.submitError"),
         variant: "destructive",
       })
     } finally {
@@ -141,9 +174,9 @@ export default function MatchingSurvey({ onSuccess }: MatchingSurveyProps) {
             <FileText className="h-6 w-6 text-blue-600" />
           </div>
           <div>
-            <h2 className="text-xl font-bold text-slate-900">ご意見をお聞かせください</h2>
+            <h2 className="text-xl font-bold text-slate-900">{t("survey.title")}</h2>
             <p className="text-sm text-slate-600 mt-1">
-              マッチング機能をより良くするため、1分アンケートにご協力ください。
+              {t("survey.subtitle")}
             </p>
           </div>
         </div>
@@ -152,7 +185,7 @@ export default function MatchingSurvey({ onSuccess }: MatchingSurveyProps) {
           {/* Q1 - Single choice, required */}
           <div className="space-y-4">
             <h3 className="font-semibold text-slate-900">
-              Q1. マッチング相手を探すときに最も重視するものは？ <span className="text-red-500">*</span>
+              {t("survey.q1.title")} <span className="text-red-500">*</span>
             </h3>
             <RadioGroup
               value={formData.q1_primary}
@@ -162,7 +195,7 @@ export default function MatchingSurvey({ onSuccess }: MatchingSurveyProps) {
                 <div key={option.value} className="flex items-center space-x-2">
                   <RadioGroupItem value={option.value} id={`q1-${option.value}`} />
                   <Label htmlFor={`q1-${option.value}`} className="text-sm leading-relaxed">
-                    {option.label}
+                    {getQ1Label(option.value)}
                   </Label>
                 </div>
               ))}
@@ -172,7 +205,7 @@ export default function MatchingSurvey({ onSuccess }: MatchingSurveyProps) {
           {/* Q2 - Multiple choice, required */}
           <div className="space-y-4">
             <h3 className="font-semibold text-slate-900">
-              Q2. マッチングで期待する体験は？（複数選択可） <span className="text-red-500">*</span>
+              {t("survey.q2.title")} <span className="text-red-500">*</span>
             </h3>
             <div className="space-y-3">
               {Q2_OPTIONS.map((option) => (
@@ -183,7 +216,7 @@ export default function MatchingSurvey({ onSuccess }: MatchingSurveyProps) {
                     onCheckedChange={(checked) => handleQ2Change(option.value, !!checked)}
                   />
                   <Label htmlFor={`q2-${option.value}`} className="text-sm leading-relaxed">
-                    {option.label}
+                    {getQ2Label(option.value)}
                   </Label>
                 </div>
               ))}
@@ -193,7 +226,7 @@ export default function MatchingSurvey({ onSuccess }: MatchingSurveyProps) {
           {/* Q3 - Multiple choice, required */}
           <div className="space-y-4">
             <h3 className="font-semibold text-slate-900">
-              Q3. マッチング後に欲しいサポート機能は？（複数選択可） <span className="text-red-500">*</span>
+              {t("survey.q3.title")} <span className="text-red-500">*</span>
             </h3>
             <div className="space-y-3">
               {Q3_OPTIONS.map((option) => (
@@ -204,7 +237,7 @@ export default function MatchingSurvey({ onSuccess }: MatchingSurveyProps) {
                     onCheckedChange={(checked) => handleQ3Change(option.value, !!checked)}
                   />
                   <Label htmlFor={`q3-${option.value}`} className="text-sm leading-relaxed">
-                    {option.label}
+                    {getQ3Label(option.value)}
                   </Label>
                 </div>
               ))}
@@ -213,7 +246,7 @@ export default function MatchingSurvey({ onSuccess }: MatchingSurveyProps) {
 
           {/* Q4 - Single choice, optional */}
           <div className="space-y-4">
-            <h3 className="font-semibold text-slate-900">Q4. この機能をどのくらい使いたいですか？（任意）</h3>
+            <h3 className="font-semibold text-slate-900">{t("survey.q4.title")}</h3>
             <RadioGroup
               value={formData.q4_intent?.toString() || ""}
               onValueChange={(value) =>
@@ -236,7 +269,7 @@ export default function MatchingSurvey({ onSuccess }: MatchingSurveyProps) {
 
           <div className="pt-4">
             <Button type="submit" className="w-full" disabled={isSubmitting}>
-              {isSubmitting ? "送信中..." : "送信する"}
+              {isSubmitting ? t("common.buttons.sending") : t("common.buttons.send")}
             </Button>
           </div>
         </form>

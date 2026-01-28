@@ -1,92 +1,160 @@
 {
-  "home": {
-    "title": "PokeLink トレード掲示板",
-    "subtitle": "欲しいカードと譲れるカードをスムーズに交換しよう！"
-  },
-  "login": {
-    "title": "ログイン",
-    "subtitle": "アカウントにログインしてください"
-  },
-  "signup": {
-    "title": "会員登録",
-    "subtitle": "アカウントを作成してポケモンカードの取引を始めましょう"
-  },
-  "reset": {
-    "title": "パスワードをリセット",
-    "subtitle": "登録済みのメールアドレスを入力してください"
-  },
-  "createTrade": {
-    "title": "トレードカードを登録",
-    "noticeTitle": "お知らせ"
-  },
-  "createList": {
-    "title": "新しいカードリストを作成",
-    "subtitle": "トレード用のカードリストを作成して、他のユーザーと交換しましょう。",
-    "listInfo": {
-      "title": "リスト情報",
-      "description": "リストの基本情報を入力してください"
-    },
-    "cardSelection": {
-      "title": "カード選択",
-      "description": "リストに追加するカードを選択してください"
-    },
-    "loginRequired": {
-      "title": "カードをお持ちでない方",
-      "description": "カードリストを作成するにはログインしてください。"
-    }
+  "collageGenerator": {
+    "defaultTitle1": "求めるカード",
+    "defaultTitle2": "譲れるカード",
+    "editGroup": "{title}を編集",
+    "title": "コラージュ画像を生成"
   },
   "collages": {
+    "subtitle": "複数のカードをコラージュにしてXで共有しましょう",
     "title": "コラージュ画像",
-    "subtitle": "複数のカードをコラージュにしてXで共有しましょう"
+    "noCollagesYet": "コラージュがまだありません",
+    "cardCount": "{count1}枚 + {count2}枚",
+    "deleteConfirm": "このコラージュを削除しますか？",
+    "deleteSuccess": "コラージュを削除しました",
+    "deleteFailed": "コラージュの削除に失敗しました",
+    "fetchFailed": "コラージュ一覧の取得に失敗しました",
+    "notFound": "コラージュが見つかりません",
+    "backToList": "コラージュ一覧に戻る"
   },
   "contact": {
-    "title": "お問い合わせ",
-    "subtitle": "ご質問やご要望がございましたら、お気軽にお問い合わせください。 内容を確認の上、後日ご返信いたします。",
-    "form": {
-      "title": "お問い合わせフォーム",
-      "description": "必要事項をご入力の上、送信してください"
-    },
-    "faq": {
-      "title": "よくある質問",
-      "q1": "Q. 返信までどのくらいかかりますか？",
-      "a1": "通常、1-3営業日以内にご返信いたします。",
-      "q2": "Q. アカウントに関する問題",
-      "a2": "ログインできない場合は、パスワードリセットをお試しください。",
-      "q3": "Q. 機能の要望について",
-      "a3": "新機能のご要望も大歓迎です。詳しくお聞かせください。"
-    },
     "contactInfo": {
-      "title": "その他の連絡方法",
       "email": "メール",
       "hours": "対応時間",
-      "hoursValue": "平日 9:00-18:00"
+      "hoursValue": "平日 9:00-18:00",
+      "title": "その他の連絡方法"
+    },
+    "faq": {
+      "a1": "通常、1-3営業日以内にご返信いたします。",
+      "a2": "ログインできない場合は、パスワードリセットをお試しください。",
+      "a3": "新機能のご要望も大歓迎です。詳しくお聞かせください。",
+      "q1": "Q. 返信までどのくらいかかりますか？",
+      "q2": "Q. アカウントに関する問題",
+      "q3": "Q. 機能の要望について",
+      "title": "よくある質問"
+    },
+    "form": {
+      "description": "必要事項をご入力の上、送信してください",
+      "title": "お問い合わせフォーム"
     },
     "notice": {
-      "title": "ご注意",
       "item1": "• 土日祝日は返信が遅れる場合があります",
       "item2": "• 緊急の場合は件名に【緊急】と記載してください",
-      "item3": "• スパムメールフィルターをご確認ください"
-    }
+      "item3": "• スパムメールフィルターをご確認ください",
+      "title": "ご注意"
+    },
+    "subtitle": "ご質問やご要望がございましたら、お気軽にお問い合わせください。 内容を確認の上、後日ご返信いたします。",
+    "title": "お問い合わせ"
   },
-  "tradePost": {
-    "wantedCards": "求めるカード",
-    "offeredCards": "譲れるカード",
-    "authorComment": "投稿者コメント："
+  "createList": {
+    "cardSelection": {
+      "description": "リストに追加するカードを選択してください",
+      "title": "カード選択"
+    },
+    "listInfo": {
+      "description": "リストの基本情報を入力してください",
+      "title": "リスト情報"
+    },
+    "loginRequired": {
+      "description": "カードリストを作成するにはログインしてください。",
+      "title": "カードをお持ちでない方"
+    },
+    "subtitle": "トレード用のカードリストを作成して、他のユーザーと交換しましょう。",
+    "title": "新しいカードリストを作成"
   },
-  "share": {
-    "title": "この投稿を共有",
-    "subtitle": "お好きな方法で投稿をシェアできます",
-    "urlSection": "投稿のURL",
-    "snsSection": "SNSでシェア",
-    "tip": "リンクをコピーして、メールやチャットで共有することもできます"
+  "createTrade": {
+    "noticeTitle": "お知らせ",
+    "title": "トレードカードを登録"
+  },
+  "decks": {
+    "favorites": "Favorites",
+    "featuredDecks": "Featured Decks",
+    "newPackDecks": "New Pack Decks",
+    "postDeck": "Post Deck",
+    "tierDecks": "Tier Decks",
+    "updated": "Updated:",
+    "viewAllDecks": "View All Decks",
+    "viewDetails": "View Details"
   },
   "detailedSearch": {
     "title": "カード詳細検索"
   },
-  "collageGenerator": {
-    "title": "コラージュ画像を生成",
-    "defaultTitle1": "求めるカード",
-    "defaultTitle2": "譲れるカード",
-    "editGroup": "{title}を編集"
+  "history": {
+    "authenticating": "認証状態を確認中...",
+    "commentedPosts": "コメントした投稿",
+    "fetchError": "データの取得に失敗しました。",
+    "loading": "読み込み中...",
+    "matchingHistory": "マッチング履歴",
+    "myPosts": "自分の投稿",
+    "noCommentedPosts": "コメントした投稿の履歴はありません。",
+    "noHistory": "履歴がありません。",
+    "noMatchingHistory": "マッチング履歴がありません。",
+    "noMyPosts": "投稿履歴がありません。",
+    "title": "履歴"
+  },
+  "home": {
+    "subtitle": "欲しいカードと譲れるカードをスムーズに交換しよう！",
+    "title": "PokeLink トレード掲示板"
+  },
+  "login": {
+    "subtitle": "アカウントにログインしてください",
+    "title": "ログイン"
+  },
+  "matching": {
+    "comingSoon": "Coming Soon!",
+    "comingSoonDate": "Coming Soon",
+    "preparingBetterExperience": "We are preparing to provide a better trading experience.",
+    "title": "Matching",
+    "underDevelopment": "Matching feature is currently under development."
+  },
+  "reset": {
+    "subtitle": "登録済みのメールアドレスを入力してください",
+    "title": "パスワードをリセット"
+  },
+  "resultsInfo": {
+    "noPosts": "投稿がありません",
+    "noResults": "該当する投稿が見つかりませんでした。",
+    "searchResults": "（検索: 「{keyword}」）",
+    "showing": "{total}件中 {start}〜{end}件を表示"
+  },
+  "share": {
+    "snsSection": "SNSでシェア",
+    "subtitle": "お好きな方法で投稿をシェアできます",
+    "tip": "リンクをコピーして、メールやチャットで共有することもできます",
+    "title": "この投稿を共有",
+    "urlSection": "投稿のURL"
+  },
+  "signup": {
+    "subtitle": "アカウントを作成してポケモンカードの取引を始めましょう",
+    "title": "会員登録"
+  },
+  "tradePost": {
+    "authorComment": "投稿者コメント：",
+    "offeredCards": "譲れるカード",
+    "wantedCards": "求めるカード"
+  },
+  "lists": {
+    "title": "カードリスト",
+    "createNewList": "新しいリストを作成",
+    "createListDescription": "トレード用のカードリストを作成して、他のユーザーと交換しましょう。",
+    "description": "複数のカードリストを作成できます。トレード投稿時に保存したリストを選択して、簡単にカードを指定できます。",
+    "maxListsWarning": "リストは最大10個まで作成できます。新しいリストを作成するには、既存のリストを削除してください。",
+    "untitledList": "無題のリスト",
+    "noDescription": "説明なし",
+    "noLists": "まだリストがありません",
+    "createFirstList": "カードリストを作成して、トレードをもっと便利にしましょう。"
+  },
+  "favorites": {
+    "title": "お気に入りデッキ",
+    "count": "{count}件",
+    "checkingAuth": "認証状態を確認中...",
+    "viewFavorites": "お気に入りデッキを確認",
+    "loginRequired": "お気に入りのデッキを保存・管理するにはログインが必要です。",
+    "loginPromptTitle": "お気に入りデッキを表示するにはログインが必要です",
+    "loginPromptDescription": "お気に入りのデッキを保存して、いつでも簡単にアクセスできるようにしましょう。",
+    "noFavorites": "お気に入りデッキがありません",
+    "noFavoritesDescription": "気になるデッキを見つけてお気に入りに追加しましょう！",
+    "browseDecks": "デッキを探す",
+    "retry": "再試行"
   }
 }

@@ -1,0 +1,32 @@
+{
+  "incompleteError": "Por favor, responde todas las preguntas obligatorias.",
+  "q1": {
+    "option1": "Coincidencia con las cartas buscadas",
+    "option2": "Coincidencia con las cartas ofrecidas",
+    "option3": "Búsqueda por rareza/tipo",
+    "option4": "Especificación directa mediante ID de amigo",
+    "title": "P1. ¿Qué priorizas al buscar un compañero de intercambio?"
+  },
+  "q2": {
+    "option1": "Encontrar un compañero rápidamente (prioridad: velocidad)",
+    "option2": "Intercambiar con personas confiables (prioridad: fiabilidad)",
+    "option3": "Intercambiar cartas raras o muy solicitadas de manera eficiente",
+    "option4": "Aprovecharlo como oportunidad para interactuar (hacer amigos)",
+    "title": "P2. ¿Qué tipo de experiencia esperas del sistema de emparejamiento? (Puedes seleccionar varias opciones)"
+  },
+  "q3": {
+    "option1": "Chat dentro de la aplicación",
+    "option2": "Notificaciones de coincidencia (push)",
+    "option3": "Visualizar confianza mediante reseñas/calificaciones",
+    "option4": "Guardado automático del historial de intercambios",
+    "title": "P3. ¿Qué funciones de soporte te gustaría tener después del emparejamiento? (Puedes seleccionar varias opciones)"
+  },
+  "q4": {
+    "title": "P4. ¿Con qué frecuencia te gustaría usar esta función? (Opcional)"
+  },
+  "submitError": "Ocurrió un error al enviar tus respuestas. Inténtalo nuevamente más tarde.",
+  "subtitle": "Ayúdanos a mejorar la función de emparejamiento respondiendo esta encuesta de 1 minuto.",
+  "thankYou": "¡Gracias por tu respuesta!",
+  "thankYouMessage": "Utilizaremos tus comentarios para ofrecerte una mejor experiencia de emparejamiento. ¡Estate atento al lanzamiento!",
+  "title": "Queremos conocer tu opinión"
+}

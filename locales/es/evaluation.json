@@ -1,0 +1,19 @@
+{
+  "alreadyRated": "Ya calificado",
+  "alreadyRatedDetail": "Ya has calificado este mazo.",
+  "checkError": "Error al verificar la evaluación del usuario",
+  "checkErrorDetail": "Ocurrió un error al verificar la evaluación del usuario.",
+  "deckFeatures": "Características del mazo",
+  "loginPrompt": "Por favor, inicia sesión para evaluar este mazo.",
+  "stats": {
+    "accessibility": "Accesibilidad",
+    "durability": "Durabilidad",
+    "power": "Poder",
+    "speed": "Velocidad",
+    "stability": "Estabilidad"
+  },
+  "submitError": "Error al enviar la evaluación",
+  "submitErrorDetail": "Ocurrió un error al enviar la evaluación.",
+  "submitSuccess": "Evaluación enviada",
+  "submitSuccessDetail": "Tu evaluación de {score} puntos ha sido registrada."
+}

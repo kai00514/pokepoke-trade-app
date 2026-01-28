@@ -1,42 +1,47 @@
 {
   "categories": {
-    "all": "全て",
-    "pokemon": "ポケモン",
-    "trainers": "トレーナーズ",
-    "goods": "グッズ",
-    "tools": "どうぐ"
-  },
-  "types": {
-    "all": "全タイプ",
-    "grass": "草",
-    "fire": "炎",
-    "water": "水",
-    "electric": "電気",
-    "psychic": "エスパー",
-    "fighting": "格闘",
-    "dark": "悪",
-    "steel": "鋼",
-    "colorless": "無色",
-    "dragon": "ドラゴン"
-  },
-  "rarities": {
-    "all": "全レアリティ",
-    "diamond1": "ダイヤ1",
-    "diamond2": "ダイヤ2",
-    "diamond3": "ダイヤ3",
-    "diamond4": "ダイヤ4",
-    "star1": "星1",
-    "star2": "星2",
-    "star3": "星3",
-    "crown": "クラウン",
-    "color1": "色1",
-    "color2": "色2"
-  },
-  "packs": {
-    "all": "全てのパック"
+    "all": "Toutes",
+    "goods": "Objets",
+    "pokemon": "Pokémon",
+    "tools": "Outils",
+    "trainers": "Dresseurs"
   },
   "filters": {
-    "type": "タイプ",
-    "pack": "パック名"
+    "pack": "Nom du paquet",
+    "type": "Type"
+  },
+  "packs": {
+    "all": "Tous les paquets"
+  },
+  "rarities": {
+    "all": "Toutes les raretés",
+    "color1": "Couleur 1",
+    "color1Label": "1",
+    "color2": "Couleur 2",
+    "color2Label": "2",
+    "crown": "Couronne",
+    "crownLabel": "♔",
+    "diamond1": "Diamant 1",
+    "diamond2": "Diamant 2",
+    "diamond3": "Diamant 3",
+    "diamond4": "Diamant 4",
+    "star1": "Étoile 1",
+    "star2": "Étoile 2",
+    "star3": "Étoile 3"
+  },
+  "types": {
+    "all": "Tous les types",
+    "colorless": "Incolore",
+    "dark": "Ténèbres",
+    "darkness": "Ténèbres",
+    "dragon": "Dragon",
+    "electric": "Électrik",
+    "fighting": "Combat",
+    "fire": "Feu",
+    "grass": "Plante",
+    "metal": "Acier",
+    "psychic": "Psy",
+    "steel": "Acier",
+    "water": "Eau"
   }
 }

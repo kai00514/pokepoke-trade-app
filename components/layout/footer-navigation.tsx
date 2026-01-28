@@ -1,20 +1,22 @@
 "use client"
 
-import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { Link } from "@/lib/i18n-navigation"
+import { usePathname } from "@/lib/i18n-navigation"
 import { Home, Users, Layers, History, Info } from 'lucide-react'
 import { cn } from "@/lib/utils"
-
-const navItems = [
-  { name: "ホーム", href: "/", icon: Home },
-  { name: "マッチング", href: "/matching", icon: Users, soon: true },
-  { name: "デッキ", href: "/decks", icon: Layers },
-  { name: "履歴", href: "/history", icon: History },
-  { name: "最新情報", href: "/info", icon: Info },
-]
+import { useTranslations } from "next-intl"
 
 export function FooterNavigation() {
   const pathname = usePathname()
+  const t = useTranslations()
+
+  const navItems = [
+    { name: t("common.navigation.home"), href: "/", icon: Home },
+    { name: t("common.navigation.matching"), href: "/matching", icon: Users, soon: true },
+    { name: t("common.navigation.decks"), href: "/decks", icon: Layers },
+    { name: t("common.navigation.history"), href: "/history", icon: History },
+    { name: t("common.navigation.info"), href: "/info", icon: Info },
+  ]
 
   return (
     <footer className="bg-blue-600 shadow-lg sticky bottom-0 z-50">
@@ -33,7 +35,7 @@ export function FooterNavigation() {
                   <item.icon className="h-5 w-5 mb-0.5" />
                   {item.soon && (
                     <span className="absolute -top-1 -right-3 bg-amber-400 text-white text-[0.6rem] px-1 py-0.5 rounded-full font-semibold">
-                      SOON
+                      {t("common.labels.soon")}
                     </span>
                   )}
                 </div>

@@ -1,0 +1,29 @@
+{
+  "news": {
+    "backToInfo": "Retour aux informations",
+    "loading": "Chargement...",
+    "noArticles": "Aucun article disponible pour le moment.",
+    "pinned": "Épinglé",
+    "subtitle": "Voir toutes les dernières actualités",
+    "title": "Dernières actualités"
+  },
+  "noLatestInfo": "Aucune actualité pour le moment.",
+  "noTournaments": "Aucun tournoi prévu actuellement.",
+  "placeholders": {
+    "glossary": "Le glossaire s’affichera ici.",
+    "guides": "Le guide pour débutants s’affichera ici.",
+    "rules": "Les règles de base seront affichées ici.",
+    "tournaments": "Les informations officielles des tournois s’afficheront ici."
+  },
+  "sections": {
+    "calendar": "Calendrier des tournois",
+    "glossary": "Glossaire",
+    "guides": "Guide pour débutants",
+    "latestNews": "Dernières actualités",
+    "rules": "Règles de base",
+    "tournaments": "Tournois officiels"
+  },
+  "title": "Informations",
+  "viewAll": "Tout voir",
+  "viewAllLatestInfo": "Voir toutes les actualités"
+}

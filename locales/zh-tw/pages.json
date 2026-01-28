@@ -1,92 +1,160 @@
 {
-  "home": {
-    "title": "PokeLink トレード掲示板",
-    "subtitle": "欲しいカードと譲れるカードをスムーズに交換しよう！"
-  },
-  "login": {
-    "title": "ログイン",
-    "subtitle": "アカウントにログインしてください"
-  },
-  "signup": {
-    "title": "会員登録",
-    "subtitle": "アカウントを作成してポケモンカードの取引を始めましょう"
-  },
-  "reset": {
-    "title": "パスワードをリセット",
-    "subtitle": "登録済みのメールアドレスを入力してください"
-  },
-  "createTrade": {
-    "title": "トレードカードを登録",
-    "noticeTitle": "お知らせ"
-  },
-  "createList": {
-    "title": "新しいカードリストを作成",
-    "subtitle": "トレード用のカードリストを作成して、他のユーザーと交換しましょう。",
-    "listInfo": {
-      "title": "リスト情報",
-      "description": "リストの基本情報を入力してください"
-    },
-    "cardSelection": {
-      "title": "カード選択",
-      "description": "リストに追加するカードを選択してください"
-    },
-    "loginRequired": {
-      "title": "カードをお持ちでない方",
-      "description": "カードリストを作成するにはログインしてください。"
-    }
+  "collageGenerator": {
+    "defaultTitle1": "想要的卡片",
+    "defaultTitle2": "可交換的卡片",
+    "editGroup": "編輯 {title}",
+    "title": "生成拼貼圖"
   },
   "collages": {
-    "title": "コラージュ画像",
-    "subtitle": "複数のカードをコラージュにしてXで共有しましょう"
+    "subtitle": "將多張卡片合成拼貼圖並分享到 X",
+    "title": "拼貼圖",
+    "noCollagesYet": "尚無拼貼圖",
+    "cardCount": "{count1}張 + {count2}張",
+    "deleteConfirm": "確定要刪除此拼貼圖嗎？",
+    "deleteSuccess": "拼貼圖已刪除",
+    "deleteFailed": "刪除拼貼圖失敗",
+    "fetchFailed": "取得拼貼圖列表失敗",
+    "notFound": "找不到拼貼圖",
+    "backToList": "返回拼貼圖列表"
   },
   "contact": {
-    "title": "お問い合わせ",
-    "subtitle": "ご質問やご要望がございましたら、お気軽にお問い合わせください。 内容を確認の上、後日ご返信いたします。",
-    "form": {
-      "title": "お問い合わせフォーム",
-      "description": "必要事項をご入力の上、送信してください"
+    "contactInfo": {
+      "email": "Email",
+      "hours": "客服時間",
+      "hoursValue": "週一至週五 09:00–18:00",
+      "title": "其他聯絡方式"
     },
     "faq": {
-      "title": "よくある質問",
-      "q1": "Q. 返信までどのくらいかかりますか？",
-      "a1": "通常、1-3営業日以内にご返信いたします。",
-      "q2": "Q. アカウントに関する問題",
-      "a2": "ログインできない場合は、パスワードリセットをお試しください。",
-      "q3": "Q. 機能の要望について",
-      "a3": "新機能のご要望も大歓迎です。詳しくお聞かせください。"
+      "a1": "我們通常會在 1～3 個工作天內回覆。",
+      "a2": "如果無法登入，請嘗試重設密碼。",
+      "a3": "歡迎提出新功能需求，請提供越詳細越好。",
+      "q1": "Q. 回覆需要多久時間？",
+      "q2": "Q. 帳號相關問題",
+      "q3": "Q. 功能需求",
+      "title": "常見問題"
     },
-    "contactInfo": {
-      "title": "その他の連絡方法",
-      "email": "メール",
-      "hours": "対応時間",
-      "hoursValue": "平日 9:00-18:00"
+    "form": {
+      "description": "請填寫必要資訊後送出表單",
+      "title": "聯絡表單"
     },
     "notice": {
-      "title": "ご注意",
-      "item1": "• 土日祝日は返信が遅れる場合があります",
-      "item2": "• 緊急の場合は件名に【緊急】と記載してください",
-      "item3": "• スパムメールフィルターをご確認ください"
-    }
+      "item1": "• 週末與國定假日的回覆可能會延遲",
+      "item2": "• 若有緊急事項，請在主旨加入 [URGENT]",
+      "item3": "• 請確認您的垃圾郵件匣",
+      "title": "注意事項"
+    },
+    "subtitle": "若您有任何問題或需求，歡迎隨時與我們聯繫。我們會在稍後進行確認並回覆。",
+    "title": "聯絡我們"
   },
-  "tradePost": {
-    "wantedCards": "求めるカード",
-    "offeredCards": "譲れるカード",
-    "authorComment": "投稿者コメント："
+  "createList": {
+    "cardSelection": {
+      "description": "選擇要加入清單的卡片",
+      "title": "卡片選擇"
+    },
+    "listInfo": {
+      "description": "輸入清單的基本資訊",
+      "title": "清單資訊"
+    },
+    "loginRequired": {
+      "description": "請先登入才能建立卡片清單。",
+      "title": "還沒有卡片嗎？"
+    },
+    "subtitle": "建立卡片清單，方便與其他使用者交換與交易。",
+    "title": "建立新卡片清單"
   },
-  "share": {
-    "title": "この投稿を共有",
-    "subtitle": "お好きな方法で投稿をシェアできます",
-    "urlSection": "投稿のURL",
-    "snsSection": "SNSでシェア",
-    "tip": "リンクをコピーして、メールやチャットで共有することもできます"
+  "createTrade": {
+    "noticeTitle": "注意事項",
+    "title": "登錄交換卡片"
+  },
+  "decks": {
+    "favorites": "收藏",
+    "featuredDecks": "精選牌組",
+    "newPackDecks": "新卡包牌組",
+    "postDeck": "發布牌組",
+    "tierDecks": "強度 Tier 牌組",
+    "updated": "更新時間：",
+    "viewAllDecks": "查看所有牌組",
+    "viewDetails": "查看詳情"
   },
   "detailedSearch": {
-    "title": "カード詳細検索"
+    "title": "卡片詳細搜尋"
   },
-  "collageGenerator": {
-    "title": "コラージュ画像を生成",
-    "defaultTitle1": "求めるカード",
-    "defaultTitle2": "譲れるカード",
-    "editGroup": "{title}を編集"
+  "history": {
+    "authenticating": "正在確認登入狀態...",
+    "commentedPosts": "留言過的貼文",
+    "fetchError": "資料取得失敗。",
+    "loading": "載入中...",
+    "matchingHistory": "配對紀錄",
+    "myPosts": "我的貼文",
+    "noCommentedPosts": "沒有留言紀錄。",
+    "noHistory": "沒有可顯示的紀錄。",
+    "noMatchingHistory": "沒有配對紀錄。",
+    "noMyPosts": "您尚未發布任何貼文。",
+    "title": "紀錄"
+  },
+  "home": {
+    "subtitle": "順利交換你想要與能提供的卡片！",
+    "title": "PokeLink 交換看板"
+  },
+  "login": {
+    "subtitle": "登入您的帳號",
+    "title": "登入"
+  },
+  "matching": {
+    "comingSoon": "即將推出！",
+    "comingSoonDate": "Coming Soon",
+    "preparingBetterExperience": "我們正準備提供更好的交易配對體驗。",
+    "title": "配對",
+    "underDevelopment": "配對功能開發中。"
+  },
+  "reset": {
+    "subtitle": "請輸入註冊時使用的 Email",
+    "title": "重設密碼"
+  },
+  "resultsInfo": {
+    "noPosts": "目前沒有貼文",
+    "noResults": "找不到符合條件的貼文。",
+    "searchResults": "（搜尋：「{keyword}」）",
+    "showing": "顯示第 {start}～{end} 筆，共 {total} 筆"
+  },
+  "share": {
+    "snsSection": "分享到社群平台",
+    "subtitle": "以你喜歡的方式分享貼文",
+    "tip": "你也可以複製連結，透過聊天或 Email 分享",
+    "title": "分享貼文",
+    "urlSection": "貼文連結"
+  },
+  "signup": {
+    "subtitle": "建立帳號，開始交換寶可夢卡片",
+    "title": "註冊"
+  },
+  "tradePost": {
+    "authorComment": "作者留言：",
+    "offeredCards": "可交換卡片",
+    "wantedCards": "想要的卡片"
+  },
+  "lists": {
+    "title": "卡片列表",
+    "createNewList": "建立新列表",
+    "createListDescription": "建立卡片列表以便與其他使用者交易和交換。",
+    "description": "您可以建立多個卡片列表。發布交易時，可以從儲存的列表中選擇以便輕鬆指定卡片。",
+    "maxListsWarning": "最多可以建立10個列表。要建立新列表，請刪除現有列表。",
+    "untitledList": "無標題列表",
+    "noDescription": "無描述",
+    "noLists": "暫無列表",
+    "createFirstList": "建立卡片列表，讓交易更便捷。"
+  },
+  "favorites": {
+    "title": "收藏卡組",
+    "count": "{count}個",
+    "checkingAuth": "正在檢查認證狀態...",
+    "viewFavorites": "檢視收藏卡組",
+    "loginRequired": "需要登入才能儲存和管理您的收藏卡組。",
+    "loginPromptTitle": "需要登入才能檢視收藏卡組",
+    "loginPromptDescription": "儲存您的收藏卡組，隨時輕鬆存取。",
+    "noFavorites": "無收藏卡組",
+    "noFavoritesDescription": "找到感興趣的卡組並新增到收藏夾！",
+    "browseDecks": "瀏覽卡組",
+    "retry": "重試"
   }
 }

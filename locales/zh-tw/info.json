@@ -1,0 +1,29 @@
+{
+  "news": {
+    "backToInfo": "返回資訊頁",
+    "loading": "載入中...",
+    "noArticles": "目前沒有可查看的文章。",
+    "pinned": "置頂",
+    "subtitle": "查看所有最新消息",
+    "title": "最新消息"
+  },
+  "noLatestInfo": "目前尚無最新消息。",
+  "noTournaments": "目前沒有預定的官方賽事。",
+  "placeholders": {
+    "glossary": "名詞解釋將會顯示在此。",
+    "guides": "新手指南將會顯示在此。",
+    "rules": "基礎規則資訊將會顯示在此。",
+    "tournaments": "官方賽事資訊將會顯示在此。"
+  },
+  "sections": {
+    "calendar": "賽事日曆",
+    "glossary": "名詞解釋",
+    "guides": "新手指南",
+    "latestNews": "最新消息",
+    "rules": "基本規則",
+    "tournaments": "官方賽事"
+  },
+  "title": "資訊總覽",
+  "viewAll": "查看全部",
+  "viewAllLatestInfo": "查看所有最新消息"
+}

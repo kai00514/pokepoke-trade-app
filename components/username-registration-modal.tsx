@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { User } from "lucide-react"
+import { useTranslations } from "next-intl"
 
 interface UsernameRegistrationModalProps {
   isOpen: boolean
@@ -30,6 +31,7 @@ export function UsernameRegistrationModal({
   currentUsername,
   onSave,
 }: UsernameRegistrationModalProps) {
+  const t = useTranslations()
   const [username, setUsername] = useState(currentUsername || "")
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -38,12 +40,12 @@ export function UsernameRegistrationModal({
     e.preventDefault()
 
     if (!username.trim()) {
-      setError("ユーザー名を入力してください")
+      setError(t("errors.validation.enterUsername"))
       return
     }
 
     if (username.length < 1 || username.length > 30) {
-      setError("ユーザー名は1文字以上30文字以下で入力してください")
+      setError(t("errors.validation.usernameLength"))
       return
     }
 
@@ -56,7 +58,7 @@ export function UsernameRegistrationModal({
       setUsername("")
     } catch (error) {
       console.error("ユーザー名保存エラー:", error)
-      setError("ユーザー名の保存に失敗しました。もう一度お試しください。")
+      setError(t("errors.username.saveFailed"))
     } finally {
       setIsLoading(false)
     }
@@ -75,22 +77,22 @@ export function UsernameRegistrationModal({
           <div className="mx-auto w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4">
             <User className="w-8 h-8 text-blue-600" />
           </div>
-          <DialogTitle className="text-xl font-bold text-gray-900">ユーザー名登録</DialogTitle>
+          <DialogTitle className="text-xl font-bold text-gray-900">{t("messages.modals.username.title")}</DialogTitle>
           <DialogDescription className="text-gray-600 mt-2">
-            表示用のユーザー名を設定してください。いつでも変更できます。
+            {t("messages.modals.username.description")}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <Label htmlFor="username" className="text-sm font-medium text-gray-700">
-                ユーザー名
+                {t("forms.username.label")}
               </Label>
               <Input
                 id="username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                placeholder="例: ポケモントレーナー"
+                placeholder={t("forms.username.placeholder")}
                 disabled={isLoading}
                 className="bg-white border-gray-300 focus:border-blue-500 focus:ring-blue-500"
               />
@@ -109,10 +111,10 @@ export function UsernameRegistrationModal({
               disabled={isLoading}
               className="flex-1 border-gray-300 hover:bg-gray-50 bg-transparent"
             >
-              キャンセル
+              {t("common.buttons.cancel")}
             </Button>
             <Button type="submit" disabled={isLoading} className="flex-1 bg-blue-600 hover:bg-blue-700 text-white">
-              {isLoading ? "保存中..." : "保存"}
+              {isLoading ? t("common.buttons.saving") : t("common.buttons.save")}
             </Button>
           </DialogFooter>
         </form>

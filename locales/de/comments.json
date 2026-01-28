@@ -1,0 +1,22 @@
+{
+  "anonymousUser": "Anonymer Benutzer",
+  "edited": "Bearbeitet",
+  "guest": "Gast",
+  "justNow": "Gerade eben",
+  "loadError": "Kommentare konnten nicht geladen werden.",
+  "loggedInAs": "Angemeldet als: {name}",
+  "noComments": "Noch keine Kommentare.",
+  "placeholder": "Geben Sie Ihren Kommentar ein...",
+  "placeholderGuest": "Geben Sie Ihren Kommentar als Gast ein...",
+  "pleaseEnter": "Bitte geben Sie einen Kommentar ein.",
+  "post": "Posten",
+  "postError": "Kommentar konnte nicht gepostet werden",
+  "postErrorRetry": "Kommentar konnte nicht gepostet werden. Bitte versuchen Sie es erneut.",
+  "postErrorTitle": "Fehler beim Kommentieren",
+  "posted": "Gepostet",
+  "postedAsGuest": "Kommentar als Gast gepostet",
+  "postedSuccess": "Kommentar erfolgreich gepostet",
+  "shortcutHint": "Drücken Sie Strg+Eingabe zum Absenden",
+  "title": "Kommentare",
+  "titleWithCount": "Kommentare ({count})"
+}

@@ -9,6 +9,8 @@ import { useToast } from "@/components/ui/use-toast"
 import { supabase } from "@/lib/supabase/client"
 import LoginPromptModal from "@/components/ui/login-prompt-modal"
 import { event as gtagEvent } from "@/lib/analytics/gtag"
+import { useTranslations, useLocale } from "next-intl"
+import TranslateButton from "@/components/translate-button"
 
 interface Comment {
   id: string
@@ -28,6 +30,8 @@ interface DeckCommentsProps {
 export default function DeckComments({ deckId, deckTitle, commentType = "deck" }: DeckCommentsProps) {
   const { user, loading } = useAuth()
   const { toast } = useToast()
+  const t = useTranslations("comments")
+  const locale = useLocale()
   const [comments, setComments] = useState<Comment[]>([])
   const [newComment, setNewComment] = useState("")
   const [isLoading, setIsLoading] = useState(true)
@@ -57,7 +61,7 @@ export default function DeckComments({ deckId, deckTitle, commentType = "deck" }
       if (data.success) {
         const transformedComments = data.comments.map((comment: any) => ({
           id: comment.id,
-          author: comment.user_name || "匿名ユーザー",
+          author: comment.user_name || t("anonymousUser"),
           avatar: null,
           text: comment.content,
           timestamp: new Date(comment.created_at).toLocaleString("ja-JP"),
@@ -66,17 +70,17 @@ export default function DeckComments({ deckId, deckTitle, commentType = "deck" }
         setComments(transformedComments)
       } else {
         toast({
-          title: "エラー",
-          description: data.error || "コメントの読み込みに失敗しました。",
+          title: t("title"),
+          description: data.error || t("loadError"),
           variant: "destructive",
         })
       }
     } catch (error) {
-      toast({ title: "エラー", description: "予期しないエラーが発生しました。", variant: "destructive" })
+      toast({ title: t("title"), description: t("unexpected"), variant: "destructive" })
     } finally {
       setIsLoading(false)
     }
-  }, [deckId, commentType, toast])
+  }, [deckId, commentType, toast, t])
 
   useEffect(() => {
     fetchComments()
@@ -85,7 +89,7 @@ export default function DeckComments({ deckId, deckTitle, commentType = "deck" }
   const handleCommentSubmit = useCallback(
     async (isGuestSubmission = false) => {
       if (!newComment.trim()) {
-        toast({ title: "入力エラー", description: "コメントを入力してください。", variant: "destructive" })
+        toast({ title: t("inputError"), description: t("pleaseEnter"), variant: "destructive" })
         return
       }
       const commentText = newComment.trim()
@@ -94,21 +98,21 @@ export default function DeckComments({ deckId, deckTitle, commentType = "deck" }
       } = await supabase.auth.getSession()
       const currentUser = session?.user
       const isActualGuestUser = !currentUser || isGuestSubmission
-      let userName = "ゲスト"
+      let userName = t("guest")
       if (!isActualGuestUser && currentUser) {
         userName =
           currentUser.user_metadata?.display_name ||
           currentUser.user_metadata?.full_name ||
           currentUser.user_metadata?.user_name ||
           currentUser.email?.split("@")[0] ||
-          "匿名ユーザー"
+          t("anonymousUser")
       }
       const optimisticComment: Comment = {
         id: `temp-${Date.now()}`,
         author: userName,
         avatar: null,
         text: commentText,
-        timestamp: "たった今",
+        timestamp: t("justNow"),
         isGuest: isActualGuestUser,
       }
       setComments((prev) => [...prev, optimisticComment])
@@ -147,30 +151,30 @@ export default function DeckComments({ deckId, deckTitle, commentType = "deck" }
           }
           setComments((prev) => prev.map((comment) => (comment.id === optimisticComment.id ? actualComment : comment)))
           toast({
-            title: "投稿完了",
-            description: isActualGuestUser ? "ゲストとしてコメントを投稿しました" : "コメントを投稿しました",
+            title: t("posted"),
+            description: isActualGuestUser ? t("postedAsGuest") : t("postedSuccess"),
             duration: 2000,
           })
         } else {
-          throw new Error(data.error || "コメントの投稿に失敗しました")
+          throw new Error(data.error || t("postError"))
         }
       } catch (error) {
         setComments((prev) => prev.filter((comment) => comment.id !== optimisticComment.id))
         setNewComment(commentText)
         toast({
-          title: "コメント投稿エラー",
+          title: t("postErrorTitle"),
           description:
-            error instanceof Error ? error.message : "コメントの投稿に失敗しました。もう一度お試しください。",
+            error instanceof Error ? error.message : t("postErrorRetry"),
           variant: "destructive",
         })
       }
     },
-    [newComment, deckId, commentType, toast],
+    [newComment, deckId, commentType, toast, t],
   )
 
   const handleCommentSubmitClick = useCallback(async () => {
     if (!newComment.trim()) {
-      toast({ title: "入力エラー", description: "コメントを入力してください。", variant: "destructive" })
+      toast({ title: t("inputError"), description: t("pleaseEnter"), variant: "destructive" })
       return
     }
     const {
@@ -178,7 +182,7 @@ export default function DeckComments({ deckId, deckTitle, commentType = "deck" }
     } = await supabase.auth.getSession()
     if (!session?.user) setShowLoginPrompt(true)
     else handleCommentSubmit(false)
-  }, [newComment, handleCommentSubmit, toast])
+  }, [newComment, handleCommentSubmit, toast, t])
 
   const handleContinueAsGuest = useCallback(() => {
     setShowLoginPrompt(false)
@@ -189,7 +193,7 @@ export default function DeckComments({ deckId, deckTitle, commentType = "deck" }
     return (
       <div className="bg-white rounded-lg shadow-xl">
         <div className="bg-blue-600 text-white p-4 rounded-t-lg">
-          <h2 className="text-xl font-semibold">コメント</h2>
+          <h2 className="text-xl font-semibold">{t("title")}</h2>
         </div>
         <div className="p-4 sm:p-6 flex justify-center items-center h-32">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
@@ -201,7 +205,7 @@ export default function DeckComments({ deckId, deckTitle, commentType = "deck" }
   return (
     <div className="bg-white rounded-lg shadow-xl">
       <div className="bg-blue-600 text-white p-4 rounded-t-lg">
-        <h2 className="text-xl font-semibold">コメント ({comments.length})</h2>
+        <h2 className="text-xl font-semibold">{t("titleWithCount", { count: comments.length })}</h2>
       </div>
       <div className="p-4 sm:p-6 space-y-4">
         {comments.length > 0 ? (
@@ -216,28 +220,34 @@ export default function DeckComments({ deckId, deckTitle, commentType = "deck" }
                   <div className="flex items-center space-x-2">
                     <span className="text-sm font-semibold text-slate-700">{comment.author}</span>
                     {comment.isGuest && (
-                      <span className="px-2 py-0.5 text-xs bg-gray-200 text-gray-600 rounded-full">ゲスト</span>
+                      <span className="px-2 py-0.5 text-xs bg-gray-200 text-gray-600 rounded-full">{t("guest")}</span>
                     )}
                   </div>
                   <span className="text-xs text-slate-400">{comment.timestamp}</span>
                 </div>
                 <p className="text-sm text-slate-600 mt-0.5 whitespace-pre-wrap">{comment.text}</p>
+                <TranslateButton 
+                  text={comment.text} 
+                  sourceLang="ja" 
+                  targetLang={locale === 'ja' ? 'en' : undefined}
+                  className="mt-1" 
+                />
               </div>
             </div>
           ))
         ) : (
-          <p className="text-sm text-slate-500 text-center py-4">まだコメントはありません。</p>
+          <p className="text-sm text-slate-500 text-center py-4">{t("noComments")}</p>
         )}
       </div>
       <div className="p-4 sm:p-6 border-t border-slate-200 bg-slate-50 rounded-b-lg">
         <div className="mb-3 text-sm text-gray-600">
-          {isAuthenticated ? <span>ログイン中: {user?.user_metadata?.display_name || user?.email}</span> : null}
+          {isAuthenticated ? <span>{t("loggedInAs", { name: user?.user_metadata?.display_name || user?.email })}</span> : null}
         </div>
         <div className="flex items-center space-x-2">
           <Input
             type="text"
             placeholder={
-              isAuthenticated ? "コメントを入力してください..." : "ゲストとしてコメントを入力してください..."
+              isAuthenticated ? t("placeholder") : t("placeholderGuest")
             }
             value={newComment}
             onChange={(e) => setNewComment(e.target.value)}
@@ -256,7 +266,7 @@ export default function DeckComments({ deckId, deckTitle, commentType = "deck" }
             disabled={!newComment.trim()}
           >
             <Send className="h-4 w-4 mr-0 sm:mr-2" />
-            <span className="hidden sm:inline">投稿</span>
+            <span className="hidden sm:inline">{t("post")}</span>
           </Button>
         </div>
       </div>

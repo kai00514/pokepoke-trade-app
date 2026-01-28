@@ -1,50 +1,122 @@
 {
-  "success": {
-    "loginSuccess": "ログイン成功",
-    "loginSuccessMessage": "ログインしました。",
-    "confirmationEmailSent": "確認メール送信",
-    "confirmationEmailSentMessage": "確認メールを送信しました。メールをご確認の上、リンクをクリックして登録を完了してください。",
-    "checkEmail": "メールをご確認ください。",
-    "signupComplete": "登録完了",
-    "accountCreated": "アカウントが作成されました。",
-    "passwordUpdated": "パスワード更新完了",
-    "passwordUpdatedMessage": "新しいパスワードでログインしてください。",
-    "resetEmailSent": "メール送信完了",
-    "resetEmailSentMessage": "パスワードリセットのリンクを送信しました。",
-    "resetEmailSentDetail": "パスワードリセットのリンクをメールアドレスに送信しました。メールをご確認ください。",
-    "passwordUpdateSuccess": "パスワードが正常に更新されました。ログインページへ移動してください。",
-    "sessionRefreshed": "セッション更新完了",
-    "sessionRefreshedMessage": "セッションが正常に更新されました。",
-    "tradePosted": "投稿成功",
-    "tradePostedMessage": "トレード投稿が作成されました。",
-    "listCreated": "リスト作成完了",
-    "listCreatedMessage": "カードリストが正常に作成されました。",
-    "urlCopied": "URLをコピーしました",
-    "urlCopiedMessage": "リンクがクリップボードにコピーされました。",
-    "idCopied": "コピーしました",
-    "idCopiedMessage": "ID: {postId} をクリップボードにコピーしました。",
-    "resendConfirmation": "確認メール再送信",
-    "resendConfirmationMessage": "確認メールを再送信しました。"
-  },
   "info": {
-    "tradeNotice": "ここで登録された内容はタイムラインに即時反映されます。コメントがあれば、ベルマークから確認できます。トレード状況はマイページのトレード履歴から確認できます。",
-    "collageDescription": "複数のカード画像を自動で合成して、1つのコラージュ画像を作成できます。生成したコラージュはXに投稿できます。",
-    "collageInstruction": "各グループで1～30枚のカードを選択できます。タイトルはコラージュ画像に表示されます。",
-    "loginRequired": "コラージュを生成・管理するにはログインが必要です。",
-    "cardsSelected": "{count}枚のカードが選択されています",
-    "selectCards": "カードを選択してください",
-    "noCardsSelected": "カードが選択されていません",
-    "selectedCount": "選択されたカード: {count}枚",
-    "selectedCountWithMax": "{count}枚選択中 (最大{max}枚)",
-    "resultCount": "全{totalCount}件中 {start}〜{end}件を表示",
-    "noPostsFound": "該当する投稿が見つかりませんでした。",
-    "noPosts": "投稿がありません",
-    "noCardsFound": "該当するカードが見つかりません。"
+    "cardsSelected": "{count} Karten ausgewählt",
+    "collageDescription": "Mehrere Kartenbilder werden automatisch kombiniert, um ein einziges Collage-Bild zu erstellen. Sie können das generierte Collage auf X posten.",
+    "collageInstruction": "Sie können 1-30 Karten in jeder Gruppe auswählen. Titel werden im Collage-Bild angezeigt.",
+    "loginRequired": "Anmeldung erforderlich, um Collages zu erstellen und zu verwalten.",
+    "maxCards": "(max {max})",
+    "noCardsFound": "Keine passenden Karten gefunden.",
+    "noCardsSelected": "Keine Karten ausgewählt",
+    "noPosts": "Keine Beiträge verfügbar",
+    "noPostsFound": "Keine passenden Beiträge gefunden.",
+    "resultCount": "Zeige {start}-{end} von {totalCount} Ergebnissen",
+    "searchCardsInstruction": "Bitte wählen Sie Karten über die Schaltfläche \"Karten suchen\" aus",
+    "selectCards": "Bitte wählen Sie Karten aus",
+    "selectedCount": "Ausgewählte Karten: {count}",
+    "selectedCountCards": "{count} ausgewählt",
+    "selectedCountWithMax": "{count} ausgewählt (max {max})",
+    "tradeNotice": "Hier registrierte Beiträge werden sofort in der Timeline angezeigt. Kommentare können über das Benachrichtigungssymbol überprüft werden. Der Handelsstatus kann in der Handelshistorie auf der Meine-Seite überprüft werden."
   },
+  "modals": {
+    "collage": {
+      "selectCardsForGroup": "Karten für {title} auswählen",
+      "title": "Collage-Bild erstellen"
+    },
+    "detailedSearch": {
+      "title": "Detaillierte Kartensuche"
+    },
+    "list": {
+      "createNew": "Neue Liste erstellen"
+    },
+    "loginPrompt": {
+      "benefit1": "Pokepoke-ID und Benutzername automatisch ausfüllen",
+      "benefit2": "Liste für gewünschte/angebotene Karten erstellen",
+      "benefit3": "Neueste Informationen über das Benachrichtigungssymbol erhalten",
+      "benefit4": "Handelsstatus im Verlaufsbildschirm überprüfen",
+      "benefit5": "Decks als Favoriten speichern",
+      "title": "Mit Konto-Registrierung noch bequemer!"
+    },
+    "pokepokeId": {
+      "description": "Bitte legen Sie Ihre Pokepoke-ID fest. Andere Benutzer können Sie so leichter finden.",
+      "title": "Pokepoke-ID registrieren"
+    },
+    "selectCards": {
+      "description": "Bitte wählen Sie Karten aus, die zur Liste hinzugefügt werden sollen (max. 35, aktuell {count} ausgewählt)",
+      "title": "Karten auswählen"
+    },
+    "username": {
+      "description": "Bitte legen Sie einen Anzeigenamen fest. Sie können ihn jederzeit ändern.",
+      "title": "Benutzername registrieren"
+    }
+  },
+  "success": {
+    "accountCreated": "Ihr Konto wurde erstellt.",
+    "checkEmail": "Bitte überprüfen Sie Ihre E-Mail.",
+    "confirmationEmailSent": "Bestätigungs-E-Mail gesendet",
+    "confirmationEmailSentMessage": "Eine Bestätigungs-E-Mail wurde gesendet. Bitte überprüfen Sie Ihre E-Mail und klicken Sie auf den Link, um die Registrierung abzuschließen.",
+    "copied": "Kopiert",
+    "idCopied": "Kopiert",
+    "idCopiedMessage": "ID: {postId} wurde in die Zwischenablage kopiert.",
+    "listCreated": "Liste erstellt",
+    "listCreatedMessage": "Kartenliste wurde erfolgreich erstellt.",
+    "loginSuccess": "Anmeldung erfolgreich",
+    "loginSuccessMessage": "Sie wurden angemeldet.",
+    "passwordUpdateSuccess": "Das Passwort wurde erfolgreich aktualisiert. Bitte gehen Sie zur Anmeldeseite.",
+    "passwordUpdated": "Passwort aktualisiert",
+    "passwordUpdatedMessage": "Bitte melden Sie sich mit Ihrem neuen Passwort an.",
+    "resendConfirmation": "Bestätigungs-E-Mail erneut gesendet",
+    "resendConfirmationMessage": "Bestätigungs-E-Mail wurde erneut gesendet.",
+    "resetEmailSent": "E-Mail gesendet",
+    "resetEmailSentDetail": "Ein Link zum Zurücksetzen des Passworts wurde an Ihre E-Mail-Adresse gesendet. Bitte überprüfen Sie Ihre E-Mail.",
+    "resetEmailSentMessage": "Ein Link zum Zurücksetzen des Passworts wurde gesendet.",
+    "sessionRefreshed": "Sitzung aktualisiert",
+    "sessionRefreshedMessage": "Die Sitzung wurde erfolgreich aktualisiert.",
+    "signupComplete": "Registrierung abgeschlossen",
+    "postSuccess": "Beitrag erfolgreich",
+    "tradePostCreated": "Handelsbeitrag wurde erstellt.",
+    "tradePosted": "Beitrag erfolgreich",
+    "tradePostedMessage": "Handelsbeitrag wurde erstellt.",
+    "urlCopied": "URL kopiert",
+    "urlCopiedMessage": "Link wurde in die Zwischenablage kopiert.",
+    "listCreationComplete": "Liste erstellt",
+    "listCreatedSuccessfully": "Kartenliste wurde erfolgreich erstellt.",
+    "unfavorited": "Aus Favoriten entfernt."
+  },
+  "notifications": {
+    "title": "Benachrichtigungen",
+    "noNotifications": "Keine Benachrichtigungen",
+    "loading": "Lädt...",
+    "markAsRead": "Als gelesen markieren",
+    "markAllAsRead": "Alle als gelesen markieren",
+    "unreadCount": "{count} ungelesene Benachrichtigung(en)",
+    "count": "{count} Benachrichtigung(en)",
+    "showing50": "50+ Benachrichtigungen",
+    "types": {
+      "trade": "Handel",
+      "deck": "Deck",
+      "other": "Andere"
+    },
+    "time": {
+      "now": "Gerade eben",
+      "minutesAgo": "vor {count} Minute(n)",
+      "hoursAgo": "vor {count} Stunde(n)"
+    },
+    "unknownUser": "Unbekannter Benutzer",
+    "unknownDetails": "Keine Details",
+    "fromAbout": "{sender} über \"{content}\""
+  },
+  "title": "Nachricht",
   "warning": {
-    "timeSkew": "時刻同期の問題",
-    "timeSkewMessage": "デバイスの時計が{formatTimeSkew}ずれています。投稿に失敗する可能性があります。",
-    "timeSkewDetail": "デバイスの時計が{formatTimeSkew}ずれています。これにより認証に問題が発生する可能性があります。",
-    "selectionLimit": "選択上限"
-  }
+    "selectionLimit": "Auswahlgrenze",
+    "timeSkew": "Zeitsynchronisationsproblem",
+    "timeSkewDetail": "Die Uhr Ihres Geräts ist um {formatTimeSkew} falsch. Dies kann zu Authentifizierungsproblemen führen.",
+    "timeSkewMessage": "Die Uhr Ihres Geräts ist um {formatTimeSkew} falsch. Das Posten kann fehlschlagen.",
+    "maxSelectionReached": "Sie können bis zu {maxSelection} auswählen."
+  },
+  "auth": {
+    "listsLoginRequired": "Bitte melden Sie sich an, um Kartenlisten zu erstellen und anzuzeigen."
+  },
+  "ownerActions": "Besitzeraktionen",
+  "cancel": "Abbrechen",
+  "complete": "Abschließen"
 }

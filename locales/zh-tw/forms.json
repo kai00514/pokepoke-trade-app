@@ -1,96 +1,141 @@
 {
   "auth": {
-    "email": {
-      "label": "メールアドレス",
-      "placeholder": "あなたのメールアドレス"
-    },
-    "password": {
-      "label": "パスワード",
-      "placeholder": "あなたのパスワード",
-      "newPlaceholder": "6文字以上のパスワード",
-      "hint": "半角英数6文字以上を推奨します。",
-      "forgotLink": "パスワードを忘れた方はこちら",
-      "show": "パスワードを表示",
-      "hide": "パスワードを隠す"
-    },
     "confirmPassword": {
-      "label": "パスワード確認",
-      "placeholder": "パスワードを再入力",
-      "show": "パスワード確認を表示",
-      "hide": "パスワード確認を隠す"
+      "hide": "隱藏確認密碼",
+      "label": "確認密碼",
+      "placeholder": "請再次輸入密碼",
+      "show": "顯示確認密碼"
+    },
+    "email": {
+      "label": "Email",
+      "placeholder": "請輸入您的 Email"
     },
     "newPassword": {
-      "label": "新しいパスワード",
-      "placeholder": "6文字以上の新しいパスワード"
-    }
-  },
-  "trade": {
-    "title": {
-      "label": "トレード目的",
-      "placeholder": "例：リザードンex求む"
+      "label": "新密碼",
+      "placeholder": "新密碼（至少 6 碼）"
     },
-    "wantedCards": {
-      "label": "求めるカード"
-    },
-    "offeredCards": {
-      "label": "譲れるカード"
-    },
-    "savedList": {
-      "label": "保存済みリストから選択"
-    },
-    "pokepokeId": {
-      "label": "ポケポケアプリID",
-      "placeholder": "ポケポケアプリのID (任意)",
-      "helperAuthenticated": "登録済みのポケポケIDが自動入力されています。",
-      "helperAuthenticatedNoId": "ログイン中です。ポケポケIDは任意です。半角数字のみ入力可能です。",
-      "helperGuest": "ゲストユーザーとして投稿します。ポケポケIDは任意です。半角数字のみ入力可能です。"
-    },
-    "comment": {
-      "label": "コメント (任意)",
-      "placeholder": "コメントを入力 (256文字まで)"
-    }
-  },
-  "list": {
-    "name": {
-      "label": "リスト名",
-      "placeholder": "例: 交換用カードリスト"
-    },
-    "description": {
-      "label": "説明（任意）",
-      "placeholder": "リストの説明を入力してください"
-    }
-  },
-  "search": {
-    "keyword": {
-      "label": "キーワード",
-      "placeholder": "キーワードで検索"
+    "password": {
+      "forgotLink": "忘記密碼？",
+      "hide": "隱藏密碼",
+      "hint": "建議使用 6 位以上的英數組合。",
+      "label": "密碼",
+      "newPlaceholder": "密碼（至少 6 碼）",
+      "placeholder": "請輸入密碼",
+      "show": "顯示密碼"
     }
   },
   "collage": {
     "group1Title": {
-      "label": "グループ1のタイトル",
-      "placeholder": "例: 求めるカード"
+      "label": "群組 1 標題",
+      "placeholder": "例如：想要的卡片"
     },
     "group2Title": {
-      "label": "グループ2のタイトル",
-      "placeholder": "例: 譲れるカード"
+      "label": "群組 2 標題",
+      "placeholder": "例如：可提供的卡片"
     }
   },
   "contact": {
-    "name": {
-      "label": "お名前",
-      "placeholder": "山田 太郎"
-    },
     "email": {
-      "label": "メールアドレス"
-    },
-    "subject": {
-      "label": "件名",
-      "placeholder": "お問い合わせの件名をご入力ください"
+      "label": "Email 地址"
     },
     "message": {
-      "label": "メッセージ",
-      "placeholder": "お問い合わせ内容を詳しくご記入ください"
+      "label": "訊息內容",
+      "placeholder": "請詳細描述您的問題或需求"
+    },
+    "name": {
+      "label": "姓名",
+      "placeholder": "例：John Doe"
+    },
+    "subject": {
+      "label": "主旨",
+      "placeholder": "請輸入您的詢問主旨"
     }
+  },
+  "labels": {
+    "email": "Email",
+    "password": "密碼",
+    "name": "姓名",
+    "subject": "主旨",
+    "message": "訊息",
+    "listName": "列表名稱",
+    "description": "描述"
+  },
+  "list": {
+    "description": {
+      "label": "描述（可選）",
+      "placeholder": "請輸入清單描述"
+    },
+    "name": {
+      "label": "清單名稱",
+      "placeholder": "例如：交換卡片清單"
+    }
+  },
+  "listCreation": {
+    "cardSelection": "卡片選擇（{count}/35）",
+    "charCount": "{count}/100 字",
+    "label": "清單名稱",
+    "placeholder": "請輸入清單名稱"
+  },
+  "placeholders": {
+    "email": "請輸入您的 Email",
+    "enterListName": "請輸入清單名稱",
+    "keyword": "關鍵字",
+    "password": "請輸入密碼",
+    "passwordMin": "密碼（至少 6 碼）",
+    "name": "王小明",
+    "subject": "請輸入諮詢主旨",
+    "message": "請詳細描述您的諮詢內容",
+    "listName": "輸入列表名稱",
+    "listDescription": "輸入列表描述（選填）"
+  },
+  "pokepokeId": {
+    "label": "Pokepoke ID",
+    "placeholder": "例：trainer123"
+  },
+  "search": {
+    "keyword": {
+      "label": "關鍵字",
+      "placeholder": "以關鍵字搜尋"
+    }
+  },
+  "trade": {
+    "comment": {
+      "label": "留言（可選）",
+      "placeholder": "請輸入留言（最多 256 字）"
+    },
+    "offeredCards": {
+      "label": "可提供的卡片"
+    },
+    "pokepokeId": {
+      "helperAuthenticated": "已自動帶入您註冊的 Pokepoke ID。",
+      "helperAuthenticatedNoId": "您已登入。Pokepoke ID 可選填，只能輸入數字。",
+      "helperGuest": "您以訪客身份發文。Pokepoke ID 可選填，只能輸入數字。",
+      "label": "Pokepoke App ID",
+      "placeholder": "Pokepoke App ID（可選）"
+    },
+    "savedList": {
+      "label": "從已儲存清單中選擇"
+    },
+    "title": {
+      "label": "交換標題",
+      "placeholder": "例如：徵求噴火龍 ex"
+    },
+    "wantedCards": {
+      "label": "想要的卡片"
+    }
+  },
+  "username": {
+    "label": "使用者名稱",
+    "placeholder": "例：Pokemon Trainer"
+  },
+  "packs": {
+    "all": "所有卡包"
+  },
+  "lists": {
+    "listInfo": "列表資訊",
+    "listInfoDescription": "輸入基本列表資訊",
+    "cardSelection": "選擇卡片",
+    "cardSelectionDescription": "選擇要新增到列表的卡片",
+    "selectedCards": "已選擇{count}張"
   }
 }

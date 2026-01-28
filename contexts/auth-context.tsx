@@ -7,6 +7,7 @@ import { supabase } from "@/lib/supabase/client"
 import {
   getUserProfile,
   createUserProfile,
+  updateUserProfile,
   clearCachedProfile,
   createFallbackProfile,
 } from "@/lib/services/user-service"
@@ -61,6 +62,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     console.log("=== DEBUG: handleProfileLoad started ===")
     console.log("User ID:", user.id)
     console.log("Is background retry:", isBackgroundRetry)
+    console.log("User metadata:", user.user_metadata)
 
     // 既に取得中の場合はスキップ（バックグラウンド再取得は除く）
     if (isProfileLoadingRef.current && !isBackgroundRetry) {
@@ -105,7 +107,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (!profile) {
         console.log("=== DEBUG: Profile not found, creating new profile ===")
-        profile = await createUserProfile(user.id, user.email!)
+        // Googleログインの場合、avatar_urlを取得
+        const avatarUrl = user.user_metadata?.avatar_url || user.user_metadata?.picture
+        console.log("Avatar URL from metadata:", avatarUrl)
+        profile = await createUserProfile(user.id, user.email!, avatarUrl)
+      } else if (!profile.avatar_url && user.user_metadata?.avatar_url) {
+        // 既存プロファイルにavatar_urlがない場合、更新
+        console.log("=== DEBUG: Updating profile with avatar URL ===")
+        const avatarUrl = user.user_metadata.avatar_url || user.user_metadata.picture
+        await updateUserProfile(user.id, { avatar_url: avatarUrl })
+        profile.avatar_url = avatarUrl
       }
 
       console.log("=== DEBUG: Profile loaded successfully ===")

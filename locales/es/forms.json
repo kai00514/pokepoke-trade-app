@@ -1,96 +1,141 @@
 {
   "auth": {
-    "email": {
-      "label": "メールアドレス",
-      "placeholder": "あなたのメールアドレス"
-    },
-    "password": {
-      "label": "パスワード",
-      "placeholder": "あなたのパスワード",
-      "newPlaceholder": "6文字以上のパスワード",
-      "hint": "半角英数6文字以上を推奨します。",
-      "forgotLink": "パスワードを忘れた方はこちら",
-      "show": "パスワードを表示",
-      "hide": "パスワードを隠す"
-    },
     "confirmPassword": {
-      "label": "パスワード確認",
-      "placeholder": "パスワードを再入力",
-      "show": "パスワード確認を表示",
-      "hide": "パスワード確認を隠す"
+      "hide": "Ocultar confirmación de contraseña",
+      "label": "Confirmar contraseña",
+      "placeholder": "Vuelve a ingresar la contraseña",
+      "show": "Mostrar confirmación de contraseña"
+    },
+    "email": {
+      "label": "Correo electrónico",
+      "placeholder": "Tu dirección de correo"
     },
     "newPassword": {
-      "label": "新しいパスワード",
-      "placeholder": "6文字以上の新しいパスワード"
-    }
-  },
-  "trade": {
-    "title": {
-      "label": "トレード目的",
-      "placeholder": "例：リザードンex求む"
+      "label": "Nueva contraseña",
+      "placeholder": "Nueva contraseña (6+ caracteres)"
     },
-    "wantedCards": {
-      "label": "求めるカード"
-    },
-    "offeredCards": {
-      "label": "譲れるカード"
-    },
-    "savedList": {
-      "label": "保存済みリストから選択"
-    },
-    "pokepokeId": {
-      "label": "ポケポケアプリID",
-      "placeholder": "ポケポケアプリのID (任意)",
-      "helperAuthenticated": "登録済みのポケポケIDが自動入力されています。",
-      "helperAuthenticatedNoId": "ログイン中です。ポケポケIDは任意です。半角数字のみ入力可能です。",
-      "helperGuest": "ゲストユーザーとして投稿します。ポケポケIDは任意です。半角数字のみ入力可能です。"
-    },
-    "comment": {
-      "label": "コメント (任意)",
-      "placeholder": "コメントを入力 (256文字まで)"
-    }
-  },
-  "list": {
-    "name": {
-      "label": "リスト名",
-      "placeholder": "例: 交換用カードリスト"
-    },
-    "description": {
-      "label": "説明（任意）",
-      "placeholder": "リストの説明を入力してください"
-    }
-  },
-  "search": {
-    "keyword": {
-      "label": "キーワード",
-      "placeholder": "キーワードで検索"
+    "password": {
+      "forgotLink": "¿Olvidaste tu contraseña?",
+      "hide": "Ocultar contraseña",
+      "hint": "Se recomiendan al menos 6 caracteres alfanuméricos.",
+      "label": "Contraseña",
+      "newPlaceholder": "Contraseña (6+ caracteres)",
+      "placeholder": "Tu contraseña",
+      "show": "Mostrar contraseña"
     }
   },
   "collage": {
     "group1Title": {
-      "label": "グループ1のタイトル",
-      "placeholder": "例: 求めるカード"
+      "label": "Título del grupo 1",
+      "placeholder": "Ej.: Cartas buscadas"
     },
     "group2Title": {
-      "label": "グループ2のタイトル",
-      "placeholder": "例: 譲れるカード"
+      "label": "Título del grupo 2",
+      "placeholder": "Ej.: Cartas ofrecidas"
     }
   },
   "contact": {
-    "name": {
-      "label": "お名前",
-      "placeholder": "山田 太郎"
-    },
     "email": {
-      "label": "メールアドレス"
-    },
-    "subject": {
-      "label": "件名",
-      "placeholder": "お問い合わせの件名をご入力ください"
+      "label": "Dirección de correo"
     },
     "message": {
-      "label": "メッセージ",
-      "placeholder": "お問い合わせ内容を詳しくご記入ください"
+      "label": "Mensaje",
+      "placeholder": "Describe tu consulta con detalle"
+    },
+    "name": {
+      "label": "Nombre",
+      "placeholder": "Juan Pérez"
+    },
+    "subject": {
+      "label": "Asunto",
+      "placeholder": "Ingresa el asunto de tu consulta"
     }
+  },
+  "labels": {
+    "email": "Correo electrónico",
+    "password": "Contraseña",
+    "name": "Nombre",
+    "subject": "Asunto",
+    "message": "Mensaje",
+    "listName": "Nombre de la Lista",
+    "description": "Descripción"
+  },
+  "list": {
+    "description": {
+      "label": "Descripción (opcional)",
+      "placeholder": "Ingresa una descripción de la lista"
+    },
+    "name": {
+      "label": "Nombre de la lista",
+      "placeholder": "Ej.: Lista de cartas para intercambio"
+    }
+  },
+  "listCreation": {
+    "cardSelection": "Selección de cartas ({count}/35)",
+    "charCount": "{count}/100 caracteres",
+    "label": "Nombre de la lista",
+    "placeholder": "Ingresa el nombre de la lista"
+  },
+  "placeholders": {
+    "email": "Tu dirección de correo",
+    "enterListName": "Ingresa el nombre de la lista",
+    "keyword": "Palabra clave",
+    "password": "Tu contraseña",
+    "passwordMin": "Contraseña (6+ caracteres)",
+    "name": "Juan Pérez",
+    "subject": "Introduce el asunto de tu consulta",
+    "message": "Por favor, describe tu consulta en detalle",
+    "listName": "Ingresa el nombre de la lista",
+    "listDescription": "Ingresa la descripción de la lista (opcional)"
+  },
+  "pokepokeId": {
+    "label": "ID de Pokepoke",
+    "placeholder": "Ej.: trainer123"
+  },
+  "search": {
+    "keyword": {
+      "label": "Palabra clave",
+      "placeholder": "Buscar por palabra clave"
+    }
+  },
+  "trade": {
+    "comment": {
+      "label": "Comentario (opcional)",
+      "placeholder": "Ingresa un comentario (hasta 256 caracteres)"
+    },
+    "offeredCards": {
+      "label": "Cartas ofrecidas"
+    },
+    "pokepokeId": {
+      "helperAuthenticated": "Tu ID de Pokepoke registrada se rellenó automáticamente.",
+      "helperAuthenticatedNoId": "Has iniciado sesión. La ID de Pokepoke es opcional. Solo se permiten números.",
+      "helperGuest": "Publicando como invitado. La ID de Pokepoke es opcional. Solo se permiten números.",
+      "label": "ID de la app Pokepoke",
+      "placeholder": "ID de la app Pokepoke (opcional)"
+    },
+    "savedList": {
+      "label": "Seleccionar de listas guardadas"
+    },
+    "title": {
+      "label": "Título del intercambio",
+      "placeholder": "Ej.: Busco Charizard ex"
+    },
+    "wantedCards": {
+      "label": "Cartas buscadas"
+    }
+  },
+  "username": {
+    "label": "Nombre de usuario",
+    "placeholder": "Ej.: Entrenador Pokémon"
+  },
+  "packs": {
+    "all": "Todos los sobres"
+  },
+  "lists": {
+    "listInfo": "Información de la Lista",
+    "listInfoDescription": "Ingresa la información básica de la lista",
+    "cardSelection": "Selección de Cartas",
+    "cardSelectionDescription": "Selecciona cartas para agregar a la lista",
+    "selectedCards": "{count} seleccionadas"
   }
 }

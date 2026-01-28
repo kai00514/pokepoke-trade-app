@@ -1,0 +1,32 @@
+{
+  "incompleteError": "Bitte beantworten Sie alle erforderlichen Fragen.",
+  "q1": {
+    "option1": "Übereinstimmung der gesuchten Karten",
+    "option2": "Übereinstimmung der angebotenen Karten",
+    "option3": "Suche nach Seltenheit/Typ",
+    "option4": "Direkte Eingabe per Freundes-ID",
+    "title": "F1. Was hat für Sie Priorität, wenn Sie nach einem Tauschpartner suchen?"
+  },
+  "q2": {
+    "option1": "Schnell einen Partner finden (Priorität: Geschwindigkeit)",
+    "option2": "Mit vertrauenswürdigen Partnern handeln (Priorität: Zuverlässigkeit)",
+    "option3": "Seltene/hoch nachgefragte Karten effizient tauschen",
+    "option4": "Als Gelegenheit zur Interaktion nutzen (Neue Freunde finden)",
+    "title": "F2. Welche Erfahrung erwarten Sie beim Matching? (Mehrfachauswahl möglich)"
+  },
+  "q3": {
+    "option1": "In-App-Chat",
+    "option2": "Match-Benachrichtigung (Push)",
+    "option3": "Vertrauenswürdigkeit durch Bewertungen/Rezensionen sichtbar machen",
+    "option4": "Automatische Speicherung der Tauschhistorie",
+    "title": "F3. Welche unterstützenden Funktionen wünschen Sie nach dem Matching? (Mehrfachauswahl möglich)"
+  },
+  "q4": {
+    "title": "F4. Wie häufig möchten Sie diese Funktion nutzen? (Optional)"
+  },
+  "submitError": "Beim Absenden ist ein Fehler aufgetreten. Bitte versuchen Sie es später erneut.",
+  "subtitle": "Helfen Sie uns, die Matching-Funktion zu verbessern, indem Sie an dieser 1-minütigen Umfrage teilnehmen.",
+  "thankYou": "Vielen Dank für Ihre Antwort!",
+  "thankYouMessage": "Wir nutzen Ihr Feedback, um ein noch besseres Matching-Erlebnis zu bieten. Bleiben Sie gespannt auf den Start!",
+  "title": "Wir würden gerne Ihr Feedback hören"
+}

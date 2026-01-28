@@ -1,0 +1,122 @@
+{
+  "info": {
+    "cardsSelected": "{count}장의 카드가 선택되었습니다",
+    "collageDescription": "여러 장의 카드 이미지를 자동으로 합성하여 하나의 콜라주 이미지를 만들 수 있습니다. 생성된 콜라주는 X에 공유할 수 있습니다.",
+    "collageInstruction": "각 그룹에서 1~30장의 카드를 선택할 수 있습니다. 제목은 콜라주 이미지에 표시됩니다.",
+    "loginRequired": "콜라주를 생성·관리하려면 로그인해야 합니다.",
+    "maxCards": "(최대 {max})",
+    "noCardsFound": "해당하는 카드를 찾을 수 없습니다.",
+    "noCardsSelected": "선택된 카드가 없습니다",
+    "noPosts": "게시물이 없습니다",
+    "noPostsFound": "해당하는 게시물을 찾을 수 없습니다.",
+    "resultCount": "총 {totalCount}개 중 {start}~{end}개 표시",
+    "searchCardsInstruction": "\"카드 검색\" 버튼에서 카드를 선택해주세요",
+    "selectCards": "카드를 선택해주세요",
+    "selectedCount": "선택된 카드: {count}장",
+    "selectedCountCards": "{count}개 선택됨",
+    "selectedCountWithMax": "{count}장 선택됨 (최대 {max}장)",
+    "tradeNotice": "여기에 등록된 내용은 타임라인에 즉시 반영됩니다. 댓글이 달리면 알림(벨 아이콘)에서 확인할 수 있습니다. 거래 상태는 마이페이지의 거래 내역에서 확인할 수 있습니다."
+  },
+  "modals": {
+    "collage": {
+      "selectCardsForGroup": "{title}의 카드를 선택",
+      "title": "콜라주 이미지 생성"
+    },
+    "detailedSearch": {
+      "title": "상세 카드 검색"
+    },
+    "list": {
+      "createNew": "새 리스트 만들기"
+    },
+    "loginPrompt": {
+      "benefit1": "포케포케 ID·사용자명 자동 입력",
+      "benefit2": "희망/제공 카드 리스트 생성",
+      "benefit3": "알림 아이콘으로 최신 정보 받기",
+      "benefit4": "거래 내역 화면에서 상태 확인",
+      "benefit5": "덱 즐겨찾기 등록",
+      "title": "계정 등록으로 더 편리하게!"
+    },
+    "pokepokeId": {
+      "description": "당신의 포케포케 ID를 설정해주세요. 다른 사용자가 더 쉽게 당신을 찾을 수 있습니다.",
+      "title": "포케포케 ID 등록"
+    },
+    "selectCards": {
+      "description": "리스트에 추가할 카드를 선택해주세요 (최대 35장, 현재 {count}장 선택됨)",
+      "title": "카드 선택"
+    },
+    "username": {
+      "description": "표시용 사용자명을 설정해주세요. 언제든지 변경할 수 있습니다.",
+      "title": "사용자명 등록"
+    }
+  },
+  "success": {
+    "accountCreated": "계정이 생성되었습니다.",
+    "checkEmail": "이메일을 확인해주세요.",
+    "confirmationEmailSent": "확인 이메일 전송",
+    "confirmationEmailSentMessage": "확인 이메일을 전송했습니다. 메일을 확인한 후 링크를 클릭해 등록을 완료해주세요.",
+    "copied": "복사됨",
+    "idCopied": "복사했습니다",
+    "idCopiedMessage": "ID: {postId} 를 클립보드에 복사했습니다.",
+    "listCreated": "리스트 생성 완료",
+    "listCreatedMessage": "카드 리스트가 정상적으로 생성되었습니다.",
+    "loginSuccess": "로그인 성공",
+    "loginSuccessMessage": "로그인되었습니다.",
+    "passwordUpdateSuccess": "비밀번호가 정상적으로 업데이트되었습니다. 로그인 페이지로 이동해주세요.",
+    "passwordUpdated": "비밀번호 업데이트 완료",
+    "passwordUpdatedMessage": "새 비밀번호로 로그인해주세요.",
+    "resendConfirmation": "확인 이메일 재전송",
+    "resendConfirmationMessage": "확인 이메일을 다시 전송했습니다.",
+    "resetEmailSent": "이메일 전송 완료",
+    "resetEmailSentDetail": "비밀번호 재설정 링크를 이메일로 전송했습니다. 메일을 확인해주세요.",
+    "resetEmailSentMessage": "비밀번호 재설정 링크를 전송했습니다.",
+    "sessionRefreshed": "세션 갱신 완료",
+    "sessionRefreshedMessage": "세션이 정상적으로 갱신되었습니다.",
+    "signupComplete": "등록 완료",
+    "tradePosted": "게시 완료",
+    "tradePostedMessage": "트레이드 게시물이 생성되었습니다.",
+    "urlCopied": "URL을 복사했습니다",
+    "urlCopiedMessage": "링크가 클립보드에 복사되었습니다.",
+    "postSuccess": "게시 성공",
+    "tradePostCreated": "트레이드 게시물이 생성되었습니다.",
+    "listCreationComplete": "리스트 생성 완료",
+    "listCreatedSuccessfully": "카드 리스트가 성공적으로 생성되었습니다.",
+    "unfavorited": "즐겨찾기에서 제거되었습니다."
+  },
+  "notifications": {
+    "title": "알림",
+    "noNotifications": "알림 없음",
+    "loading": "로딩 중...",
+    "markAsRead": "읽음으로 표시",
+    "markAllAsRead": "모두 읽음으로 표시",
+    "unreadCount": "{count}개의 읽지 않은 알림",
+    "count": "{count}개",
+    "showing50": "50개 이상",
+    "types": {
+      "trade": "트레이드",
+      "deck": "덱",
+      "other": "기타"
+    },
+    "time": {
+      "now": "방금 전",
+      "minutesAgo": "{count}분 전",
+      "hoursAgo": "{count}시간 전"
+    },
+    "unknownUser": "알 수 없는 사용자",
+    "unknownDetails": "세부 정보 없음",
+    "fromAbout": "{sender}님이 \"{content}\"에 대해"
+  },
+  "title": "메시지",
+  "warning": {
+    "selectionLimit": "선택 제한",
+    "timeSkew": "시간 동기화 문제",
+    "timeSkewDetail": "기기 시간이 {formatTimeSkew}만큼 어긋나 있습니다. 인증에 문제가 발생할 수 있습니다.",
+    "timeSkewMessage": "기기 시간이 {formatTimeSkew}만큼 어긋나 있어 게시가 실패할 수 있습니다.",
+    "maxSelectionReached": "최대 {maxSelection}장까지 선택할 수 있습니다."
+  },
+  "auth": {
+    "listsLoginRequired": "카드 리스트를 생성하고 보려면 로그인하세요."
+  },
+  "ownerActions": "작성자 작업",
+  "cancel": "취소",
+  "complete": "완료"
+}

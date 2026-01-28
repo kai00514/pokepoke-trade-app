@@ -1,6 +1,7 @@
 "use client"
 import { useEffect } from "react"
 import Image from "next/image"
+import { useTranslations } from "next-intl"
 
 interface DeckCardWithDetails {
   card_id: number
@@ -19,6 +20,7 @@ interface DeckCardsGridProps {
 }
 
 export function DeckCardsGrid({ deckName, energyType, energyImage, cards }: DeckCardsGridProps) {
+  const t = useTranslations()
   useEffect(() => {
     console.log("DeckCardsGrid received cards prop:", cards)
   }, [cards])
@@ -26,7 +28,7 @@ export function DeckCardsGrid({ deckName, energyType, energyImage, cards }: Deck
   if (!cards || cards.length === 0) {
     return (
       <div className="text-center py-8 text-gray-500">
-        <p>デッキレシピ情報がありません</p>
+        <p>{t('decks.noRecipe')}</p>
       </div>
     )
   }

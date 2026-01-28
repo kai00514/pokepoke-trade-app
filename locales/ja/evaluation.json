@@ -1,0 +1,19 @@
+{
+  "alreadyRated": "既に評価済みです",
+  "alreadyRatedDetail": "このデッキは既に評価されています。",
+  "checkError": "ユーザー評価の確認に失敗しました",
+  "checkErrorDetail": "ユーザー評価の確認中にエラーが発生しました。",
+  "deckFeatures": "デッキ特徴",
+  "loginPrompt": "デッキを評価するにはログインしてください。",
+  "stats": {
+    "accessibility": "集めやすさ",
+    "durability": "耐久",
+    "power": "火力",
+    "speed": "速度",
+    "stability": "安定"
+  },
+  "submitError": "評価の送信に失敗しました",
+  "submitErrorDetail": "評価の送信中にエラーが発生しました。",
+  "submitSuccess": "評価を送信しました",
+  "submitSuccessDetail": "あなたの評価 {score} 点が反映されました。"
+}

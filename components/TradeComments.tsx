@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react"
 import { addComment, getComments } from "@/lib/actions/trade-comments"
+import { useTranslations, useLocale } from "next-intl"
+import TranslateButton from "@/components/translate-button"
 
 interface TradeCommentsProps {
   postId: string
@@ -11,6 +13,8 @@ export default function TradeComments({ postId, currentUser }: TradeCommentsProp
   const [content, setContent] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const t = useTranslations()
+  const locale = useLocale()
 
   useEffect(() => {
     fetchComments()
@@ -78,9 +82,14 @@ export default function TradeComments({ postId, currentUser }: TradeCommentsProp
               <div className="flex items-center gap-2">
                 <span className="font-bold">{c.user_name || (c.is_guest ? 'ゲスト' : 'ユーザー')}</span>
                 <span className="text-xs text-gray-500">{new Date(c.created_at).toLocaleString()}</span>
-                {c.is_edited && <span className="text-xs text-yellow-600 ml-2">編集済み</span>}
+                {c.is_edited && <span className="text-xs text-yellow-600 ml-2">{t('comments.edited')}</span>}
               </div>
               <div className="mt-1">{c.content}</div>
+              <TranslateButton 
+                text={c.content} 
+                sourceLang="ja" 
+                className="mt-1" 
+              />
             </li>
           ))}
         </ul>

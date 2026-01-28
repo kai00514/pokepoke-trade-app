@@ -1,92 +1,160 @@
 {
-  "home": {
-    "title": "PokeLink トレード掲示板",
-    "subtitle": "欲しいカードと譲れるカードをスムーズに交換しよう！"
-  },
-  "login": {
-    "title": "ログイン",
-    "subtitle": "アカウントにログインしてください"
-  },
-  "signup": {
-    "title": "会員登録",
-    "subtitle": "アカウントを作成してポケモンカードの取引を始めましょう"
-  },
-  "reset": {
-    "title": "パスワードをリセット",
-    "subtitle": "登録済みのメールアドレスを入力してください"
-  },
-  "createTrade": {
-    "title": "トレードカードを登録",
-    "noticeTitle": "お知らせ"
-  },
-  "createList": {
-    "title": "新しいカードリストを作成",
-    "subtitle": "トレード用のカードリストを作成して、他のユーザーと交換しましょう。",
-    "listInfo": {
-      "title": "リスト情報",
-      "description": "リストの基本情報を入力してください"
-    },
-    "cardSelection": {
-      "title": "カード選択",
-      "description": "リストに追加するカードを選択してください"
-    },
-    "loginRequired": {
-      "title": "カードをお持ちでない方",
-      "description": "カードリストを作成するにはログインしてください。"
-    }
+  "collageGenerator": {
+    "defaultTitle1": "Gewünschte Karten",
+    "defaultTitle2": "Angebotene Karten",
+    "editGroup": "{title} bearbeiten",
+    "title": "Collage-Bild erstellen"
   },
   "collages": {
-    "title": "コラージュ画像",
-    "subtitle": "複数のカードをコラージュにしてXで共有しましょう"
+    "subtitle": "Erstellen Sie Collages aus mehreren Karten und teilen Sie sie auf X",
+    "title": "Collage-Bilder",
+    "noCollagesYet": "Noch keine Collagen",
+    "cardCount": "{count1} + {count2} Karten",
+    "deleteConfirm": "Möchten Sie diese Collage wirklich löschen?",
+    "deleteSuccess": "Collage erfolgreich gelöscht",
+    "deleteFailed": "Fehler beim Löschen der Collage",
+    "fetchFailed": "Fehler beim Abrufen der Collagen",
+    "notFound": "Collage nicht gefunden",
+    "backToList": "Zurück zur Collage-Liste"
   },
   "contact": {
-    "title": "お問い合わせ",
-    "subtitle": "ご質問やご要望がございましたら、お気軽にお問い合わせください。 内容を確認の上、後日ご返信いたします。",
-    "form": {
-      "title": "お問い合わせフォーム",
-      "description": "必要事項をご入力の上、送信してください"
+    "contactInfo": {
+      "email": "E-Mail",
+      "hours": "Supportzeiten",
+      "hoursValue": "Werktags 9:00-18:00",
+      "title": "Weitere Kontaktmöglichkeiten"
     },
     "faq": {
-      "title": "よくある質問",
-      "q1": "Q. 返信までどのくらいかかりますか？",
-      "a1": "通常、1-3営業日以内にご返信いたします。",
-      "q2": "Q. アカウントに関する問題",
-      "a2": "ログインできない場合は、パスワードリセットをお試しください。",
-      "q3": "Q. 機能の要望について",
-      "a3": "新機能のご要望も大歓迎です。詳しくお聞かせください。"
+      "a1": "Wir antworten normalerweise innerhalb von 1-3 Werktagen.",
+      "a2": "Wenn Sie sich nicht anmelden können, versuchen Sie bitte, Ihr Passwort zurückzusetzen.",
+      "a3": "Wir begrüßen Anfragen für neue Funktionen. Bitte teilen Sie uns dies im Detail mit.",
+      "q1": "F. Wie lange dauert es, bis eine Antwort kommt?",
+      "q2": "F. Kontoprobleme",
+      "q3": "F. Funktionsanfragen",
+      "title": "Häufig gestellte Fragen"
     },
-    "contactInfo": {
-      "title": "その他の連絡方法",
-      "email": "メール",
-      "hours": "対応時間",
-      "hoursValue": "平日 9:00-18:00"
+    "form": {
+      "description": "Bitte füllen Sie die erforderlichen Informationen aus und senden Sie sie ab",
+      "title": "Kontaktformular"
     },
     "notice": {
-      "title": "ご注意",
-      "item1": "• 土日祝日は返信が遅れる場合があります",
-      "item2": "• 緊急の場合は件名に【緊急】と記載してください",
-      "item3": "• スパムメールフィルターをご確認ください"
-    }
+      "item1": "• Antworten können sich an Wochenenden und Feiertagen verzögern",
+      "item2": "• Bei dringenden Angelegenheiten fügen Sie bitte [DRINGEND] zum Betreff hinzu",
+      "item3": "• Bitte überprüfen Sie Ihren Spam-Filter",
+      "title": "Hinweis"
+    },
+    "subtitle": "Wenn Sie Fragen oder Anfragen haben, kontaktieren Sie uns bitte. Wir werden die Inhalte überprüfen und zu einem späteren Zeitpunkt antworten.",
+    "title": "Kontakt"
   },
-  "tradePost": {
-    "wantedCards": "求めるカード",
-    "offeredCards": "譲れるカード",
-    "authorComment": "投稿者コメント："
+  "createList": {
+    "cardSelection": {
+      "description": "Wählen Sie Karten aus, die zur Liste hinzugefügt werden sollen",
+      "title": "Kartenauswahl"
+    },
+    "listInfo": {
+      "description": "Geben Sie grundlegende Listeninformationen ein",
+      "title": "Listeninformationen"
+    },
+    "loginRequired": {
+      "description": "Bitte melden Sie sich an, um eine Kartenliste zu erstellen.",
+      "title": "Keine Karten vorhanden?"
+    },
+    "subtitle": "Erstellen Sie eine Kartenliste für den Handel und den Austausch mit anderen Benutzern.",
+    "title": "Neue Kartenliste erstellen"
   },
-  "share": {
-    "title": "この投稿を共有",
-    "subtitle": "お好きな方法で投稿をシェアできます",
-    "urlSection": "投稿のURL",
-    "snsSection": "SNSでシェア",
-    "tip": "リンクをコピーして、メールやチャットで共有することもできます"
+  "createTrade": {
+    "noticeTitle": "Hinweis",
+    "title": "Handelskarte registrieren"
+  },
+  "decks": {
+    "favorites": "Favoriten",
+    "featuredDecks": "Empfohlene Decks",
+    "newPackDecks": "Neue Pack-Decks",
+    "postDeck": "Deck veröffentlichen",
+    "tierDecks": "Tier-Decks",
+    "updated": "Aktualisiert:",
+    "viewAllDecks": "Alle Decks anzeigen",
+    "viewDetails": "Details anzeigen"
   },
   "detailedSearch": {
-    "title": "カード詳細検索"
+    "title": "Detaillierte Kartensuche"
   },
-  "collageGenerator": {
-    "title": "コラージュ画像を生成",
-    "defaultTitle1": "求めるカード",
-    "defaultTitle2": "譲れるカード",
-    "editGroup": "{title}を編集"
+  "history": {
+    "authenticating": "Authentifizierungsstatus wird überprüft...",
+    "commentedPosts": "Kommentierte Beiträge",
+    "fetchError": "Daten konnten nicht abgerufen werden.",
+    "loading": "Wird geladen...",
+    "matchingHistory": "Matching-Verlauf",
+    "myPosts": "Meine Beiträge",
+    "noCommentedPosts": "Keine kommentierte Beitragshistorie.",
+    "noHistory": "Kein Verlauf verfügbar.",
+    "noMatchingHistory": "Kein Matching-Verlauf.",
+    "noMyPosts": "Sie haben keine Beitragshistorie.",
+    "title": "Verlauf"
+  },
+  "home": {
+    "subtitle": "Tauschen Sie die Karten, die Sie wollen, und die Karten, die Sie anbieten können, reibungslos aus!",
+    "title": "PokeLink Handelsbrett"
+  },
+  "login": {
+    "subtitle": "Melden Sie sich in Ihrem Konto an",
+    "title": "Anmelden"
+  },
+  "matching": {
+    "comingSoon": "Demnächst!",
+    "comingSoonDate": "Demnächst",
+    "preparingBetterExperience": "Wir bereiten vor, ein besseres Handelserlebnis zu bieten.",
+    "title": "Matching",
+    "underDevelopment": "Die Matching-Funktion befindet sich derzeit in der Entwicklung."
+  },
+  "reset": {
+    "subtitle": "Geben Sie Ihre registrierte E-Mail-Adresse ein",
+    "title": "Passwort zurücksetzen"
+  },
+  "resultsInfo": {
+    "noPosts": "Keine Beiträge verfügbar",
+    "noResults": "Keine passenden Beiträge gefunden.",
+    "searchResults": "(Suche: \"{keyword}\")",
+    "showing": "Zeige {start}~{end} von {total}"
+  },
+  "share": {
+    "snsSection": "In sozialen Medien teilen",
+    "subtitle": "Teilen Sie den Beitrag auf Ihre bevorzugte Weise",
+    "tip": "Sie können auch den Link kopieren und per E-Mail oder Chat teilen",
+    "title": "Diesen Beitrag teilen",
+    "urlSection": "Beitrags-URL"
+  },
+  "signup": {
+    "subtitle": "Erstellen Sie ein Konto und beginnen Sie mit dem Handel von Pokémon-Karten",
+    "title": "Registrieren"
+  },
+  "tradePost": {
+    "authorComment": "Kommentar des Autors:",
+    "offeredCards": "Angebotene Karten",
+    "wantedCards": "Gewünschte Karten"
+  },
+  "lists": {
+    "title": "Kartenlisten",
+    "createNewList": "Neue Liste erstellen",
+    "createListDescription": "Erstellen Sie Kartenlisten zum Handeln und Tauschen mit anderen Benutzern.",
+    "description": "Sie können mehrere Kartenlisten erstellen. Beim Posten eines Handels können Sie aus Ihren gespeicherten Listen auswählen, um Karten einfach anzugeben.",
+    "maxListsWarning": "Sie können bis zu 10 Listen erstellen. Um eine neue Liste zu erstellen, löschen Sie bitte eine vorhandene.",
+    "untitledList": "Unbenannte Liste",
+    "noDescription": "Keine Beschreibung",
+    "noLists": "Noch keine Listen",
+    "createFirstList": "Erstellen Sie eine Kartenliste, um den Handel bequemer zu gestalten."
+  },
+  "favorites": {
+    "title": "Favoriten-Decks",
+    "count": "{count} Einträge",
+    "checkingAuth": "Authentifizierungsstatus wird überprüft...",
+    "viewFavorites": "Favoriten-Decks anzeigen",
+    "loginRequired": "Anmeldung erforderlich, um Ihre Favoriten-Decks zu speichern und zu verwalten.",
+    "loginPromptTitle": "Anmeldung erforderlich, um Favoriten-Decks anzuzeigen",
+    "loginPromptDescription": "Speichern Sie Ihre Favoriten-Decks und greifen Sie jederzeit einfach darauf zu.",
+    "noFavorites": "Keine Favoriten-Decks",
+    "noFavoritesDescription": "Finden Sie interessante Decks und fügen Sie sie zu Ihren Favoriten hinzu!",
+    "browseDecks": "Decks durchsuchen",
+    "retry": "Wiederholen"
   }
 }

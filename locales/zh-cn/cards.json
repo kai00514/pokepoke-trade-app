@@ -1,42 +1,47 @@
 {
   "categories": {
     "all": "全て",
-    "pokemon": "ポケモン",
-    "trainers": "トレーナーズ",
     "goods": "グッズ",
-    "tools": "どうぐ"
+    "pokemon": "ポケモン",
+    "tools": "どうぐ",
+    "trainers": "トレーナーズ"
   },
-  "types": {
-    "all": "全タイプ",
-    "grass": "草",
-    "fire": "炎",
-    "water": "水",
-    "electric": "電気",
-    "psychic": "エスパー",
-    "fighting": "格闘",
-    "dark": "悪",
-    "steel": "鋼",
-    "colorless": "無色",
-    "dragon": "ドラゴン"
+  "filters": {
+    "pack": "パック名",
+    "type": "タイプ"
+  },
+  "packs": {
+    "all": "全てのパック"
   },
   "rarities": {
     "all": "全レアリティ",
+    "color1": "色1",
+    "color1Label": "1",
+    "color2": "色2",
+    "color2Label": "2",
+    "crown": "クラウン",
+    "crownLabel": "♔",
     "diamond1": "ダイヤ1",
     "diamond2": "ダイヤ2",
     "diamond3": "ダイヤ3",
     "diamond4": "ダイヤ4",
     "star1": "星1",
     "star2": "星2",
-    "star3": "星3",
-    "crown": "クラウン",
-    "color1": "色1",
-    "color2": "色2"
+    "star3": "星3"
   },
-  "packs": {
-    "all": "全てのパック"
-  },
-  "filters": {
-    "type": "タイプ",
-    "pack": "パック名"
+  "types": {
+    "all": "全タイプ",
+    "colorless": "無色",
+    "dark": "悪",
+    "darkness": "Dark",
+    "dragon": "ドラゴン",
+    "electric": "電気",
+    "fighting": "格闘",
+    "fire": "炎",
+    "grass": "草",
+    "metal": "Steel",
+    "psychic": "エスパー",
+    "steel": "鋼",
+    "water": "水"
   }
 }

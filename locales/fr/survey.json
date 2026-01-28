@@ -1,0 +1,32 @@
+{
+  "incompleteError": "Veuillez répondre à toutes les questions obligatoires.",
+  "q1": {
+    "option1": "Correspondance avec les cartes recherchées",
+    "option2": "Correspondance avec les cartes proposées",
+    "option3": "Recherche par rareté/type",
+    "option4": "Recherche directe via l’ID d’ami",
+    "title": "Q1. Que privilégiez-vous lorsque vous recherchez un partenaire d’échange ?"
+  },
+  "q2": {
+    "option1": "Trouver un partenaire rapidement (priorité à la rapidité)",
+    "option2": "Échanger avec des partenaires fiables (priorité à la confiance)",
+    "option3": "Échanger efficacement des cartes rares ou très demandées",
+    "option4": "Utiliser l’échange comme opportunité d’interaction (se faire des amis)",
+    "title": "Q2. Quelle expérience attendez-vous du système de mise en relation ? (Plusieurs choix possibles)"
+  },
+  "q3": {
+    "option1": "Chat intégré à l’application",
+    "option2": "Notification de correspondance (push)",
+    "option3": "Visualiser la confiance grâce aux avis/notations",
+    "option4": "Enregistrement automatique de l’historique d’échange",
+    "title": "Q3. Quelles fonctionnalités de support souhaitez-vous après la mise en relation ? (Plusieurs choix possibles)"
+  },
+  "q4": {
+    "title": "Q4. À quelle fréquence aimeriez-vous utiliser cette fonctionnalité ? (Optionnel)"
+  },
+  "submitError": "Une erreur est survenue lors de l’envoi. Veuillez réessayer plus tard.",
+  "subtitle": "Aidez-nous à améliorer la fonction de mise en relation en répondant à ce questionnaire d’une minute.",
+  "thankYou": "Merci pour votre réponse !",
+  "thankYouMessage": "Nous utiliserons vos retours pour offrir une meilleure expérience de mise en relation. Restez informé du lancement.",
+  "title": "Votre avis nous intéresse"
+}

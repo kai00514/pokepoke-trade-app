@@ -1,0 +1,22 @@
+{
+  "anonymousUser": "Anonymous User",
+  "edited": "Edited",
+  "guest": "Guest",
+  "justNow": "Just now",
+  "loadError": "Failed to load comments.",
+  "loggedInAs": "Logged in as: {name}",
+  "noComments": "No comments yet.",
+  "placeholder": "Enter your comment...",
+  "placeholderGuest": "Enter your comment as a guest...",
+  "pleaseEnter": "Please enter a comment.",
+  "post": "Post",
+  "postError": "Failed to post comment",
+  "postErrorRetry": "Failed to post comment. Please try again.",
+  "postErrorTitle": "Comment Post Error",
+  "posted": "Posted",
+  "postedAsGuest": "Comment posted as guest",
+  "postedSuccess": "Comment posted successfully",
+  "shortcutHint": "Press Ctrl+Enter to submit",
+  "title": "Comments",
+  "titleWithCount": "Comments ({count})"
+}

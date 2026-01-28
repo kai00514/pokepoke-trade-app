@@ -1,20 +1,22 @@
 "use client"
-import Link from "next/link"
+import { Link } from "@/lib/i18n-navigation"
 import { Home, Users, Layers, History, Info } from "lucide-react"
-import { usePathname } from "next/navigation"
+import { usePathname } from "@/lib/i18n-navigation"
 import { useEffect } from "react"
 import { cn } from "@/lib/utils"
-
-const navItems = [
-  { name: "ホーム", href: "/", icon: Home },
-  { name: "マッチング", href: "/matching", icon: Users, soon: true },
-  { name: "デッキ", href: "/decks", icon: Layers },
-  { name: "履歴", href: "/history", icon: History },
-  { name: "最新情報", href: "/info", icon: Info }, // Updated href
-]
+import { useTranslations } from "next-intl"
 
 export default function Footer() {
+  const t = useTranslations()
   const pathname = usePathname()
+  
+  const navItems = [
+    { name: t('common.navigation.home'), href: "/", icon: Home },
+    { name: t('common.navigation.matching'), href: "/matching", icon: Users, soon: true },
+    { name: t('common.navigation.decks'), href: "/decks", icon: Layers },
+    { name: t('common.navigation.history'), href: "/history", icon: History },
+    { name: t('common.navigation.info'), href: "/info", icon: Info },
+  ]
 
   useEffect(() => {
     document.body.style.paddingBottom = "64px" // フッターの高さ分の余白を確実に設定

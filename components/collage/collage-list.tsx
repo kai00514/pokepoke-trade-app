@@ -1,18 +1,20 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import Link from "next/link"
+import { Link } from "@/lib/i18n-navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Loader2, Trash2 } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
 import type { CollageListItem } from "@/types/collage"
+import { useTranslations } from "next-intl"
 
 export default function CollageList() {
   const [collages, setCollages] = useState<CollageListItem[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isDeleting, setIsDeleting] = useState<string | null>(null)
   const { toast } = useToast()
+  const t = useTranslations()
 
   useEffect(() => {
     fetchCollages()
@@ -32,8 +34,8 @@ export default function CollageList() {
     } catch (error) {
       console.error("Error fetching collages:", error)
       toast({
-        title: "エラー",
-        description: "コラージュ一覧の取得に失敗しました",
+        title: t('errors.title'),
+        description: t('pages.collages.fetchFailed'),
         variant: "destructive",
       })
     } finally {
@@ -42,7 +44,7 @@ export default function CollageList() {
   }
 
   const handleDelete = async (id: string) => {
-    if (!confirm("このコラージュを削除しますか？")) return
+    if (!confirm(t('pages.collages.deleteConfirm'))) return
 
     setIsDeleting(id)
     try {
@@ -51,14 +53,14 @@ export default function CollageList() {
 
       setCollages((prev) => prev.filter((c) => c.id !== id))
       toast({
-        title: "成功",
-        description: "コラージュを削除しました",
+        title: t('common.labels.completed'),
+        description: t('pages.collages.deleteSuccess'),
       })
     } catch (error) {
       console.error("Error deleting collage:", error)
       toast({
-        title: "エラー",
-        description: "コラージュの削除に失敗しました",
+        title: t('errors.title'),
+        description: t('pages.collages.deleteFailed'),
         variant: "destructive",
       })
     } finally {
@@ -83,8 +85,8 @@ export default function CollageList() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
             </svg>
           </div>
-          <h3 className="text-xl font-semibold text-gray-900 mb-3">コラージュがまだありません</h3>
-          <p className="text-gray-600 mb-8 max-w-md mx-auto">カードのコラージュ画像を生成して、Xで共有しましょう！</p>
+          <h3 className="text-xl font-semibold text-gray-900 mb-3">{t('pages.collages.noCollagesYet')}</h3>
+          <p className="text-gray-600 mb-8 max-w-md mx-auto">{t('pages.collages.subtitle')}</p>
         </div>
       </div>
     )
@@ -98,7 +100,7 @@ export default function CollageList() {
             <div className="mb-3">
               <h3 className="font-semibold text-gray-900 truncate">{collage.title1}</h3>
               <p className="text-sm text-gray-600">
-                {collage.cardCount1}枚 + {collage.cardCount2}枚
+                {t('pages.collages.cardCount', { count1: collage.cardCount1, count2: collage.cardCount2 })}
               </p>
             </div>
 
@@ -107,7 +109,7 @@ export default function CollageList() {
             <div className="flex gap-2">
               <Link href={`/collages/${collage.id}`} className="flex-1">
                 <Button size="sm" className="w-full bg-blue-600 hover:bg-blue-700 text-white">
-                  詳細
+                  {t('common.buttons.details')}
                 </Button>
               </Link>
               <Button

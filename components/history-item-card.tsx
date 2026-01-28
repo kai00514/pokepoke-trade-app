@@ -1,9 +1,10 @@
 import Image from "next/image"
-import Link from "next/link"
+import { Link } from "@/lib/i18n-navigation"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { MessageSquare, CheckCircle, XCircle, Zap, Clock, type LucideIcon } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { useTranslations } from "next-intl"
 
 export type HistoryStatus = "open" | "in_progress" | "completed" | "canceled"
 
@@ -12,7 +13,7 @@ export interface HistoryItem {
   title: string
   primaryCardName: string
   primaryCardImageUrl: string
-  postedDateRelative: string // e.g., "9日前"
+  postedDaysAgo: number // Number of days since posted (0 = today)
   status: HistoryStatus
   commentCount: number
   postUrl: string
@@ -25,30 +26,37 @@ interface StatusConfig {
   iconClass: string
 }
 
-const statusMap: Record<HistoryStatus, StatusConfig> = {
-  open: { label: "募集中", Icon: Zap, badgeClass: "bg-sky-100 text-sky-700 border-sky-300", iconClass: "text-sky-600" },
-  in_progress: {
-    label: "進行中",
-    Icon: Clock,
-    badgeClass: "bg-amber-100 text-amber-700 border-amber-300",
-    iconClass: "text-amber-600",
-  },
-  completed: {
-    label: "取引完了",
-    Icon: CheckCircle,
-    badgeClass: "bg-emerald-100 text-emerald-700 border-emerald-300",
-    iconClass: "text-emerald-600",
-  },
-  canceled: {
-    label: "キャンセル",
-    Icon: XCircle,
-    badgeClass: "bg-rose-100 text-rose-700 border-rose-300",
-    iconClass: "text-rose-600",
-  },
-}
-
 export default function HistoryItemCard({ item }: { item: HistoryItem }) {
+  const t = useTranslations()
+  
+  const statusMap: Record<HistoryStatus, StatusConfig> = {
+    open: { label: t('common.labels.recruiting'), Icon: Zap, badgeClass: "bg-sky-100 text-sky-700 border-sky-300", iconClass: "text-sky-600" },
+    in_progress: {
+      label: t('common.labels.inProgress'),
+      Icon: Clock,
+      badgeClass: "bg-amber-100 text-amber-700 border-amber-300",
+      iconClass: "text-amber-600",
+    },
+    completed: {
+      label: t('status.completed'),
+      Icon: CheckCircle,
+      badgeClass: "bg-emerald-100 text-emerald-700 border-emerald-300",
+      iconClass: "text-emerald-600",
+    },
+    canceled: {
+      label: t('status.canceled'),
+      Icon: XCircle,
+      badgeClass: "bg-rose-100 text-rose-700 border-rose-300",
+      iconClass: "text-rose-600",
+    },
+  }
+  
   const statusInfo = statusMap[item.status]
+  
+  // Format relative date
+  const postedDateRelative = item.postedDaysAgo === 0 
+    ? t('common.time.today')
+    : t('common.time.daysAgo', { count: item.postedDaysAgo })
 
   return (
     <Link href={item.postUrl} className="block group">
@@ -67,8 +75,10 @@ export default function HistoryItemCard({ item }: { item: HistoryItem }) {
             <h3 className="text-base sm:text-lg font-semibold text-slate-800 group-hover:text-blue-600 truncate transition-colors">
               {item.title}
             </h3>
-            <p className="text-xs sm:text-sm text-slate-600 truncate">{item.primaryCardName}</p>
-            <p className="text-xs text-slate-400 mt-0.5">{item.postedDateRelative}</p>
+            <p className="text-xs sm:text-sm text-slate-600 truncate">
+              {item.primaryCardName === 'Unknown' ? t('common.labels.unknown') : item.primaryCardName}
+            </p>
+            <p className="text-xs text-slate-400 mt-0.5">{postedDateRelative}</p>
           </div>
           <div className="flex-shrink-0 flex flex-col items-end space-y-1.5 text-right">
             <Badge variant="outline" className={cn("text-xs px-2 py-0.5 font-medium", statusInfo.badgeClass)}>
@@ -77,7 +87,7 @@ export default function HistoryItemCard({ item }: { item: HistoryItem }) {
             </Badge>
             <div className="flex items-center text-xs text-slate-500">
               <MessageSquare className="h-3.5 w-3.5 mr-1 text-slate-400" />
-              <span>コメント: {item.commentCount}</span>
+              <span>{t('decks.commentCount')}: {item.commentCount}</span>
             </div>
           </div>
         </CardContent>

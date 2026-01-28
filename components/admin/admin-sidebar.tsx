@@ -1,8 +1,8 @@
 "use client"
 
 import { FileText, Home, LogOut, Settings, Shield, Trophy, Users, BarChart3, PenTool, Layers, Plus } from "lucide-react"
-import Link from "next/link"
-import { usePathname, useRouter } from "next/navigation"
+import { Link } from "@/lib/i18n-navigation"
+import { usePathname, useRouter } from "@/lib/i18n-navigation"
 import { Button } from "@/components/ui/button"
 import {
   Sidebar,

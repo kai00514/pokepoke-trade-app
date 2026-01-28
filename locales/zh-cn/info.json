@@ -1,0 +1,29 @@
+{
+  "news": {
+    "backToInfo": "Back to Information",
+    "loading": "Loading...",
+    "noArticles": "No articles available at this time.",
+    "pinned": "Pinned",
+    "subtitle": "View all the latest news",
+    "title": "Latest News"
+  },
+  "noLatestInfo": "No latest news yet.",
+  "noTournaments": "No tournaments currently scheduled.",
+  "placeholders": {
+    "glossary": "Glossary will be displayed here.",
+    "guides": "Beginner's guide will be displayed here.",
+    "rules": "Basic rules information will be displayed here.",
+    "tournaments": "Official tournament information will be displayed here."
+  },
+  "sections": {
+    "calendar": "Tournament Calendar",
+    "glossary": "Glossary",
+    "guides": "Beginner's Guide",
+    "latestNews": "Latest News",
+    "rules": "Basic Rules",
+    "tournaments": "Official Tournaments"
+  },
+  "title": "Information",
+  "viewAll": "View All",
+  "viewAllLatestInfo": "View All Latest News"
+}

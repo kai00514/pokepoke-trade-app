@@ -1,0 +1,141 @@
+{
+  "auth": {
+    "confirmPassword": {
+      "hide": "비밀번호 확인 숨기기",
+      "label": "비밀번호 확인",
+      "placeholder": "비밀번호를 다시 입력하세요",
+      "show": "비밀번호 확인 보기"
+    },
+    "email": {
+      "label": "이메일",
+      "placeholder": "이메일 주소"
+    },
+    "newPassword": {
+      "label": "새 비밀번호",
+      "placeholder": "새 비밀번호 (6자 이상)"
+    },
+    "password": {
+      "forgotLink": "비밀번호를 잊으셨나요?",
+      "hide": "비밀번호 숨기기",
+      "hint": "영문/숫자 포함 6자 이상을 권장합니다.",
+      "label": "비밀번호",
+      "newPlaceholder": "비밀번호 (6자 이상)",
+      "placeholder": "비밀번호 입력",
+      "show": "비밀번호 보기"
+    }
+  },
+  "collage": {
+    "group1Title": {
+      "label": "그룹 1 제목",
+      "placeholder": "예: 원하는 카드"
+    },
+    "group2Title": {
+      "label": "그룹 2 제목",
+      "placeholder": "예: 제공 가능한 카드"
+    }
+  },
+  "contact": {
+    "email": {
+      "label": "이메일 주소"
+    },
+    "message": {
+      "label": "메시지",
+      "placeholder": "문의 내용을 자세히 입력해주세요"
+    },
+    "name": {
+      "label": "이름",
+      "placeholder": "홍길동"
+    },
+    "subject": {
+      "label": "제목",
+      "placeholder": "문의 제목을 입력하세요"
+    }
+  },
+  "labels": {
+    "email": "이메일",
+    "password": "비밀번호",
+    "name": "이름",
+    "subject": "제목",
+    "message": "메시지",
+    "listName": "리스트 이름",
+    "description": "설명"
+  },
+  "list": {
+    "description": {
+      "label": "설명 (선택 사항)",
+      "placeholder": "리스트 설명을 입력하세요"
+    },
+    "name": {
+      "label": "리스트 이름",
+      "placeholder": "예: 트레이딩 카드 리스트"
+    }
+  },
+  "listCreation": {
+    "cardSelection": "카드 선택 ({count}/35)",
+    "charCount": "{count}/100자",
+    "label": "리스트 이름",
+    "placeholder": "리스트 이름 입력"
+  },
+  "placeholders": {
+    "email": "이메일 주소 입력",
+    "enterListName": "리스트 이름 입력",
+    "keyword": "키워드",
+    "password": "비밀번호 입력",
+    "passwordMin": "비밀번호 (6자 이상)",
+    "name": "홍길동",
+    "subject": "문의 제목을 입력하세요",
+    "message": "문의 내용을 자세히 입력하세요",
+    "listName": "리스트 이름을 입력하세요",
+    "listDescription": "리스트 설명을 입력하세요 (선택사항)"
+  },
+  "pokepokeId": {
+    "label": "포케포케 ID",
+    "placeholder": "예: trainer123"
+  },
+  "search": {
+    "keyword": {
+      "label": "키워드",
+      "placeholder": "키워드로 검색"
+    }
+  },
+  "trade": {
+    "comment": {
+      "label": "댓글 (선택 사항)",
+      "placeholder": "댓글 입력 (최대 256자)"
+    },
+    "offeredCards": {
+      "label": "제공 카드"
+    },
+    "pokepokeId": {
+      "helperAuthenticated": "등록된 포케포케 ID가 자동으로 입력됩니다.",
+      "helperAuthenticatedNoId": "로그인 중입니다. 포케포케 ID는 선택 사항이며 숫자만 입력할 수 있습니다.",
+      "helperGuest": "게스트로 게시합니다. 포케포케 ID는 선택 사항이며 숫자만 입력할 수 있습니다.",
+      "label": "포케포케 앱 ID",
+      "placeholder": "포케포케 앱 ID (선택 사항)"
+    },
+    "savedList": {
+      "label": "저장된 리스트에서 선택"
+    },
+    "title": {
+      "label": "트레이드 제목",
+      "placeholder": "예: 리자몽 ex 구합니다"
+    },
+    "wantedCards": {
+      "label": "원하는 카드"
+    }
+  },
+  "username": {
+    "label": "사용자명",
+    "placeholder": "예: 포켓몬 트레이너"
+  },
+  "packs": {
+    "all": "모든 팩"
+  },
+  "lists": {
+    "listInfo": "리스트 정보",
+    "listInfoDescription": "리스트의 기본 정보를 입력하세요",
+    "cardSelection": "카드 선택",
+    "cardSelectionDescription": "리스트에 추가할 카드를 선택하세요",
+    "selectedCards": "{count}장 선택됨"
+  }
+}

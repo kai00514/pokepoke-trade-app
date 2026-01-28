@@ -5,6 +5,7 @@ import type { DeckStats, TierInfo } from "@/types/deck"
 import { useState, useEffect, useCallback } from "react"
 import { useAuth } from "@/contexts/auth-context"
 import { useToast } from "@/components/ui/use-toast"
+import { useTranslations } from "next-intl"
 
 interface DeckEvaluationProps {
   evaluationTitle: string
@@ -30,6 +31,7 @@ export function DeckEvaluation({
 
   const { user, loading: authLoading } = useAuth()
   const { toast } = useToast()
+  const t = useTranslations("evaluation")
   const [userScore, setUserScore] = useState<number[]>([5])
   const [currentEvalValue, setCurrentEvalValue] = useState(initialEvalValue)
   const [currentEvalCount, setCurrentEvalCount] = useState(initialEvalCount)
@@ -47,15 +49,15 @@ export function DeckEvaluation({
         try {
           const response = await fetch(`/api/deck-evaluation?deckPageId=${deckPageId}&userId=${user.id}`)
           if (!response.ok) {
-            throw new Error("ユーザー評価の確認に失敗しました")
+            throw new Error(t("checkError"))
           }
           const data = await response.json()
           setHasEvaluated(data.hasEvaluated)
         } catch (error) {
           console.error("Error checking user evaluation:", error)
           toast({
-            title: "エラー",
-            description: "ユーザー評価の確認中にエラーが発生しました。",
+            title: t("title"),
+            description: t("checkErrorDetail"),
             variant: "destructive",
           })
         }
@@ -64,21 +66,21 @@ export function DeckEvaluation({
     if (!authLoading) {
       checkUserEvaluation()
     }
-  }, [user, deckPageId, authLoading, toast])
+  }, [user, deckPageId, authLoading, toast, t])
 
   const handleScoreSubmit = useCallback(async () => {
     if (!user) {
       toast({
-        title: "ログインが必要です",
-        description: "デッキを評価するにはログインしてください。",
+        title: t("loginRequired"),
+        description: t("loginPrompt"),
         variant: "destructive",
       })
       return
     }
     if (hasEvaluated) {
       toast({
-        title: "既に評価済みです",
-        description: "このデッキは既に評価されています。",
+        title: t("alreadyRated"),
+        description: t("alreadyRatedDetail"),
         variant: "default",
       })
       return
@@ -101,7 +103,7 @@ export function DeckEvaluation({
 
       if (!response.ok) {
         const errorData = await response.json()
-        throw new Error(errorData.error || "評価の送信に失敗しました")
+        throw new Error(errorData.error || t("submitError"))
       }
 
       const result = await response.json()
@@ -110,20 +112,20 @@ export function DeckEvaluation({
       setHasEvaluated(true)
       onEvaluationUpdate(result.newEvalValue, result.newEvalCount)
       toast({
-        title: "評価を送信しました",
-        description: `あなたの評価 ${userScore[0]} 点が反映されました。`,
+        title: t("submitSuccess"),
+        description: t("submitSuccessDetail", { score: userScore[0] }),
       })
     } catch (error: any) {
       console.error("Error submitting evaluation:", error)
       toast({
-        title: "エラー",
-        description: error.message || "評価の送信中にエラーが発生しました。",
+        title: t("title"),
+        description: error.message || t("submitErrorDetail"),
         variant: "destructive",
       })
     } finally {
       setIsSubmitting(false)
     }
-  }, [user, hasEvaluated, isSubmitting, deckPageId, userScore, onEvaluationUpdate, toast])
+  }, [user, hasEvaluated, isSubmitting, deckPageId, userScore, onEvaluationUpdate, toast, t])
 
   const getTierColor = (rank: string) => {
     switch (rank) {
@@ -143,11 +145,11 @@ export function DeckEvaluation({
   }
 
   const statsArray = [
-    { label: "集めやすさ", value: deckStats.accessibility, max: 5 },
-    { label: "速度", value: deckStats.speed, max: 5 },
-    { label: "火力", value: deckStats.power, max: 5 },
-    { label: "耐久", value: deckStats.durability, max: 5 },
-    { label: "安定", value: deckStats.stability, max: 5 },
+    { label: t("stats.accessibility"), value: deckStats.accessibility, max: 5 },
+    { label: t("stats.speed"), value: deckStats.speed, max: 5 },
+    { label: t("stats.power"), value: deckStats.power, max: 5 },
+    { label: t("stats.durability"), value: deckStats.durability, max: 5 },
+    { label: t("stats.stability"), value: deckStats.stability, max: 5 },
   ]
 
   // レーダーチャート描画のuseEffectを削除
@@ -263,7 +265,7 @@ export function DeckEvaluation({
       <div className="mb-6">
         <h4 className="font-medium mb-4 flex items-center">
           <TrendingUp className="w-5 h-5 mr-2 text-blue-500" />
-          デッキ特徴
+          {t("deckFeatures")}
         </h4>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

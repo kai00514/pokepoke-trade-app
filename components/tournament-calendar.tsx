@@ -3,6 +3,7 @@
 import { Badge } from "@/components/ui/badge"
 import { ExternalLink } from "lucide-react"
 import { useEffect, useState } from "react"
+import { useTranslations } from "next-intl"
 
 interface Tournament {
   id: number
@@ -33,6 +34,7 @@ const formatEventDate = (dateString: string) => {
 }
 
 export default function TournamentCalendar() {
+  const t = useTranslations()
   const [tournaments, setTournaments] = useState<Tournament[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -91,7 +93,7 @@ export default function TournamentCalendar() {
   if (tournaments.length === 0) {
     return (
       <div className="bg-white rounded-lg shadow overflow-hidden">
-        <div className="p-8 text-center text-slate-500">現在開催予定の大会はありません。</div>
+        <div className="p-8 text-center text-slate-500">{t('info.noTournaments')}</div>
       </div>
     )
   }

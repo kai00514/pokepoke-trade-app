@@ -1,0 +1,19 @@
+{
+  "alreadyRated": "Déjà évalué",
+  "alreadyRatedDetail": "Vous avez déjà évalué ce deck.",
+  "checkError": "Échec de la vérification de l'évaluation de l'utilisateur",
+  "checkErrorDetail": "Une erreur s'est produite lors de la vérification de l'évaluation de l'utilisateur.",
+  "deckFeatures": "Caractéristiques du deck",
+  "loginPrompt": "Veuillez vous connecter pour évaluer ce deck.",
+  "stats": {
+    "accessibility": "Accessibilité",
+    "durability": "Durabilité",
+    "power": "Puissance",
+    "speed": "Vitesse",
+    "stability": "Stabilité"
+  },
+  "submitError": "Échec de l'envoi de l'évaluation",
+  "submitErrorDetail": "Une erreur s'est produite lors de l'envoi de l'évaluation.",
+  "submitSuccess": "Évaluation envoyée",
+  "submitSuccessDetail": "Votre évaluation de {score} points a été enregistrée."
+}

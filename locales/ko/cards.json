@@ -1,0 +1,47 @@
+{
+  "categories": {
+    "all": "전체",
+    "goods": "굿즈",
+    "pokemon": "포켓몬",
+    "tools": "도구",
+    "trainers": "트레이너"
+  },
+  "filters": {
+    "pack": "팩 이름",
+    "type": "타입"
+  },
+  "packs": {
+    "all": "전체 팩"
+  },
+  "rarities": {
+    "all": "전체 레어도",
+    "color1": "컬러 1",
+    "color1Label": "1",
+    "color2": "컬러 2",
+    "color2Label": "2",
+    "crown": "크라운",
+    "crownLabel": "♔",
+    "diamond1": "다이아 1",
+    "diamond2": "다이아 2",
+    "diamond3": "다이아 3",
+    "diamond4": "다이아 4",
+    "star1": "별 1",
+    "star2": "별 2",
+    "star3": "별 3"
+  },
+  "types": {
+    "all": "전체 타입",
+    "colorless": "무색",
+    "dark": "악",
+    "darkness": "다크",
+    "dragon": "드래곤",
+    "electric": "전기",
+    "fighting": "격투",
+    "fire": "불꽃",
+    "grass": "풀",
+    "metal": "메탈",
+    "psychic": "에스퍼",
+    "steel": "강철",
+    "water": "물"
+  }
+}

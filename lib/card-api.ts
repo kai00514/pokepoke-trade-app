@@ -4,7 +4,9 @@ import { supabase } from "@/lib/supabase/client"
 export interface CardData {
   id: number
   name: string
+  name_multilingual?: Record<string, string> | null
   image_url: string
+  image_url_multilingual?: Record<string, string> | null
   thumb_url?: string
   type_code?: string
   rarity_code?: string
@@ -39,7 +41,7 @@ export async function getCardsByIds(ids: number[]): Promise<CardData[]> {
   if (toFetch.length > 0) {
     const { data, error } = await supabase
       .from("cards")
-      .select("id, name, image_url, thumb_url, type_code, rarity_code, category")
+      .select("id, name, name_multilingual, image_url, image_url_multilingual, thumb_url, type_code, rarity_code, category")
       .in("id", toFetch)
 
     if (error) {
@@ -67,7 +69,7 @@ export async function fetchCardDetailsByIds(cardIds: string[]): Promise<CardData
     if (numericIds.length === 0) return []
     const { data, error } = await supabase
       .from("cards")
-      .select("id, name, image_url, thumb_url, type_code, rarity_code, category")
+      .select("id, name, name_multilingual, image_url, image_url_multilingual, thumb_url, type_code, rarity_code, category")
       .in("id", numericIds)
     if (error) {
       console.error("Error fetching card details:", error)
@@ -94,7 +96,7 @@ export async function fetchCardById(cardId: string | number): Promise<CardData |
 
     const { data, error } = await supabase
       .from("cards")
-      .select("id, name, image_url, thumb_url, type_code, rarity_code, category")
+      .select("id, name, name_multilingual, image_url, image_url_multilingual, thumb_url, type_code, rarity_code, category")
       .eq("id", numericId)
       .single()
     if (error) {
@@ -109,4 +111,12 @@ export async function fetchCardById(cardId: string | number): Promise<CardData |
     console.error("Error in fetchCardById:", err)
     return null
   }
+}
+
+/**
+ * Clear the card cache
+ * Call this when you need to refresh card data (e.g., after card names are updated)
+ */
+export function clearCardCache(): void {
+  cardCache.clear()
 }

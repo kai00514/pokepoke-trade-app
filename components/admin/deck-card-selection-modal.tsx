@@ -3,7 +3,7 @@
 import type React from "react"
 import { useState, useEffect, useRef } from "react"
 import Image from "next/image"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils"
 import { useToast } from "@/components/ui/use-toast"
 import { supabase } from "@/lib/supabase/client"
 import ImagePreviewOverlay from "../image-preview-overlay"
+import { useTranslations, useLocale } from "next-intl"
 
 export interface Card {
   id: string
@@ -98,6 +99,8 @@ export default function DeckCardSelectionModal({
   const touchStartTimeRef = useRef<number>(0)
   const touchStartPositionRef = useRef<{ x: number; y: number } | null>(null)
   const { toast } = useToast()
+  const locale = useLocale()
+  const t = useTranslations()
 
   useEffect(() => {
     if (isOpen && !isInitializedRef.current) {
@@ -115,7 +118,7 @@ export default function DeckCardSelectionModal({
   useEffect(() => {
     async function fetchPackOptions() {
       if (!isOpen) return
-      const { data, error } = await supabase.from("packs").select("id, name").order("name", { ascending: true })
+      const { data, error } = await supabase.from("packs").select("id, name, name_multilingual").order("id", { ascending: true })
       if (error) {
         toast({
           title: "パック情報取得エラー",
@@ -123,11 +126,16 @@ export default function DeckCardSelectionModal({
           variant: "destructive",
         })
       } else if (data) {
-        setPackOptions([{ id: "all", name: "全てのパック" }, ...data])
+        // Localize pack names
+        const localizedPacks = data.map(pack => ({
+          id: pack.id,
+          name: pack.name_multilingual?.[locale] || pack.name
+        }))
+        setPackOptions([{ id: "all", name: "全てのパック" }, ...localizedPacks])
       }
     }
     fetchPackOptions()
-  }, [isOpen, toast])
+  }, [isOpen, toast, locale])
 
   useEffect(() => {
     async function fetchCardsFromSupabase() {
@@ -344,18 +352,6 @@ export default function DeckCardSelectionModal({
         <DialogContent className="max-w-6xl w-[95vw] h-[90vh] p-0 flex flex-col gap-0">
           <DialogHeader className="p-4 border-b flex-shrink-0">
             <DialogTitle className="text-lg font-semibold">{modalTitle}</DialogTitle>
-            <DialogClose
-              className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground"
-              onClick={(e) => {
-                if (isPreviewOverlayOpen) {
-                  e.preventDefault()
-                  handlePreviewClose()
-                }
-              }}
-            >
-              <X className="h-5 w-5" />
-              <span className="sr-only">閉じる</span>
-            </DialogClose>
           </DialogHeader>
 
           <div className="flex flex-1 min-h-0">
@@ -619,7 +615,7 @@ export default function DeckCardSelectionModal({
                   className="bg-blue-600 hover:bg-blue-700 text-white"
                   disabled={totalCardCount === 0}
                 >
-                  選択完了
+                  {t('common.buttons.complete')}
                 </Button>
               </div>
             </div>

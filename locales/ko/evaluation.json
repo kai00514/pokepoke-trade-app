@@ -1,0 +1,19 @@
+{
+  "alreadyRated": "이미 평가했습니다",
+  "alreadyRatedDetail": "이 덱은 이미 평가하셨습니다.",
+  "checkError": "사용자 평가 확인에 실패했습니다",
+  "checkErrorDetail": "사용자 평가를 확인하는 중 오류가 발생했습니다.",
+  "deckFeatures": "덱 특징",
+  "loginPrompt": "덱을 평가하려면 로그인해주세요.",
+  "stats": {
+    "accessibility": "접근성",
+    "durability": "내구성",
+    "power": "파워",
+    "speed": "속도",
+    "stability": "안정성"
+  },
+  "submitError": "평가 제출에 실패했습니다",
+  "submitErrorDetail": "평가를 제출하는 중 오류가 발생했습니다.",
+  "submitSuccess": "평가 완료",
+  "submitSuccessDetail": "평가 {score}점을 기록했습니다."
+}

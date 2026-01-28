@@ -1,96 +1,141 @@
 {
   "auth": {
-    "email": {
-      "label": "メールアドレス",
-      "placeholder": "あなたのメールアドレス"
-    },
-    "password": {
-      "label": "パスワード",
-      "placeholder": "あなたのパスワード",
-      "newPlaceholder": "6文字以上のパスワード",
-      "hint": "半角英数6文字以上を推奨します。",
-      "forgotLink": "パスワードを忘れた方はこちら",
-      "show": "パスワードを表示",
-      "hide": "パスワードを隠す"
-    },
     "confirmPassword": {
-      "label": "パスワード確認",
-      "placeholder": "パスワードを再入力",
-      "show": "パスワード確認を表示",
-      "hide": "パスワード確認を隠す"
+      "hide": "Passwortbestätigung ausblenden",
+      "label": "Passwort bestätigen",
+      "placeholder": "Passwort erneut eingeben",
+      "show": "Passwortbestätigung anzeigen"
+    },
+    "email": {
+      "label": "E-Mail",
+      "placeholder": "Ihre E-Mail-Adresse"
     },
     "newPassword": {
-      "label": "新しいパスワード",
-      "placeholder": "6文字以上の新しいパスワード"
-    }
-  },
-  "trade": {
-    "title": {
-      "label": "トレード目的",
-      "placeholder": "例：リザードンex求む"
+      "label": "Neues Passwort",
+      "placeholder": "Neues Passwort (6+ Zeichen)"
     },
-    "wantedCards": {
-      "label": "求めるカード"
-    },
-    "offeredCards": {
-      "label": "譲れるカード"
-    },
-    "savedList": {
-      "label": "保存済みリストから選択"
-    },
-    "pokepokeId": {
-      "label": "ポケポケアプリID",
-      "placeholder": "ポケポケアプリのID (任意)",
-      "helperAuthenticated": "登録済みのポケポケIDが自動入力されています。",
-      "helperAuthenticatedNoId": "ログイン中です。ポケポケIDは任意です。半角数字のみ入力可能です。",
-      "helperGuest": "ゲストユーザーとして投稿します。ポケポケIDは任意です。半角数字のみ入力可能です。"
-    },
-    "comment": {
-      "label": "コメント (任意)",
-      "placeholder": "コメントを入力 (256文字まで)"
-    }
-  },
-  "list": {
-    "name": {
-      "label": "リスト名",
-      "placeholder": "例: 交換用カードリスト"
-    },
-    "description": {
-      "label": "説明（任意）",
-      "placeholder": "リストの説明を入力してください"
-    }
-  },
-  "search": {
-    "keyword": {
-      "label": "キーワード",
-      "placeholder": "キーワードで検索"
+    "password": {
+      "forgotLink": "Passwort vergessen?",
+      "hide": "Passwort ausblenden",
+      "hint": "Mindestens 6 alphanumerische Zeichen empfohlen.",
+      "label": "Passwort",
+      "newPlaceholder": "Passwort (6+ Zeichen)",
+      "placeholder": "Ihr Passwort",
+      "show": "Passwort anzeigen"
     }
   },
   "collage": {
     "group1Title": {
-      "label": "グループ1のタイトル",
-      "placeholder": "例: 求めるカード"
+      "label": "Titel Gruppe 1",
+      "placeholder": "z. B. Gesuchte Karten"
     },
     "group2Title": {
-      "label": "グループ2のタイトル",
-      "placeholder": "例: 譲れるカード"
+      "label": "Titel Gruppe 2",
+      "placeholder": "z. B. Angebotene Karten"
     }
   },
   "contact": {
-    "name": {
-      "label": "お名前",
-      "placeholder": "山田 太郎"
-    },
     "email": {
-      "label": "メールアドレス"
-    },
-    "subject": {
-      "label": "件名",
-      "placeholder": "お問い合わせの件名をご入力ください"
+      "label": "E-Mail-Adresse"
     },
     "message": {
-      "label": "メッセージ",
-      "placeholder": "お問い合わせ内容を詳しくご記入ください"
+      "label": "Nachricht",
+      "placeholder": "Bitte schildern Sie Ihre Anfrage ausführlich"
+    },
+    "name": {
+      "label": "Name",
+      "placeholder": "Max Mustermann"
+    },
+    "subject": {
+      "label": "Betreff",
+      "placeholder": "Geben Sie den Betreff Ihrer Anfrage ein"
     }
+  },
+  "labels": {
+    "email": "E-Mail",
+    "password": "Passwort",
+    "name": "Name",
+    "subject": "Betreff",
+    "message": "Nachricht",
+    "listName": "Listenname",
+    "description": "Beschreibung"
+  },
+  "list": {
+    "description": {
+      "label": "Beschreibung (optional)",
+      "placeholder": "Listenbeschreibung eingeben"
+    },
+    "name": {
+      "label": "Listenname",
+      "placeholder": "z. B. Tauschkartenliste"
+    }
+  },
+  "listCreation": {
+    "cardSelection": "Kartenauswahl ({count}/35)",
+    "charCount": "{count}/100 Zeichen",
+    "label": "Listenname",
+    "placeholder": "Listenname eingeben"
+  },
+  "placeholders": {
+    "email": "Ihre E-Mail-Adresse",
+    "enterListName": "Listenname eingeben",
+    "keyword": "Suchbegriff",
+    "password": "Ihr Passwort",
+    "passwordMin": "Passwort (6+ Zeichen)",
+    "name": "Max Mustermann",
+    "subject": "Geben Sie Ihr Anliegen ein",
+    "message": "Bitte beschreiben Sie Ihr Anliegen im Detail",
+    "listName": "Listenname eingeben",
+    "listDescription": "Listenbeschreibung eingeben (optional)"
+  },
+  "pokepokeId": {
+    "label": "Pokepoke-ID",
+    "placeholder": "z. B. trainer123"
+  },
+  "search": {
+    "keyword": {
+      "label": "Suchbegriff",
+      "placeholder": "Nach Suchbegriff suchen"
+    }
+  },
+  "trade": {
+    "comment": {
+      "label": "Kommentar (optional)",
+      "placeholder": "Kommentar eingeben (bis zu 256 Zeichen)"
+    },
+    "offeredCards": {
+      "label": "Angebotene Karten"
+    },
+    "pokepokeId": {
+      "helperAuthenticated": "Ihre registrierte Pokepoke-ID wird automatisch ausgefüllt.",
+      "helperAuthenticatedNoId": "Sie sind eingeloggt. Pokepoke-ID ist optional. Nur Zahlen erlaubt.",
+      "helperGuest": "Gastmodus aktiv. Pokepoke-ID ist optional. Nur Zahlen erlaubt.",
+      "label": "Pokepoke-App-ID",
+      "placeholder": "Pokepoke-App-ID (optional)"
+    },
+    "savedList": {
+      "label": "Aus gespeicherten Listen auswählen"
+    },
+    "title": {
+      "label": "Tausch-Titel",
+      "placeholder": "z. B. Suche Glurak ex"
+    },
+    "wantedCards": {
+      "label": "Gesuchte Karten"
+    }
+  },
+  "username": {
+    "label": "Benutzername",
+    "placeholder": "z. B. Pokémon-Trainer"
+  },
+  "packs": {
+    "all": "Alle Pakete"
+  },
+  "lists": {
+    "listInfo": "Listeninformationen",
+    "listInfoDescription": "Geben Sie grundlegende Listeninformationen ein",
+    "cardSelection": "Kartenauswahl",
+    "cardSelectionDescription": "Wählen Sie Karten aus, die der Liste hinzugefügt werden sollen",
+    "selectedCards": "{count} ausgewählt"
   }
 }

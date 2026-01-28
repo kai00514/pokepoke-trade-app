@@ -1,77 +1,115 @@
 {
   "auth": {
-    "generic": "認証エラーが発生しました。",
-    "callbackError": "認証プロセスでエラーが発生しました。",
-    "noCode": "認証コードが見つかりませんでした。",
-    "noSession": "セッションの作成に失敗しました。",
-    "unexpected": "予期しないエラーが発生しました。",
-    "emptyCredentials": "メールアドレスとパスワードを入力してください。",
-    "invalidCredentials": "メールアドレスまたはパスワードが正しくありません。",
-    "emailNotConfirmed": "メールアドレスが確認されていません。確認メールをご確認ください。",
-    "tooManyRequests": "ログイン試行回数が上限に達しました。しばらく時間をおいてから再試行してください。",
-    "loginFailed": "ログインに失敗しました。",
-    "socialLoginFailed": "ソーシャルログインに失敗しました。",
-    "resendFailed": "確認メールの再送信に失敗しました。",
-    "passwordMismatch": "パスワードが一致しません。",
-    "passwordTooShort": "パスワードは6文字以上で入力してください。",
-    "userExists": "このメールアドレスは既に登録されています。ログインページからログインしてください。",
-    "invalidEmail": "有効なメールアドレスを入力してください。",
-    "signupFailed": "登録に失敗しました。",
-    "accountCreationFailed": "アカウント作成に失敗しました。",
-    "socialSignupFailed": "ソーシャル登録に失敗しました。",
-    "emptyEmail": "メールアドレスを入力してください。",
-    "resetEmailFailed": "パスワードリセットメールの送信に失敗しました。",
-    "updatePasswordFailed": "パスワードの更新に失敗しました。",
-    "sessionSetupError": "セッション設定エラー",
-    "notAuthenticated": "ユーザーが認証されていません。",
-    "adminAuthFailed": "認証に失敗しました",
-    "adminEmptyCredentials": "ユーザー名とパスワードを入力してください",
-    "databaseError": "データベースエラーが発生しました",
-    "serverError": "サーバーエラーが発生しました"
-  },
-  "validation": {
-    "emptyTitle": "トレード目的を入力してください。",
-    "noWantedCards": "求めるカードを選択してください。",
-    "noOfferedCards": "譲れるカードを選択してください。",
-    "requiredFields": "必須項目を入力してください。",
-    "emptyListName": "リスト名を入力してください。",
-    "noCardsSelected": "少なくとも1枚のカードを選択してください。",
-    "selectOneCard": "カードを1枚選択してください。",
-    "maxSelection": "最大{maxSelection}枚まで選択できます。"
-  },
-  "trade": {
-    "inputError": "入力エラー",
-    "sessionError": "セッション更新エラー",
-    "sessionRefreshFailed": "セッションの更新に失敗しました。再ログインしてください。",
-    "postError": "投稿エラー",
-    "postCreationFailed": "投稿の作成に失敗しました。",
-    "genericError": "エラー"
-  },
-  "data": {
-    "fetchError": "データ取得エラー",
-    "postsFetchFailed": "投稿の取得に失敗しました。",
-    "packsFetchError": "パック情報取得エラー",
-    "packsFetchFailed": "パック情報の読み込みに失敗しました。",
-    "cardsFetchFailed": "カード情報の読み込みに失敗しました。"
-  },
-  "list": {
-    "authRequired": "ログインが必要です",
-    "authRequiredMessage": "リストを作成するにはログインしてください。",
-    "creationError": "エラーが発生しました",
-    "creationFailed": "リストの作成に失敗しました。",
-    "unexpectedError": "リストの作成中に予期しないエラーが発生しました。"
-  },
-  "share": {
-    "copyFailed": "コピーに失敗しました",
-    "tryAgain": "もう一度お試しください。"
+    "accountCreationFailed": "帳號建立失敗。",
+    "adminAuthFailed": "驗證失敗。",
+    "adminEmptyCredentials": "請輸入使用者名稱與密碼。",
+    "callbackError": "驗證程序發生錯誤。",
+    "databaseError": "資料庫發生錯誤。",
+    "emailNotConfirmed": "您的 Email 尚未完成驗證，請檢查確認信。",
+    "emptyCredentials": "請輸入 Email 與密碼。",
+    "emptyEmail": "請輸入 Email。",
+    "generic": "發生驗證錯誤。",
+    "invalidCredentials": "Email 或密碼不正確。",
+    "invalidEmail": "請輸入有效的 Email。",
+    "loginFailed": "登入失敗。",
+    "noCode": "找不到驗證碼。",
+    "noSession": "Session 建立失敗。",
+    "notAuthenticated": "尚未登入。",
+    "passwordMismatch": "密碼不一致。",
+    "passwordTooShort": "密碼至少需 6 碼。",
+    "resendFailed": "確認信重新發送失敗。",
+    "resetEmailFailed": "密碼重設信發送失敗。",
+    "serverError": "伺服器發生錯誤。",
+    "sessionSetupError": "Session 設定錯誤。",
+    "signupFailed": "註冊失敗。",
+    "socialLoginFailed": "社群登入失敗。",
+    "socialSignupFailed": "社群註冊失敗。",
+    "tooManyRequests": "登入嘗試次數過多，請稍後再試。",
+    "unexpected": "發生非預期錯誤。",
+    "updatePasswordFailed": "密碼更新失敗。",
+    "userExists": "此 Email 已被註冊，請至登入頁面登入。",
+    "loginRequiredForList": "請登入以建立列表。",
+    "loginRequired": "需要登入"
   },
   "collage": {
-    "emptyTitle": "タイトルを入力してください",
-    "noCards": "少なくとも1つのグループでカードを選択してください",
-    "generationFailed": "コラージュ生成に失敗しました"
+    "emptyTitle": "請輸入標題。",
+    "generationFailed": "拼貼圖片產生失敗。",
+    "noCards": "請在至少一個群組中選擇卡片。",
+    "fetchFailed": "取得拼貼圖失敗"
+  },
+  "data": {
+    "cardsFetchFailed": "無法載入卡片資訊。",
+    "fetchError": "資料取得錯誤。",
+    "packsFetchError": "卡包資料取得錯誤。",
+    "packsFetchFailed": "無法載入卡包資訊。",
+    "postsFetchFailed": "無法取得貼文資料。"
+  },
+  "inputError": "輸入錯誤",
+  "list": {
+    "authRequired": "需要登入",
+    "authRequiredMessage": "建立清單前請先登入。",
+    "creationError": "發生錯誤。",
+    "creationFailed": "清單建立失敗。",
+    "unexpectedError": "建立清單時發生非預期的錯誤。",
+    "listCreationFailed": "建立列表失敗。",
+    "unexpectedErrorDuringCreation": "建立列表時發生非預期錯誤。"
+  },
+  "loginRequired": "需要登入",
+  "operationFailed": "操作失敗",
+  "pokepokeId": {
+    "saveFailed": "Pokepoke ID 儲存失敗，請再試一次。"
   },
   "profile": {
-    "fetchFailed": "プロファイルの取得に失敗しました",
-    "fetchFailedMessage": "基本情報で表示しています。バックグラウンドで再取得を試行中です。"
+    "fetchFailed": "無法取得個人資料。",
+    "fetchFailedMessage": "目前顯示預設資訊，系統正在後台重新取得資料。"
+  },
+  "selection": {
+    "title": "選擇錯誤"
+  },
+  "share": {
+    "copyFailed": "複製失敗。",
+    "tryAgain": "請再試一次。"
+  },
+  "title": "錯誤",
+  "trade": {
+    "genericError": "錯誤",
+    "inputError": "輸入錯誤",
+    "postCreationFailed": "貼文建立失敗。",
+    "postError": "貼文錯誤",
+    "sessionError": "Session 更新錯誤",
+    "sessionRefreshFailed": "Session 更新失敗，請重新登入。"
+  },
+  "unexpected": "發生非預期的錯誤。",
+  "username": {
+    "saveFailed": "使用者名稱儲存失敗，請再試一次。"
+  },
+  "validation": {
+    "emptyListName": "請輸入清單名稱。",
+    "emptyTitle": "請輸入交換目的。",
+    "maxSelection": "最多可選擇 {maxSelection} 張。",
+    "noCardsSelected": "請至少選擇 1 張卡片。",
+    "noOfferedCards": "請選擇可提供的卡片。",
+    "noWantedCards": "請選擇想要的卡片。",
+    "requiredFields": "請填寫所有必填欄位。",
+    "selectOneCard": "請選擇 1 張卡片。",
+    "enterListName": "請輸入清單名稱。",
+    "enterPokepokeId": "請輸入 Pokepoke ID。",
+    "enterTitle": "請輸入標題。",
+    "enterUsername": "請輸入使用者名稱。",
+    "pokepokeIdLength": "Pokepoke ID 長度需為 3〜20 個字元。",
+    "selectAtLeastOneCard": "請至少選擇 1 張卡片。",
+    "selectAtLeastOneGroup": "請在至少 1 個群組中選擇卡片。",
+    "usernameLength": "使用者名稱長度需為 1〜30 個字元。",
+    "listNameRequired": "請輸入列表名稱。"
+  },
+  "generic": {
+    "error": "錯誤",
+    "errorOccurred": "發生錯誤"
+  },
+  "favorites": {
+    "fetchFailed": "取得收藏卡組失敗。",
+    "unexpectedError": "取得收藏卡組時發生非預期錯誤。",
+    "loginToUnfavorite": "請登入以取消收藏。",
+    "unfavoriteFailed": "取消收藏失敗"
   }
 }

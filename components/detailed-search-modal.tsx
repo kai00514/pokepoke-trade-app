@@ -3,7 +3,7 @@
 import type React from "react"
 import { useState, useEffect, useMemo, useRef } from "react"
 import Image from "next/image"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
@@ -12,6 +12,8 @@ import { cn } from "@/lib/utils"
 import { useToast } from "@/components/ui/use-toast"
 import { supabase } from "@/lib/supabase/client"
 import ImagePreviewOverlay from "./image-preview-overlay"
+import { useTranslations, useLocale } from "next-intl"
+import { getLocalizedCardName, getLocalizedCardImage } from "@/lib/i18n-helpers"
 
 export interface Card {
   id: string
@@ -23,21 +25,6 @@ export interface Card {
   pack_id?: string
 }
 
-const cardCategoriesForUI = ["全て", "ポケモン", "トレーナーズ", "グッズ", "どうぐ"]
-const typesForUI = [
-  { name: "全タイプ", icon: null, id: "all" },
-  { name: "草", icon: "/images/types/草.png", id: "草" },
-  { name: "炎", icon: "/images/types/炎.png", id: "炎" },
-  { name: "水", icon: "/images/types/水.png", id: "水" },
-  { name: "電気", icon: "/images/types/電気.png", id: "電気" },
-  { name: "エスパー", icon: "/images/types/念.png", id: "エスパー" },
-  { name: "格闘", icon: "/images/types/格闘.png", id: "格闘" },
-  { name: "悪", icon: "/images/types/悪.png", id: "悪" },
-  { name: "鋼", icon: "/images/types/鋼.png", id: "鋼" },
-  { name: "無色", icon: "/images/types/無色.png", id: "無色" },
-  { name: "ドラゴン", icon: "/images/types/龍.png", id: "ドラゴン" },
-]
-
 interface RarityOption {
   uiLabel: string
   dbValue: string
@@ -45,23 +32,9 @@ interface RarityOption {
   fullUiLabel: string
 }
 
-const rarityOptions: RarityOption[] = [
-  { uiLabel: "全レアリティ", dbValue: "all", fullUiLabel: "全レアリティ" },
-  { uiLabel: "1", dbValue: "ダイヤ1", iconPath: "/images/rarities/diamond_single.png", fullUiLabel: "ダイヤ1" },
-  { uiLabel: "2", dbValue: "ダイヤ2", iconPath: "/images/rarities/diamond_single.png", fullUiLabel: "ダイヤ2" },
-  { uiLabel: "3", dbValue: "ダイヤ3", iconPath: "/images/rarities/diamond_single.png", fullUiLabel: "ダイヤ3" },
-  { uiLabel: "4", dbValue: "ダイヤ4", iconPath: "/images/rarities/diamond_single.png", fullUiLabel: "ダイヤ4" },
-  { uiLabel: "1", dbValue: "星1", iconPath: "/images/rarities/star_single.png", fullUiLabel: "星1" },
-  { uiLabel: "2", dbValue: "星2", iconPath: "/images/rarities/star_single.png", fullUiLabel: "星2" },
-  { uiLabel: "3", dbValue: "星3", iconPath: "/images/rarities/star_single.png", fullUiLabel: "星3" },
-  { uiLabel: "クラウン", dbValue: "クラウン", iconPath: "/images/rarities/crown.png", fullUiLabel: "クラウン" },
-  { uiLabel: "色1", dbValue: "色1", iconPath: "/images/rarities/color2.png", fullUiLabel: "色1" },
-  { uiLabel: "色2", dbValue: "色2", iconPath: "/images/rarities/color2.png", fullUiLabel: "色2" },
-]
-
 interface DetailedSearchModalProps {
   isOpen: boolean
-  onOpenChange: (isOpen: boolean) => void
+  onOpenChange?: (isOpen: boolean) => void
   onSelectionComplete: (selectedCards: Card[]) => void
   maxSelection?: number
   initialSelectedCards?: Card[]
@@ -74,10 +47,12 @@ export default function DetailedSearchModal({
   onSelectionComplete,
   maxSelection,
   initialSelectedCards = [],
-  modalTitle = "カード詳細検索",
+  modalTitle,
 }: DetailedSearchModalProps) {
+  const t = useTranslations()
+  const locale = useLocale()
   const [keyword, setKeyword] = useState("")
-  const [selectedCategoryUI, setSelectedCategoryUI] = useState("全て")
+  const [selectedCategoryUI, setSelectedCategoryUI] = useState(t("cards.categories.all"))
   const [selectedRarityDBValue, setSelectedRarityDBValue] = useState("all")
   const [selectedTypeUI, setSelectedTypeUI] = useState("all")
   const [selectedPackId, setSelectedPackId] = useState<string | null>(null)
@@ -95,6 +70,42 @@ export default function DetailedSearchModal({
   const touchStartPositionRef = useRef<{ x: number; y: number } | null>(null)
   const { toast } = useToast()
 
+  const cardCategoriesForUI = [
+    t("cards.categories.all"),
+    t("cards.categories.pokemon"),
+    t("cards.categories.trainers"),
+    t("cards.categories.goods"),
+    t("cards.categories.tools"),
+  ]
+
+  const typesForUI = [
+    { name: t("cards.types.all"), icon: null, id: "all" },
+    { name: t("cards.types.grass"), icon: "/images/types/草.png", id: "草" },
+    { name: t("cards.types.fire"), icon: "/images/types/炎.png", id: "炎" },
+    { name: t("cards.types.water"), icon: "/images/types/水.png", id: "水" },
+    { name: t("cards.types.electric"), icon: "/images/types/電気.png", id: "電気" },
+    { name: t("cards.types.psychic"), icon: "/images/types/念.png", id: "エスパー" },
+    { name: t("cards.types.fighting"), icon: "/images/types/格闘.png", id: "格闘" },
+    { name: t("cards.types.darkness"), icon: "/images/types/悪.png", id: "悪" },
+    { name: t("cards.types.metal"), icon: "/images/types/鋼.png", id: "鋼" },
+    { name: t("cards.types.colorless"), icon: "/images/types/無色.png", id: "無色" },
+    { name: t("cards.types.dragon"), icon: "/images/types/龍.png", id: "ドラゴン" },
+  ]
+
+  const rarityOptions: RarityOption[] = [
+    { uiLabel: t("cards.rarities.all"), dbValue: "all", fullUiLabel: t("cards.rarities.all") },
+    { uiLabel: "1", dbValue: "ダイヤ1", iconPath: "/images/rarities/diamond_single.png", fullUiLabel: t("cards.rarities.diamond1") },
+    { uiLabel: "2", dbValue: "ダイヤ2", iconPath: "/images/rarities/diamond_single.png", fullUiLabel: t("cards.rarities.diamond2") },
+    { uiLabel: "3", dbValue: "ダイヤ3", iconPath: "/images/rarities/diamond_single.png", fullUiLabel: t("cards.rarities.diamond3") },
+    { uiLabel: "4", dbValue: "ダイヤ4", iconPath: "/images/rarities/diamond_single.png", fullUiLabel: t("cards.rarities.diamond4") },
+    { uiLabel: "1", dbValue: "星1", iconPath: "/images/rarities/star_single.png", fullUiLabel: t("cards.rarities.star1") },
+    { uiLabel: "2", dbValue: "星2", iconPath: "/images/rarities/star_single.png", fullUiLabel: t("cards.rarities.star2") },
+    { uiLabel: "3", dbValue: "星3", iconPath: "/images/rarities/star_single.png", fullUiLabel: t("cards.rarities.star3") },
+    { uiLabel: t("cards.rarities.crownLabel"), dbValue: "クラウン", iconPath: "/images/rarities/crown.png", fullUiLabel: t("cards.rarities.crown") },
+    { uiLabel: t("cards.rarities.color1Label"), dbValue: "色1", iconPath: "/images/rarities/color2.png", fullUiLabel: t("cards.rarities.color1") },
+    { uiLabel: t("cards.rarities.color2Label"), dbValue: "色2", iconPath: "/images/rarities/color2.png", fullUiLabel: t("cards.rarities.color2") },
+  ]
+
   useEffect(() => {
     if (isOpen && !isInitializedRef.current) {
       setCurrentSelectedCards([...initialSelectedCards])
@@ -111,19 +122,24 @@ export default function DetailedSearchModal({
   useEffect(() => {
     async function fetchPackOptions() {
       if (!isOpen) return
-      const { data, error } = await supabase.from("packs").select("id, name").order("name", { ascending: true })
+      const { data, error } = await supabase.from("packs").select("id, name, name_multilingual").order("id", { ascending: true })
       if (error) {
         toast({
-          title: "パック情報取得エラー",
-          description: "パック情報の読み込みに失敗しました。",
+          title: t("errors.data.packsFetchError"),
+          description: t("errors.data.packsFetchFailed"),
           variant: "destructive",
         })
       } else if (data) {
-        setPackOptions([{ id: "all", name: "全てのパック" }, ...data])
+        // Localize pack names
+        const localizedPacks = data.map(pack => ({
+          id: pack.id,
+          name: pack.name_multilingual?.[locale] || pack.name
+        }))
+        setPackOptions([{ id: "all", name: t("forms.packs.all") }, ...localizedPacks])
       }
     }
     fetchPackOptions()
-  }, [isOpen, toast])
+  }, [isOpen, toast, locale, t])
 
   useEffect(() => {
     async function fetchCardsFromSupabase() {
@@ -131,15 +147,15 @@ export default function DetailedSearchModal({
       setIsLoading(true)
       let query = supabase
         .from("cards")
-        .select("id, name, image_url, type_code, rarity_code, category, thumb_url, pack_id")
+        .select("id, name, name_multilingual, image_url, image_url_multilingual, type_code, rarity_code, category, thumb_url, pack_id")
         .eq("is_visible", true)
       if (keyword.trim()) query = query.ilike("name", `%${keyword.trim()}%`)
-      if (selectedCategoryUI !== "全て") {
+      if (selectedCategoryUI !== t("decks.categories.all")) {
         let dbCategory: string | undefined
-        if (selectedCategoryUI === "ポケモン") dbCategory = "pokemon"
-        else if (selectedCategoryUI === "トレーナーズ") dbCategory = "trainers"
-        else if (selectedCategoryUI === "グッズ") dbCategory = "goods"
-        else if (selectedCategoryUI === "どうぐ") dbCategory = "tools"
+        if (selectedCategoryUI === t("decks.categories.pokemon")) dbCategory = "pokemon"
+        else if (selectedCategoryUI === t("decks.categories.trainers")) dbCategory = "trainers"
+        else if (selectedCategoryUI === t("decks.categories.goods")) dbCategory = "goods"
+        else if (selectedCategoryUI === t("decks.categories.tools")) dbCategory = "tools"
         if (dbCategory) query = query.eq("category", dbCategory)
       }
       if (selectedTypeUI !== "all") query = query.eq("type_code", selectedTypeUI)
@@ -149,16 +165,16 @@ export default function DetailedSearchModal({
       const { data, error } = await query
       if (error) {
         toast({
-          title: "データ取得エラー",
-          description: "カード情報の読み込みに失敗しました。",
+          title: t("errors.data.fetchError"),
+          description: t("errors.data.cardsFetchFailed"),
           variant: "destructive",
         })
         setFetchedCards([])
       } else if (data) {
         const mappedData: Card[] = data.map((dbCard) => ({
           id: String(dbCard.id),
-          name: dbCard.name,
-          imageUrl: dbCard.image_url,
+          name: getLocalizedCardName(dbCard, locale),
+          imageUrl: getLocalizedCardImage(dbCard, locale),
           type: dbCard.type_code,
           rarity: dbCard.rarity_code,
           category: String(dbCard.category),
@@ -177,7 +193,7 @@ export default function DetailedSearchModal({
       if (maxSelection === 1) return isAlreadySelected ? [] : [card]
       if (isAlreadySelected) return prevSelected.filter((sc) => sc.id !== card.id)
       if (maxSelection && prevSelected.length >= maxSelection) {
-        toast({ title: "選択上限", description: `最大${maxSelection}枚まで選択できます。`, variant: "destructive" })
+        toast({ title: t("messages.warning.selectionLimit"), description: t("messages.warning.maxSelectionReached", { maxSelection }), variant: "destructive" })
         return prevSelected
       }
       return [...prevSelected, card]
@@ -262,11 +278,11 @@ export default function DetailedSearchModal({
 
   const handleSelectionComplete = () => {
     if (maxSelection === 1 && currentSelectedCards.length !== 1) {
-      toast({ title: "選択エラー", description: "カードを1枚選択してください。", variant: "destructive" })
+      toast({ title: t("messages.selection.title"), description: t("errors.validation.selectOneCard"), variant: "destructive" })
       return
     }
     onSelectionComplete([...currentSelectedCards])
-    onOpenChange(false)
+    onOpenChange?.(false)
   }
 
   const handlePreviewClose = () => {
@@ -312,35 +328,23 @@ export default function DetailedSearchModal({
   }, [isOpen, isPreviewOverlayOpen, onOpenChange])
 
   const selectionText = useMemo(() => {
-    let text = `${currentSelectedCards.length}枚選択中`
-    if (maxSelection) text += ` (最大${maxSelection}枚)`
+    let text = t("messages.info.selectedCountCards", { count: currentSelectedCards.length })
+    if (maxSelection) text += t("messages.info.maxCards", { max: maxSelection })
     return text
-  }, [currentSelectedCards, maxSelection])
+  }, [currentSelectedCards, maxSelection, t])
 
   return (
     <>
       <Dialog open={isOpen} onOpenChange={handleMainModalClose}>
         <DialogContent className="max-w-3xl w-[95vw] h-[85vh] p-0 flex flex-col gap-0">
           <DialogHeader className="p-4 border-b flex-shrink-0">
-            <DialogTitle className="text-lg font-semibold">{modalTitle}</DialogTitle>
-            <DialogClose
-              className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground"
-              onClick={(e) => {
-                if (isPreviewOverlayOpen) {
-                  e.preventDefault()
-                  handlePreviewClose()
-                }
-              }}
-            >
-              <X className="h-5 w-5" />
-              <span className="sr-only">閉じる</span>
-            </DialogClose>
+            <DialogTitle className="text-lg font-semibold">{modalTitle || t("messages.modals.detailedSearch.title")}</DialogTitle>
           </DialogHeader>
           <ScrollArea className="flex-grow bg-slate-50/50 min-h-0">
             <div className="p-4 space-y-4 border-b">
               <Input
                 type="text"
-                placeholder="キーワード"
+                placeholder={t("forms.placeholders.keyword")}
                 value={keyword}
                 onChange={(e) => setKeyword(e.target.value)}
                 className="flex-grow"
@@ -389,7 +393,7 @@ export default function DetailedSearchModal({
                 ))}
               </div>
               <div>
-                <p className="text-sm font-medium mb-1 text-slate-700">タイプ</p>
+                <p className="text-sm font-medium mb-1 text-slate-700">{t("filters.type")}</p>
                 <div className="flex flex-wrap gap-2">
                   {typesForUI.map((type) => (
                     <button
@@ -415,7 +419,7 @@ export default function DetailedSearchModal({
                 </div>
               </div>
               <div>
-                <p className="text-sm font-medium mb-1 text-slate-700">パック名</p>
+                <p className="text-sm font-medium mb-1 text-slate-700">{t("filters.pack")}</p>
                 <div className="flex flex-wrap gap-2">
                   {packOptions.map((pack) => (
                     <Button
@@ -481,7 +485,7 @@ export default function DetailedSearchModal({
                     ))}
                   </div>
                 ) : (
-                  <p className="col-span-full text-center text-slate-500 py-10">該当するカードが見つかりません。</p>
+                  <p className="col-span-full text-center text-slate-500 py-10">{t("messages.info.noCardsFound")}</p>
                 )}
               </div>
             </div>
@@ -514,7 +518,7 @@ export default function DetailedSearchModal({
                   (maxSelection !== 1 && currentSelectedCards.length === 0 && !!maxSelection)
                 }
               >
-                {"選択完了"}
+                {t("common.buttons.complete")}
               </Button>
             </div>
           </DialogFooter>

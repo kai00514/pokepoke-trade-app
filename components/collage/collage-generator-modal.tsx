@@ -8,6 +8,8 @@ import { Label } from "@/components/ui/label"
 import DetailedSearchModal from "@/components/detailed-search-modal"
 import type { Card } from "@/components/detailed-search-modal"
 import { ChevronRight, Loader2 } from "lucide-react"
+import { useTranslations } from "next-intl"
+import { useToast } from "@/components/ui/use-toast"
 
 interface CollageGeneratorModalProps {
   isOpen: boolean
@@ -15,9 +17,11 @@ interface CollageGeneratorModalProps {
 }
 
 export default function CollageGeneratorModal({ isOpen, onOpenChange }: CollageGeneratorModalProps) {
+  const t = useTranslations()
+  const { toast } = useToast()
   const [step, setStep] = useState<"input" | "select1" | "select2" | "preview">("input")
-  const [title1, setTitle1] = useState("求めるカード")
-  const [title2, setTitle2] = useState("譲れるカード")
+  const [title1, setTitle1] = useState("")
+  const [title2, setTitle2] = useState("")
   const [selectedCards1, setSelectedCards1] = useState<Card[]>([])
   const [selectedCards2, setSelectedCards2] = useState<Card[]>([])
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false)
@@ -26,8 +30,8 @@ export default function CollageGeneratorModal({ isOpen, onOpenChange }: CollageG
 
   const handleClose = () => {
     setStep("input")
-    setTitle1("求めるカード")
-    setTitle2("譲れるカード")
+    setTitle1("")
+    setTitle2("")
     setSelectedCards1([])
     setSelectedCards2([])
     setCurrentSearchGroup(1)
@@ -36,7 +40,10 @@ export default function CollageGeneratorModal({ isOpen, onOpenChange }: CollageG
 
   const handleStartSelection = () => {
     if (!title1.trim() || !title2.trim()) {
-      alert("タイトルを入力してください")
+      toast({
+        title: t("errors.validation.enterTitle"),
+        variant: "destructive",
+      })
       return
     }
     setStep("select1")
@@ -74,7 +81,10 @@ export default function CollageGeneratorModal({ isOpen, onOpenChange }: CollageG
 
   const handleGenerateCollage = async () => {
     if (selectedCards1.length === 0 && selectedCards2.length === 0) {
-      alert("少なくとも1つのグループでカードを選択してください")
+      toast({
+        title: t("errors.validation.selectAtLeastOneGroup"),
+        variant: "destructive",
+      })
       return
     }
 
@@ -84,22 +94,25 @@ export default function CollageGeneratorModal({ isOpen, onOpenChange }: CollageG
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          title1,
+          title1: title1 || t("forms.collage.group1Title.placeholder"),
           card_ids_1: selectedCards1.map((c) => Number.parseInt(c.id)),
-          title2,
+          title2: title2 || t("forms.collage.group2Title.placeholder"),
           card_ids_2: selectedCards2.map((c) => Number.parseInt(c.id)),
         }),
       })
 
       if (!response.ok) {
-        throw new Error("コラージュ生成に失敗しました")
+        throw new Error(t("forms.collage.generationFailed"))
       }
 
       const data = await response.json()
       window.location.href = `/collages/${data.id}`
     } catch (error) {
       console.error("Error generating collage:", error)
-      alert("コラージュ生成に失敗しました")
+      toast({
+        title: t("forms.collage.generationFailed"),
+        variant: "destructive",
+      })
     } finally {
       setIsGenerating(false)
     }
@@ -110,45 +123,45 @@ export default function CollageGeneratorModal({ isOpen, onOpenChange }: CollageG
       <Dialog open={isOpen} onOpenChange={handleClose}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>コラージュ画像を生成</DialogTitle>
+            <DialogTitle>{t("messages.modals.collage.title")}</DialogTitle>
           </DialogHeader>
 
           {step === "input" && (
             <div className="space-y-6 py-4">
               <div className="space-y-2">
-                <Label htmlFor="title1">グループ1のタイトル</Label>
+                <Label htmlFor="title1">{t("forms.collage.group1Title.label")}</Label>
                 <Input
                   id="title1"
                   value={title1}
                   onChange={(e) => setTitle1(e.target.value)}
-                  placeholder="例: 求めるカード"
+                  placeholder={t("forms.collage.group1Title.placeholder")}
                   className="text-base"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="title2">グループ2のタイトル</Label>
+                <Label htmlFor="title2">{t("forms.collage.group2Title.label")}</Label>
                 <Input
                   id="title2"
                   value={title2}
                   onChange={(e) => setTitle2(e.target.value)}
-                  placeholder="例: 譲れるカード"
+                  placeholder={t("forms.collage.group2Title.placeholder")}
                   className="text-base"
                 />
               </div>
 
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                 <p className="text-sm text-blue-800">
-                  各グループで1～30枚のカードを選択できます。タイトルはコラージュ画像に表示されます。
+                  {t("messages.info.collageInstruction")}
                 </p>
               </div>
 
               <div className="flex justify-end gap-3">
                 <Button variant="outline" onClick={() => handleClose()}>
-                  キャンセル
+                  {t("common.buttons.cancel")}
                 </Button>
                 <Button onClick={handleStartSelection} className="bg-blue-600 hover:bg-blue-700 text-white">
-                  次へ
+                  {t("common.buttons.next")}
                   <ChevronRight className="h-4 w-4 ml-2" />
                 </Button>
               </div>
@@ -158,11 +171,11 @@ export default function CollageGeneratorModal({ isOpen, onOpenChange }: CollageG
           {step === "select1" && (
             <div className="space-y-4 py-4">
               <div>
-                <h3 className="font-semibold text-lg mb-2">{title1}</h3>
+                <h3 className="font-semibold text-lg mb-2">{title1 || t("forms.collage.group1Title.placeholder")}</h3>
                 <p className="text-sm text-gray-600 mb-4">
                   {selectedCards1.length > 0
-                    ? `${selectedCards1.length}枚のカードが選択されています`
-                    : "カードを選択してください"}
+                    ? t("messages.info.cardsSelected", { count: selectedCards1.length })
+                    : t("messages.info.selectCards")}
                 </p>
               </div>
 
@@ -182,7 +195,7 @@ export default function CollageGeneratorModal({ isOpen, onOpenChange }: CollageG
 
               <div className="flex justify-between gap-3">
                 <Button variant="outline" onClick={() => setStep("input")}>
-                  戻る
+                  {t("common.buttons.back")}
                 </Button>
                 <Button
                   onClick={() => {
@@ -191,7 +204,7 @@ export default function CollageGeneratorModal({ isOpen, onOpenChange }: CollageG
                   }}
                   className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
                 >
-                  カードを選択
+                  {t("common.buttons.searchCards")}
                 </Button>
               </div>
             </div>
@@ -200,11 +213,11 @@ export default function CollageGeneratorModal({ isOpen, onOpenChange }: CollageG
           {step === "select2" && (
             <div className="space-y-4 py-4">
               <div>
-                <h3 className="font-semibold text-lg mb-2">{title2}</h3>
+                <h3 className="font-semibold text-lg mb-2">{title2 || t("forms.collage.group2Title.placeholder")}</h3>
                 <p className="text-sm text-gray-600 mb-4">
                   {selectedCards2.length > 0
-                    ? `${selectedCards2.length}枚のカードが選択されています`
-                    : "カードを選択してください"}
+                    ? t("messages.info.cardsSelected", { count: selectedCards2.length })
+                    : t("messages.info.selectCards")}
                 </p>
               </div>
 
@@ -224,7 +237,7 @@ export default function CollageGeneratorModal({ isOpen, onOpenChange }: CollageG
 
               <div className="flex justify-between gap-3">
                 <Button variant="outline" onClick={() => setStep("select1")}>
-                  戻る
+                  {t("common.buttons.back")}
                 </Button>
                 <Button
                   onClick={() => {
@@ -233,7 +246,7 @@ export default function CollageGeneratorModal({ isOpen, onOpenChange }: CollageG
                   }}
                   className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
                 >
-                  カードを選択
+                  {t("common.buttons.searchCards")}
                 </Button>
               </div>
             </div>
@@ -243,7 +256,7 @@ export default function CollageGeneratorModal({ isOpen, onOpenChange }: CollageG
             <div className="space-y-4 py-4">
               <div className="bg-gray-100 rounded-lg p-6 space-y-4 max-h-96 overflow-y-auto">
                 <div>
-                  <p className="font-semibold text-sm mb-2">{title1}</p>
+                  <p className="font-semibold text-sm mb-2">{title1 || t("forms.collage.group1Title.placeholder")}</p>
                   {selectedCards1.length > 0 ? (
                     <div className="grid grid-cols-6 gap-2">
                       {selectedCards1.map((card) => (
@@ -256,12 +269,12 @@ export default function CollageGeneratorModal({ isOpen, onOpenChange }: CollageG
                       ))}
                     </div>
                   ) : (
-                    <p className="text-xs text-gray-500">カード未選択</p>
+                    <p className="text-xs text-gray-500">{t("common.misc.notSelected")}</p>
                   )}
                 </div>
 
                 <div className="border-t pt-4">
-                  <p className="font-semibold text-sm mb-2">{title2}</p>
+                  <p className="font-semibold text-sm mb-2">{title2 || t("forms.collage.group2Title.placeholder")}</p>
                   {selectedCards2.length > 0 ? (
                     <div className="grid grid-cols-6 gap-2">
                       {selectedCards2.map((card) => (
@@ -274,23 +287,23 @@ export default function CollageGeneratorModal({ isOpen, onOpenChange }: CollageG
                       ))}
                     </div>
                   ) : (
-                    <p className="text-xs text-gray-500">カード未選択</p>
+                    <p className="text-xs text-gray-500">{t("common.misc.notSelected")}</p>
                   )}
                 </div>
               </div>
 
               <div className="flex gap-2 text-xs">
                 <Button size="sm" variant="outline" onClick={() => handleEditGroup1()}>
-                  {title1}を編集
+                  {t("common.buttons.editGroup", { title: title1 || t("forms.collage.group1Title.placeholder") })}
                 </Button>
                 <Button size="sm" variant="outline" onClick={() => handleEditGroup2()}>
-                  {title2}を編集
+                  {t("common.buttons.editGroup", { title: title2 || t("forms.collage.group2Title.placeholder") })}
                 </Button>
               </div>
 
               <div className="flex justify-between gap-3">
                 <Button variant="outline" onClick={() => setStep("select2")}>
-                  戻る
+                  {t("common.buttons.back")}
                 </Button>
                 <Button
                   onClick={handleGenerateCollage}
@@ -300,10 +313,10 @@ export default function CollageGeneratorModal({ isOpen, onOpenChange }: CollageG
                   {isGenerating ? (
                     <>
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      生成中...
+                      {t("common.buttons.generating")}
                     </>
                   ) : (
-                    "コラージュ画像を生成"
+                    t("common.buttons.generate")
                   )}
                 </Button>
               </div>
@@ -318,7 +331,11 @@ export default function CollageGeneratorModal({ isOpen, onOpenChange }: CollageG
         onSelectionComplete={handlePreviewSearch}
         maxSelection={30}
         initialSelectedCards={currentSearchGroup === 1 ? selectedCards1 : selectedCards2}
-        modalTitle={`${currentSearchGroup === 1 ? title1 : title2}のカードを選択`}
+        modalTitle={t("messages.modals.collage.selectCardsForGroup", {
+          title: currentSearchGroup === 1
+            ? (title1 || t("forms.collage.group1Title.placeholder"))
+            : (title2 || t("forms.collage.group2Title.placeholder"))
+        })}
       />
     </>
   )

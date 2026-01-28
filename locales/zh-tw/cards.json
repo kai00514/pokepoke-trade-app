@@ -1,42 +1,47 @@
 {
   "categories": {
-    "all": "全て",
-    "pokemon": "ポケモン",
-    "trainers": "トレーナーズ",
-    "goods": "グッズ",
-    "tools": "どうぐ"
-  },
-  "types": {
-    "all": "全タイプ",
-    "grass": "草",
-    "fire": "炎",
-    "water": "水",
-    "electric": "電気",
-    "psychic": "エスパー",
-    "fighting": "格闘",
-    "dark": "悪",
-    "steel": "鋼",
-    "colorless": "無色",
-    "dragon": "ドラゴン"
-  },
-  "rarities": {
-    "all": "全レアリティ",
-    "diamond1": "ダイヤ1",
-    "diamond2": "ダイヤ2",
-    "diamond3": "ダイヤ3",
-    "diamond4": "ダイヤ4",
-    "star1": "星1",
-    "star2": "星2",
-    "star3": "星3",
-    "crown": "クラウン",
-    "color1": "色1",
-    "color2": "色2"
-  },
-  "packs": {
-    "all": "全てのパック"
+    "all": "全部",
+    "goods": "周邊商品",
+    "pokemon": "寶可夢",
+    "tools": "道具",
+    "trainers": "訓練家卡"
   },
   "filters": {
-    "type": "タイプ",
-    "pack": "パック名"
+    "pack": "卡包名稱",
+    "type": "屬性"
+  },
+  "packs": {
+    "all": "全部卡包"
+  },
+  "rarities": {
+    "all": "全部稀有度",
+    "color1": "顏色1",
+    "color1Label": "1",
+    "color2": "顏色2",
+    "color2Label": "2",
+    "crown": "皇冠",
+    "crownLabel": "♔",
+    "diamond1": "菱形1",
+    "diamond2": "菱形2",
+    "diamond3": "菱形3",
+    "diamond4": "菱形4",
+    "star1": "星星1",
+    "star2": "星星2",
+    "star3": "星星3"
+  },
+  "types": {
+    "all": "全部屬性",
+    "colorless": "無色",
+    "dark": "惡",
+    "darkness": "惡",
+    "dragon": "龍",
+    "electric": "電",
+    "fighting": "鬥",
+    "fire": "火",
+    "grass": "草",
+    "metal": "鋼",
+    "psychic": "超能",
+    "steel": "鋼",
+    "water": "水"
   }
 }

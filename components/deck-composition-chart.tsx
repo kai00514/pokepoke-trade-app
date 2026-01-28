@@ -3,6 +3,7 @@
 import { useMemo } from "react"
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from "recharts"
 import type { Card } from "@/components/detailed-search-modal"
+import { useTranslations } from "next-intl"
 
 type DeckCard = Card & { quantity: number }
 
@@ -17,6 +18,7 @@ const COLORS = {
 }
 
 export default function DeckCompositionChart({ cards }: DeckCompositionChartProps) {
+  const t = useTranslations()
   const data = useMemo(() => {
     const composition = {
       pokemon: 0,
@@ -44,7 +46,7 @@ export default function DeckCompositionChart({ cards }: DeckCompositionChartProp
   }, [cards])
 
   if (data.length === 0) {
-    return <div className="text-center text-sm text-slate-500 py-8">デッキにカードがありません。</div>
+    return <div className="text-center text-sm text-slate-500 py-8">{t('decks.noCards')}</div>
   }
 
   return (

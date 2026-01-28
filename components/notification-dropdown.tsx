@@ -12,8 +12,10 @@ import {
   getNotificationRedirectPath,
 } from "@/lib/services/notification-service"
 import { useAuth } from "@/contexts/auth-context"
-import { useRouter } from "next/navigation"
+import { useRouter } from "@/lib/i18n-navigation"
 import { event as gtagEvent } from "@/lib/analytics/gtag"
+import { useTranslations, useLocale } from "next-intl"
+import TranslateButton from "@/components/translate-button"
 
 interface Notification {
   id: string
@@ -26,6 +28,8 @@ interface Notification {
 }
 
 export function NotificationDropdown() {
+  const t = useTranslations()
+  const locale = useLocale()
   const { user } = useAuth()
   const router = useRouter()
   const [notifications, setNotifications] = useState<Notification[]>([])
@@ -114,7 +118,7 @@ export function NotificationDropdown() {
       case "reply":
       case "comment_on_post":
         return {
-          label: "トレード",
+          label: t('messages.notifications.types.trade'),
           color: "bg-blue-500",
           icon: <Users className="h-3 w-3" />,
         }
@@ -122,13 +126,13 @@ export function NotificationDropdown() {
       case "deck_comment":
       case "deck_like":
         return {
-          label: "デッキ",
+          label: t('messages.notifications.types.deck'),
           color: "bg-green-500",
           icon: <Package className="h-3 w-3" />,
         }
       default:
         return {
-          label: "その他",
+          label: t('messages.notifications.types.other'),
           color: "bg-gray-500",
           icon: <Bell className="h-3 w-3" />,
         }
@@ -142,9 +146,9 @@ export function NotificationDropdown() {
 
     if (diffInHours < 1) {
       const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60))
-      return diffInMinutes < 1 ? "今" : `${diffInMinutes}分前`
+      return diffInMinutes < 1 ? t('messages.notifications.time.now') : t('messages.notifications.time.minutesAgo', { count: diffInMinutes })
     } else if (diffInHours < 24) {
-      return `${diffInHours}時間前`
+      return t('messages.notifications.time.hoursAgo', { count: diffInHours })
     } else {
       return date.toLocaleString("ja-JP", {
         year: "numeric",
@@ -158,8 +162,8 @@ export function NotificationDropdown() {
 
   const parseNotificationContent = (content: string) => {
     // contentから情報を抽出
-    let senderName = "不明なユーザー"
-    let contentTitle = "詳細不明"
+    let senderName = t('messages.notifications.unknownUser')
+    let contentTitle = t('messages.notifications.unknownDetails')
 
     // "○○さんが「××」にコメントしました" のようなパターンを解析
     const userNameMatch = content.match(/^(.+?)さんが/)
@@ -185,7 +189,7 @@ export function NotificationDropdown() {
           variant="ghost"
           size="icon"
           className="relative text-white hover:bg-white/20 rounded-full h-9 w-9 sm:h-10 sm:w-10 transition-all duration-200"
-          aria-label={`通知 ${unreadCount > 0 ? `(${unreadCount}件の未読)` : ""}`}
+          aria-label={unreadCount > 0 ? t('messages.notifications.unreadCount', { count: unreadCount }) : t('messages.notifications.title')}
         >
           <Bell className="h-5 w-5 sm:h-6 sm:w-6" />
           {unreadCount > 0 && (
@@ -213,7 +217,7 @@ export function NotificationDropdown() {
       >
         {/* ヘッダー - 固定高さ */}
         <div className="flex items-center justify-between p-3 border-b bg-gray-50/50 flex-shrink-0">
-          <h3 className="font-semibold text-sm text-gray-900">通知</h3>
+          <h3 className="font-semibold text-sm text-gray-900">{t('messages.notifications.title')}</h3>
           {unreadCount > 0 && (
             <Button
               variant="ghost"
@@ -222,8 +226,8 @@ export function NotificationDropdown() {
               className="text-xs h-6 px-2 hover:bg-gray-100 transition-colors text-gray-600 hover:text-gray-900"
             >
               <CheckCheck className="h-3 w-3 mr-1" />
-              <span className="hidden sm:inline">全て既読</span>
-              <span className="sm:hidden">既読</span>
+              <span className="hidden sm:inline">{t('messages.notifications.markAllAsRead')}</span>
+              <span className="sm:hidden">{t('messages.notifications.markAsRead')}</span>
             </Button>
           )}
         </div>
@@ -239,12 +243,12 @@ export function NotificationDropdown() {
           {loading ? (
             <div className="p-6 text-center">
               <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500 mx-auto mb-2"></div>
-              <p className="text-sm text-muted-foreground">読み込み中...</p>
+              <p className="text-sm text-muted-foreground">{t('messages.notifications.loading')}</p>
             </div>
           ) : notifications.length === 0 ? (
             <div className="p-6 text-center">
               <Bell className="h-10 w-10 text-gray-300 mx-auto mb-3" />
-              <p className="text-sm text-muted-foreground">通知はありません</p>
+              <p className="text-sm text-muted-foreground">{t('messages.notifications.noNotifications')}</p>
             </div>
           ) : (
             <div className="divide-y divide-gray-100">
@@ -285,13 +289,22 @@ export function NotificationDropdown() {
                           </div>
                         </div>
 
-                        {senderName !== "不明なユーザー" && contentTitle !== "詳細不明" && (
+                        {senderName !== t('messages.notifications.unknownUser') && contentTitle !== t('messages.notifications.unknownDetails') && (
                           <p className="text-xs text-gray-600 font-medium line-clamp-1">
-                            {senderName}さんから「{contentTitle}」について
+                            {t('messages.notifications.fromAbout', { sender: senderName, content: contentTitle })}
                           </p>
                         )}
 
                         <p className="text-sm text-gray-800 line-clamp-2 leading-relaxed">{notification.content}</p>
+                        
+                        <TranslateButton 
+                          text={notification.content} 
+                          sourceLang="ja"
+                          targetLang={locale === 'ja' ? 'en' : undefined}
+                          size="sm"
+                          variant="ghost"
+                          className="mt-1"
+                        />
 
                         {!notification.is_read && (
                           <div className="flex justify-end pt-1">
@@ -303,7 +316,7 @@ export function NotificationDropdown() {
                                 e.stopPropagation()
                                 handleMarkAsRead(notification.id)
                               }}
-                              aria-label="既読にする"
+                              aria-label={t('messages.notifications.markAsRead')}
                             >
                               <Check className="h-3 w-3" />
                             </Button>
@@ -322,7 +335,7 @@ export function NotificationDropdown() {
         {notifications.length > 0 && (
           <div className="p-2 border-t bg-gray-50/30 flex-shrink-0">
             <p className="text-xs text-center text-gray-500">
-              {notifications.length >= 50 ? "最新50件を表示" : `${notifications.length}件の通知`}
+              {notifications.length >= 50 ? t('messages.notifications.showing50') : t('messages.notifications.count', { count: notifications.length })}
             </p>
           </div>
         )}

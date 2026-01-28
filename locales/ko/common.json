@@ -1,0 +1,176 @@
+{
+  "auth": {
+    "safeLogout": "안전하게 로그아웃하기"
+  },
+  "buttons": {
+    "back": "뒤로",
+    "backToOptions": "← 다른 등록 방법 선택",
+    "cancel": "취소",
+    "close": "닫기",
+    "complete": "선택 완료",
+    "contact": "문의하기",
+    "continueAsGuest": "게스트로 계속하기",
+    "copied": "복사됨",
+    "copy": "복사",
+    "createAccount": "계정 만들기",
+    "createCardList": "제공 카드 리스트 만들기",
+    "createList": "리스트 생성",
+    "createPost": "새 게시글 작성",
+    "createTrade": "트레이드 희망 글 작성",
+    "creating": "생성 중...",
+    "detailedSearch": "상세 검색",
+    "details": "자세히 보기",
+    "generate": "콜라주 이미지 생성",
+    "generateCollage": "콜라주 이미지 생성",
+    "generating": "생성 중...",
+    "googleLogin": "Google로 로그인",
+    "lineLogin": "LINE으로 로그인 (준비 중)",
+    "loggingIn": "로그인 중...",
+    "login": "로그인",
+    "logout": "로그아웃",
+    "next": "다음",
+    "post": "게시",
+    "refreshSession": "세션 새로고침",
+    "registerPokepokeId": "포케포케 ID 등록",
+    "registerUsername": "사용자명 등록",
+    "resendConfirmation": "확인 이메일 다시 보내기",
+    "search": "검색",
+    "searchAndAddCards": "카드를 검색/추가",
+    "selectCards": "카드 선택 (최대 20장)",
+    "selectFromList": "리스트에서 선택",
+    "send": "보내기",
+    "sendResetEmail": "비밀번호 재설정 메일 보내기",
+    "sending": "전송 중...",
+    "share": "공유",
+    "signup": "회원가입",
+    "signupWithEmail": "이메일로 회원가입",
+    "signupWithGoogle": "Google로 가입",
+    "signupWithLine": "LINE으로 가입 (준비 중)",
+    "signupWithX": "X로 가입",
+    "submit": "등록",
+    "submitting": "등록 중...",
+    "toLoginPage": "로그인 페이지로 이동",
+    "updatePassword": "비밀번호 업데이트",
+    "updating": "업데이트 중...",
+    "viewDetails": "자세히 보기",
+    "xLogin": "X로 로그인",
+    "create": "생성",
+    "editGroup": "{title} 수정",
+    "save": "저장",
+    "saving": "저장 중...",
+    "searchCards": "카드 검색",
+    "backToList": "목록으로 돌아가기"
+  },
+  "contact": {
+    "prompt": "문의 사항이나 요청을 공유해주세요"
+  },
+  "footer": {
+    "navigation": "내비게이션"
+  },
+  "header": {
+    "logoAlt": "PokeLink 로고",
+    "notAuthenticated": "사용자가 인증되지 않았습니다.",
+    "openUserMenu": "사용자 메뉴 열기",
+    "userAvatar": "사용자 아바타"
+  },
+  "labels": {
+    "adSpace": "광고 공간",
+    "completed": "완료",
+    "inProgress": "진행 중",
+    "negotiable": "협의 가능",
+    "optional": "선택 사항",
+    "or": "또는",
+    "profileBanner": "프로필 배너",
+    "recruiting": "모집 중",
+    "soon": "SOON",
+    "unknown": "알 수 없음",
+    "user": "사용자",
+    "details": "상세정보"
+  },
+  "language": {
+    "de": "Deutsch",
+    "en": "English",
+    "es": "Español",
+    "fr": "Français",
+    "it": "Italiano",
+    "ja": "日本語",
+    "ko": "한국어",
+    "pt-BR": "Português (Brasil)",
+    "zh-CN": "简体中文",
+    "zh-TW": "繁體中文"
+  },
+  "misc": {
+    "addCardsInstruction": "위 버튼에서 카드를 추가해주세요",
+    "confirm": "확인",
+    "loading": "로딩 중...",
+    "noCardsYet": "선택된 카드가 없습니다",
+    "notSelected": "카드 미선택",
+    "notice": "알림",
+    "processing": "처리 중...",
+    "selectLanguage": "언어를 선택하세요",
+    "switchLanguage": "언어 변경",
+    "updated": "업데이트됨"
+  },
+  "navigation": {
+    "backToLists": "리스트 목록으로 돌아가기",
+    "backToLogin": "로그인 페이지로 돌아가기",
+    "backToTimeline": "타임라인으로 돌아가기",
+    "backToTop": "메인 페이지로 돌아가기",
+    "decks": "덱",
+    "history": "히스토리",
+    "home": "홈",
+    "info": "최신 정보",
+    "matching": "매칭"
+  },
+  "notifications": {
+    "count": "{count}개의 알림",
+    "fromAbout": "{sender}님이 \"{content}\"에 대해 보냈습니다",
+    "loading": "로딩 중...",
+    "markAllAsRead": "모두 읽음으로 표시",
+    "markAsRead": "읽음",
+    "noNotifications": "알림이 없습니다",
+    "showing50": "최근 50개 표시 중",
+    "time": {
+      "hoursAgo": "{count}시간 전",
+      "minutesAgo": "{count}분 전",
+      "now": "방금"
+    },
+    "title": "알림",
+    "types": {
+      "deck": "덱",
+      "other": "기타",
+      "trade": "트레이드"
+    },
+    "unknownDetails": "세부 정보 없음",
+    "unknownUser": "알 수 없는 사용자",
+    "unreadCount": "알림 ({count}개 읽지 않음)"
+  },
+  "share": {
+    "copyLinkHint": "링크 복사",
+    "description": "이 게시글을 공유하세요",
+    "postUrl": "게시글 URL",
+    "shareOnSns": "SNS에 공유",
+    "title": "공유"
+  },
+  "user": {
+    "customizeDisplayName": "표시 이름 설정",
+    "online": "온라인",
+    "setYourId": "나만의 ID 설정"
+  },
+  "units": {
+    "cards": "장"
+  },
+  "translation": {
+    "translate": "번역",
+    "translating": "번역 중...",
+    "hideTranslation": "번역 숨기기",
+    "translatedText": "번역된 텍스트"
+  },
+  "time": {
+    "secondsAgo": "{count}초 전",
+    "minutesAgo": "{count}분 전",
+    "hoursAgo": "{count}시간 전",
+    "daysAgo": "{count}일 전",
+    "today": "오늘"
+  }
+}

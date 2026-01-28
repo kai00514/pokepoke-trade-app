@@ -1,50 +1,122 @@
 {
-  "success": {
-    "loginSuccess": "ログイン成功",
-    "loginSuccessMessage": "ログインしました。",
-    "confirmationEmailSent": "確認メール送信",
-    "confirmationEmailSentMessage": "確認メールを送信しました。メールをご確認の上、リンクをクリックして登録を完了してください。",
-    "checkEmail": "メールをご確認ください。",
-    "signupComplete": "登録完了",
-    "accountCreated": "アカウントが作成されました。",
-    "passwordUpdated": "パスワード更新完了",
-    "passwordUpdatedMessage": "新しいパスワードでログインしてください。",
-    "resetEmailSent": "メール送信完了",
-    "resetEmailSentMessage": "パスワードリセットのリンクを送信しました。",
-    "resetEmailSentDetail": "パスワードリセットのリンクをメールアドレスに送信しました。メールをご確認ください。",
-    "passwordUpdateSuccess": "パスワードが正常に更新されました。ログインページへ移動してください。",
-    "sessionRefreshed": "セッション更新完了",
-    "sessionRefreshedMessage": "セッションが正常に更新されました。",
-    "tradePosted": "投稿成功",
-    "tradePostedMessage": "トレード投稿が作成されました。",
-    "listCreated": "リスト作成完了",
-    "listCreatedMessage": "カードリストが正常に作成されました。",
-    "urlCopied": "URLをコピーしました",
-    "urlCopiedMessage": "リンクがクリップボードにコピーされました。",
-    "idCopied": "コピーしました",
-    "idCopiedMessage": "ID: {postId} をクリップボードにコピーしました。",
-    "resendConfirmation": "確認メール再送信",
-    "resendConfirmationMessage": "確認メールを再送信しました。"
-  },
   "info": {
-    "tradeNotice": "ここで登録された内容はタイムラインに即時反映されます。コメントがあれば、ベルマークから確認できます。トレード状況はマイページのトレード履歴から確認できます。",
+    "cardsSelected": "{count}枚のカードが選択されています",
     "collageDescription": "複数のカード画像を自動で合成して、1つのコラージュ画像を作成できます。生成したコラージュはXに投稿できます。",
     "collageInstruction": "各グループで1～30枚のカードを選択できます。タイトルはコラージュ画像に表示されます。",
     "loginRequired": "コラージュを生成・管理するにはログインが必要です。",
-    "cardsSelected": "{count}枚のカードが選択されています",
-    "selectCards": "カードを選択してください",
+    "maxCards": "(最大{max}枚)",
+    "noCardsFound": "該当するカードが見つかりません。",
     "noCardsSelected": "カードが選択されていません",
-    "selectedCount": "選択されたカード: {count}枚",
-    "selectedCountWithMax": "{count}枚選択中 (最大{max}枚)",
-    "resultCount": "全{totalCount}件中 {start}〜{end}件を表示",
-    "noPostsFound": "該当する投稿が見つかりませんでした。",
     "noPosts": "投稿がありません",
-    "noCardsFound": "該当するカードが見つかりません。"
+    "noPostsFound": "該当する投稿が見つかりませんでした。",
+    "resultCount": "全{totalCount}件中 {start}〜{end}件を表示",
+    "searchCardsInstruction": "「カードを検索」ボタンからカードを選択してください",
+    "selectCards": "カードを選択してください",
+    "selectedCount": "選択されたカード: {count}枚",
+    "selectedCountCards": "{count}枚選択中",
+    "selectedCountWithMax": "{count}枚選択中 (最大{max}枚)",
+    "tradeNotice": "ここで登録された内容はタイムラインに即時反映されます。コメントがあれば、ベルマークから確認できます。トレード状況はマイページのトレード履歴から確認できます。"
   },
+  "modals": {
+    "collage": {
+      "selectCardsForGroup": "{title}のカードを選択",
+      "title": "コラージュ画像を生成"
+    },
+    "detailedSearch": {
+      "title": "カード詳細検索"
+    },
+    "list": {
+      "createNew": "新しいリストを作成"
+    },
+    "loginPrompt": {
+      "benefit1": "ポケポケID・ユーザー名を自動入力",
+      "benefit2": "希望/譲渡カードのリスト作成",
+      "benefit3": "通知アイコンで最新情報を受け取り",
+      "benefit4": "履歴画面でトレード状況を確認",
+      "benefit5": "デッキをお気に入り登録",
+      "title": "アカウント登録でもっと便利に！"
+    },
+    "pokepokeId": {
+      "description": "あなたのポケポケIDを設定してください。他のユーザーがあなたを見つけやすくなります。",
+      "title": "ポケポケID登録"
+    },
+    "selectCards": {
+      "description": "リストに追加するカードを選択してください（最大35枚、現在{count}枚選択中）",
+      "title": "カードを選択"
+    },
+    "username": {
+      "description": "表示用のユーザー名を設定してください。いつでも変更できます。",
+      "title": "ユーザー名登録"
+    }
+  },
+  "success": {
+    "accountCreated": "アカウントが作成されました。",
+    "checkEmail": "メールをご確認ください。",
+    "confirmationEmailSent": "確認メール送信",
+    "confirmationEmailSentMessage": "確認メールを送信しました。メールをご確認の上、リンクをクリックして登録を完了してください。",
+    "copied": "コピーしました",
+    "idCopied": "コピーしました",
+    "idCopiedMessage": "ID: {postId} をクリップボードにコピーしました。",
+    "listCreated": "リスト作成完了",
+    "listCreatedMessage": "カードリストが正常に作成されました。",
+    "loginSuccess": "ログイン成功",
+    "loginSuccessMessage": "ログインしました。",
+    "passwordUpdateSuccess": "パスワードが正常に更新されました。ログインページへ移動してください。",
+    "passwordUpdated": "パスワード更新完了",
+    "passwordUpdatedMessage": "新しいパスワードでログインしてください。",
+    "resendConfirmation": "確認メール再送信",
+    "resendConfirmationMessage": "確認メールを再送信しました。",
+    "resetEmailSent": "メール送信完了",
+    "resetEmailSentDetail": "パスワードリセットのリンクをメールアドレスに送信しました。メールをご確認ください。",
+    "resetEmailSentMessage": "パスワードリセットのリンクを送信しました。",
+    "sessionRefreshed": "セッション更新完了",
+    "sessionRefreshedMessage": "セッションが正常に更新されました。",
+    "signupComplete": "登録完了",
+    "postSuccess": "投稿成功",
+    "tradePostCreated": "トレード投稿が作成されました。",
+    "tradePosted": "投稿成功",
+    "tradePostedMessage": "トレード投稿が作成されました。",
+    "urlCopied": "URLをコピーしました",
+    "urlCopiedMessage": "リンクがクリップボードにコピーされました。",
+    "listCreationComplete": "リスト作成完了",
+    "listCreatedSuccessfully": "カードリストが正常に作成されました。",
+    "unfavorited": "お気に入りを解除しました。"
+  },
+  "notifications": {
+    "title": "通知",
+    "noNotifications": "通知はありません",
+    "loading": "読み込み中...",
+    "markAsRead": "既読",
+    "markAllAsRead": "全て既読にする",
+    "unreadCount": "{count}件の未読通知",
+    "count": "{count}件",
+    "showing50": "50件以上",
+    "types": {
+      "trade": "トレード",
+      "deck": "デッキ",
+      "other": "その他"
+    },
+    "time": {
+      "now": "たった今",
+      "minutesAgo": "{count}分前",
+      "hoursAgo": "{count}時間前"
+    },
+    "unknownUser": "不明なユーザー",
+    "unknownDetails": "詳細なし",
+    "fromAbout": "{sender}さんが「{content}」について"
+  },
+  "title": "メッセージ",
   "warning": {
+    "selectionLimit": "選択上限",
     "timeSkew": "時刻同期の問題",
-    "timeSkewMessage": "デバイスの時計が{formatTimeSkew}ずれています。投稿に失敗する可能性があります。",
     "timeSkewDetail": "デバイスの時計が{formatTimeSkew}ずれています。これにより認証に問題が発生する可能性があります。",
-    "selectionLimit": "選択上限"
-  }
+    "timeSkewMessage": "デバイスの時計が{formatTimeSkew}ずれています。投稿に失敗する可能性があります。",
+    "maxSelectionReached": "最大{maxSelection}枚まで選択できます。"
+  },
+  "auth": {
+    "listsLoginRequired": "カードリストを作成・閲覧するにはログインしてください。"
+  },
+  "ownerActions": "投稿者のアクション",
+  "cancel": "キャンセル",
+  "complete": "完了"
 }
